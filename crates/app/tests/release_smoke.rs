@@ -10,11 +10,13 @@ use staple_app::storage::LocalStorage;
 use staple_app::{router, state::AppState};
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
-    TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoPermissionGrantRepository,
+    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPreferenceRepository,
     TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
@@ -72,6 +74,31 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        memberships: Arc::new(TursoMembershipRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        invites: Arc::new(TursoInviteRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        board_keys: Arc::new(TursoBoardKeyRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        budget_policies: Arc::new(TursoBudgetPolicyRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        preferences: Arc::new(TursoPreferenceRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

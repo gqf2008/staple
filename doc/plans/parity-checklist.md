@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55 完成）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56 完成）。
 
 ## 使用方式
 
@@ -37,6 +37,7 @@
 | **P2 治理扩展：external objects** | 关联 + 状态刷新 | ✅ 完成 | `external_objects.rs`（迁移 0007） |
 | **P2 扩展：environments + 执行工作区** | environments 池、project/execution workspaces、runtime services、workspace operations | ✅ 完成 | `environments.rs` + `workspaces.rs`（迁移 0009）；issue #52/PR #67 |
 | **P2 扩展：issue 结构增强** | labels、issue 线程、已读状态、审批链接、执行决策 | ✅ 完成 | `labels.rs` + `issue_structure.rs`（迁移 0010）；issue #53/PR #68 |
+| **P2 扩展：访问与运营** | company memberships、instance roles、invites/join requests、board API keys、CLI auth challenges、budget policies/incidents、sidebar preferences、company logos | ✅ 完成 | `memberships`/`invites`/`board_keys`/`budget_policies`/`preferences` 仓库（迁移 0013）；issue #56；board key 认证（`bk-`）接入 auth 层 |
 | **P2 扩展：routines** | 例行任务定义 + 追加式修订 + 触发器（manual/cron/webhook）+ 运行 | ✅ 完成 | `routines.rs`（迁移 0011）；issue #54/PR #69；cron 实际调度留给 scheduler |
 | **P2 UI：看板** | 公司/项目/issue 列表 | ✅ 完成 | `ui/pages.rs` + 令牌层 |
 | **P2 UI：issue 详情** | 属性/评论/文档/附件/work products | ✅ 完成 | `ui/pages.rs` issue_detail |
@@ -54,7 +55,6 @@
 | managed checkout / git 凭据 | 上游近期新增 | 未开始 |
 | decision desk 完整 retention/sweeper | 基础队列/三态已实现 | 进行中 |
 | 插件生态（plugin namespaces 等） | 上游 addenda | 未开始 |
-| 访问与运营（company memberships、instance roles、invites、board API keys、CLI auth challenges、budget policies/incidents、sidebar preferences、company logos） | 未实现 | 未开始（issue #56） |
 | UI 完整功能（搜索、看板拖拽、设置页等） | 骨架 + 核心页已实现 | 进行中 |
 | **UI 国际化（i18n）** | 上游已合入 zh-CN/zh-TW 全量 sweep + 多语言 locale（`ui/src/i18n/locales/*.json`，约 2100 键）；Rust/Topcoat UI 已有 en + zh-CN 轻量 i18n 层（`crates/app/src/i18n.rs`，`?lang=` 切换，6 个看板页面全量接入，issue #50/PR #51） | ✅ 完成（zh-TW 与完整键集为后续增量） |
 
