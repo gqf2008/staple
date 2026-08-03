@@ -495,3 +495,55 @@ impl From<staple_data::WorkProductRecord> for WorkProductDto {
         }
     }
 }
+
+/// Heartbeat run resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct HeartbeatRunDto {
+    /// Run id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Agent id.
+    pub agent_id: String,
+    /// Invocation source.
+    pub invocation_source: String,
+    /// Status.
+    pub status: String,
+    /// ISO 8601 start time.
+    pub started_at: Option<String>,
+    /// ISO 8601 finish time.
+    pub finished_at: Option<String>,
+    /// Error message.
+    pub error: Option<String>,
+    /// Failure attribution (`infrastructure | agent`).
+    pub error_kind: Option<String>,
+    /// Context snapshot.
+    pub context_snapshot: Option<String>,
+    /// Trigger detail.
+    pub trigger_detail: Option<String>,
+    /// Log bytes.
+    pub log_bytes: i64,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::HeartbeatRunRecord> for HeartbeatRunDto {
+    fn from(record: staple_data::HeartbeatRunRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            agent_id: record.agent_id,
+            invocation_source: record.invocation_source,
+            status: record.status,
+            started_at: record.started_at,
+            finished_at: record.finished_at,
+            error: record.error,
+            error_kind: record.error_kind,
+            context_snapshot: record.context_snapshot,
+            trigger_detail: record.trigger_detail,
+            log_bytes: record.log_bytes,
+            created_at: record.created_at,
+        }
+    }
+}

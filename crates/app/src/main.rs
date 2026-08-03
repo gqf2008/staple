@@ -4,8 +4,8 @@ use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
     TursoAssetRepository, TursoCompanyRepository, TursoDocumentRepository, TursoGoalRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoWorkProductRepository, migrate, open,
+    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoWorkProductRepository, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -25,6 +25,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let assets_db = open(&db_config).await?;
     let relations_db = open(&db_config).await?;
     let work_products_db = open(&db_config).await?;
+    let heartbeat_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
@@ -37,6 +38,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         relations: Arc::new(TursoIssueRelationRepository::new(relations_db)),
         storage: LocalStorage::new("data/uploads"),
         work_products: Arc::new(TursoWorkProductRepository::new(work_products_db)),
+        heartbeat: Arc::new(TursoHeartbeatRepository::new(heartbeat_db)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;

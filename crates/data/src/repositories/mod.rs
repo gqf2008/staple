@@ -8,6 +8,7 @@ pub mod assets;
 pub mod companies;
 pub mod documents;
 pub mod goals;
+pub mod heartbeat_runs;
 mod helpers;
 pub mod issue_comments;
 pub mod issue_relations;
@@ -27,6 +28,10 @@ pub use documents::{
     UpdateIssueDocument,
 };
 pub use goals::{GoalError, GoalPatch, GoalRecord, GoalRepository, NewGoal, TursoGoalRepository};
+pub use heartbeat_runs::{
+    CompleteHeartbeatRun, HeartbeatError, HeartbeatRepository, HeartbeatRunRecord, NewHeartbeatRun,
+    TursoHeartbeatRepository,
+};
 pub use issue_comments::{
     IssueCommentError, IssueCommentRecord, IssueCommentRepository, NewIssueComment,
     TursoIssueCommentRepository,
