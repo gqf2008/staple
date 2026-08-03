@@ -1,0 +1,75 @@
+name: Sync Upstream
+
+# Keeps gqf2008/paperclip in sync with paperclipai/paperclip.
+# - sync/upstream always mirrors upstream/master.
+# - If master is still an ancestor of upstream, master is fast-forwarded automatically.
+# - Once master diverges (own commits), a PR sync/upstream -> master is opened instead.
+
+on:
+  schedule:
+    - cron: "0 */6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: sync-upstream
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Configure git and fetch upstream
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/paperclipai/paperclip.git
+          git fetch upstream master --prune
+
+      - name: Mirror upstream to sync/upstream
+        run: |
+          git branch -f sync/upstream upstream/master
+          git push --force origin sync/upstream:sync/upstream
+
+      - name: Fast-forward master when possible
+        run: |
+          if git merge-base --is-ancestor origin/master upstream/master; then
+            git push origin upstream/master:master
+            echo "synced=fast-forward" >> "$GITHUB_ENV"
+            echo "::notice::Master fast-forwarded to upstream master ($(git rev-parse --short upstream/master))."
+          else
+            echo "synced=pr" >> "$GITHUB_ENV"
+            echo "::notice::Master has diverged from upstream; opening/updating sync PR."
+          fi
+
+      - name: Open or update sync PR
+        if: env.synced == 'pr'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          count="$(git rev-list --count origin/master..upstream/master)"
+          log="$(git log --pretty=format:'- %h %s' origin/master..upstream/master | head -60)"
+          body="New upstream commits not yet in \`master\` ($count total).
+
+          <details>
+          <summary>Commits</summary>
+
+          $log
+          </details>
+
+          Merge this PR to stay in sync, then resolve any conflicts with fork-local changes."
+          if gh pr view sync/upstream --json number --quiet 2>/dev/null; then
+            gh pr edit sync/upstream --base master --title "chore: sync upstream changes ($count commits)" --body "$body"
+          else
+            gh pr create --base master --head sync/upstream --title "chore: sync upstream changes ($count commits)" --body "$body"
+          fi
