@@ -112,6 +112,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
             registry
         }),
+        plugin_reports: Vec::new(),
     };
     (state, seed_db)
 }
@@ -2545,4 +2546,13 @@ async fn adapter_registry_and_cli_lifecycle() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn adapter_plugin_status_endpoint() {
+    let app = router(test_state().await);
+    let (status, body) =
+        send_json(&app, Method::GET, "/api/adapters/plugins/status", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(body["reports"].is_array());
 }

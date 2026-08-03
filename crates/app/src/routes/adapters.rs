@@ -89,3 +89,10 @@ pub async fn cancel_adapter_run(cx: &Cx) -> Result<Json<serde_json::Value>, ApiE
 /// Shared `{type}` path parameter for adapters.
 #[path_param(error = bad_request("Invalid adapter type"))]
 pub(crate) struct Type(String);
+
+/// `GET /api/adapters/plugins/status` — plugin load diagnostics.
+#[route(GET "/api/adapters/plugins/status")]
+pub async fn plugin_status(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    let state = app_context::<AppState>(cx);
+    Ok(Json(json!({ "reports": state.plugin_reports })))
+}

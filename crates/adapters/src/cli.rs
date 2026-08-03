@@ -27,6 +27,8 @@ struct ManagedProcess {
 /// Local CLI adapter configuration.
 #[derive(Debug, Clone)]
 pub struct CliAdapterConfig {
+    /// Adapter type name (defaults to `cli_local`).
+    pub name: String,
     /// Program to run (`sh` by default).
     pub program: String,
     /// Argument prefix for the task (`-c` for `sh`).
@@ -36,6 +38,7 @@ pub struct CliAdapterConfig {
 impl Default for CliAdapterConfig {
     fn default() -> Self {
         Self {
+            name: "cli_local".to_owned(),
             program: "sh".to_owned(),
             args: vec!["-c".to_owned()],
         }
@@ -65,7 +68,7 @@ impl CliAdapter {
 #[async_trait::async_trait]
 impl AgentAdapter for CliAdapter {
     fn name(&self) -> &str {
-        "cli_local"
+        &self.config.name
     }
 
     async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError> {
@@ -170,6 +173,7 @@ mod tests {
 
     fn adapter() -> CliAdapter {
         CliAdapter::new(CliAdapterConfig {
+            name: "cli_local".to_owned(),
             program: "sh".to_owned(),
             args: vec!["-c".to_owned()],
         })
