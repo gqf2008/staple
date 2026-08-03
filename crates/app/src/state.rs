@@ -3,14 +3,15 @@
 use std::sync::Arc;
 
 use staple_data::{
-    ActivityRepository, AgentRepository, ApiKeyRepository, ApprovalRepository, AssetRepository,
-    BoardKeyRepository, BudgetPolicyRepository, CompanyRepository, CostRepository,
-    DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectRepository,
-    GoalRepository, HeartbeatRepository, InviteRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
-    MembershipRepository, PermissionGrantRepository, PluginRepository, PluginRuntimeRepository,
-    PreferenceRepository, ProjectRepository, RoutineRepository, SecretRepository, SkillRepository,
-    WorkProductRepository, WorkspaceRepository,
+    ActivityRepository, AgentRepository, AgentRuntimeRepository, ApiKeyRepository,
+    ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
+    CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
+    EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
+    InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
+    IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
+    PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
+    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -23,6 +24,8 @@ pub struct AppState {
     pub companies: Arc<dyn CompanyRepository>,
     /// Agents repository (org hierarchy, subordinate budgets).
     pub agents: Arc<dyn AgentRepository>,
+    /// Agent runtime (sessions/state/wakeups/recovery) repository.
+    pub agent_runtime: Arc<dyn AgentRuntimeRepository>,
     /// Principal permission grants repository.
     pub permission_grants: Arc<dyn PermissionGrantRepository>,
     /// Company memberships / instance roles repository.

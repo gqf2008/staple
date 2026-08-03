@@ -10,16 +10,16 @@ use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
-    TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
-    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
-    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPluginRepository,
-    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
+    TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
+    TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
+    TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository, TursoDocumentRepository,
+    TursoEnvironmentRepository, TursoExternalObjectRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -37,6 +37,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let agents_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let agent_runtime_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let permission_grants_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -137,6 +140,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(agents_db)),
+        agent_runtime: Arc::new(TursoAgentRuntimeRepository::new(agent_runtime_db)),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
@@ -4006,4 +4010,221 @@ async fn plugin_ecosystem_full_chain() {
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn agent_runtime_and_recovery_flow() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'One', 'worker', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'T', 1, 'ALPHA-1')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Task sessions.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-task-sessions",
+        json!({
+            "agentId": "11111111-1111-1111-1111-111111111111",
+            "adapterType": "cli",
+            "taskKey": "task-1",
+            "sessionDisplayId": "sess-1"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, sessions) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/agent-task-sessions",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(sessions.as_array().unwrap().len(), 1);
+
+    // Runtime state.
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        "/api/companies/c1/agent-runtime-state/11111111-1111-1111-1111-111111111111",
+        json!({ "adapterType": "cli", "state": { "step": 2 }, "totalInputTokens": 100 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["totalInputTokens"], 100);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/agent-runtime-state/11111111-1111-1111-1111-111111111111",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["stateJson"]["step"], 2);
+
+    // Wakeup queue -> claim -> finish.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-wakeup-requests",
+        json!({
+            "agentId": "11111111-1111-1111-1111-111111111111",
+            "source": "scheduler",
+            "reason": "timeout",
+            "idempotencyKey": "wake-1"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let wakeup_id = body["id"].as_str().unwrap().to_owned();
+    // Duplicate idempotency key coalesces (returns same id).
+    let (status, body2) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-wakeup-requests",
+        json!({
+            "agentId": "11111111-1111-1111-1111-111111111111",
+            "source": "scheduler",
+            "idempotencyKey": "wake-1"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(body2["id"], wakeup_id);
+    assert_eq!(body2["coalescedCount"], 1);
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/agent-wakeup-requests/{wakeup_id}/claim"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "claimed");
+    // Claiming again fails with 422.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/agent-wakeup-requests/{wakeup_id}/claim"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/agent-wakeup-requests/{wakeup_id}/finish"),
+        json!({ "status": "finished", "runId": "run-1" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "finished");
+
+    // Recovery actions state machine.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/recovery-actions",
+        json!({
+            "sourceIssueId": "22222222-2222-2222-2222-222222222222",
+            "kind": "restore",
+            "ownerAgentId": "11111111-1111-1111-1111-111111111111",
+            "cause": "lost_process",
+            "fingerprint": "fp-1",
+            "nextAction": "resume",
+            "maxAttempts": 3
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let action_id = body["id"].as_str().unwrap().to_owned();
+    assert_eq!(body["status"], "active");
+
+    // Escalate -> restore -> resolve.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/recovery-actions/{action_id}/escalate"),
+        json!({ "resolutionNote": "needs board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "escalated");
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/recovery-actions/{action_id}/restore"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "active");
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/recovery-actions/{action_id}/resolve"),
+        json!({ "outcome": "restored", "resolutionNote": "done" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "resolved");
+    // Resolving again fails.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/recovery-actions/{action_id}/resolve"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    let (status, actions) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/recovery-actions",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(actions.as_array().unwrap().len(), 1);
+
+    // Cross-company reads are empty/404.
+    let (status, sessions) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c2/agent-task-sessions",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(sessions.as_array().unwrap().is_empty());
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c2/agent-runtime-state/11111111-1111-1111-1111-111111111111",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

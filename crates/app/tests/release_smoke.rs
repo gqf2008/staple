@@ -9,16 +9,16 @@ use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
 use staple_app::storage::LocalStorage;
 use staple_app::{router, state::AppState};
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
-    TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
-    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
-    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPluginRepository,
-    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
+    TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
+    TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
+    TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository, TursoDocumentRepository,
+    TursoEnvironmentRepository, TursoExternalObjectRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -70,6 +70,11 @@ async fn core_business_flow_smoke() {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(seed_db)),
         agents: Arc::new(TursoAgentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        agent_runtime: Arc::new(TursoAgentRuntimeRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
