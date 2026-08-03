@@ -4402,3 +4402,143 @@ async fn decision_retention_sweeper_flow() {
     assert_eq!(body["archived"], 0);
     assert_eq!(body["notificationsEnqueued"], 0);
 }
+
+#[tokio::test]
+async fn managed_checkout_materializes_with_secret_and_redacts() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO projects (id, company_id, name) VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'Repo')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Build a real local git repo as the materialization source.
+    let src = tempfile::tempdir().unwrap();
+    std::process::Command::new("git")
+        .args(["init", "-q", "-b", "main"])
+        .current_dir(src.path())
+        .output()
+        .expect("git init");
+    std::process::Command::new("git")
+        .args(["config", "user.email", "test@example.com"])
+        .current_dir(src.path())
+        .output()
+        .expect("git config");
+    std::process::Command::new("git")
+        .args(["config", "user.name", "Test"])
+        .current_dir(src.path())
+        .output()
+        .expect("git config");
+    std::fs::write(src.path().join("README.md"), "# hello\n").unwrap();
+    std::process::Command::new("git")
+        .args(["add", "."])
+        .current_dir(src.path())
+        .output()
+        .expect("git add");
+    std::process::Command::new("git")
+        .args(["commit", "-q", "-m", "init"])
+        .current_dir(src.path())
+        .output()
+        .expect("git commit");
+
+    // Create the execution workspace pointing at the local repo.
+    let repo_url = src.path().to_string_lossy().to_string();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/execution-workspaces",
+        json!({
+            "projectId": "11111111-1111-1111-1111-111111111111",
+            "mode": "checkout",
+            "strategyType": "clone",
+            "name": "main",
+            "repoUrl": repo_url
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let workspace_id = body["id"].as_str().unwrap().to_owned();
+
+    // Without a credential secret, materialize fails with a clear 422.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/workspaces/{workspace_id}/materialize"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert!(body.to_string().contains("Secret github_token not found"));
+
+    // Create the secret, then materialize (checkout root outside the repo).
+    let checkout_root = tempfile::tempdir().unwrap();
+    unsafe {
+        std::env::set_var("STAPLE_CHECKOUT_ROOT", checkout_root.path());
+    }
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/secrets",
+        json!({ "name": "github_token", "value": "ghp_secret_value" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/workspaces/{workspace_id}/materialize"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["workspace"]["materialized"], true);
+    let materialized_path = body["path"].as_str().unwrap().to_owned();
+    assert!(
+        std::path::Path::new(&materialized_path)
+            .join("README.md")
+            .exists()
+    );
+
+    // Status endpoint reports materialized with the scoped path.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/c1/workspaces/{workspace_id}/materialization"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["materialized"], true);
+    assert_eq!(body["credentialSecretName"], "github_token");
+
+    // Refresh fetches without error and never leaks the token.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/workspaces/{workspace_id}/refresh"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(!body.to_string().contains("ghp_secret_value"));
+
+    // Cross-company access to materialization is denied.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/c2/workspaces/{workspace_id}/materialization"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}

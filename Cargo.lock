@@ -2686,6 +2686,7 @@ dependencies = [
 name = "staple-app"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "http 1.5.0",
  "serde",
  "serde_json",

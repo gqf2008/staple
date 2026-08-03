@@ -15,7 +15,7 @@ use topcoat::{
 use crate::{
     auth::{enforce_company_scope, require_board},
     error::ApiError,
-    routes::{CompanyId, is_uuid},
+    routes::{CompanyId, Id, is_uuid},
     state::AppState,
 };
 
@@ -435,4 +435,134 @@ fn workspace_error_to_api(error: staple_data::WorkspaceError) -> ApiError {
         ),
         other => ApiError::internal(other.to_string()),
     }
+}
+
+/// Body for `POST /api/companies/{companyId}/workspaces/{id}/materialize`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MaterializeRequest {
+    /// Company secret name holding the git credential (default `github_token`).
+    #[serde(default)]
+    pub credential_secret_name: Option<String>,
+}
+
+async fn materialize_inner(
+    cx: &Cx,
+    company_id: &str,
+    workspace_id: &str,
+    credential_secret_name: Option<String>,
+    refresh: bool,
+) -> Result<serde_json::Value, ApiError> {
+    let state = app_context::<AppState>(cx);
+    let workspace = state
+        .workspaces
+        .get_execution_workspace(company_id, workspace_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Execution workspace not found"))?;
+    let Some(repo_url) = workspace.repo_url.as_deref().filter(|url| !url.is_empty()) else {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["repoUrl"], "message": "Workspace has no repo URL" }]),
+        ));
+    };
+    let secret_name = credential_secret_name.unwrap_or_else(|| "github_token".to_owned());
+    let token = state
+        .secrets
+        .get_secret_value(company_id, &secret_name)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| {
+            ApiError::unprocessable(
+                "Validation error",
+                json!([{ "path": ["credentialSecretName"], "message": format!("Secret {secret_name} not found") }]),
+            )
+        })?;
+    match crate::git::materialize_repo(repo_url, &token, company_id, workspace_id, refresh).await {
+        Ok((path, output)) => {
+            let record = state
+                .workspaces
+                .set_materialization(company_id, workspace_id, true, None, Some(secret_name))
+                .await
+                .map_err(|error| ApiError::internal(error.to_string()))?
+                .expect("workspace exists");
+            Ok(json!({
+                "workspace": serde_json::to_value(&record).unwrap_or_default(),
+                "path": path.to_string_lossy(),
+                "gitOutput": output,
+            }))
+        }
+        Err(error) => {
+            let redacted = crate::git::redact_credentials(&error, &token);
+            state
+                .workspaces
+                .set_materialization(
+                    company_id,
+                    workspace_id,
+                    false,
+                    Some(redacted.clone()),
+                    Some(secret_name),
+                )
+                .await
+                .map_err(|db_error| ApiError::internal(db_error.to_string()))?;
+            Err(ApiError::unprocessable(
+                "Validation error",
+                json!([{ "path": ["materialize"], "message": redacted }]),
+            ))
+        }
+    }
+}
+
+/// `POST /api/companies/{companyId}/workspaces/{id}/materialize` — clones the
+/// repo server-side using the company secret credential.
+#[route(POST "/api/companies/{company_id}/workspaces/{id}/materialize")]
+pub async fn materialize_workspace(
+    cx: &Cx,
+    Json(body): Json<MaterializeRequest>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
+    let id = path_param::<Id>(cx)?.to_string();
+    let result =
+        materialize_inner(cx, &company_id, &id, body.credential_secret_name, false).await?;
+    Ok(Json(result))
+}
+
+/// `POST /api/companies/{companyId}/workspaces/{id}/refresh` — fetches the
+/// latest refs for a materialized checkout.
+#[route(POST "/api/companies/{company_id}/workspaces/{id}/refresh")]
+pub async fn refresh_workspace(
+    cx: &Cx,
+    Json(body): Json<MaterializeRequest>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
+    let id = path_param::<Id>(cx)?.to_string();
+    let result = materialize_inner(cx, &company_id, &id, body.credential_secret_name, true).await?;
+    Ok(Json(result))
+}
+
+/// `GET /api/companies/{companyId}/workspaces/{id}/materialization` — reads
+/// the materialization status (path, state, error).
+#[route(GET "/api/companies/{company_id}/workspaces/{id}/materialization")]
+pub async fn materialization_status(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let workspace = state
+        .workspaces
+        .get_execution_workspace(&company_id, &id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Execution workspace not found"))?;
+    Ok(Json(json!({
+        "materialized": workspace.materialized,
+        "materializedAt": workspace.materialized_at,
+        "materializeError": workspace.materialize_error,
+        "credentialSecretName": workspace.credential_secret_name,
+        "path": if workspace.materialized {
+            Some(crate::git::checkout_path(&company_id, &id).to_string_lossy().to_string())
+        } else { None },
+    })))
 }

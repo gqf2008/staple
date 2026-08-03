@@ -66,6 +66,14 @@ pub struct ExecutionWorkspaceRecord {
     pub repo_url: Option<String>,
     /// Provider type.
     pub provider_type: String,
+    /// Whether the repo has been materialized server-side.
+    pub materialized: bool,
+    /// ISO 8601 materialization time.
+    pub materialized_at: Option<String>,
+    /// Last materialization error.
+    pub materialize_error: Option<String>,
+    /// Company secret name used for credential injection.
+    pub credential_secret_name: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -280,6 +288,31 @@ pub trait WorkspaceRepository: Send + Sync {
         project_id: Option<&str>,
     ) -> Result<Vec<ExecutionWorkspaceRecord>, WorkspaceError>;
 
+    /// Gets one execution workspace (company-scoped).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] on database failure.
+    async fn get_execution_workspace(
+        &self,
+        company_id: &str,
+        id: &str,
+    ) -> Result<Option<ExecutionWorkspaceRecord>, WorkspaceError>;
+
+    /// Updates materialization state for an execution workspace.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] on database failure.
+    async fn set_materialization(
+        &self,
+        company_id: &str,
+        id: &str,
+        materialized: bool,
+        materialize_error: Option<String>,
+        credential_secret_name: Option<String>,
+    ) -> Result<Option<ExecutionWorkspaceRecord>, WorkspaceError>;
+
     /// Registers a runtime service.
     ///
     /// # Errors
@@ -342,6 +375,32 @@ fn row_opt_i64(row: &libsql::Row, idx: i32) -> Result<Option<i64>, libsql::Error
     } else {
         Ok(Some(*value.as_integer().expect("INTEGER column")))
     }
+}
+
+const EXEC_COLUMNS: &str = "id, company_id, project_id, project_workspace_id, source_issue_id,
+    mode, strategy_type, name, status, cwd, repo_url, provider_type, materialized,
+    materialized_at, materialize_error, credential_secret_name, created_at";
+
+fn row_to_execution(row: &libsql::Row) -> Result<ExecutionWorkspaceRecord, libsql::Error> {
+    Ok(ExecutionWorkspaceRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        project_id: helpers::row_text(row, 2)?.expect("project_id"),
+        project_workspace_id: helpers::row_text(row, 3)?,
+        source_issue_id: helpers::row_text(row, 4)?,
+        mode: helpers::row_text(row, 5)?.expect("mode"),
+        strategy_type: helpers::row_text(row, 6)?.expect("strategy_type"),
+        name: helpers::row_text(row, 7)?.expect("name"),
+        status: helpers::row_text(row, 8)?.expect("status"),
+        cwd: helpers::row_text(row, 9)?,
+        repo_url: helpers::row_text(row, 10)?,
+        provider_type: helpers::row_text(row, 11)?.expect("provider_type"),
+        materialized: helpers::row_i64(row, 12)? != 0,
+        materialized_at: helpers::row_text(row, 13)?,
+        materialize_error: helpers::row_text(row, 14)?,
+        credential_secret_name: helpers::row_text(row, 15)?,
+        created_at: helpers::row_text(row, 16)?.expect("created_at"),
+    })
 }
 
 #[async_trait]
@@ -489,28 +548,12 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
         .await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, project_id, project_workspace_id, source_issue_id, mode,
-                        strategy_type, name, status, cwd, repo_url, provider_type, created_at
-                 FROM execution_workspaces WHERE id = ?1",
+                &format!("SELECT {EXEC_COLUMNS} FROM execution_workspaces WHERE id = ?1"),
                 libsql::params![id],
             )
             .await?;
         let row = rows.next().await?.expect("workspace was just inserted");
-        Ok(ExecutionWorkspaceRecord {
-            id: helpers::row_text(&row, 0)?.expect("id"),
-            company_id: helpers::row_text(&row, 1)?.expect("company_id"),
-            project_id: helpers::row_text(&row, 2)?.expect("project_id"),
-            project_workspace_id: helpers::row_text(&row, 3)?,
-            source_issue_id: helpers::row_text(&row, 4)?,
-            mode: helpers::row_text(&row, 5)?.expect("mode"),
-            strategy_type: helpers::row_text(&row, 6)?.expect("strategy_type"),
-            name: helpers::row_text(&row, 7)?.expect("name"),
-            status: helpers::row_text(&row, 8)?.expect("status"),
-            cwd: helpers::row_text(&row, 9)?,
-            repo_url: helpers::row_text(&row, 10)?,
-            provider_type: helpers::row_text(&row, 11)?.expect("provider_type"),
-            created_at: helpers::row_text(&row, 12)?.expect("created_at"),
-        })
+        Ok(row_to_execution(&row)?)
     }
 
     async fn list_execution_workspaces(
@@ -520,37 +563,89 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
     ) -> Result<Vec<ExecutionWorkspaceRecord>, WorkspaceError> {
         let conn = crate::connection::connect(&self.db).await?;
         let sql = match project_id {
-            Some(_) => "SELECT id, company_id, project_id, project_workspace_id, source_issue_id,
-                        mode, strategy_type, name, status, cwd, repo_url, provider_type, created_at
-                 FROM execution_workspaces WHERE company_id = ?1 AND project_id = ?2 ORDER BY created_at",
-            None => "SELECT id, company_id, project_id, project_workspace_id, source_issue_id,
-                        mode, strategy_type, name, status, cwd, repo_url, provider_type, created_at
-                 FROM execution_workspaces WHERE company_id = ?1 ORDER BY created_at",
+            Some(_) => format!(
+                "SELECT {EXEC_COLUMNS}
+                 FROM execution_workspaces WHERE company_id = ?1 AND project_id = ?2 ORDER BY created_at"
+            ),
+            None => format!(
+                "SELECT {EXEC_COLUMNS}
+                 FROM execution_workspaces WHERE company_id = ?1 ORDER BY created_at"
+            ),
         };
         let params: Vec<libsql::Value> = match project_id {
             Some(project_id) => vec![company_id.into(), project_id.into()],
             None => vec![company_id.into()],
         };
-        let mut rows = conn.query(sql, params).await?;
+        let mut rows = conn.query(&sql, params).await?;
         let mut workspaces = Vec::new();
         while let Some(row) = rows.next().await? {
-            workspaces.push(ExecutionWorkspaceRecord {
-                id: helpers::row_text(&row, 0)?.expect("id"),
-                company_id: helpers::row_text(&row, 1)?.expect("company_id"),
-                project_id: helpers::row_text(&row, 2)?.expect("project_id"),
-                project_workspace_id: helpers::row_text(&row, 3)?,
-                source_issue_id: helpers::row_text(&row, 4)?,
-                mode: helpers::row_text(&row, 5)?.expect("mode"),
-                strategy_type: helpers::row_text(&row, 6)?.expect("strategy_type"),
-                name: helpers::row_text(&row, 7)?.expect("name"),
-                status: helpers::row_text(&row, 8)?.expect("status"),
-                cwd: helpers::row_text(&row, 9)?,
-                repo_url: helpers::row_text(&row, 10)?,
-                provider_type: helpers::row_text(&row, 11)?.expect("provider_type"),
-                created_at: helpers::row_text(&row, 12)?.expect("created_at"),
-            });
+            workspaces.push(row_to_execution(&row)?);
         }
         Ok(workspaces)
+    }
+
+    async fn get_execution_workspace(
+        &self,
+        company_id: &str,
+        id: &str,
+    ) -> Result<Option<ExecutionWorkspaceRecord>, WorkspaceError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {EXEC_COLUMNS} FROM execution_workspaces WHERE company_id = ?1 AND id = ?2"
+                ),
+                libsql::params![company_id, id],
+            )
+            .await?;
+        match rows.next().await? {
+            Some(row) => Ok(Some(row_to_execution(&row)?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn set_materialization(
+        &self,
+        company_id: &str,
+        id: &str,
+        materialized: bool,
+        materialize_error: Option<String>,
+        credential_secret_name: Option<String>,
+    ) -> Result<Option<ExecutionWorkspaceRecord>, WorkspaceError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "UPDATE execution_workspaces
+                 SET materialized = ?1,
+                     materialized_at = CASE WHEN ?1 = 1
+                                            THEN strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                                            ELSE materialized_at END,
+                     materialize_error = ?2,
+                     credential_secret_name = COALESCE(?3, credential_secret_name),
+                     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE company_id = ?4 AND id = ?5",
+                libsql::params![
+                    i64::from(materialized),
+                    materialize_error,
+                    credential_secret_name,
+                    company_id,
+                    id
+                ],
+            )
+            .await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {EXEC_COLUMNS} FROM execution_workspaces WHERE company_id = ?1 AND id = ?2"
+                ),
+                libsql::params![company_id, id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("workspace exists");
+        Ok(Some(row_to_execution(&row)?))
     }
 
     async fn create_runtime_service(
