@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, useRef } from "react";
+import { t } from "../i18n";
 import { useParams, useNavigate, Link, Navigate, useBeforeUnload, type NavigateFunction } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient, type QueryClient } from "@tanstack/react-query";
 import {
@@ -212,10 +213,10 @@ function formatEnvForDisplay(envValue: unknown, censorUsernameInLogs: boolean): 
 }
 
 const sourceLabels: Record<string, string> = {
-  timer: "Timer",
-  assignment: "Assignment",
-  on_demand: "On-demand",
-  automation: "Automation",
+  timer: t("pages.agentDetail.timer", { defaultValue: "Timer" }),
+  assignment: t("pages.agentDetail.assignment", { defaultValue: "Assignment" }),
+  on_demand: t("pages.agentDetail.onDemand", { defaultValue: "On-demand" }),
+  automation: t("pages.agentDetail.automation", { defaultValue: "Automation" }),
 };
 
 const LIVE_SCROLL_BOTTOM_TOLERANCE_PX = 32;
@@ -387,7 +388,7 @@ export function RunInvocationCard({
 
   return (
     <div className="rounded-lg border border-border bg-background/60 p-3 space-y-2">
-      <div className="text-xs font-medium text-muted-foreground">Invocation</div>
+      <div className="text-xs font-medium text-muted-foreground">{t("pages.agentDetail.invocation", { defaultValue: "Invocation" })}</div>
       {typeof payload.adapterType === "string" && (
         <div className="text-xs"><span className="text-muted-foreground">Adapter: </span>{payload.adapterType}</div>
       )}
@@ -409,7 +410,7 @@ export function RunInvocationCard({
             )}
             {Array.isArray(payload.commandNotes) && payload.commandNotes.length > 0 && (
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Command notes</div>
+                <div className="text-xs text-muted-foreground mb-1">{t("pages.agentDetail.commandNotes", { defaultValue: "Command notes" })}</div>
                 <ul className="list-disc pl-5 space-y-1">
                   {payload.commandNotes
                     .filter((value): value is string => typeof value === "string" && value.trim().length > 0)
@@ -423,7 +424,7 @@ export function RunInvocationCard({
             )}
             {payload.prompt !== undefined && (
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Prompt</div>
+                <div className="text-xs text-muted-foreground mb-1">{t("pages.agentDetail.prompt", { defaultValue: "Prompt" })}</div>
                 <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
                   {typeof payload.prompt === "string"
                     ? redactPathText(payload.prompt, censorUsernameInLogs)
@@ -433,7 +434,7 @@ export function RunInvocationCard({
             )}
             {payload.context !== undefined && (
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Context</div>
+                <div className="text-xs text-muted-foreground mb-1">{t("pages.agentDetail.context", { defaultValue: "Context" })}</div>
                 <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap">
                   {JSON.stringify(redactPathValue(payload.context, censorUsernameInLogs), null, 2)}
                 </pre>
@@ -441,7 +442,7 @@ export function RunInvocationCard({
             )}
             {payload.env !== undefined && (
               <div>
-                <div className="text-xs text-muted-foreground mb-1">Environment</div>
+                <div className="text-xs text-muted-foreground mb-1">{t("pages.agentDetail.environment", { defaultValue: "Environment" })}</div>
                 <pre className="bg-neutral-100 dark:bg-neutral-950 rounded-md p-2 text-xs overflow-x-auto whitespace-pre-wrap font-mono">
                   {formatEnvForDisplay(payload.env, censorUsernameInLogs)}
                 </pre>
@@ -477,15 +478,15 @@ function parseStoredLogContent(content: string): RunLogChunk[] {
 function workspaceOperationPhaseLabel(phase: WorkspaceOperation["phase"]) {
   switch (phase) {
     case "worktree_prepare":
-      return "Worktree setup";
+      return t("pages.agentDetail.worktreeSetup", { defaultValue: "Worktree setup" });
     case "workspace_config_freshness":
-      return "Config freshness";
+      return t("pages.agentDetail.configFreshness", { defaultValue: "Config freshness" });
     case "workspace_provision":
-      return "Provision";
+      return t("pages.agentDetail.provision", { defaultValue: "Provision" });
     case "workspace_teardown":
-      return "Teardown";
+      return t("pages.agentDetail.teardown", { defaultValue: "Teardown" });
     case "worktree_cleanup":
-      return "Worktree cleanup";
+      return t("pages.agentDetail.worktreeCleanup", { defaultValue: "Worktree cleanup" });
     default:
       return phase;
   }
@@ -546,18 +547,18 @@ function WorkspaceOperationLogViewer({
         className="text-(length:--text-micro) text-muted-foreground underline underline-offset-2 hover:text-foreground"
         onClick={() => setOpen((value) => !value)}
       >
-        {open ? "Hide full log" : "Show full log"}
+        {open ? t("pages.agentDetail.hideFullLog", { defaultValue: "Hide full log" }) : t("pages.agentDetail.showFullLog", { defaultValue: "Show full log" })}
       </button>
       {open && (
         <div className="rounded-md border border-border bg-background/70 p-2">
-          {isLoading && <div className="text-xs text-muted-foreground">Loading log...</div>}
+          {isLoading && <div className="text-xs text-muted-foreground">{t("pages.agentDetail.loadingLog", { defaultValue: "Loading log..." })}</div>}
           {error && (
             <div className="text-xs text-destructive">
-              {error instanceof Error ? error.message : "Failed to load workspace operation log"}
+              {error instanceof Error ? error.message : t("pages.agentDetail.workspaceLogFailed", { defaultValue: "Failed to load workspace operation log" })}
             </div>
           )}
           {!isLoading && !error && chunks.length === 0 && (
-            <div className="text-xs text-muted-foreground">No persisted log lines.</div>
+            <div className="text-xs text-muted-foreground">{t("pages.agentDetail.noLogLines", { defaultValue: "No persisted log lines." })}</div>
           )}
           {chunks.length > 0 && (
             <div className="max-h-64 overflow-y-auto rounded bg-neutral-100 p-2 font-mono text-xs dark:bg-neutral-950">
@@ -653,7 +654,7 @@ function WorkspaceOperationsSection({
               )}
               {typeof metadata?.created === "boolean" && (
                 <div className="text-xs text-muted-foreground">
-                  {metadata.created ? "Created by this run" : "Reused existing workspace"}
+                  {metadata.created ? t("pages.agentDetail.createdByRun", { defaultValue: "Created by this run" }) : t("pages.agentDetail.reusedWorkspace", { defaultValue: "Reused existing workspace" })}
                 </div>
               )}
               {operation.stderrExcerpt && operation.stderrExcerpt.trim() && (
@@ -857,7 +858,7 @@ export function AgentDetail() {
       companyId: resolvedCompanyId ?? "",
       scopeType: "agent",
       scopeId: agent?.id ?? routeAgentRef,
-      scopeName: agent?.name ?? "Agent",
+      scopeName: agent?.name ?? t("pages.agentDetail.agent", { defaultValue: "Agent" }),
       metric: "billed_cents",
       windowKind: "calendar_month_utc",
       amount: budgetMonthlyCents,
@@ -921,7 +922,7 @@ export function AgentDetail() {
   // which is surfaced via the pending-approval banner below.
   const agentAction = useMutation({
     mutationFn: async (action: "approve") => {
-      if (!agentLookupRef) return Promise.reject(new Error("No agent reference"));
+      if (!agentLookupRef) return Promise.reject(new Error(t("pages.agentDetail.noAgentReference", { defaultValue: "No agent reference" })));
       if (action === "approve") {
         return agentsApi.approve(agentLookupRef, resolvedCompanyId ?? undefined);
       }
@@ -940,7 +941,7 @@ export function AgentDetail() {
       }
     },
     onError: (err) => {
-      setActionError(err instanceof Error ? err.message : "Action failed");
+      setActionError(err instanceof Error ? err.message : t("pages.agentDetail.actionFailed", { defaultValue: "Action failed" }));
     },
   });
 
@@ -985,7 +986,7 @@ export function AgentDetail() {
       }
     },
     onError: (err) => {
-      setActionError(err instanceof Error ? err.message : "Failed to update permissions");
+      setActionError(err instanceof Error ? err.message : t("pages.agentDetail.permissionsFailed", { defaultValue: "Failed to update permissions" }));
     },
   });
 
@@ -993,7 +994,7 @@ export function AgentDetail() {
     const crumbs: { label: string; href?: string }[] = [
       { label: "Agents", href: "/agents" },
     ];
-    const agentName = agent?.name ?? routeAgentRef ?? "Agent";
+    const agentName = agent?.name ?? routeAgentRef ?? t("pages.agentDetail.agent", { defaultValue: "Agent" });
     if (activeView === "dashboard" && !urlRunId) {
       crumbs.push({ label: agentName });
     } else {
@@ -1014,7 +1015,7 @@ export function AgentDetail() {
       } else if (activeView === "budget") {
         crumbs.push({ label: "Budget" });
       } else {
-        crumbs.push({ label: "Dashboard" });
+        crumbs.push({ label: t("pages.agentDetail.dashboard", { defaultValue: "Dashboard" }) });
       }
     }
     setBreadcrumbs(crumbs);
@@ -1102,7 +1103,7 @@ export function AgentDetail() {
         <div className="flex items-start gap-3 border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 space-y-1">
-            <p className="font-medium">Escalation path is paused</p>
+            <p className="font-medium">{t("pages.agentDetail.escalationPaused", { defaultValue: "Escalation path is paused" })}</p>
             <p className="text-amber-900/90 dark:text-amber-100/90">{pausedEscalationWarning}</p>
           </div>
         </div>
@@ -1111,7 +1112,7 @@ export function AgentDetail() {
         <div className="flex items-start gap-3 border border-amber-300/35 bg-amber-300/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-100">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div className="min-w-0 space-y-1">
-            <p className="font-medium">Invalid reporting chain</p>
+            <p className="font-medium">{t("pages.agentDetail.invalidReportingChain", { defaultValue: "Invalid reporting chain" })}</p>
             <p className="text-amber-900/90 dark:text-amber-100/90">
               {agent.name} cannot accept tasks or start runs until its reporting chain is repaired.
             </p>
@@ -1165,11 +1166,11 @@ export function AgentDetail() {
           <AgentActionButtons
             agent={agent}
             companyId={resolvedCompanyId}
-            assignLabel="Assign Task"
-            runLabel="Run Heartbeat"
+            assignLabel={t("pages.agentDetail.assignTask", { defaultValue: "Assign Task" })}
+            runLabel={t("pages.agentDetail.runHeartbeat", { defaultValue: "Run Heartbeat" })}
             actionsDisabled={agentAction.isPending}
             workActionsDisabled={hasInvalidOrgChain}
-            workActionsDisabledReason="Repair this agent's reporting chain before assigning tasks or starting runs"
+            workActionsDisabledReason={t("pages.agentDetail.repairReportingChain", { defaultValue: "Repair this agent's reporting chain before assigning tasks or starting runs" })}
             onActionError={setActionError}
             onTerminateSuccess={() => navigate("/agents/all", { replace: true })}
             hideTerminate={Boolean(builtInState)}
@@ -1197,7 +1198,7 @@ export function AgentDetail() {
                   <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                   <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
                 </span>
-                <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">Live</span>
+                <span className="text-(length:--text-micro) font-medium text-blue-600 dark:text-blue-400">{t("pages.agentDetail.live", { defaultValue: "Live" })}</span>
               </Link>
             )}
           </AgentActionButtons>
@@ -1207,7 +1208,7 @@ export function AgentDetail() {
       {builtInState && (
         <InlineBanner
           tone="info"
-          title="Built-in agent"
+          title={t("pages.agentDetail.builtInAgent", { defaultValue: "Built-in agent" })}
           actions={
             <Button
               variant="outline"
@@ -1215,7 +1216,7 @@ export function AgentDetail() {
               onClick={() => resetBuiltIn.mutate()}
               disabled={resetBuiltIn.isPending}
             >
-              {resetBuiltIn.isPending ? "Resetting…" : "Reset to defaults"}
+              {resetBuiltIn.isPending ? t("pages.agentDetail.resetting", { defaultValue: "Resetting…" }) : t("pages.agentDetail.resetToDefaults", { defaultValue: "Reset to defaults" })}
             </Button>
           }
         >
@@ -1259,13 +1260,13 @@ export function AgentDetail() {
         >
           <PageTabBar
             items={[
-              { value: "dashboard", label: "Dashboard" },
+              { value: "dashboard", label: t("pages.agentDetail.dashboard", { defaultValue: "Dashboard" }) },
               { value: "instructions", label: "Instructions" },
               { value: "skills", label: "Skills" },
               { value: "configuration", label: "Configuration" },
               { value: "tools", label: "Tools" },
               { value: "runs", label: "Runs" },
-              { value: "audit", label: "Audit" },
+              { value: "audit", label: t("pages.agentDetail.audit", { defaultValue: "Audit" }) },
               { value: "budget", label: "Budget" },
             ]}
             value={activeView}
@@ -1277,7 +1278,7 @@ export function AgentDetail() {
       {actionError && <p className="text-sm text-destructive">{actionError}</p>}
       {isPendingApproval && (
         <div className="flex flex-wrap items-center gap-3 rounded-md border border-amber-300/60 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-400/40 dark:bg-amber-950/30 dark:text-amber-200">
-          <span>This agent is pending board approval and cannot be invoked yet.</span>
+          <span>{t("pages.agentDetail.pendingApproval", { defaultValue: "This agent is pending board approval and cannot be invoked yet." })}</span>
           <Button
             variant="outline"
             size="sm"
@@ -1285,7 +1286,7 @@ export function AgentDetail() {
             disabled={agentAction.isPending}
           >
             <CheckCircle2 className="h-3.5 w-3.5 sm:mr-1" />
-            <span>Approve agent</span>
+            <span>{t("pages.agentDetail.approveAgent", { defaultValue: "Approve agent" })}</span>
           </Button>
         </div>
       )}
@@ -1307,7 +1308,7 @@ export function AgentDetail() {
               onClick={() => saveConfigActionRef.current?.()}
               disabled={configSaving}
             >
-              {configSaving ? "Saving…" : "Save"}
+              {configSaving ? t("pages.agentDetail.saving", { defaultValue: "Saving…" }) : t("pages.agentDetail.save", { defaultValue: "Save" })}
             </Button>
           </div>
         </div>
@@ -1333,7 +1334,7 @@ export function AgentDetail() {
               onClick={() => saveConfigActionRef.current?.()}
               disabled={configSaving}
             >
-              {configSaving ? "Saving…" : "Save"}
+              {configSaving ? t("pages.agentDetail.saving", { defaultValue: "Saving…" }) : t("pages.agentDetail.save", { defaultValue: "Save" })}
             </Button>
           </div>
         </div>
@@ -1471,7 +1472,7 @@ function LatestRunCard({ runs, agentId }: { runs: HeartbeatRun[]; agentId: strin
               <span className="relative inline-flex rounded-full h-2 w-2 bg-blue-500" />
             </span>
           )}
-          {isLive ? "Live Run" : "Latest Run"}
+          {isLive ? t("pages.agentDetail.liveRun", { defaultValue: "Live Run" }) : t("pages.agentDetail.latestRun", { defaultValue: "Latest Run" })}
         </h3>
         <Link
           to={`/agents/${agentId}/runs/${run.id}`}
@@ -1538,16 +1539,16 @@ function AgentOverview({
 
       {/* Charts */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <ChartCard title="Run Activity" subtitle="Last 14 days">
+        <ChartCard title={t("pages.agentDetail.runActivity", { defaultValue: "Run Activity" })} subtitle={t("pages.agentDetail.last14Days", { defaultValue: "Last 14 days" })}>
           <RunActivityChart runs={runs} />
         </ChartCard>
-        <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
+        <ChartCard title={t("pages.agentDetail.tasksByPriority", { defaultValue: "Tasks by Priority" })} subtitle={t("pages.agentDetail.last14Days", { defaultValue: "Last 14 days" })}>
           <PriorityChart issues={assignedIssues} />
         </ChartCard>
-        <ChartCard title="Tasks by Status" subtitle="Last 14 days">
+        <ChartCard title={t("pages.agentDetail.tasksByStatus", { defaultValue: "Tasks by Status" })} subtitle={t("pages.agentDetail.last14Days", { defaultValue: "Last 14 days" })}>
           <IssueStatusChart issues={assignedIssues} />
         </ChartCard>
-        <ChartCard title="Success Rate" subtitle="Last 14 days">
+        <ChartCard title={t("pages.agentDetail.successRate", { defaultValue: "Success Rate" })} subtitle={t("pages.agentDetail.last14Days", { defaultValue: "Last 14 days" })}>
           <SuccessRateChart runs={runs} />
         </ChartCard>
       </div>
@@ -1555,7 +1556,7 @@ function AgentOverview({
       {/* Recent Issues */}
       <div className="space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-medium">Recent Tasks</h3>
+          <h3 className="text-sm font-medium">{t("pages.agentDetail.recentTasks", { defaultValue: "Recent Tasks" })}</h3>
           <Link
             to={`/issues?participantAgentId=${agentId}`}
             className="text-xs text-muted-foreground hover:text-foreground transition-colors"
@@ -1564,7 +1565,7 @@ function AgentOverview({
           </Link>
         </div>
         {assignedIssues.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No recent tasks.</p>
+          <p className="text-sm text-muted-foreground">{t("pages.agentDetail.noRecentTasks", { defaultValue: "No recent tasks." })}</p>
         ) : (
           <div className="border border-border rounded-lg">
             {assignedIssues.slice(0, 10).map((issue) => (
@@ -1587,7 +1588,7 @@ function AgentOverview({
 
       {/* Costs */}
       <div className="space-y-3">
-        <h3 className="text-sm font-medium">Costs</h3>
+        <h3 className="text-sm font-medium">{t("pages.agentDetail.costs", { defaultValue: "Costs" })}</h3>
         <CostsSection runtimeState={runtimeState} runs={runs} />
       </div>
     </div>
@@ -1616,19 +1617,19 @@ function CostsSection({
         <div className="border border-border rounded-lg p-4">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 tabular-nums">
             <div>
-              <span className="text-xs text-muted-foreground block">Input tokens</span>
+              <span className="text-xs text-muted-foreground block">{t("pages.agentDetail.inputTokens", { defaultValue: "Input tokens" })}</span>
               <span className="text-lg font-semibold">{formatTokens(runtimeState.totalInputTokens)}</span>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground block">Output tokens</span>
+              <span className="text-xs text-muted-foreground block">{t("pages.agentDetail.outputTokens", { defaultValue: "Output tokens" })}</span>
               <span className="text-lg font-semibold">{formatTokens(runtimeState.totalOutputTokens)}</span>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground block">Cached tokens</span>
+              <span className="text-xs text-muted-foreground block">{t("pages.agentDetail.cachedTokens", { defaultValue: "Cached tokens" })}</span>
               <span className="text-lg font-semibold">{formatTokens(runtimeState.totalCachedInputTokens)}</span>
             </div>
             <div>
-              <span className="text-xs text-muted-foreground block">Total cost</span>
+              <span className="text-xs text-muted-foreground block">{t("pages.agentDetail.totalCost", { defaultValue: "Total cost" })}</span>
               <span className="text-lg font-semibold">{formatCents(runtimeState.totalCostCents)}</span>
             </div>
           </div>
@@ -1639,11 +1640,11 @@ function CostsSection({
           <table className="w-full text-xs">
             <thead>
               <tr className="border-b border-border bg-accent/20">
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Date</th>
-                <th className="text-left px-3 py-2 font-medium text-muted-foreground">Run</th>
-                <th className="text-right px-3 py-2 font-medium text-muted-foreground">Input</th>
-                <th className="text-right px-3 py-2 font-medium text-muted-foreground">Output</th>
-                <th className="text-right px-3 py-2 font-medium text-muted-foreground">Cost</th>
+                <th className="text-left px-3 py-2 font-medium text-muted-foreground">{t("pages.agentDetail.date", { defaultValue: "Date" })}</th>
+                <th className="text-left px-3 py-2 font-medium text-muted-foreground">{t("pages.agentDetail.run", { defaultValue: "Run" })}</th>
+                <th className="text-right px-3 py-2 font-medium text-muted-foreground">{t("pages.agentDetail.input", { defaultValue: "Input" })}</th>
+                <th className="text-right px-3 py-2 font-medium text-muted-foreground">{t("pages.agentDetail.output", { defaultValue: "Output" })}</th>
+                <th className="text-right px-3 py-2 font-medium text-muted-foreground">{t("pages.agentDetail.cost", { defaultValue: "Cost" })}</th>
               </tr>
             </thead>
             <tbody>
@@ -1678,7 +1679,7 @@ function CostsSection({
  * Agent detail URLs use a name-derived key, so updates that change the agent's
  * name (a rename or a config-revision rollback) can invalidate the reference
  * currently in the URL. When that happens, refetching the old reference would
- * 404 with "Agent not found". Instead, drop the stale cached queries and
+ * 404 with t("pages.agentDetail.agentNotFound", { defaultValue: "Agent not found" }). Instead, drop the stale cached queries and
  * replace the URL with the new canonical reference. Returns true when a
  * redirect happened.
  */
@@ -1751,7 +1752,7 @@ function AgentConfigurePage({
         hideInstructionsFile
       />
       <div>
-        <h3 className="text-sm font-medium mb-3">API Keys</h3>
+        <h3 className="text-sm font-medium mb-3">{t("pages.agentDetail.apiKeys", { defaultValue: "API Keys" })}</h3>
         <KeysTab agentId={agentId} companyId={companyId} />
       </div>
 
@@ -1771,7 +1772,7 @@ function AgentConfigurePage({
         {revisionsOpen && (
           <div className="mt-3">
             {(configRevisions ?? []).length === 0 ? (
-              <p className="text-sm text-muted-foreground">No configuration revisions yet.</p>
+              <p className="text-sm text-muted-foreground">{t("pages.agentDetail.noConfigRevisions", { defaultValue: "No configuration revisions yet." })}</p>
             ) : (
               <div className="space-y-2">
                 {(configRevisions ?? []).slice(0, 10).map((revision) => (
@@ -1876,7 +1877,7 @@ function ConfigurationTab({
       if (!syncAgentRouteAfterRename(queryClient, navigate, agent, updated, urlTab ?? "configuration")) {
         queryClient.invalidateQueries({ queryKey: queryKeys.agents.detail(agent.urlKey) });
       }
-      pushToast({ title: "Agent saved", tone: "success" });
+      pushToast({ title: t("pages.agentDetail.agentSaved", { defaultValue: "Agent saved" }), tone: "success" });
     },
     onError: (err) => {
       setAwaitingRefreshAfterSave(false);
@@ -1885,8 +1886,8 @@ function ConfigurationTab({
           ? err.message
           : err instanceof Error
             ? err.message
-            : "Could not save agent";
-      pushToast({ title: "Save failed", body: message, tone: "error" });
+            : t("pages.agentDetail.agentSaveFailed", { defaultValue: "Could not save agent" });
+      pushToast({ title: t("pages.agentDetail.saveFailed", { defaultValue: "Save failed" }), body: message, tone: "error" });
     },
   });
 
@@ -1909,14 +1910,14 @@ function ConfigurationTab({
   const taskAssignLocked = agent.role === "ceo" || canCreateAgents;
   const taskAssignHint =
     taskAssignSource === "ceo_role"
-      ? "Enabled automatically for CEO agents."
+      ? t("pages.agentDetail.ceoEnabled", { defaultValue: "Enabled automatically for CEO agents." })
       : taskAssignSource === "agent_creator"
-        ? "Enabled automatically while this agent can create new agents."
+        ? t("pages.agentDetail.hireEnabled", { defaultValue: "Enabled automatically while this agent can create new agents." })
         : taskAssignSource === "explicit_grant"
-          ? "Enabled via explicit company permission grant."
+          ? t("pages.agentDetail.grantEnabled", { defaultValue: "Enabled via explicit company permission grant." })
           : taskAssignSource === "simple_default"
-            ? "Enabled by simple company-wide task assignment defaults."
-            : "Disabled unless explicitly granted.";
+            ? t("pages.agentDetail.defaultsEnabled", { defaultValue: "Enabled by simple company-wide task assignment defaults." })
+            : t("pages.agentDetail.disabledUnlessGranted", { defaultValue: "Disabled unless explicitly granted." });
 
   return (
     <div className="space-y-6">
@@ -1962,11 +1963,11 @@ function ConfigurationTab({
       />
 
       <div>
-        <h3 className="text-sm font-medium mb-3">Permissions</h3>
+        <h3 className="text-sm font-medium mb-3">{t("pages.agentDetail.permissions", { defaultValue: "Permissions" })}</h3>
         <div className="border border-border rounded-lg p-4 space-y-4">
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="space-y-1">
-              <div>Can create new agents</div>
+              <div>{t("pages.agentDetail.canCreateAgents", { defaultValue: "Can create new agents" })}</div>
               <p className="text-xs text-muted-foreground">
                 Lets this agent create or hire agents. This also grants task assignment authority.
               </p>
@@ -1985,7 +1986,7 @@ function ConfigurationTab({
           </div>
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="space-y-1">
-              <div>Can create/import skills</div>
+              <div>{t("pages.agentDetail.canCreateSkills", { defaultValue: "Can create/import skills" })}</div>
               <p className="text-xs text-muted-foreground">
                 Lets this agent install, import, create, and scan company skills without creating agents.
               </p>
@@ -2004,7 +2005,7 @@ function ConfigurationTab({
           </div>
           <div className="flex items-center justify-between gap-4 text-sm">
             <div className="space-y-1">
-              <div>Can assign tasks</div>
+              <div>{t("pages.agentDetail.canAssignTasks", { defaultValue: "Can assign tasks" })}</div>
               <p className="text-xs text-muted-foreground">
                 {taskAssignHint}
               </p>
@@ -2558,7 +2559,7 @@ export function PromptsTab({
           isMobile && !showFilePanel && "hidden",
         )}>
           <div className="flex items-center justify-between">
-            <h4 className="text-sm font-medium">Files</h4>
+            <h4 className="text-sm font-medium">{t("pages.agentDetail.files", { defaultValue: "Files" })}</h4>
             <div className="flex items-center gap-1">
               {!showNewFileInput && (
                 <Button
@@ -2715,9 +2716,9 @@ export function PromptsTab({
               {!fileLoading && (
                 <CopyText
                   text={displayValue}
-                  ariaLabel="Copy instructions file as markdown"
-                  title="Copy as markdown"
-                  copiedLabel="Copied"
+                  ariaLabel={t("pages.agentDetail.copyInstructionsMarkdown", { defaultValue: "Copy instructions file as markdown" })}
+                  title={t("pages.agentDetail.copyAsMarkdown", { defaultValue: "Copy as markdown" })}
+                  copiedLabel={t("pages.agentDetail.copied", { defaultValue: "Copied" })}
                   className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-accent hover:text-foreground"
                 >
                   <Copy className="h-3.5 w-3.5" />
@@ -2767,7 +2768,7 @@ export function PromptsTab({
               value={displayValue}
               onChange={(event) => setDraft(event.target.value)}
               className="min-h-(--sz-420px) w-full min-w-0 rounded-md border border-border bg-transparent px-3 py-2 font-mono text-sm outline-none"
-              placeholder="File contents"
+              placeholder={t("pages.agentDetail.fileContents", { defaultValue: "File contents" })}
             />
           )}
         </div>
@@ -2904,7 +2905,7 @@ function RunsTab({
   const { isMobile } = useSidebar();
 
   if (runs.length === 0) {
-    return <p className="text-sm text-muted-foreground">No runs yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("pages.agentDetail.noRuns", { defaultValue: "No runs yet." })}</p>;
   }
 
   // Sort by created descending
@@ -3153,7 +3154,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                   onClick={() => cancelRun.mutate()}
                   disabled={cancelRun.isPending}
                 >
-                  {cancelRun.isPending ? "Cancelling…" : "Cancel"}
+                  {cancelRun.isPending ? t("pages.agentDetail.cancelling", { defaultValue: "Cancelling…" }) : t("pages.agentDetail.cancel", { defaultValue: "Cancel" })}
                 </Button>
               )}
               {canResumeLostRun && (
@@ -3165,7 +3166,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                   disabled={resumeRun.isPending}
                 >
                   <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                  {resumeRun.isPending ? "Resuming…" : "Resume"}
+                  {resumeRun.isPending ? t("pages.agentDetail.resuming", { defaultValue: "Resuming…" }) : t("pages.agentDetail.resume", { defaultValue: "Resume" })}
                 </Button>
               )}
               {canRetryRun && !canResumeLostRun && (
@@ -3177,7 +3178,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                   disabled={retryRun.isPending}
                 >
                   <RotateCcw className="h-3.5 w-3.5 mr-1" />
-                  {retryRun.isPending ? "Retrying…" : "Retry"}
+                  {retryRun.isPending ? t("pages.agentDetail.retrying", { defaultValue: "Retrying…" }) : t("pages.agentDetail.retry", { defaultValue: "Retry" })}
                 </Button>
               )}
             </div>
@@ -3215,12 +3216,12 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
             )}
             {resumeRun.isError && (
               <div className="text-xs text-destructive">
-                {resumeRun.error instanceof Error ? resumeRun.error.message : "Failed to resume run"}
+                {resumeRun.error instanceof Error ? resumeRun.error.message : t("pages.agentDetail.resumeRunFailed", { defaultValue: "Failed to resume run" })}
               </div>
             )}
             {retryRun.isError && (
               <div className="text-xs text-destructive">
-                {retryRun.error instanceof Error ? retryRun.error.message : "Failed to retry run"}
+                {retryRun.error instanceof Error ? retryRun.error.message : t("pages.agentDetail.retryRunFailed", { defaultValue: "Failed to retry run" })}
               </div>
             )}
             {startTime && (
@@ -3256,13 +3257,13 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                   onClick={() => runClaudeLogin.mutate()}
                   disabled={runClaudeLogin.isPending}
                 >
-                  {runClaudeLogin.isPending ? "Running claude login..." : "Login to Claude Code"}
+                  {runClaudeLogin.isPending ? "Running claude login..." : t("pages.agentDetail.claudeLogin", { defaultValue: "Login to Claude Code" })}
                 </Button>
                 {runClaudeLogin.isError && (
                   <p className="text-xs text-destructive">
                     {runClaudeLogin.error instanceof Error
                       ? runClaudeLogin.error.message
-                      : "Failed to run Claude login"}
+                      : t("pages.agentDetail.claudeLoginFailed", { defaultValue: "Failed to run Claude login" })}
                   </p>
                 )}
                 {claudeLoginResult?.loginUrl && (
@@ -3336,19 +3337,19 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
           {hasMetrics && (
             <div className="border-t sm:border-t-0 sm:border-l border-border p-4 grid grid-cols-2 gap-x-4 sm:gap-x-8 gap-y-3 content-center tabular-nums">
               <div>
-                <div className="text-xs text-muted-foreground">Input</div>
+                <div className="text-xs text-muted-foreground">{t("pages.agentDetail.input", { defaultValue: "Input" })}</div>
                 <div className="text-sm font-medium font-mono">{formatTokens(metrics.input)}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Output</div>
+                <div className="text-xs text-muted-foreground">{t("pages.agentDetail.output", { defaultValue: "Output" })}</div>
                 <div className="text-sm font-medium font-mono">{formatTokens(metrics.output)}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Cached</div>
+                <div className="text-xs text-muted-foreground">{t("pages.agentDetail.cached", { defaultValue: "Cached" })}</div>
                 <div className="text-sm font-medium font-mono">{formatTokens(metrics.cached)}</div>
               </div>
               <div>
-                <div className="text-xs text-muted-foreground">Cost</div>
+                <div className="text-xs text-muted-foreground">{t("pages.agentDetail.cost", { defaultValue: "Cost" })}</div>
                 <div className="text-sm font-medium font-mono">{metrics.cost > 0 ? `$${metrics.cost.toFixed(4)}` : "-"}</div>
               </div>
             </div>
@@ -3370,13 +3371,13 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
               <div className="px-4 pb-3 space-y-1 text-xs">
                 {run.sessionIdBefore && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground w-12">{sessionChanged ? "Before" : "ID"}</span>
+                    <span className="text-muted-foreground w-12">{sessionChanged ? t("pages.agentDetail.before", { defaultValue: "Before" }) : "ID"}</span>
                     <CopyText text={run.sessionIdBefore} className="font-mono" />
                   </div>
                 )}
                 {sessionChanged && run.sessionIdAfter && (
                   <div className="flex items-center gap-2">
-                    <span className="text-muted-foreground w-12">After</span>
+                    <span className="text-muted-foreground w-12">{t("pages.agentDetail.after", { defaultValue: "After" })}</span>
                     <CopyText text={run.sessionIdAfter} className="font-mono" />
                   </div>
                 )}
@@ -3403,7 +3404,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                       <p className="text-(length:--text-micro) text-destructive mt-1">
                         {clearSessionsForTouchedIssues.error instanceof Error
                           ? clearSessionsForTouchedIssues.error.message
-                          : "Failed to clear sessions"}
+                          : t("pages.agentDetail.clearSessionsFailed", { defaultValue: "Failed to clear sessions" })}
                       </p>
                     )}
                   </div>
@@ -3529,7 +3530,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
 
     if (parsed.length > 0) {
       // Live runs stream forever, so cap the retained tail. Terminated runs are
-      // paginated by the user via "Load more log" and keep their full history.
+      // paginated by the user via t("pages.agentDetail.loadMoreLog", { defaultValue: "Load more log" }) and keep their full history.
       setLogLines((prev) =>
         isLive ? appendCapped(prev, parsed, MAX_LIVE_LOG_LINES) : [...prev, ...parsed],
       );
@@ -3663,7 +3664,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
             setLogLoading(false);
             return;
           }
-          setLogError(err instanceof Error ? err.message : "Failed to load run log");
+          setLogError(err instanceof Error ? err.message : t("pages.agentDetail.runLogFailed", { defaultValue: "Failed to load run log" }));
         }
       } finally {
         if (!cancelled) setLogLoading(false);
@@ -3687,7 +3688,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
       setLogOffset(next);
       setHasMoreLog(result.nextOffset !== undefined);
     } catch (err) {
-      setLogError(err instanceof Error ? err.message : "Failed to load more run log");
+      setLogError(err instanceof Error ? err.message : t("pages.agentDetail.moreRunLogFailed", { defaultValue: "Failed to load more run log" }));
     } finally {
       setLoadingMoreLog(false);
     }
@@ -3893,11 +3894,11 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
   }, [run.id]);
 
   if (loading && logLoading) {
-    return <p className="text-xs text-muted-foreground">Loading run logs...</p>;
+    return <p className="text-xs text-muted-foreground">{t("pages.agentDetail.loadingRunLogs", { defaultValue: "Loading run logs..." })}</p>;
   }
 
   if (events.length === 0 && logLines.length === 0 && !logError) {
-    return <p className="text-xs text-muted-foreground">No log events.</p>;
+    return <p className="text-xs text-muted-foreground">{t("pages.agentDetail.noLogEvents", { defaultValue: "No log events." })}</p>;
   }
 
   const levelColors: Record<string, string> = {
@@ -3977,7 +3978,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
           mode={transcriptMode}
           streaming={isLive}
           limit={isLive ? LIVE_TRANSCRIPT_RENDER_LIMIT : undefined}
-          emptyMessage={run.logRef ? "Waiting for transcript..." : "No persisted transcript for this run."}
+          emptyMessage={run.logRef ? t("pages.agentDetail.waitingForTranscript", { defaultValue: "Waiting for transcript..." }) : t("pages.agentDetail.noTranscript", { defaultValue: "No persisted transcript for this run." })}
         />
         {hasMoreLog && (
           <div className="mt-3 flex flex-wrap items-center gap-2 border-t border-border/60 pt-3">
@@ -3988,7 +3989,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
               onClick={loadMorePersistedLog}
               disabled={loadingMoreLog}
             >
-              {loadingMoreLog ? "Loading..." : "Load more log"}
+              {loadingMoreLog ? t("pages.agentDetail.loading", { defaultValue: "Loading..." }) : t("pages.agentDetail.loadMoreLog", { defaultValue: "Load more log" })}
             </Button>
             <span className="text-xs text-muted-foreground">
               Showing the first {Math.round(logOffset / 1024).toLocaleString("en-US")} KB
@@ -4008,7 +4009,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
 
       {(run.status === "failed" || run.status === "timed_out") && (
         <div className="rounded-lg border border-red-300 dark:border-red-500/30 bg-red-50 dark:bg-red-950/20 p-3 space-y-2">
-          <div className="text-xs font-medium text-red-700 dark:text-red-300">Failure details</div>
+          <div className="text-xs font-medium text-red-700 dark:text-red-300">{t("pages.agentDetail.failureDetails", { defaultValue: "Failure details" })}</div>
           {run.error && (
             <div className="text-xs text-red-600 dark:text-red-200">
               <span className="text-red-700 dark:text-red-300">Error: </span>
@@ -4092,7 +4093,7 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
   });
 
   const createKey = useMutation({
-    mutationFn: () => agentsApi.createKey(agentId, newKeyName.trim() || "Default", companyId),
+    mutationFn: () => agentsApi.createKey(agentId, newKeyName.trim() || t("pages.agentDetail.default", { defaultValue: "Default" }), companyId),
     onSuccess: (data) => {
       setNewToken(data.token);
       setTokenVisible(true);
@@ -4134,7 +4135,7 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
               variant="ghost"
               size="icon-sm"
               onClick={() => setTokenVisible((v) => !v)}
-              title={tokenVisible ? "Hide" : "Show"}
+              title={tokenVisible ? t("pages.agentDetail.hide", { defaultValue: "Hide" }) : t("pages.agentDetail.show", { defaultValue: "Show" })}
             >
               {tokenVisible ? <EyeOff className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
             </Button>
@@ -4142,11 +4143,11 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
               variant="ghost"
               size="icon-sm"
               onClick={copyToken}
-              title="Copy"
+              title={t("pages.agentDetail.copy", { defaultValue: "Copy" })}
             >
               <Copy className="h-3.5 w-3.5" />
             </Button>
-            {copied && <span className="text-xs text-green-400">Copied!</span>}
+            {copied && <span className="text-xs text-green-400">{t("pages.agentDetail.copiedExcl", { defaultValue: "Copied!" })}</span>}
           </div>
           <Button
             variant="ghost"
@@ -4170,7 +4171,7 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
         </p>
         <div className="flex items-center gap-2">
           <Input
-            placeholder="Key name (e.g. production)"
+            placeholder={t("pages.agentDetail.keyNamePlaceholder", { defaultValue: "Key name (e.g. production)" })}
             value={newKeyName}
             onChange={(e) => setNewKeyName(e.target.value)}
             className="h-8 text-sm"
@@ -4190,10 +4191,10 @@ function KeysTab({ agentId, companyId }: { agentId: string; companyId?: string }
       </div>
 
       {/* Active keys */}
-      {isLoading && <p className="text-sm text-muted-foreground">Loading keys...</p>}
+      {isLoading && <p className="text-sm text-muted-foreground">{t("pages.agentDetail.loadingKeys", { defaultValue: "Loading keys..." })}</p>}
 
       {!isLoading && activeKeys.length === 0 && !newToken && (
-        <p className="text-sm text-muted-foreground">No active API keys.</p>
+        <p className="text-sm text-muted-foreground">{t("pages.agentDetail.noApiKeys", { defaultValue: "No active API keys." })}</p>
       )}
 
       {activeKeys.length > 0 && (
