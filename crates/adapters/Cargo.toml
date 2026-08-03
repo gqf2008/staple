@@ -1,0 +1,6 @@
+[package]
+name = "staple-adapters"
+description = "Staple agent adapter contracts and implementations"
+version.workspace = true
+edition.workspace = true
+license.workspace = true

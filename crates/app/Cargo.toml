@@ -1,0 +1,9 @@
+[package]
+name = "staple-app"
+description = "Staple Topcoat application entrypoint (routes, middleware, config)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+staple-domain = { path = "../domain" }

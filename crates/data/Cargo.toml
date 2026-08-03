@@ -1,0 +1,6 @@
+[package]
+name = "staple-data"
+description = "Staple Turso/libSQL data layer: schema, migrations, repositories"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
