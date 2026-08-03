@@ -9,7 +9,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 use clap::{Parser, Subcommand};
-use staple_migrate::{export, import, load_snapshot, verify};
+use staple_migrate::{export, export_postgres, import, load_snapshot, verify};
 
 #[derive(Parser)]
 #[command(name = "staple-migrate", about = "Postgres → Turso snapshot migration")]
@@ -22,7 +22,7 @@ struct Cli {
 enum Command {
     /// Exports rows from a source database into a snapshot file.
     Export {
-        /// Source database path (local SQLite/libsql; Postgres URL support planned).
+        /// Source database path (local SQLite/libsql, or a `postgres://` URL).
         #[arg(long)]
         source: String,
         /// Output snapshot file.
@@ -54,7 +54,11 @@ async fn main() -> Result<()> {
     let cli = Cli::parse();
     match cli.command {
         Command::Export { source, out } => {
-            let snapshot = export(&source).await?;
+            let snapshot = if source.starts_with("postgres://") {
+                export_postgres(&source).await?
+            } else {
+                export(&source).await?
+            };
             let bytes = serde_json::to_vec_pretty(&snapshot)?;
             std::fs::write(&out, bytes).with_context(|| format!("writing {}", out.display()))?;
             println!("exported {} tables to {}", snapshot.len(), out.display());
