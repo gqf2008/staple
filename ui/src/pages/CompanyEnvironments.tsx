@@ -222,7 +222,9 @@ function createEnvironmentFormFromEnvironment(environment: Environment): Environ
   };
 }
 
-const DISCARD_ENVIRONMENT_CHANGES_MESSAGE = t("pages.companyEnvironments.discardChanges", { defaultValue: "Discard unsaved environment changes?" });
+function discardEnvironmentChangesMessage(): string {
+  return t("pages.companyEnvironments.discardChanges", { defaultValue: "Discard unsaved environment changes?" });
+}
 
 function stableJsonStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -1449,7 +1451,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     return (
       !environmentHasUnsavedChanges ||
       typeof window === "undefined" ||
-      window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)
+      window.confirm(discardEnvironmentChangesMessage())
     );
   }
 
@@ -1491,7 +1493,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         return;
       }
 
-      if (window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)) return;
+      if (window.confirm(discardEnvironmentChangesMessage())) return;
       event.preventDefault();
       event.stopPropagation();
     }

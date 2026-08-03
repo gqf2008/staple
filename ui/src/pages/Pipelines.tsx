@@ -1006,7 +1006,9 @@ function PipelinesIndex() {
 // ---------------------------------------------------------------------------
 
 const UNASSIGNED_STAGE_ID = "__pipeline_unassigned_stage";
-const UNASSIGNED_STAGE_NAME = t("pages.pipelines.unassigned", { defaultValue: "Unassigned" });
+function unassignedStageName(): string {
+  return t("pages.pipelines.unassigned", { defaultValue: "Unassigned" });
+}
 
 type BoardCase = PipelineCase & {
   activeWork?: PipelineCaseActiveWork | null;
@@ -1114,7 +1116,7 @@ export function createUnassignedStage(pipelineId: string): PipelineStage {
     id: UNASSIGNED_STAGE_ID,
     pipelineId,
     key: "__unassigned",
-    name: UNASSIGNED_STAGE_NAME,
+    name: unassignedStageName(),
     kind: "working",
     position: Number.MAX_SAFE_INTEGER,
     config: {},
@@ -1676,8 +1678,8 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
     const targetStageKey = stageKeyById.get(targetStageId);
     if (!targetStageKey) return;
 
-    const sourceName = stageNameById.get(sourceStageId ?? "") ?? UNASSIGNED_STAGE_NAME;
-    const targetName = stageNameById.get(targetStageId) ?? UNASSIGNED_STAGE_NAME;
+    const sourceName = stageNameById.get(sourceStageId ?? "") ?? unassignedStageName();
+    const targetName = stageNameById.get(targetStageId) ?? unassignedStageName();
     setPendingMove({
       caseId: activeCase.id,
       caseVersion: activeCase.version ?? 1,

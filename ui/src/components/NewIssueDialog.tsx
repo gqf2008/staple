@@ -136,7 +136,7 @@ function issueThinkingEffortOptions() {
     ],
     codex_local: [
       effort("", t("components.dialogs.common.default", { defaultValue: "Default" })),
-      effort("minimal", t("' + D + 'minimal", { defaultValue: "Minimal" })),
+      effort("minimal", t("components.dialogs.newIssue.minimal", { defaultValue: "Minimal" })),
       effort("low", t("priorities.low", { defaultValue: "Low" })),
       effort("medium", t("priorities.medium", { defaultValue: "Medium" })),
       effort("high", t("priorities.high", { defaultValue: "High" })),
@@ -144,12 +144,12 @@ function issueThinkingEffortOptions() {
     ],
     opencode_local: [
       effort("", t("components.dialogs.common.default", { defaultValue: "Default" })),
-      effort("minimal", t("' + D + 'minimal", { defaultValue: "Minimal" })),
+      effort("minimal", t("components.dialogs.newIssue.minimal", { defaultValue: "Minimal" })),
       effort("low", t("priorities.low", { defaultValue: "Low" })),
       effort("medium", t("priorities.medium", { defaultValue: "Medium" })),
       effort("high", t("priorities.high", { defaultValue: "High" })),
       effort("xhigh", t("priorities.xhigh", { defaultValue: "X-High" })),
-      effort("max", t("' + D + 'thinkingMax", { defaultValue: "Max" })),
+      effort("max", t("components.dialogs.newIssue.thinkingMax", { defaultValue: "Max" })),
     ],
   };
 }
@@ -232,13 +232,13 @@ function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; col
       value: "backlog",
       label: t("status.backlog", { defaultValue: "Backlog" }),
       color: palette.backlog ?? issueStatusTextDefault,
-      description: t("' + D + 'parked", { defaultValue: "Parked - assignee will not be woken" }),
+      description: t("components.dialogs.newIssue.parked", { defaultValue: "Parked - assignee will not be woken" }),
     },
     {
       value: "todo",
       label: t("status.todo", { defaultValue: "Todo" }),
       color: palette.todo ?? issueStatusTextDefault,
-      description: t("' + D + 'executable", { defaultValue: "Executable - assignee will be woken" }),
+      description: t("components.dialogs.newIssue.executable", { defaultValue: "Executable - assignee will be woken" }),
     },
     { value: "in_progress", label: t("status.in_progress", { defaultValue: "In Progress" }), color: palette.in_progress ?? issueStatusTextDefault },
     { value: "in_review", label: t("status.in_review", { defaultValue: "In Review" }), color: palette.in_review ?? issueStatusTextDefault },
@@ -285,9 +285,9 @@ function priorityOptions() {
 
 function executionWorkspaceModes() {
   return [
-    { value: "shared_workspace", label: t("' + D + 'projectDefault", { defaultValue: "Project default" }) },
-    { value: "isolated_workspace", label: t("' + D + 'newIsolatedWorkspace", { defaultValue: "New isolated workspace" }) },
-    { value: "reuse_existing", label: t("' + D + 'reuseExistingWorkspace", { defaultValue: "Reuse existing workspace" }) },
+    { value: "shared_workspace", label: t("components.dialogs.newIssue.projectDefault", { defaultValue: "Project default" }) },
+    { value: "isolated_workspace", label: t("components.dialogs.newIssue.newIsolatedWorkspace", { defaultValue: "New isolated workspace" }) },
+    { value: "reuse_existing", label: t("components.dialogs.newIssue.reuseExistingWorkspace", { defaultValue: "Reuse existing workspace" }) },
   ] as const;
 }
 

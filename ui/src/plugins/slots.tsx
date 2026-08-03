@@ -296,7 +296,7 @@ function createReactShimSource(reactModule: object): string {
   return `
         const R = globalThis.__paperclipPluginBridge__?.react;
         if (!R) {
-          throw new Error(t("components.pluginSlots.runtimeNotInit", { defaultValue: "Paperclip plugin React runtime is not initialized." }));
+          throw new Error(${JSON.stringify(t("components.pluginSlots.runtimeNotInit", { defaultValue: "Paperclip plugin React runtime is not initialized." }))});
         }
         export default R;
 ${namedExports}

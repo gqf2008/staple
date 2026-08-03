@@ -11,9 +11,9 @@ const LOCALE_STORAGE_KEY = "paperclip.locale";
  */
 export function normalizeLocale(candidate: string | null | undefined): string | null {
   if (!candidate) return null;
-  const normalized = candidate.replace("_", "-").toLowerCase();
+  const normalized = candidate.replace(/_/g, "-").toLowerCase();
   if (normalized.startsWith("zh")) {
-    if (normalized === "zh-tw" || normalized === "zh-hant") return "zh-TW";
+    if (normalized.startsWith("zh-hant") || normalized.startsWith("zh-tw")) return "zh-TW";
     return "zh-CN";
   }
   const exact = supportedLocales.find((locale) => locale.toLowerCase() === normalized);

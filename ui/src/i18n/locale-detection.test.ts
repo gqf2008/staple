@@ -17,6 +17,8 @@ describe("normalizeLocale", () => {
     expect(normalizeLocale("zh")).toBe("zh-CN");
     expect(normalizeLocale("zh-TW")).toBe("zh-TW");
     expect(normalizeLocale("zh-Hant")).toBe("zh-TW");
+    expect(normalizeLocale("zh-Hant-TW")).toBe("zh-TW");
+    expect(normalizeLocale("zh_Hant_TW")).toBe("zh-TW");
   });
 
   it("matches supported locales case-insensitively", () => {

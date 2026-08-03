@@ -536,6 +536,9 @@ function NoCompaniesStartPage() {
 }
 
 export function App() {
+  // Subscribe the root to i18next language changes so the whole tree
+  // re-renders when the user switches the UI language.
+  useTranslation();
   return (
     <>
       <Routes>
