@@ -308,7 +308,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
           >
             <UserPlus className="size-4" />
             <span className="truncate">
-              {selectedCompany ? `Invite people to ${selectedCompany.name}` : t("components.sidebarCompanyMenu.invitePeople", { defaultValue: "Invite people" })}
+              {selectedCompany ? t("ui.components.sidebarcompanymenu.invite-people-to", { company: selectedCompany.name }) : t("components.sidebarCompanyMenu.invitePeople", { defaultValue: "Invite people" })}
             </span>
           </Link>
         </DropdownMenuItem>

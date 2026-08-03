@@ -8408,7 +8408,8 @@
         "account": "账户"
       },
       "sidebarcompanymenu": {
-        "switch-company": "切换公司"
+        "switch-company": "切换公司",
+        "invite-people-to": "邀请成员加入 {{company}}"
       },
       "sidebarshell": {
         "resize-sidebar": "调整侧边栏大小"
@@ -10564,7 +10565,11 @@
           },
           "gateway-helpers": {
             "expiring": "即将过期",
-            "sign-expired-reconnect-restore": "登录已过期 — 重新连接以恢复访问。"
+            "sign-expired-reconnect-restore": "登录已过期 — 重新连接以恢复访问。",
+            "board": "董事会",
+            "company": "公司",
+            "agent-prefix": "智能体 · {{name}}",
+            "agent-fallback": "智能体 {{id}}"
           },
           "gateway-tabs": {
             "apps-tools": "应用与工具"
@@ -10977,7 +10982,9 @@
         "upstream-change-acknowledged": "Upstream change acknowledged.",
         "work-started": "Work started.",
         "work-handoff-cleared": "Work handoff cleared.",
-        "activity-recorded": "Activity recorded."
+        "activity-recorded": "Activity recorded.",
+        "board": "董事会",
+        "paperclip": "Paperclip"
       },
       "pipeline-liveness": {
         "fallback-pipelines-write": "pipelines:write",

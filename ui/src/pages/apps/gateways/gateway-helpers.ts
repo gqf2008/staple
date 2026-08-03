@@ -86,15 +86,15 @@ export function formatScope(
     return `${gateway.contextScopeType} · ${shortId(gateway.contextScopeId)}`;
   }
   if (gateway.projectId) return `Project · ${projectNames.get(gateway.projectId) ?? shortId(gateway.projectId)}`;
-  if (gateway.agentId) return `Agent · ${agentNames.get(gateway.agentId) ?? shortId(gateway.agentId)}`;
-  return "Company";
+  if (gateway.agentId) return t("ui.pages.apps.gateways.gateway-helpers.agent-prefix", { name: agentNames.get(gateway.agentId) ?? shortId(gateway.agentId) });
+  return t("ui.pages.apps.gateways.gateway-helpers.company");
 }
 
 export function formatOwner(gateway: ToolMcpGatewayWithTokens, agentNames: Map<string, string>): string {
   if (gateway.createdByAgentId) {
-    return agentNames.get(gateway.createdByAgentId) ?? `Agent ${shortId(gateway.createdByAgentId)}`;
+    return agentNames.get(gateway.createdByAgentId) ?? t("ui.pages.apps.gateways.gateway-helpers.agent-fallback", { id: shortId(gateway.createdByAgentId) });
   }
-  return "Board";
+  return t("ui.pages.apps.gateways.gateway-helpers.board");
 }
 
 /** Whether the gateway is exposing tools to clients right now. */
