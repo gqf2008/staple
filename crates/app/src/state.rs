@@ -7,7 +7,7 @@ use staple_data::{
     CostRepository, DecisionRepository, DocumentRepository, EnvironmentRepository,
     ExternalObjectRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
     IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
-    ProjectRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    ProjectRepository, RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
     WorkspaceRepository,
 };
 
@@ -63,6 +63,8 @@ pub struct AppState {
     pub labels: Arc<dyn LabelRepository>,
     /// Issue structure repository.
     pub issue_structure: Arc<dyn IssueStructureRepository>,
+    /// Routines repository.
+    pub routines: Arc<dyn RoutineRepository>,
     /// Adapter registry.
     pub adapters: Arc<AdapterRegistry>,
     /// Plugin load diagnostics.

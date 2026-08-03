@@ -16,8 +16,8 @@ use staple_data::{
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
     TursoIssueStructureRepository, TursoLabelRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, migrate, open,
+    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -97,6 +97,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let issue_structure_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let routines_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -125,6 +128,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
         labels: Arc::new(TursoLabelRepository::new(labels_db)),
         issue_structure: Arc::new(TursoIssueStructureRepository::new(issue_structure_db)),
+        routines: Arc::new(TursoRoutineRepository::new(routines_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
@@ -2927,4 +2931,115 @@ async fn issue_structure_extensions() {
     )
     .await;
     assert_eq!(labels.as_array().unwrap().len(), 0);
+}
+
+#[tokio::test]
+async fn routines_lifecycle() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let (_, project) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "P" }),
+    )
+    .await;
+    let project_id = project["id"].as_str().unwrap().to_owned();
+
+    // Create routine.
+    let (status, routine) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({
+            "title": "Daily report",
+            "projectId": project_id,
+            "description": "generate report",
+            "variables": [ { "name": "fmt", "value": "md" } ]
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(routine["status"], "active");
+    assert_eq!(routine["latestRevisionNumber"], 1);
+    let routine_id = routine["id"].as_str().unwrap().to_owned();
+
+    // Update -> revision 2.
+    let (status, updated) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/routines/{routine_id}"),
+        json!({ "title": "Weekly report" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(updated["latestRevisionNumber"], 2);
+    assert_eq!(updated["title"], "Weekly report");
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Trigger -> run queued.
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/trigger"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(run["status"], "queued");
+
+    let (status, runs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/runs"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(runs.as_array().unwrap().len(), 1);
+
+    // Trigger: cron.
+    let (status, trigger) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({ "scheduleKind": "cron", "scheduleExpr": "0 9 * * *" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(trigger["scheduleKind"], "cron");
+
+    let (status, triggers) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(triggers.as_array().unwrap().len(), 1);
+
+    // Invalid trigger kind -> 422.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({ "scheduleKind": "bogus" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // Missing routine -> 404.
+    let (status, _) = send_json(&app, Method::GET, "/api/routines/missing", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

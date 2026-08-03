@@ -23,6 +23,7 @@ pub mod issue_structure;
 pub mod issues;
 pub mod labels;
 pub mod projects;
+pub mod routines;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
@@ -94,6 +95,10 @@ pub use labels::{
 pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,
     TursoProjectRepository,
+};
+pub use routines::{
+    NewRoutine, NewTrigger, RoutineError, RoutineRecord, RoutineRepository, RoutineRunRecord,
+    TursoRoutineRepository, UpdateRoutine,
 };
 pub use secrets::{
     CompanySecretRecord, NewSecret, SecretError, SecretRepository, SecretVersionRecord,
