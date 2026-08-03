@@ -62,7 +62,7 @@ export function RunWorkspaceRecoverySurface({ run }: { run: HeartbeatRun }) {
   const issueId = readRunIssueId(run);
 
   const { data: issue } = useQuery({
-    queryKey: queryKeys.issues.detail(issueId ?? "__none__"),
+    queryKey: queryKeys.issues.detail(issueId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => issuesApi.get(issueId!),
     enabled: Boolean(isWorkspaceValidationFailure && issueId),
   });
@@ -127,7 +127,7 @@ export function RunWorkspaceRecoverySurface({ run }: { run: HeartbeatRun }) {
   const reissue = useMutation({
     mutationFn: async (request: RecoveryReissueRequest) => {
       if (!issue) throw new Error(t("components.runWorkspaceRecovery.taskNotLoaded", { defaultValue: "Task is not loaded yet." }));
-      const sourceLabel = issue.identifier ?? "the stalled task";
+      const sourceLabel = issue.identifier ?? t("ui.components.runworkspacerecoverysurface.fallback-stalled-task");
       const descriptionLines = [
         `Re-issued from ${sourceLabel} on an isolated git worktree after a workspace branch divergence.`,
         "",

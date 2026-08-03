@@ -38,7 +38,7 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
   const [configureOpen, setConfigureOpen] = useState(false);
 
   const { data: states, isLoading } = useQuery({
-    queryKey: queryKeys.builtInAgents.list(companyId ?? "__none__"),
+    queryKey: queryKeys.builtInAgents.list(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => builtInAgentsApi.list(companyId!),
     enabled: Boolean(companyId),
   });
@@ -48,7 +48,7 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
   const resume = useMutation({
     mutationFn: (agentId: string) => agentsApi.resume(agentId, companyId ?? undefined),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.builtInAgents.list(companyId ?? "__none__") });
+      queryClient.invalidateQueries({ queryKey: queryKeys.builtInAgents.list(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")) });
       if (companyId) queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(companyId) });
     },
   });

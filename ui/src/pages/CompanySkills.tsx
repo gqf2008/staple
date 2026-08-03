@@ -261,10 +261,10 @@ function sourceMeta(sourceBadge: CompanySkillSourceBadge, sourceLabel: string | 
 
   switch (sourceBadge) {
     case "skills_sh":
-      return { icon: VercelMark, label: sourceLabel ?? "skills.sh", managedLabel: "skills.sh managed" };
+      return { icon: VercelMark, label: sourceLabel ?? t("ui.pages.companyskills.fallback-skills-sh"), managedLabel: "skills.sh managed" };
     case "github":
       return isSkillsShManaged
-        ? { icon: VercelMark, label: sourceLabel ?? "skills.sh", managedLabel: "skills.sh managed" }
+        ? { icon: VercelMark, label: sourceLabel ?? t("ui.pages.companyskills.fallback-skills-sh"), managedLabel: "skills.sh managed" }
         : { icon: Github, label: sourceLabel ?? t("pages.companySkills.gitHub", { defaultValue: "GitHub" }), managedLabel: t("pages.companySkills.gitHubManaged", { defaultValue: "GitHub managed" }) };
     case "url":
       return { icon: Link2, label: sourceLabel ?? t("pages.companySkills.url", { defaultValue: "URL" }), managedLabel: t("pages.companySkills.urlManaged", { defaultValue: "URL managed" }) };
@@ -2498,7 +2498,7 @@ function SkillVersionDiffDialog({
     });
   }, [left, right]);
   const [selectedPath, setSelectedPath] = useState("SKILL.md");
-  const effectivePath = allPaths.includes(selectedPath) ? selectedPath : allPaths[0] ?? "SKILL.md";
+  const effectivePath = allPaths.includes(selectedPath) ? selectedPath : allPaths[0] ?? t("pages.skills.importFromProject.skillMd");
   const leftFile = left?.fileInventory.find((file) => file.path === effectivePath);
   const rightFile = right?.fileInventory.find((file) => file.path === effectivePath);
   const diffRows = useMemo(

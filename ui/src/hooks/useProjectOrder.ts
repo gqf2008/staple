@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Project } from "@paperclipai/shared";
@@ -26,7 +27,7 @@ function buildOrderIds(projects: Project[], orderedIds: string[]) {
 export function useProjectOrder({ projects, companyId, userId }: UseProjectOrderParams) {
   const queryClient = useQueryClient();
   const queryKey = useMemo(
-    () => queryKeys.sidebarPreferences.projectOrder(companyId ?? "__none__", userId ?? "__anon__"),
+    () => queryKeys.sidebarPreferences.projectOrder(companyId ?? t("ui.components.appconnectionsidebar.fallback-none"), userId ?? t("ui.hooks.usecompanyorder.fallback-anon")),
     [companyId, userId],
   );
 

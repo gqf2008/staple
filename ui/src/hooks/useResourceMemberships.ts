@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type {
   ResourceMembershipResourceType,
@@ -138,7 +139,7 @@ export function starredResourceIds(
 
 export function useResourceMemberships(companyId: string | null | undefined) {
   return useQuery({
-    queryKey: queryKeys.resourceMemberships.mine(companyId ?? "__none__"),
+    queryKey: queryKeys.resourceMemberships.mine(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => resourceMembershipsApi.listMine(companyId!),
     enabled: !!companyId,
   });
@@ -147,7 +148,7 @@ export function useResourceMemberships(companyId: string | null | undefined) {
 export function useResourceMembershipMutation(companyId: string | null | undefined) {
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
-  const queryKey = queryKeys.resourceMemberships.mine(companyId ?? "__none__");
+  const queryKey = queryKeys.resourceMemberships.mine(companyId ?? t("ui.components.appconnectionsidebar.fallback-none"));
 
   return useMutation({
     mutationFn: (variables: MutationVariables) => {

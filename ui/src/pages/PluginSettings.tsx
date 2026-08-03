@@ -99,7 +99,7 @@ export function PluginSettings() {
 
   const configQueryKey = pluginId && selectedCompanyId
     ? queryKeys.plugins.config(pluginId, selectedCompanyId)
-    : ["plugins", pluginId ?? "__missing_plugin__", "companies", "__missing_company__", "config"] as const;
+    : ["plugins", pluginId ?? t("ui.pages.pluginsettings.fallback-missing-plugin"), "companies", "__missing_company__", "config"] as const;
 
   const { data: configData, isLoading: configLoading } = useQuery({
     queryKey: configQueryKey,
@@ -665,7 +665,7 @@ function PluginLocalFolderRow({ pluginId, companyId, declaration, status }: Plug
 
   const trimmedPath = pathValue.trim();
   const isDirty = trimmedPath !== serverPath;
-  const access = status?.access ?? declaration.access ?? "readWrite";
+  const access = status?.access ?? declaration.access ?? t("ui.pages.pluginsettings.fallback-readwrite");
 
   const handleSave = useCallback(() => {
     if (!trimmedPath) {

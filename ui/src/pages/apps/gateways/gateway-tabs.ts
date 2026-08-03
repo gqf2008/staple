@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import { Activity, LayoutGrid, KeyRound, Wrench, Boxes } from "lucide-react";
 
 /**
@@ -24,5 +25,5 @@ export function isGatewayTabKey(value: string | undefined): value is GatewayTabK
 }
 
 export function gatewayTabLabel(tabKey: GatewayTabKey): string {
-  return GATEWAY_TABS.find((tab) => tab.key === tabKey)?.label ?? "Overview";
+  return GATEWAY_TABS.find((tab) => tab.key === tabKey)?.label ?? t("components.routineSubSidebar.overview");
 }

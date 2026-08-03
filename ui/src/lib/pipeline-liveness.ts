@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PipelineCaseLiveness } from "@paperclipai/shared";
 
 /**
@@ -140,7 +141,7 @@ export function derivePipelineLivenessBanner(
         body: liveness.message,
         blockerLink: null,
         automationLink: automationLinkFromLiveness(liveness),
-        permissionKey: permissionKeyFromFingerprint(liveness.automation?.fingerprint) ?? "pipelines:write",
+        permissionKey: permissionKeyFromFingerprint(liveness.automation?.fingerprint) ?? t("ui.lib.pipeline-liveness.fallback-pipelines-write"),
         showRetry: false,
         retryKind: null,
         retryLabel: "",

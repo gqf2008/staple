@@ -88,7 +88,7 @@ function resolveActorLabel(args: {
     return agentMap?.get(agentId)?.name ?? agentId.slice(0, 8);
   }
   if (userId) {
-    return formatAssigneeUserLabel(userId, currentUserId, userLabelMap) ?? "Board";
+    return formatAssigneeUserLabel(userId, currentUserId, userLabelMap) ?? t("components.activityRow.board");
   }
   return "Unknown";
 }
@@ -1499,7 +1499,7 @@ function ToolActionResolution({
   requestedByLabel: string;
 }) {
   const result = interaction.result?.toolAction ?? null;
-  const who = resolvedByLabel ?? "the board";
+  const who = resolvedByLabel ?? t("ui.components.issuethreadinteractioncard.fallback-board");
   const when = interaction.resolvedAt
     ? formatDateTime(interaction.resolvedAt)
     : result?.updatedAt

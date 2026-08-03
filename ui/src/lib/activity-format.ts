@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Agent } from "@paperclipai/shared";
 import type { CompanyUserProfile } from "./company-members";
 
@@ -165,7 +166,7 @@ function readIssueReferences(details: ActivityDetails, key: string): ActivityIss
 }
 
 function formatUserLabel(userId: string | null | undefined, options: ActivityFormatOptions = {}): string {
-  if (!userId || userId === "local-board") return "Board";
+  if (!userId || userId === "local-board") return t("components.activityRow.board");
   if (options.currentUserId && userId === options.currentUserId) return "You";
   const profile = options.userProfileMap?.get(userId);
   if (profile) return profile.label;

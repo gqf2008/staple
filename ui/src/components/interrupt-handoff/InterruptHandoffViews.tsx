@@ -39,7 +39,7 @@ function agentIcon(agentId: string, resolvers: HandoffChipResolvers): string | n
 
 function userLabel(userId: string, resolvers: HandoffChipResolvers): string {
   const label = resolvers.resolveUserLabel?.(userId) ?? null;
-  const base = label ?? "Board";
+  const base = label ?? t("components.activityRow.board");
   return resolvers.currentUserId && resolvers.currentUserId === userId ? `${base} (you)` : base;
 }
 

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CompanySkillCreateRequest,
   CompanySkillDetail,
@@ -49,8 +50,8 @@ export function splitCategoryDraft(value: string) {
 }
 
 export function defaultSkillMarkdown(name: string, tagline: string) {
-  const title = name.trim() || "New Skill";
-  const summary = tagline.trim() || "Describe when agents should use this skill.";
+  const title = name.trim() || t("pages.companySkills.newSkill");
+  const summary = tagline.trim() || t("ui.lib.skill-create.fallback-describe-when-agents-should");
   return [
     "---",
     `name: ${title}`,

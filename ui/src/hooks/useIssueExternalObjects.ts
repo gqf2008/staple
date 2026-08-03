@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type {
@@ -89,7 +90,7 @@ export function useIssueExternalObjects(issueId: string | null | undefined): Iss
   const externalObjectsFeature = useExternalObjectsFeature();
   const enabled = externalObjectsFeature.isEnabled && Boolean(issueId);
   const query = useQuery({
-    queryKey: queryKeys.externalObjects.byIssue(issueId ?? "__none__"),
+    queryKey: queryKeys.externalObjects.byIssue(issueId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => externalObjectsApi.listForIssue(issueId!),
     enabled,
     staleTime: 60_000,
@@ -189,7 +190,7 @@ export function useIssueExternalObjectSummary(issueId: string | null | undefined
   const externalObjectsFeature = useExternalObjectsFeature();
   const enabled = externalObjectsFeature.isEnabled && Boolean(issueId);
   const query = useQuery({
-    queryKey: queryKeys.externalObjects.issueSummary(issueId ?? "__none__"),
+    queryKey: queryKeys.externalObjects.issueSummary(issueId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => externalObjectsApi.getIssueSummary(issueId!),
     enabled,
     staleTime: 60_000,
@@ -215,7 +216,7 @@ export function useIssueExternalObjectSummaries(
   );
   const enabled = externalObjectsFeature.isEnabled && Boolean(companyId) && normalizedIssueIds.length > 0;
   const query = useQuery({
-    queryKey: queryKeys.externalObjects.issueSummaries(companyId ?? "__none__", normalizedIssueIds),
+    queryKey: queryKeys.externalObjects.issueSummaries(companyId ?? t("ui.components.appconnectionsidebar.fallback-none"), normalizedIssueIds),
     queryFn: () => fetchIssueExternalObjectSummariesInBatches(companyId!, normalizedIssueIds),
     enabled,
     staleTime: 60_000,
@@ -238,7 +239,7 @@ export function useProjectExternalObjectSummary(projectId: string | null | undef
   const externalObjectsFeature = useExternalObjectsFeature();
   const enabled = externalObjectsFeature.isEnabled && Boolean(projectId);
   const query = useQuery({
-    queryKey: queryKeys.externalObjects.projectSummary(projectId ?? "__none__"),
+    queryKey: queryKeys.externalObjects.projectSummary(projectId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => externalObjectsApi.getProjectSummary(projectId!),
     enabled,
     staleTime: 60_000,

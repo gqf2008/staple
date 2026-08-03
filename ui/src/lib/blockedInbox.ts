@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   Issue,
   IssueBlockedInboxAttention,
@@ -75,7 +76,7 @@ export function blockedReasonVariant(reason: IssueBlockedInboxReason): BlockedRe
 }
 
 export function blockedReasonLabel(reason: IssueBlockedInboxReason): string {
-  return REASON_LABELS[reason] ?? "Stopped";
+  return REASON_LABELS[reason] ?? t("components.workspaceServiceControlBar.stopped");
 }
 
 export function blockedVariantLabel(variant: BlockedReasonVariant): string {

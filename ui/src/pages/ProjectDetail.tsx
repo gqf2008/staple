@@ -519,7 +519,7 @@ export function ProjectDetail() {
   });
 
   const { data: budgetOverview } = useQuery({
-    queryKey: queryKeys.budgets.overview(resolvedCompanyId ?? "__none__"),
+    queryKey: queryKeys.budgets.overview(resolvedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => budgetsApi.overview(resolvedCompanyId!),
     enabled: !!resolvedCompanyId,
     refetchInterval: 30_000,

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PipelineStage } from "../api/pipelines";
 
 /**
@@ -176,7 +177,7 @@ export function breakdownMechanicsBullets(
 ): string[] {
   const noun = config.pieceNoun;
   const bullets: string[] = [
-    `Creates one ${noun} per item the agent returns, in ${names.targetPipelineName || "the destination pipeline"} → ${names.entryStageName || "its entry step"}.`,
+    `Creates one ${noun} per item the agent returns, in ${names.targetPipelineName || t("ui.lib.pipeline-breakdown.fallback-destination-pipeline")} → ${names.entryStageName || t("ui.lib.pipeline-breakdown.fallback-entry-step")}.`,
     `Links every ${noun} to this case so progress rolls up here.`,
   ];
   if (names.inheritedFieldLabels.length > 0) {

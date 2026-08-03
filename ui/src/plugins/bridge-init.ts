@@ -12,6 +12,7 @@
  * @see PLUGIN_SPEC.md §19.0.2 — Bundle Isolation
  */
 
+import { t } from "../i18n";
 import {
   usePluginData,
   usePluginAction,
@@ -257,21 +258,21 @@ function PluginSdkIssuesList({
   const originKindPrefix = issueFilters.originKindPrefix ?? null;
   const resolvedProjectId = issueFilters.projectId ?? projectId ?? null;
   const issuesQueryKey = useMemo(
-    () => ["plugins", "sdk-ui", "issues-list", companyId ?? "__no-company__", issueFilters] as const,
+    () => ["plugins", "sdk-ui", "issues-list", companyId ?? t("ui.components.issueslist.fallback-no-company"), issueFilters] as const,
     [companyId, issueFilters],
   );
 
   const { data: agents } = useQuery({
-    queryKey: queryKeys.agents.list(companyId ?? "__no-company__"),
+    queryKey: queryKeys.agents.list(companyId ?? t("ui.components.issueslist.fallback-no-company")),
     queryFn: () => agentsApi.list(companyId!),
     enabled: !!companyId,
   });
   const { data: projects } = useQuery({
-    queryKey: queryKeys.projects.list(companyId ?? "__no-company__", { includeArchived: true }),
+    queryKey: queryKeys.projects.list(companyId ?? t("ui.components.issueslist.fallback-no-company"), { includeArchived: true }),
     queryFn: () => projectsApi.list(companyId!, { includeArchived: true }),
     enabled: !!companyId,
   });
-  const liveRunsQueryKey = queryKeys.liveRuns(companyId ?? "__no-company__");
+  const liveRunsQueryKey = queryKeys.liveRuns(companyId ?? t("ui.components.issueslist.fallback-no-company"));
   const sharedLiveRuns = useSharedPollingQuery({
     companyId,
     resourceKey: "live-runs",
@@ -356,12 +357,12 @@ function PluginSdkAssigneePicker({
   });
   const currentUserId = session?.user?.id ?? session?.session?.userId ?? null;
   const { data: agents } = useQuery({
-    queryKey: queryKeys.agents.list(resolvedCompanyId ?? "__no-company__"),
+    queryKey: queryKeys.agents.list(resolvedCompanyId ?? t("ui.components.issueslist.fallback-no-company")),
     queryFn: () => agentsApi.list(resolvedCompanyId!),
     enabled: !!resolvedCompanyId,
   });
   const { data: companyMembers } = useQuery({
-    queryKey: queryKeys.access.companyUserDirectory(resolvedCompanyId ?? "__no-company__"),
+    queryKey: queryKeys.access.companyUserDirectory(resolvedCompanyId ?? t("ui.components.issueslist.fallback-no-company")),
     queryFn: () => accessApi.listUserDirectory(resolvedCompanyId!),
     enabled: !!resolvedCompanyId && includeUsers,
   });
@@ -464,7 +465,7 @@ function PluginSdkProjectPicker({
   });
   const currentUserId = session?.user?.id ?? session?.session?.userId ?? null;
   const { data: projects } = useQuery({
-    queryKey: queryKeys.projects.list(resolvedCompanyId ?? "__no-company__", { includeArchived }),
+    queryKey: queryKeys.projects.list(resolvedCompanyId ?? t("ui.components.issueslist.fallback-no-company"), { includeArchived }),
     queryFn: () => projectsApi.list(resolvedCompanyId!, { includeArchived }),
     enabled: !!resolvedCompanyId,
   });
@@ -573,7 +574,7 @@ type PluginDataTableProps = {
 function PluginSdkDataTable({ columns, rows, loading, emptyMessage = "No rows." }: PluginDataTableProps) {
   if (loading) return createElement("div", { className: "text-sm text-muted-foreground" }, "Loading...");
   if (!rows.length) return createElement("div", { className: "text-sm text-muted-foreground" }, emptyMessage);
-  const gridColumns = columns.map((column) => column.width ?? "minmax(0, 1fr)").join(" ");
+  const gridColumns = columns.map((column) => column.width ?? t("ui.plugins.bridge-init.fallback-minmax-1fr")).join(" ");
   return createElement(
     "div",
     { className: "overflow-hidden rounded-md border" },

@@ -348,7 +348,7 @@ export function Search() {
   const { data, isFetching, error, refetch } = useQuery<CompanySearchResponse>({
     queryKey: [
       ...queryKeys.companySearch.search(
-        selectedCompanyId ?? "__no-company__",
+        selectedCompanyId ?? t("ui.components.issueslist.fallback-no-company"),
         trimmedQuery,
         scope,
         COMPANY_SEARCH_DEFAULT_LIMIT,
@@ -408,7 +408,7 @@ export function Search() {
   const { data: previewData } = useQuery<CompanySearchResponse>({
     queryKey: [
       ...queryKeys.companySearch.search(
-        selectedCompanyId ?? "__no-company__",
+        selectedCompanyId ?? t("ui.components.issueslist.fallback-no-company"),
         trimmedQuery,
         scope,
         COMPANY_SEARCH_DEFAULT_LIMIT,

@@ -182,7 +182,7 @@ function plainAlertBody(alert: ToolRuntimeAlertRecommendation): string {
   return ALERT_COPY[alert.name]?.body(alert) ?? alert.observed;
 }
 function alertAction(alert: ToolRuntimeAlertRecommendation): AlertAction {
-  return ALERT_COPY[alert.name]?.action ?? "reviewActivity";
+  return ALERT_COPY[alert.name]?.action ?? t("ui.pages.tools.runtimetab.fallback-reviewactivity");
 }
 
 interface ConfirmTarget {

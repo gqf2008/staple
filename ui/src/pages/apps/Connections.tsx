@@ -99,22 +99,22 @@ export function Connections() {
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const profilesQuery = useQuery({
-    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listProfiles(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });

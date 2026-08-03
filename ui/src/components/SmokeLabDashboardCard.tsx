@@ -49,7 +49,7 @@ export function SmokeLabDashboardCard({ companyId }: { companyId: string }) {
   const latestRun = runsQuery.data?.runs?.[0];
 
   const detailQuery = useQuery({
-    queryKey: queryKeys.smokeLab.run(companyId, latestRun?.id ?? "__none__"),
+    queryKey: queryKeys.smokeLab.run(companyId, latestRun?.id ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => smokeLabApi.getRun(companyId, latestRun!.id),
     enabled: enabled && loaded && !!latestRun,
   });

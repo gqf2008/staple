@@ -61,7 +61,7 @@ export function ProjectScanNotice({
   skill: CompanySkillDetail;
   onEditACopy: () => void;
 }) {
-  const location = skill.sourcePath ?? skill.sourceLabel ?? "the project working tree";
+  const location = skill.sourcePath ?? skill.sourceLabel ?? t("ui.components.skill-studio.skillprovenance.fallback-project-working-tree");
 
   return (
     <div className="flex flex-wrap items-start gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   ReasoningMessagePart,
   TextMessagePart,
@@ -476,7 +477,7 @@ function authorNameForComment(
   if (!authorUserId) return options?.isSystemNotice ? "Paperclip" : "You";
   const userLabel = userLabelMap?.get(authorUserId)?.trim();
   if (userLabel) return userLabel;
-  return formatAssigneeUserLabel(authorUserId, currentUserId, userLabelMap) ?? "You";
+  return formatAssigneeUserLabel(authorUserId, currentUserId, userLabelMap) ?? t("components.commentThread.you");
 }
 
 function formatStatusLabel(status: string) {
@@ -578,7 +579,7 @@ function createTimelineEventMessage(args: {
     ? (agentMap?.get(event.actorId)?.name ?? event.actorId.slice(0, 8))
     : event.actorType === "system"
       ? "System"
-      : (formatAssigneeUserLabel(event.actorId, currentUserId, userLabelMap) ?? "Board");
+      : (formatAssigneeUserLabel(event.actorId, currentUserId, userLabelMap) ?? t("components.activityRow.board"));
 
   const lines: string[] = [
     event.followUpRequested ? `${actorName} requested follow-up` : `${actorName} updated this issue`,

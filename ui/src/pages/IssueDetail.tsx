@@ -3758,7 +3758,7 @@ export function IssueDetail() {
       request: import("../components/IssueRecoveryActionCard").RecoveryReissueRequest,
     ) => {
       if (!issue) throw new Error(t("pages.issueDetail.taskNotLoaded", { defaultValue: "Task is not loaded yet." }));
-      const sourceLabel = issue.identifier ?? "the stalled task";
+      const sourceLabel = issue.identifier ?? t("ui.components.runworkspacerecoverysurface.fallback-stalled-task");
       const descriptionLines = [
         `Re-issued from ${sourceLabel} on an isolated git worktree after a workspace branch divergence.`,
         "",
@@ -4076,7 +4076,7 @@ export function IssueDetail() {
   const pausedComposerHint = activePauseHold
     ? (
       issue.assigneeAgentId
-        ? `Sending this comment will wake ${agentMap.get(issue.assigneeAgentId)?.name ?? "the assignee"} for triage while the subtree remains paused.`
+        ? `Sending this comment will wake ${agentMap.get(issue.assigneeAgentId)?.name ?? t("ui.components.issueassignedbacklognotice.fallback-assignee")} for triage while the subtree remains paused.`
         : t("pages.issueDetail.wakeAssigneeDesc", { defaultValue: "Assign an agent to wake them for triage while the subtree remains paused." })
     )
     : null;

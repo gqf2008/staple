@@ -54,7 +54,7 @@ export function IssueContinuationHandoff({
 
   if (!document) return null;
 
-  const title = document.title?.trim() || "Continuation handoff";
+  const title = document.title?.trim() || t("ui.components.issuecontinuationhandoff.fallback-continuation-handoff");
 
   return (
     <div

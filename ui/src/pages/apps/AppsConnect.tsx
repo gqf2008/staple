@@ -153,7 +153,7 @@ export function AppsConnect() {
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
@@ -283,7 +283,7 @@ export function AppsConnect() {
   const appName =
     connectResult?.application.name ??
     entry?.name ??
-    (linkName.trim() || defaultLinkName(linkUrl) || "this app");
+    (linkName.trim() || defaultLinkName(linkUrl) || t("ui.pages.apps.appsconnect.fallback-app"));
   const zapierEntry = zapierSource
     ? galleryQuery.data?.apps.find((app) => app.slug === "zapier") ?? null
     : null;
@@ -1462,7 +1462,7 @@ export function InstallStep({
       : [...installAgentIds].filter((id) => !accessAgentIds.has(id));
   const canFinish = installMode !== "specific" || installAgentIds.size > 0;
   const extendingLabel = extendingAgentIds.length === 1
-    ? agents.find((agent) => agent.id === extendingAgentIds[0])?.name ?? "1 agent"
+    ? agents.find((agent) => agent.id === extendingAgentIds[0])?.name ?? t("ui.pages.apps.appsconnect.fallback-agent")
     : `${extendingAgentIds.length} agents`;
 
   return (

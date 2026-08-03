@@ -34,17 +34,17 @@ export function AppNotConnected() {
   const activeTab: AppTabKey | null = isAppTabKey(tab) ? tab : null;
 
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
@@ -60,12 +60,12 @@ export function AppNotConnected() {
   const activeConnection = appConnections.find((c) => c.status !== "archived") ?? null;
   const previousConnection = useMemo(() => latestArchivedConnection(appConnections), [appConnections]);
   const activityQuery = useQuery({
-    queryKey: queryKeys.tools.connectionActivity(previousConnection?.id ?? "__none__"),
+    queryKey: queryKeys.tools.connectionActivity(previousConnection?.id ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnectionActivity(previousConnection!.id, 20),
     enabled: !!previousConnection && activeTab === "activity",
   });
   const agentsQuery = useQuery({
-    queryKey: queryKeys.agents.list(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.agents.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => agentsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId && activeTab === "activity",
   });
@@ -85,7 +85,7 @@ export function AppNotConnected() {
   const remove = useMutation({
     mutationFn: () => toolsApi.updateApplication(applicationId, { status: "archived" }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__") });
+      queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")) });
       pushToast({
         title: t("pages.appNotConnected.appRemoved", { defaultValue: "App removed" }),
         body: `${appName} no longer shows in your apps. You can connect it again any time.`,

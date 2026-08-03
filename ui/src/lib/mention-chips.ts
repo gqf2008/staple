@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CSSProperties } from "react";
 import {
   parseAgentMentionHref,
@@ -172,7 +173,7 @@ function projectMentionColors(color: string): Pick<CSSProperties, "borderColor" 
 }
 
 function buildAgentIconMask(iconName: string | null): string | null {
-  const cacheKey = iconName ?? "__default__";
+  const cacheKey = iconName ?? t("ui.lib.mention-chips.fallback-default");
   const cached = iconMaskCache.get(cacheKey);
   if (cached) return cached;
 

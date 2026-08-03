@@ -167,7 +167,7 @@ export function humanizeEvent(
   // For Test-tab calls, surface "<User> tested as <Agent>" so prosumer test runs are
   // distinguishable from real heartbeat agent activity in the audit trail (PAP-11415).
   const who = testRunnerLabel
-    ? `${testRunnerLabel} tested as ${agentName ?? "an agent"}`
+    ? `${testRunnerLabel} tested as ${agentName ?? t("pages.appActivityPanel.anAgent")}`
     : agentName ?? t("pages.appActivityPanel.anAgent", { defaultValue: "An agent" });
   // The raw gateway tool name is prefixed (e.g. `mcp.app-gallery-link-…:kv-set`);
   // humanize it to t("pages.appActivityPanel.kvSet", { defaultValue: "Kv Set" }) to match the cross-app Activity view (PAP-11105).

@@ -51,7 +51,7 @@ const MODE_HUE: Partial<Record<IssueWorkMode, string>> = {
 };
 
 function modeHue(mode: IssueWorkMode): string {
-  return MODE_HUE[mode] ?? "var(--tc-mode-agent)";
+  return MODE_HUE[mode] ?? t("ui.components.task-chat.taskchatcomposer.fallback-var-tc-mode-agent");
 }
 
 const MODE_DESCRIPTION: Partial<Record<IssueWorkMode, string>> = {

@@ -74,6 +74,10 @@ void i18n.use(initReactI18next).init(i18nextOptions).catch((error: unknown) => {
 const BUILTIN_AGENT_NAME_KEYS: Record<string, string> = {
   "Reflection Coach": "ui.builtinAgents.reflectionCoach",
   "Summarizer": "ui.builtinAgents.summarizer",
+  "Briefs Agent": "ui.builtinAgents.briefsAgent",
+  "Learning Agent": "ui.builtinAgents.learningAgent",
+  "Briefs": "ui.builtinAgents.briefs",
+  "Learning": "ui.builtinAgents.learning",
 };
 
 /**

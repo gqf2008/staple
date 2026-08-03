@@ -21,7 +21,7 @@ export function IssueAssignedBacklogNotice({
   if (issueStatus !== "backlog") return null;
   if (!assigneeAgent && !assigneeUserId) return null;
 
-  const assigneeLabel = assigneeAgent?.name ?? "the assignee";
+  const assigneeLabel = assigneeAgent?.name ?? t("ui.components.issueassignedbacklognotice.fallback-assignee");
 
   return (
     <div

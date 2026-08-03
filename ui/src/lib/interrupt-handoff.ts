@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { parseAgentMentionHref } from "@paperclipai/shared";
 
 /**
@@ -298,7 +299,7 @@ export function classifyAssigneeHandoff(
   opts: { agentName?: string | null; interruptedRunAttached?: boolean } = {},
 ): AssigneeHandoffInfo {
   if (to.agentId) {
-    const who = opts.agentName ?? "the responsible agent";
+    const who = opts.agentName ?? t("ui.components.stagesecretspanel.fallback-responsible-agent");
     const suffix = opts.interruptedRunAttached ? " (interrupted run attached)" : "";
     return { kind: "agent_wake", wakeText: `queued for ${who}${suffix}` };
   }
@@ -334,7 +335,7 @@ export interface ReassignInterruptCopy {
  * the interrupt consequence concrete instead of a bare "are you sure".
  */
 export function describeReassignInterrupt(opts: { runningAgentName?: string | null } = {}): ReassignInterruptCopy {
-  const who = opts.runningAgentName?.trim() || "An agent";
+  const who = opts.runningAgentName?.trim() || t("pages.appActivityPanel.anAgent");
   return {
     banner: `${who} is running — changing the responsible will interrupt this run.`,
     confirmTitle: "Interrupt the current run?",

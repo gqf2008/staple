@@ -169,7 +169,7 @@ export function buildRoutineGroups(
   }
 
   if (groupByValue === "folder") {
-    const groups = groupBy(routines, (routine) => routine.folderId ?? "__unfiled");
+    const groups = groupBy(routines, (routine) => routine.folderId ?? t("ui.pages.routines.fallback-unfiled"));
     return Object.keys(groups)
       .sort((left, right) => {
         if (left === "__unfiled" || right === "__unfiled") {
@@ -199,7 +199,7 @@ export function buildRoutineGroups(
   }
 
   if (groupByValue === "project") {
-    const groups = groupBy(routines, (routine) => routine.projectId ?? "__no_project");
+    const groups = groupBy(routines, (routine) => routine.projectId ?? t("ui.components.issueslist.fallback-no-project"));
     return Object.keys(groups)
       .sort((left, right) => {
         const leftLabel = left === "__no_project" ? t("pages.routines.projectNone", { defaultValue: "No project" }) : (projectById.get(left)?.name ?? t("pages.routines.unknownProject", { defaultValue: "Unknown project" }));
@@ -213,7 +213,7 @@ export function buildRoutineGroups(
       }));
   }
 
-  const groups = groupBy(routines, (routine) => routine.assigneeAgentId ?? "__unassigned");
+  const groups = groupBy(routines, (routine) => routine.assigneeAgentId ?? t("ui.pages.routines.fallback-unassigned"));
   return Object.keys(groups)
     .sort((left, right) => {
       const leftLabel = left === "__unassigned" ? t("pages.routines.unassigned", { defaultValue: "Unassigned" }) : (agentById.get(left)?.name ?? t("pages.routines.unknownAgent", { defaultValue: "Unknown agent" }));

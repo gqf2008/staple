@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PipelineCompanyCaseEvent } from "../api/pipelines";
 import { formatShortDate } from "./utils";
 
@@ -23,7 +24,7 @@ function eventItemTitle(event: PipelineCompanyCaseEvent): string {
     asString(payload.itemTitle) ??
     asString(payload.caseTitle) ??
     asString(payload.title) ??
-    "Untitled item"
+    t("pages.pipelines.untitledItem")
   );
 }
 
@@ -34,7 +35,7 @@ function eventActorName(event: PipelineCompanyCaseEvent): string {
     asString(payload.actorName) ??
     asString(payload.reviewerName) ??
     asString(payload.decidedByName) ??
-    "Someone"
+    t("components.liveUpdates.someone")
   );
 }
 

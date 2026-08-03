@@ -266,7 +266,7 @@ export function parseSystemActivity(text: string): TranscriptActivity | null {
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? t("nav.activity")),
     activityId: match[3] || undefined,
   };
 }
@@ -278,4 +278,5 @@ export function shouldHideNiceModeStderr(text: string): boolean {
 
 export function summarizeNotice(text: string, max = 160): string {
   return truncate(compactWhitespace(text), max);
-}
+}import { t } from "../i18n";
+

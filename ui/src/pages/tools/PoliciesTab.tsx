@@ -303,9 +303,9 @@ function policySentence(
   const catalogById = new Map([...catalogByToolName.values()].map((tool) => [tool.id, tool]));
 
   let who = "any agent";
-  if (agentIds.length === 1) who = maps.agent.get(agentIds[0]!) ?? "one agent";
+  if (agentIds.length === 1) who = maps.agent.get(agentIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-agent");
   else if (agentIds.length > 1) who = `${agentIds.length} agents`;
-  else if (projectIds.length === 1) who = `agents in ${maps.project.get(projectIds[0]!) ?? "one project"}`;
+  else if (projectIds.length === 1) who = `agents in ${maps.project.get(projectIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-project")}`;
   else if (projectIds.length > 1) who = `agents in ${projectIds.length} projects`;
   else if (actorType !== ANY_VALUE && actorType !== "agent") who = `${actorType}s`;
 
@@ -317,9 +317,9 @@ function policySentence(
     uses = tool ? tool.title || toolDisplayName(tool.toolName, catalogByToolName) : t("ui.pages.tools.policiestab.one-action");
   }
   else if (catalogEntryIds.length > 1) uses = `${catalogEntryIds.length} specific actions`;
-  else if (appIds.length === 1) uses = maps.application.get(appIds[0]!) ?? "one app";
+  else if (appIds.length === 1) uses = maps.application.get(appIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-app");
   else if (appIds.length > 1) uses = `${appIds.length} apps`;
-  else if (connectionIds.length === 1) uses = maps.connection.get(connectionIds[0]!) ?? "one app";
+  else if (connectionIds.length === 1) uses = maps.connection.get(connectionIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-app");
   else if (risk !== ANY_VALUE) uses = capabilitySentence(risk);
 
   return { who, uses, outcome: outcomeLabel(policy) };

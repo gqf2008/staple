@@ -72,7 +72,7 @@ export function AppDetail() {
     enabled: !!connectionId && activeTab === "permissions",
   });
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
@@ -82,17 +82,17 @@ export function AppDetail() {
     enabled: !!connectionId && !!activeTab,
   });
   const profilesQuery = useQuery({
-    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listProfiles(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const policiesQuery = useQuery({
-    queryKey: queryKeys.tools.policies(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.policies(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listPolicies(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const agentsQuery = useQuery({
-    queryKey: queryKeys.agents.list(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.agents.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => agentsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
@@ -103,7 +103,7 @@ export function AppDetail() {
   });
   // Resolve who ran Test-tab calls ("<User> tested as <Agent>") in the Activity feed (PAP-11415).
   const userDirectoryQuery = useQuery({
-    queryKey: queryKeys.access.companyUserDirectory(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.access.companyUserDirectory(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => accessApi.listUserDirectory(selectedCompanyId!),
     enabled: !!selectedCompanyId && activeTab === "activity",
   });

@@ -358,7 +358,7 @@ export function ImportSkillsFromProjectDialog({
         title: importedCount > 0 ? t("pages.skills.importFromProject.skillsImported", { defaultValue: "Skills imported" }) : t("pages.skills.importFromProject.nothingImported", { defaultValue: "Nothing imported" }),
         body:
           importedCount > 0
-            ? `${importedCount} skill${importedCount === 1 ? "" : "s"} imported as references from ${selectedProject?.name ?? "the project"}.`
+            ? `${importedCount} skill${importedCount === 1 ? "" : "s"} imported as references from ${selectedProject?.name ?? t("ui.pages.skills.importskillsfromprojectdialog.fallback-project")}.`
             : t("pages.skills.importFromProject.noSkillsImported", { defaultValue: "No skills were imported." }),
       });
     },

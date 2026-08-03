@@ -13,7 +13,7 @@ import type { TaskChatThinkingItem } from "./task-chat-model";
  */
 export function TaskChatThinkingBlock({ item }: { item: TaskChatThinkingItem }) {
   const [open, setOpen] = useState(!item.collapsed);
-  const settledLabel = item.summaryLabel ?? "Thought process";
+  const settledLabel = item.summaryLabel ?? t("ui.components.task-chat.taskchatthinkingblock.fallback-thought-process");
 
   return (
     <div className="border-l-2 border-border pl-3 text-xs text-muted-foreground">

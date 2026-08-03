@@ -91,7 +91,7 @@ export function SmokeLabTab({ companyId }: { companyId: string }) {
   const activeRunId = selectedRunId ?? runs[0]?.id ?? null;
 
   const runDetailQuery = useQuery({
-    queryKey: queryKeys.smokeLab.run(companyId, activeRunId ?? "__none__"),
+    queryKey: queryKeys.smokeLab.run(companyId, activeRunId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => smokeLabApi.getRun(companyId, activeRunId!),
     enabled: enabled && loaded && !!activeRunId,
     refetchInterval: enabled && !!activeRunId ? 10_000 : false,

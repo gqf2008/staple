@@ -141,8 +141,8 @@ function entryLabel(
 ) {
   if (entry.selectorType === "application") return applicationsById.get(entry.applicationId ?? "") ?? entry.applicationId ?? "application";
   if (entry.selectorType === "connection") return connectionsById.get(entry.connectionId ?? "") ?? entry.connectionId ?? "connection";
-  if (entry.selectorType === "catalog_entry") return entry.catalogEntryId ?? "catalog entry";
-  if (entry.selectorType === "risk_level") return entry.riskLevel ?? "risk level";
+  if (entry.selectorType === "catalog_entry") return entry.catalogEntryId ?? t("ui.pages.tools.profilestab.fallback-catalog-entry");
+  if (entry.selectorType === "risk_level") return entry.riskLevel ?? t("pages.tools.profiles.riskLevel");
   return entry.toolName ?? "tool";
 }
 

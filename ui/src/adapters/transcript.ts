@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { redactHomePathUserSegments, redactTranscriptEntryPaths } from "@paperclipai/adapter-utils";
 import type { TranscriptEntry, StdoutLineParser, TranscriptParserSource } from "./types";
 
@@ -55,7 +56,7 @@ function createTranscriptParseErrorEntry(
   error: unknown,
   redactionOptions: RedactionOptions,
 ): TranscriptEntry {
-  const errorText = formatTranscriptParserError(error) || "unknown parser error";
+  const errorText = formatTranscriptParserError(error) || t("ui.adapters.transcript.fallback-unknown-parser-error");
   const preview = truncateTranscriptLine(line);
   return {
     kind: "result",

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { RoutineRunSummary, RoutineVariable } from "@paperclipai/shared";
 
 /**
@@ -54,7 +55,7 @@ export function runRowSubtitle(
   variables: readonly RoutineVariable[] | null | undefined,
 ): string {
   if (run.status === "failed") {
-    return run.failureReason?.trim() || "Run failed";
+    return run.failureReason?.trim() || t("components.runTranscript.runFailed");
   }
   if (run.status === "skipped") {
     const reason = run.failureReason?.trim();

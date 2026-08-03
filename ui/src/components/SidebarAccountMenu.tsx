@@ -139,7 +139,7 @@ export function SidebarAccountMenu({
     },
   });
 
-  const displayName = session?.user.name?.trim() || "Board";
+  const displayName = session?.user.name?.trim() || t("components.activityRow.board");
   const secondaryLabel =
     session?.user.email?.trim() || (deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.signed") : t("ui.components.sidebaraccountmenu.local-workspace-board"));
   const accountBadge = deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.account") : t("components.agentConfigForm.local");

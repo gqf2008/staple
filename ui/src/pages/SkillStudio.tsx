@@ -1271,7 +1271,7 @@ function SkillPane({
     [skill.fileInventory],
   );
   const [selectedFile, setSelectedFile] = useState<string>(
-    () => paths.find((p) => /skill\.md$/i.test(p)) ?? paths[0] ?? "SKILL.md",
+    () => paths.find((p) => /skill\.md$/i.test(p)) ?? paths[0] ?? t("pages.skills.importFromProject.skillMd"),
   );
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
   const [draft, setDraft] = useState<string>("");
@@ -1369,7 +1369,7 @@ function SkillPane({
     onSuccess: (result) => {
       const deleted = new Set(result.deletedPaths);
       const remaining = paths.filter((path) => !deleted.has(path));
-      setSelectedFile(remaining.find((path) => /skill\.md$/i.test(path)) ?? remaining[0] ?? "SKILL.md");
+      setSelectedFile(remaining.find((path) => /skill\.md$/i.test(path)) ?? remaining[0] ?? t("pages.skills.importFromProject.skillMd"));
       setDeleteFolderOpen(false);
       queryClient.invalidateQueries({
         queryKey: queryKeys.companySkills.detail(companyId, skillId),

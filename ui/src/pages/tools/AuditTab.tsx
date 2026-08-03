@@ -137,7 +137,7 @@ function ActivityRow({
   const [detailsOpen, setDetailsOpen] = useState(false);
 
   const who = event.agentDisplayName ?? t("pages.tools.audit.anAgent", { defaultValue: "An agent" });
-  const action = event.toolDisplayName ?? "an action";
+  const action = event.toolDisplayName ?? t("ui.pages.tools.audittab.fallback-action");
   const app = event.appDisplayName ?? event.connectionDisplayName ?? event.applicationDisplayName ?? null;
   const rawTool = detailString(event.details, "tool") ?? detailString(event.details, "toolName");
 

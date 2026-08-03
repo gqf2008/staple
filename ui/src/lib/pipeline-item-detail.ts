@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Issue } from "@paperclipai/shared";
 import type {
   PipelineCase,
@@ -100,7 +101,7 @@ export function formatFieldValue(value: unknown): string {
   if (typeof value === "string") return value;
   const record = readRecord(value);
   if (record) {
-    return readString(record.label) ?? readString(record.name) ?? readString(record.title) ?? "Added details";
+    return readString(record.label) ?? readString(record.name) ?? readString(record.title) ?? t("ui.lib.pipeline-item-detail.fallback-added-details");
   }
   return String(value);
 }
@@ -235,7 +236,7 @@ export function getPendingTransitionBannerState(item: Pick<PipelineCase, "pendin
     visible: true as const,
     suggestionId: suggestion?.id ?? null,
     toStageKey,
-    stageName: stageNameFromLookup(stages, toStageKey) ?? "the next stage",
+    stageName: stageNameFromLookup(stages, toStageKey) ?? t("ui.lib.pipeline-item-detail.fallback-next-stage"),
     rationale: suggestion?.rationale ?? null,
   };
 }
@@ -346,7 +347,7 @@ export function formatPipelineItemEvent(event: PipelineCaseEvent, stages?: Stage
   if (kind === "suggested" || kind === "transition_suggested") {
     const suggestion = readRecord(payload.suggestion);
     const toStageKey = readString(suggestion?.toStageKey) ?? readString(payload.toStageKey);
-    const to = stageNameFromLookup(stages, toStageKey) ?? "the next stage";
+    const to = stageNameFromLookup(stages, toStageKey) ?? t("ui.lib.pipeline-item-detail.fallback-next-stage");
     return `Suggested moving to ${to}.`;
   }
   if (kind === "suggestion_resolved") {
@@ -375,7 +376,7 @@ export function formatPipelineItemEvent(event: PipelineCaseEvent, stages?: Stage
   }
   if (kind === "drift_acknowledged") return "Upstream change acknowledged.";
   if (kind === "automation_executed") {
-    const routineName = event.automation?.routine?.title ?? "the automation";
+    const routineName = event.automation?.routine?.title ?? t("ui.lib.pipeline-item-detail.fallback-automation");
     const issueLabel = automationIssueLabel(event);
     return `Automation completed — ran ${routineName}${issueLabel ? ` -> ${issueLabel}` : ""}.`;
   }

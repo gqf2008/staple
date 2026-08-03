@@ -290,7 +290,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
 
   if (resource.previewKind === "image") {
     const dataUrl = content.content.encoding === "base64"
-      ? `data:${resource.contentType ?? "application/octet-stream"};base64,${content.content.data}`
+      ? `data:${resource.contentType ?? t("ui.components.fileviewersheet.fallback-application-octet-stream")};base64,${content.content.data}`
       : null;
     if (!dataUrl) {
       return (
@@ -313,7 +313,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
 
   if (resource.previewKind === "video") {
     const dataUrl = content.content.encoding === "base64"
-      ? `data:${resource.contentType ?? "application/octet-stream"};base64,${content.content.data}`
+      ? `data:${resource.contentType ?? t("ui.components.fileviewersheet.fallback-application-octet-stream")};base64,${content.content.data}`
       : null;
     if (!dataUrl) {
       return (

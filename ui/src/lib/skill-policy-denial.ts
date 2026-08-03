@@ -16,6 +16,7 @@
  * toast it); the UI renders a persistent banner only for B and C.
  */
 
+import { t } from "../i18n";
 import { ApiError } from "../api/client";
 
 /** Machine-readable error codes the server attaches to skill mutation failures. */
@@ -150,11 +151,11 @@ export function classifySkillDenial(
       state: "platform",
       code,
       reason,
-      title: (code && PLATFORM_TITLES[code]) ?? "This action is blocked by a platform safety rule.",
+      title: (code && PLATFORM_TITLES[code]) ?? t("ui.lib.skill-policy-denial.fallback-action-blocked-platform-safety"),
       remediation:
         remediation
         ?? (code && PLATFORM_REMEDIATIONS[code])
-        ?? "Fix the flagged issue and try again.",
+        ?? t("ui.lib.skill-policy-denial.fallback-fix-flagged-issue-try"),
     };
   }
 

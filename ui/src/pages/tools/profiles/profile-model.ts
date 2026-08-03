@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type {
   ToolCatalogEntry,
   ToolProfileDefaultAction,
@@ -66,7 +67,7 @@ export function groupCatalogByApp(
       const name =
         (tool.applicationId ? applicationsById.get(tool.applicationId) : null) ??
         connectionsById.get(tool.connectionId) ??
-        "Tools";
+        t("app.tools");
       group = {
         appKey,
         applicationId: tool.applicationId,

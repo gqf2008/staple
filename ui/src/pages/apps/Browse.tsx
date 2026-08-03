@@ -48,7 +48,7 @@ export function Browse() {
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });

@@ -38,22 +38,22 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
     enabled: props.kind === "connection" && !!props.connectionId,
   });
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: props.kind === "application" && !!selectedCompanyId,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: props.kind === "application" && !!selectedCompanyId,
   });
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const attentionQuery = useQuery({
-    queryKey: queryKeys.apps.attention(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.attention(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listAppsAttention(selectedCompanyId!),
     enabled: !!selectedCompanyId,
     refetchInterval: 30_000,

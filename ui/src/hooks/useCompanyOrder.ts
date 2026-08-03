@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { Company } from "@paperclipai/shared";
@@ -43,7 +44,7 @@ type UseCompanyOrderParams = {
 export function useCompanyOrder({ companies, userId }: UseCompanyOrderParams) {
   const queryClient = useQueryClient();
   const queryKey = useMemo(
-    () => queryKeys.sidebarPreferences.companyOrder(userId ?? "__anon__"),
+    () => queryKeys.sidebarPreferences.companyOrder(userId ?? t("ui.hooks.usecompanyorder.fallback-anon")),
     [userId],
   );
 

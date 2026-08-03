@@ -158,7 +158,7 @@ function executionRow(
     return { key: execution.id, status: "skipped", summary: `Skipped ${target} — target changed since proposal`, link: targetRef };
   }
   if (execution.status === "failed") {
-    const cause = FAILURE_CAUSE[execution.error ?? ""] ?? execution.error ?? "the effect could not run";
+    const cause = FAILURE_CAUSE[execution.error ?? ""] ?? execution.error ?? t("ui.components.decisioncard.fallback-effect-could-not-run");
     return { key: execution.id, status: "failed", summary: `Failed on ${target} — ${cause}`, link: targetRef };
   }
   if (execution.status === "claimed") {

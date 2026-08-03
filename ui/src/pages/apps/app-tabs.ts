@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Activity, Beaker, Inbox, Settings2, ShieldCheck, Wrench } from "lucide-react";
 
 export const APP_TABS = [
@@ -31,5 +32,5 @@ export function isAppTabKey(value: string | undefined): value is AppTabKey {
 }
 
 export function appTabLabel(tabKey: AppTabKey): string {
-  return APP_TABS.find((tab) => tab.key === tabKey)?.label ?? "Setup";
+  return APP_TABS.find((tab) => tab.key === tabKey)?.label ?? t("ui.pages.apps.app-tabs.fallback-setup");
 }

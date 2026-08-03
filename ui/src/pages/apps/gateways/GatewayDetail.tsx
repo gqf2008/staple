@@ -38,32 +38,32 @@ export function GatewayDetail() {
   const activeTab: GatewayTabKey | null = isGatewayTabKey(tab) ? tab : null;
 
   const gatewaysQuery = useQuery({
-    queryKey: gatewaysQueryKey(selectedCompanyId ?? "__none__"),
+    queryKey: gatewaysQueryKey(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGateways(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const profilesQuery = useQuery({
-    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listProfiles(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const agentsQuery = useQuery({
-    queryKey: queryKeys.agents.list(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.agents.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => agentsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const projectsQuery = useQuery({
-    queryKey: queryKeys.projects.list(selectedCompanyId ?? "__none__", { includeArchived: true }),
+    queryKey: queryKeys.projects.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none"), { includeArchived: true }),
     queryFn: () => projectsApi.list(selectedCompanyId!, { includeArchived: true }),
     enabled: !!selectedCompanyId,
   });

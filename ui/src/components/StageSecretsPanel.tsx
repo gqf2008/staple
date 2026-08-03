@@ -60,7 +60,7 @@ export function StageSecretsPanel({
     );
   }
 
-  const displayName = agentName?.trim() || "the responsible agent";
+  const displayName = agentName?.trim() || t("ui.components.stagesecretspanel.fallback-responsible-agent");
 
   return (
     <div className="space-y-5">

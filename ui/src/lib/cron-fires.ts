@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Client-side "next N schedule fires" helper for the routine Delivery preview (§3.5).
  *
@@ -190,7 +191,7 @@ export function nextCronFires(
 ): Date[] {
   const cron = parseCronExpression(expression);
   if (!cron || count <= 0) return [];
-  const timeZone = options.timeZone ?? "UTC";
+  const timeZone = options.timeZone ?? t("components.routineSections.utc");
   const after = options.after ?? new Date();
 
   const cursor = new Date(after.getTime());

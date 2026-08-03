@@ -1,14 +1,14 @@
 {
   "app": {
-    "tools": "Tools",
-    "advancedSetup": "Advanced setup",
-    "createAnotherCompany": "Create another company",
-    "createFirstCompany": "Create your first company",
-    "onboardingAgentHint": "Run onboarding again to add an agent and a starter task for this company.",
-    "onboardingCompanyHint": "Run onboarding again to create another company and seed its first agent.",
-    "getStartedHint": "Get started by creating a company and your first agent.",
-    "addAgent": "Add Agent",
-    "startOnboarding": "Start Onboarding",
+    "tools": "工具",
+    "advancedSetup": "高级设置",
+    "createAnotherCompany": "创建另一家公司",
+    "createFirstCompany": "创建你的第一家公司",
+    "onboardingAgentHint": "重新运行引导，为此公司添加一个智能体和一个入门任务。",
+    "onboardingCompanyHint": "重新运行引导，创建另一家公司并为其播种第一个智能体。",
+    "getStartedHint": "从创建一家公司和你的第一个智能体开始。",
+    "addAgent": "添加智能体",
+    "startOnboarding": "开始引导",
     "noCompanies": {
       "title": "创建您的第一家公司",
       "description": "通过创建公司开始。",
@@ -240,7 +240,7 @@
       "projectPolicy": "针对绑定执行的项目设置的终身支出策略。",
       "noCostEventsInPeriod": "该时段内暂无成本事件。",
       "noBillableEvents": "该时段内无可计费事件。",
-      "selectCompany": "Select a company to view costs."
+      "selectCompany": "选择一家公司以查看成本。"
     },
     "projects": {
       "selectCompany": "请选择一家公司以查看项目。",
@@ -564,7 +564,7 @@
       "user": "用户",
       "tasks": "任务",
       "task": "任务",
-      "previewUnavailable": "Preview unavailable."
+      "previewUnavailable": "预览不可用。"
     },
     "agentDetail": {
       "hideFullLog": "隐藏完整日志",
@@ -857,7 +857,7 @@
       "addToSkill": "要开始创建案件，请将此添加到技能：",
       "experimental": "实验性",
       "noTypes": "暂无类型",
-      "columnTitle": "Title"
+      "columnTitle": "标题"
     },
     "boardChat": {
       "boardOperations": "董事会运营",
@@ -2133,8 +2133,8 @@
       "runTasksInWorktree": "在此工作树中运行任务",
       "executionSuppressed": "执行已被抑制 — 实际为关闭。",
       "autoCreateRecovery": "自动创建恢复任务",
-      "serverInfoDesc": "Show a \"Server\" section in the account drawer with the current server restart time and running commit.",
-      "smokeLabDesc": "Add a \"Smoke Lab\" tab under Apps → Developer and an \"Integration smoke\" card on the dashboard for exercising every integration path against deterministic local fixtures (fake OAuth provider + loopback MCP servers). Private (non-public) deployments only."
+      "serverInfoDesc": "在账户抽屉中显示“服务器”部分，包含当前服务器重启时间和运行",
+      "smokeLabDesc": "在“应用 → 开发者”下添加“冒烟实验室”标签页，并在仪表盘上添加“集成冒烟”卡片"
     },
     "executionWorkspaceDetail": {
       "tasks": "任务",
@@ -2986,7 +2986,7 @@
       "color": "颜色",
       "categories": "分类",
       "name": "名称",
-      "slug": "Slug",
+      "slug": "标识符",
       "scope": "范围",
       "sharing": "共享",
       "publicLink": "公开链接",
@@ -3020,7 +3020,7 @@
       "mode": "模式",
       "noVersions": "暂无已保存的版本。",
       "agentsHint": "当前安装了此技能的公司智能体。",
-      "fork": "Fork",
+      "fork": "派生",
       "noAgents": "尚未关联智能体。",
       "updates": "更新",
       "upToDate": "已是最新。",
@@ -3652,7 +3652,7 @@
       "noTokenUsage": "暂无任务关联的 token 用量。",
       "providerMix": "提供方构成",
       "noProviderUsage": "暂无提供方用量归属。",
-      "tokens": "Tokens",
+      "tokens": "令牌",
       "spend": "花费",
       "created": "创建时间",
       "open": "未关闭",
@@ -4798,9 +4798,9 @@
     "escalated": "已升级",
     "resolved": "已解决",
     "open": "未处理",
-    "decided": "Decided",
-    "snoozed": "Snoozed",
-    "expired": "Expired"
+    "decided": "已决定",
+    "snoozed": "已稍后处理",
+    "expired": "已过期"
   },
   "approvals": {
     "type": {
@@ -4934,11 +4934,11 @@
         "newSubTask": "新建子任务",
         "createTask": "创建任务",
         "createSubTask": "创建子任务",
-        "selectAgent": "Select agent",
+        "selectAgent": "选择智能体",
         "thinkingMax": "Max",
-        "custom": "Custom",
-        "minimal": "Minimal",
-        "creatingIssue": "Creating issue..."
+        "custom": "自定义",
+        "minimal": "最小",
+        "creatingIssue": "正在创建 issue…"
       },
       "newAgent": {
         "createNewAgent": "创建新智能体",
@@ -4966,7 +4966,7 @@
         "repoUrlHint": "仓库地址必须是有效的 GitHub 或 GitHub Enterprise 仓库 URL。",
         "localFolderHint": "本地文件夹必须是完整绝对路径。",
         "createProject": "创建项目",
-        "plusGoal": "+ Goal"
+        "plusGoal": "+ 目标"
       },
       "newGoal": {
         "newGoal": "新目标",
@@ -6164,7 +6164,7 @@
       "specifyManually": "手动指定路径",
       "finderStep1": "在 Finder 中找到文件夹。",
       "hold": "按住",
-      "option": "Option",
+      "option": "选项",
       "finderStep2": "点击「Copy <folder name> as Pathname」。",
       "finderStep3": "将结果粘贴到路径输入框。",
       "windowsTitle": "Windows（文件资源管理器）",
@@ -7292,6 +7292,9 @@
       "schema-config-fields": {
         "use-quot": "使用 \"",
         "quot-custom-value-press": "\" as custom value (press Enter)"
+      },
+      "transcript": {
+        "fallback-unknown-parser-error": "未知的解析器错误"
       }
     },
     "components": {
@@ -7538,7 +7541,8 @@
         "decision-was-withdrawn-proposer": "该决策已被提议人在响应前撤回。",
         "dismissed-no-effects-were": "已关闭 — 未运行任何效果。",
         "some-effects-may-already": "某些效果可能已经应用。在要求提议人重新提议之前，请先查看结果。",
-        "new-issue": "一个新 issue"
+        "new-issue": "一个新 issue",
+        "fallback-effect-could-not-run": "该效果无法运行"
       },
       "decisiontrainingdrawer": {
         "decision-can-trained-isn": "该决策无法训练——它没有锚定到某个 issue。",
@@ -7598,7 +7602,8 @@
       "fileviewersheet": {
         "line": "行",
         "loading-file-preview": "正在加载文件预览…",
-        "try-project-workspace": "试试项目工作区"
+        "try-project-workspace": "试试项目工作区",
+        "fallback-application-octet-stream": "application/octet-stream"
       },
       "financekindcard": {
         "financial-event-mix": "财务事件组合",
@@ -7641,7 +7646,8 @@
       "issueassignedbacklognotice": {
         "parked": "已停放",
         "will-not-asked-work": "在状态变为“待办”或“进行中”之前，不会被要求处理此任务。",
-        "comments-still-notify-assignee": "评论仍会通知负责人以便提问或分诊。仅当工作有意暂停时才保持停放。"
+        "comments-still-notify-assignee": "评论仍会通知负责人以便提问或分诊。仅当工作有意暂停时才保持停放。",
+        "fallback-assignee": "负责人"
       },
       "issueattachmentssection": {
         "browse-gallery": "浏览图库",
@@ -7866,7 +7872,8 @@
         "resolved": "由以下解决",
         "approved-alt": "已批准 ·",
         "reason-required-alt": "需要原因才能",
-        "approval-window-closed-auto": "批准窗口已关闭 · 随时会自动拒绝"
+        "approval-window-closed-auto": "批准窗口已关闭 · 随时会自动拒绝",
+        "fallback-board": "董事会"
       },
       "issueworkspacecard": {
         "environment": "环境：",
@@ -7880,7 +7887,12 @@
         "showing-up": "显示最多",
         "matches-refine-search-narrow": "个匹配。细化搜索以进一步缩小范围。",
         "board-me-human-local": "board me human local-board",
-        "unassigned": "__unassigned"
+        "unassigned": "__unassigned",
+        "fallback-no-company": "__no-company__",
+        "fallback-all-projects": "__all-projects__",
+        "fallback-no-workspace": "__no_workspace",
+        "fallback-no-project": "__no_project",
+        "fallback-no-parent": "__no_parent"
       },
       "jsonschemaform": {
         "hide-raw-value-input": "隐藏原始值输入",
@@ -8136,7 +8148,8 @@
         "description-diff": "描述差异",
         "restore-rev": "恢复修订",
         "new-revision": "作为新修订",
-        "trigger-enabled-state-was": "触发器启用状态已从快照恢复。新的 webhook 密钥可在上方横幅中获取。"
+        "trigger-enabled-state-was": "触发器启用状态已从快照恢复。新的 webhook 密钥可在上方横幅中获取。",
+        "fallback-missing-secret": "<missing-secret>"
       },
       "routinerunvariablesdialog": {
         "choose-agent-optional-project": "为这一次运行选择智能体和可选项目。例程默认值已预填且不会被更改。",
@@ -8241,7 +8254,8 @@
         "runs-step-they-override": "运行此步骤。它们在冲突时覆盖\n          匹配的项目和智能体环境变量。",
         "paperclip": "PAPERCLIP_*",
         "names-reserved": "名称\n          已被保留。",
-        "loading-secrets": "正在加载密钥…"
+        "loading-secrets": "正在加载密钥…",
+        "fallback-responsible-agent": "责任智能体"
       },
       "summaryslotcard": {
         "summaries-generated-paperclip-built": "摘要由 Paperclip 的内置摘要器智能体生成。在请求此摘要之前，请先配置其适配器和模型。",
@@ -8441,19 +8455,22 @@
           "skill-lives": "此技能位于",
           "saves-write-project-working": "。\n          保存会写入项目工作树且不会被提交。",
           "edit-copy-instead": "改为编辑副本",
-          "original-skill": "原始技能"
+          "original-skill": "原始技能",
+          "fallback-project-working-tree": "项目工作树"
         }
       },
       "task-chat": {
         "taskchatcomposer": {
           "send-enter": "Send (⌘+Enter)",
-          "agent": "智能体"
+          "agent": "智能体",
+          "fallback-var-tc-mode-agent": "var(--tc-mode-agent)"
         },
         "taskchatplanview": {
           "rev": "· rev"
         },
         "taskchatthinkingblock": {
-          "thinking": "Thinking…"
+          "thinking": "Thinking…",
+          "fallback-thought-process": "思考过程"
         },
         "taskchatusagereadout": {
           "ctx": "ctx（"
@@ -8489,7 +8506,8 @@
         }
       },
       "appconnectionsidebar": {
-        "none": "__none__"
+        "none": "__none__",
+        "fallback-none": "__none__"
       },
       "feedcard": {
         "needs-approval": "需要批准",
@@ -8508,7 +8526,8 @@
         "proposed-update-waiting-your": "有一个建议的更新等待你评审"
       },
       "runworkspacerecoverysurface": {
-        "fresh-isolated-re-issue": "已创建全新的隔离重新分发。"
+        "fresh-isolated-re-issue": "已创建全新的隔离重新分发。",
+        "fallback-stalled-task": "停滞的任务"
       },
       "sidebarnavitem": {
         "attention-needed": "需要注意"
@@ -8528,6 +8547,9 @@
         "modebadge": {
           "local-trusted": "Local trusted"
         }
+      },
+      "issuecontinuationhandoff": {
+        "fallback-continuation-handoff": "续作交接"
       }
     },
     "pages": {
@@ -8828,7 +8850,8 @@
         "look-repositories-skill-md": "查找包含 `SKILL.md` 的仓库，然后将仓库 URL 粘贴到这里。",
         "installed-alt": "已安装（",
         "paste-local-path-github-alt": "粘贴本地路径、GitHub URL 或 `skills.sh` 命令以将技能导入此公司。",
-        "paperclip-could-not-validate": "Paperclip 无法将此技能验证为 Agent Skills markdown。自行承担安装风险。"
+        "paperclip-could-not-validate": "Paperclip 无法将此技能验证为 Agent Skills markdown。自行承担安装风险。",
+        "fallback-skills-sh": "skills.sh"
       },
       "costs": {
         "all-billers": "所有计费方",
@@ -9074,7 +9097,8 @@
         "let-heartbeat-scheduler-create": "让心跳调度器为在配置的回溯窗口内发现的\n                任务依赖链创建恢复任务。",
         "lookback-hours": "回溯小时数",
         "save-hours": "节省时间",
-        "current-window-last": "当前窗口：最后"
+        "current-window-last": "当前窗口：最后",
+        "fallback-pap": "PAP"
       },
       "instancegeneralsettings": {
         "configure-instance-wide-preferences": "配置实例级偏好，包括日志显示、键盘快捷键、备份保留和数据共享。",
@@ -9108,7 +9132,10 @@
         "you-apos-ve-been": "你已被邀请加入 Paperclip",
         "invite-will-create-approval": "此邀请将为新智能体创建审批请求：",
         "already-have-account": "我已有账户",
-        "email": "那个邮箱"
+        "email": "那个邮箱",
+        "fallback-company-admin": "公司管理员",
+        "fallback-paperclip-company": "此 Paperclip 公司",
+        "fallback-account": "此账户"
       },
       "inviteuxlab": {
         "invite-will-create-approval": "此邀请将为 Acme Robotics 中的新智能体创建审批请求。",
@@ -9294,7 +9321,8 @@
         "opens-item": "打开条目，",
         "patterns-from-review-decisions": "来自评审决策和手动移动的模式，用通俗语言呈现。",
         "hr-ago": "1 小时前",
-        "builtfor": "builtFor"
+        "builtfor": "builtFor",
+        "fallback-another-pipeline": "另一个管道"
       },
       "pluginmanager": {
         "enter-npm-package-name": "输入要安装的插件的 npm 包名。",
@@ -9332,7 +9360,9 @@
         "loading-local-folders": "正在加载本地文件夹…",
         "local-folder-path": "本地文件夹路径",
         "not-inspected": "未检查",
-        "loading-configuration": "正在加载配置…"
+        "loading-configuration": "正在加载配置…",
+        "fallback-missing-plugin": "__missing_plugin__",
+        "fallback-readwrite": "readWrite"
       },
       "profilesettings": {
         "control-how-your-account": "控制你的账户在侧边栏及其他董事会界面中的显示方式。",
@@ -9402,7 +9432,9 @@
         "filed": "归档于",
         "after-creation-paperclip-takes": "创建后，Paperclip 会直接带你到触发器设置。草稿例程保持暂停，直到你添加默认智能体。",
         "new-routine-folder": "在此文件夹中新建例程",
-        "paperclip-routines-view": "paperclip:routines-view"
+        "paperclip-routines-view": "paperclip:routines-view",
+        "fallback-unfiled": "__unfiled",
+        "fallback-unassigned": "__unassigned"
       },
       "runtranscriptuxlab": {
         "compact-live-transcript-stream": "issue 详情页的紧凑实时转录流。",
@@ -9549,7 +9581,9 @@
           "coverage": "覆盖率："
         },
         "paperclip-resolves-provider-reference": "Paperclip 解析此提供商引用，并可以通过“更新值”向它写入新值。",
-        "binding": "1 个绑定"
+        "binding": "1 个绑定",
+        "fallback-secret-provider-config-discovery": "secret_provider_config.discovery.preview",
+        "fallback-secret-create": "secret.create"
       },
       "skillstudio": {
         "create-editable-company-skill": "创建一个可在公司内编辑的共享技能。",
@@ -9750,7 +9784,8 @@
       "agent-skills": {
         "agentskillreleasepicker": {
           "skill-release": "技能版本",
-          "beta": "测试版"
+          "beta": "测试版",
+          "fallback-release": "版本"
         },
         "agentskillstab": {
           "beta": "测试版 ·",
@@ -9810,7 +9845,9 @@
           "ready": "已就绪。",
           "text": "开启 ·",
           "couldn-connect": "无法连接",
-          "couldn-finish-setup": "无法完成设置"
+          "couldn-finish-setup": "无法完成设置",
+          "fallback-app": "此应用",
+          "fallback-agent": "1 个智能体"
         },
         "appsreview": {
           "select-company-review-approvals": "选择一家公司来审查批准。",
@@ -9982,6 +10019,9 @@
         "appdetail": {
           "action-needs": "操作需要",
           "actions-need": "操作需要"
+        },
+        "app-tabs": {
+          "fallback-setup": "设置"
         }
       },
       "audit": {
@@ -10013,7 +10053,8 @@
           "these-skills-reference-files": "这些技能\n            引用项目工作区中的文件 — 在 Skill Studio 中编辑它们会直接\n            保存回这些文件。",
           "imported": "已导入 ·",
           "skipped": "已跳过 ·",
-          "warnings": "警告 ·"
+          "warnings": "警告 ·",
+          "fallback-project": "项目"
         }
       },
       "tools": {
@@ -10028,7 +10069,8 @@
           "http-status": "HTTP 状态",
           "what-your-agents-actually": "你的智能体实际用你的应用做了什么，最新在前。每一行是一个决策 — 允许、阻止、先询问、等待或失败。",
           "try-wider-time-window": "尝试更宽的时间窗口或不同的筛选条件。",
-          "soon-your-agents-start": "一旦你的智能体开始使用已连接的应用，它们的操作就会显示在这里。"
+          "soon-your-agents-start": "一旦你的智能体开始使用已连接的应用，它们的操作就会显示在这里。",
+          "fallback-action": "一个操作"
         },
         "gatewaystab": {
           "stable-endpoints-external-clients": "供外部客户端使用的稳定端点，与智能体工具访问使用相同的配置、规则和审计跟踪。",
@@ -10065,7 +10107,10 @@
           "no-remembered-approvals-yet": "还没有记住的批准。",
           "remembered": "已记住",
           "one-action": "一个操作",
-          "block-destructive-actions-everywhere": "全局阻止破坏性操作"
+          "block-destructive-actions-everywhere": "全局阻止破坏性操作",
+          "fallback-one-agent": "一个智能体",
+          "fallback-one-project": "一个项目",
+          "fallback-one-app": "一个应用"
         },
         "profilestab": {
           "send-email-slack-list": "例如：send_email 或 slack.list_*",
@@ -10080,7 +10125,8 @@
           "bind": "绑定",
           "entry": "条目",
           "tools-allowed": "允许的工具",
-          "include": "包括 /"
+          "include": "包括 /",
+          "fallback-catalog-entry": "目录条目"
         },
         "runyourowntab": {
           "tool-runs-from-command": "适用于通过命令运行的工具。Paperclip 在你公司自己的隔离工作区中运行它。\n        仅限管理员。",
@@ -10099,7 +10145,8 @@
           "anything-progress-will-stop": "进行中的一切都会停止。使用中的",
           "right-now-will-see": "当前正在使用它的智能体将在其\n                操作上看到“失败”结果。",
           "will-stop-running-agents": "将停止运行。在它再次启动之前，智能体无法使用它。",
-          "starts-again-automatically-next": "下次智能体需要时它会自动重新启动。"
+          "starts-again-automatically-next": "下次智能体需要时它会自动重新启动。",
+          "fallback-reviewactivity": "reviewActivity"
         },
         "smokelabtab": {
           "not-run": "未运行",
@@ -10125,7 +10172,8 @@
           "looking-developer-surface": "在找开发者界面？",
           "open-developer-tools": "打开开发者工具",
           "developer-tools": "开发者工具",
-          "apps-simple-way-connect": "“应用”是连接工具的简单方式。此开发者区域用于手动接入你自己的\n          服务器、令牌和规则 — 大多数团队从不需要它。"
+          "apps-simple-way-connect": "“应用”是连接工具的简单方式。此开发者区域用于手动接入你自己的\n          服务器、令牌和规则 — 大多数团队从不需要它。",
+          "fallback-developer-tools": "开发者工具"
         },
         "connection-dialogs": {
           "tool-catalog": "工具目录 —",
@@ -10216,13 +10264,62 @@
       "launchers": {
         "failed-render": ": 渲染失败",
         "could-not-resolve-launcher": ": 无法解析启动器目标 “",
-        "plugin-launchers-unavailable": "插件启动器不可用："
+        "plugin-launchers-unavailable": "插件启动器不可用：",
+        "fallback-min-24rem-calc-100vw": "min(24rem, calc(100vw - 2rem))",
+        "fallback-hostoverlay": "hostOverlay"
+      },
+      "bridge-init": {
+        "fallback-minmax-1fr": "minmax(0, 1fr)"
       }
     },
     "builtinAgents": {
       "reflectionCoach": "反思教练",
       "summarizer": "摘要器",
-      "hermes": "Hermes"
+      "hermes": "Hermes",
+      "briefsAgent": "简报智能体",
+      "learningAgent": "学习智能体",
+      "briefs": "简报",
+      "learning": "学习"
+    },
+    "hooks": {
+      "usecompanyorder": {
+        "fallback-anon": "__anon__"
+      }
+    },
+    "lib": {
+      "mention-chips": {
+        "fallback-default": "__default__"
+      },
+      "pipeline-breakdown": {
+        "fallback-destination-pipeline": "目标管道",
+        "fallback-entry-step": "其入口步骤"
+      },
+      "pipeline-item-detail": {
+        "fallback-added-details": "已添加详情",
+        "fallback-next-stage": "下一阶段",
+        "fallback-automation": "自动化"
+      },
+      "pipeline-liveness": {
+        "fallback-pipelines-write": "pipelines:write"
+      },
+      "querykeys": {
+        "fallback-all": "__all",
+        "fallback-all-kinds": "__all-kinds__",
+        "fallback-all-categories": "__all-categories__",
+        "fallback-all-inputs": "__all-inputs__",
+        "fallback-no-limit": "__no-limit__",
+        "fallback-all-statuses": "__all-statuses__"
+      },
+      "skill-create": {
+        "fallback-describe-when-agents-should": "描述智能体何时应使用此技能。"
+      },
+      "skill-policy-denial": {
+        "fallback-action-blocked-platform-safety": "此操作被平台安全规则阻止。",
+        "fallback-fix-flagged-issue-try": "修复标记的问题并重试。"
+      },
+      "skill-studio": {
+        "fallback-unknown-editor": "未知编辑者"
+      }
     }
   }
 }

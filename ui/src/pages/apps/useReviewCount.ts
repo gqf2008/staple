@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { useCompany } from "@/context/CompanyContext";
 import { queryKeys } from "@/lib/queryKeys";
@@ -13,7 +14,7 @@ import { toolsApi } from "@/api/tools";
 export function useReviewCount(): number {
   const { selectedCompanyId } = useCompany();
   const query = useQuery({
-    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? "__none__", "pending"),
+    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none"), "pending"),
     queryFn: () => toolsApi.listActionRequests(selectedCompanyId!, "pending"),
     enabled: !!selectedCompanyId,
     refetchInterval: 20_000,

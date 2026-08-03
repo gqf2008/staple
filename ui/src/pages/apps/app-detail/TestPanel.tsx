@@ -1184,7 +1184,7 @@ function AskFirstResult({
   const [cancelled, setCancelled] = useState(false);
 
   const statusQuery = useQuery({
-    queryKey: queryKeys.tools.testCallStatus(connectionId, actionRequestId ?? "__none__"),
+    queryKey: queryKeys.tools.testCallStatus(connectionId, actionRequestId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.getTestCallStatus(connectionId, actionRequestId!),
     enabled: !!actionRequestId && !cancelled,
     // Poll until the request settles (approved+done, denied, cancelled, expired).

@@ -29,7 +29,7 @@ import {
 
 function issueHref(identifier: string | null, issueId: string) {
   if (!identifier) return `/issues/${issueId}`;
-  const prefix = identifier.split("-")[0] || "PAP";
+  const prefix = identifier.split("-")[0] || t("ui.pages.instanceexperimentalsettings.fallback-pap");
   return `/${prefix}/issues/${identifier}`;
 }
 

@@ -433,7 +433,7 @@ export function IssueBlockedNotice({
   // Rule B reopen path — we must not claim "a message won't reopen" for those.
   // Name the deepest unresolved leaf (prefer terminal leaves) with its status
   // so "I sent a message and nothing happened" can't recur silently.
-  const responsibleName = agentName ?? "the assignee";
+  const responsibleName = agentName ?? t("ui.components.issueassignedbacklognotice.fallback-assignee");
   const reopenSuppressed = issueStatus === "blocked" && !isStalled && blockers.length > 0;
   const unresolvedLeafBlockers = (() => {
     if (!reopenSuppressed) return [] as IssueRelationIssueSummary[];

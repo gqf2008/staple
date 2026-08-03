@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { LiveEvent, SummarySlotIssueRef } from "@paperclipai/shared";
@@ -107,7 +108,7 @@ export function useSummaryDraftStream(
   // Fallback: resolve the active run for the generation issue when no live event
   // has surfaced the run id yet (e.g. a page refresh mid-generation).
   const activeRunQuery = useQuery({
-    queryKey: queryKeys.issues.activeRun(issueId ?? "__none__"),
+    queryKey: queryKeys.issues.activeRun(issueId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId!),
     enabled: Boolean(companyId) && Boolean(issueId) && !runId,
     retry: false,

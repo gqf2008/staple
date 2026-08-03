@@ -838,11 +838,11 @@ export function IssuesList({
   const boardIssueQueries = useQueries({
     queries: boardIssueStatuses.map((status) => ({
       queryKey: [
-        ...queryKeys.issues.list(selectedCompanyId ?? "__no-company__"),
+        ...queryKeys.issues.list(selectedCompanyId ?? t("ui.components.issueslist.fallback-no-company")),
         "board-column",
         status,
         normalizedIssueSearch,
-        projectId ?? "__all-projects__",
+        projectId ?? t("ui.components.issueslist.fallback-all-projects"),
         searchFilters ?? {},
         "compact",
         ISSUE_BOARD_COLUMN_RESULT_LIMIT,
@@ -1225,7 +1225,7 @@ export function IssuesList({
     if (viewState.groupBy === "workspace") {
       const groups = groupBy(
         filtered,
-        (issue) => resolveIssueFilterWorkspaceId(issue, issueFilterWorkspaceContext) ?? "__no_workspace",
+        (issue) => resolveIssueFilterWorkspaceId(issue, issueFilterWorkspaceContext) ?? t("ui.components.issueslist.fallback-no-workspace"),
       );
       return Object.keys(groups)
         .sort((a, b) => {
@@ -1241,7 +1241,7 @@ export function IssuesList({
         }));
     }
     if (viewState.groupBy === "project") {
-      const groups = groupBy(filtered, (issue) => issue.projectId ?? "__no_project");
+      const groups = groupBy(filtered, (issue) => issue.projectId ?? t("ui.components.issueslist.fallback-no-project"));
       return Object.keys(groups)
         .sort((a, b) => {
           if (a === "__no_project") return 1;
@@ -1257,7 +1257,7 @@ export function IssuesList({
         }));
     }
     if (viewState.groupBy === "parent") {
-      const groups = groupBy(filtered, (i) => i.parentId ?? "__no_parent");
+      const groups = groupBy(filtered, (i) => i.parentId ?? t("ui.components.issueslist.fallback-no-parent"));
       return Object.keys(groups)
         .sort((a, b) => {
           // Groups with items first, "no parent" last

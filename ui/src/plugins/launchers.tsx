@@ -249,7 +249,7 @@ function launcherShellBoundsStyle(bounds: PluginLauncherBounds | null): CSSPrope
 
 function launcherPopoverStyle(instance: LauncherInstance): CSSProperties {
   const rect = instance.sourceRect;
-  const baseWidth = launcherShellBoundsStyle(instance.bounds).width ?? "min(24rem, calc(100vw - 2rem))";
+  const baseWidth = launcherShellBoundsStyle(instance.bounds).width ?? t("ui.plugins.launchers.fallback-min-24rem-calc-100vw");
   if (!rect) {
     return {
       width: baseWidth,

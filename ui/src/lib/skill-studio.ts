@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CompanySkillLastEditor,
   CompanySkillListItem,
@@ -546,7 +547,7 @@ export function skillEditorAvatar(
   lastEditor: CompanySkillLastEditor | null | undefined,
 ): SkillEditorAvatar | null {
   if (!lastEditor || lastEditor.kind !== "user") return null;
-  const name = lastEditor.name?.trim() || "Unknown editor";
+  const name = lastEditor.name?.trim() || t("ui.lib.skill-studio.fallback-unknown-editor");
   return {
     name,
     imageUrl: lastEditor.imageUrl,

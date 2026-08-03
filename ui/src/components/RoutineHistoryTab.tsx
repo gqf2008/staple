@@ -1081,7 +1081,7 @@ function formatVersionSelector(version: SecretVersionSelector | undefined): stri
 
 function describeSecretRef(ref: EnvSecretRefBinding, secrets: SecretLookup): string {
   const secret = secrets.get(ref.secretId);
-  const name = secret?.name ?? "<missing-secret>";
+  const name = secret?.name ?? t("ui.components.routinehistorytab.fallback-missing-secret");
   return `${name} ${formatVersionSelector(ref.version)}`;
 }
 

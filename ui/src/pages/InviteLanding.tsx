@@ -161,7 +161,7 @@ function AwaitingJoinApprovalPanel({
   claimApiKeyPath = null,
   onboardingTextUrl = null,
 }: AwaitingJoinApprovalPanelProps) {
-  const approverLabel = invitedByUserName ?? "A company admin";
+  const approverLabel = invitedByUserName ?? t("ui.pages.invitelanding.fallback-company-admin");
 
   return (
     <div className="min-h-screen bg-zinc-950 px-6 py-12 text-zinc-100">
@@ -271,7 +271,7 @@ export function InviteLandingPage() {
     Boolean(invite?.companyId) &&
     companyList.some((company) => company.id === invite?.companyId);
   const companyName = invite?.companyName?.trim() || null;
-  const companyDisplayName = companyName || "this Paperclip company";
+  const companyDisplayName = companyName || t("ui.pages.invitelanding.fallback-paperclip-company");
   const companyLogoUrl = invite?.companyLogoUrl?.trim() || null;
   const companyBrandColor = invite?.companyBrandColor?.trim() || null;
   const invitedByUserName = invite?.invitedByUserName?.trim() || null;
@@ -299,7 +299,7 @@ export function InviteLandingPage() {
   const sessionLabel =
     sessionQuery.data?.user.name?.trim() ||
     sessionQuery.data?.user.email?.trim() ||
-    "this account";
+    t("ui.pages.invitelanding.fallback-account");
 
   const authCanSubmit =
     email.trim().length > 0 &&

@@ -59,7 +59,7 @@ export function ToolsAccess() {
         ? [{ label: t("app.advancedSetup") }]
         : [
             { label: t("app.advancedSetup"), href: advancedTabHref("run-your-own") },
-            { label: tabLabel ?? "Developer tools" },
+            { label: tabLabel ?? t("ui.pages.tools.toolsaccess.fallback-developer-tools") },
           ]),
     ]);
     return () => setBreadcrumbs([]);

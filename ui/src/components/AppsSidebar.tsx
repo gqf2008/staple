@@ -40,7 +40,7 @@ export function AppsSidebar() {
   );
 
   const runtimeSlots = useQuery({
-    queryKey: queryKeys.tools.runtimeSlots(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.runtimeSlots(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listRuntimeSlots(selectedCompanyId!),
     enabled: !!selectedCompanyId,
     refetchInterval: 15_000,

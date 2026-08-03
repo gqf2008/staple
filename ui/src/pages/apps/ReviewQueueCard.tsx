@@ -35,7 +35,7 @@ export function ReviewQueueCard({
   const { selectedCompanyId } = useCompany();
 
   const query = useQuery({
-    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? "__none__", "pending"),
+    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none"), "pending"),
     queryFn: () => toolsApi.listActionRequests(selectedCompanyId!, "pending"),
     enabled: !!selectedCompanyId,
     refetchInterval: 20_000,

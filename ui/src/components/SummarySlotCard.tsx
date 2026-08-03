@@ -157,7 +157,7 @@ export function SummarySlotCard({
   const summariesEnabled = experimentalQuery.data?.enableSummaries === true;
 
   const builtInAgentsQuery = useQuery({
-    queryKey: queryKeys.builtInAgents.list(companyId ?? "__none__"),
+    queryKey: queryKeys.builtInAgents.list(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => builtInAgentsApi.list(companyId!),
     enabled: Boolean(companyId && summariesEnabled),
     retry: false,
