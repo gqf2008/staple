@@ -1,4 +1,5 @@
 import { useMemo } from "react";
+import { t } from "../i18n";
 import { Clock } from "lucide-react";
 import type { Issue } from "@paperclipai/shared";
 
@@ -39,9 +40,9 @@ export function hasVisibleMonitorSurface(issue: Issue): boolean {
 }
 
 export interface MonitorSurfaceCopy {
-  /** Prominent lead for the top banner, e.g. "Waiting on monitor — resumes in 2h 12m". */
+  /** Prominent lead for the top banner, e.g. t("components.issueMonitorBanner.waitingResumes", { defaultValue: "Waiting on monitor — resumes in 2h 12m" }). */
   bannerTitle: string;
-  /** Prominent lead for the composer strip, e.g. "Resumes in 2h 12m". */
+  /** Prominent lead for the composer strip, e.g. t("components.issueMonitorBanner.resumesIn", { defaultValue: "Resumes in 2h 12m" }). */
   stripTitle: string;
   /** Muted detail line for the banner (absolute time carries a "(your time)" hint). */
   bannerMeta: string[];
@@ -80,15 +81,15 @@ export function buildMonitorSurfaceCopy(
       stripTitle = `Resumes ${eta}`;
       break;
     case "due-now":
-      bannerTitle = isScheduledRetryOnly ? "Agent retry due now" : "Waiting on monitor — due now";
-      stripTitle = "Due now";
-      statusHint = "Checking momentarily…";
+      bannerTitle = isScheduledRetryOnly ? t("components.issueMonitorBanner.retryDueNow", { defaultValue: "Agent retry due now" }) : t("components.issueMonitorBanner.waitingDueNow", { defaultValue: "Waiting on monitor — due now" });
+      stripTitle = t("components.issueMonitorBanner.dueNow", { defaultValue: "Due now" });
+      statusHint = t("components.issueMonitorBanner.checkingMomentarily", { defaultValue: "Checking momentarily…" });
       break;
     case "overdue":
     default:
       bannerTitle = isScheduledRetryOnly ? `Agent retry ${eta}` : `Waiting on monitor — ${eta}`;
       stripTitle = capitalize(eta);
-      statusHint = "Fires on next tick";
+      statusHint = t("components.issueMonitorBanner.firesNextTick", { defaultValue: "Fires on next tick" });
       break;
   }
 
@@ -136,7 +137,7 @@ function CheckNowButton({
       onClick={onCheckNow}
       disabled={checkingNow}
     >
-      {checkingNow ? "Checking…" : "Check now"}
+      {checkingNow ? t("components.issueMonitorBanner.checking", { defaultValue: "Checking…" }) : t("components.issueMonitorBanner.checkNow", { defaultValue: "Check now" })}
     </Button>
   );
 }
@@ -149,7 +150,7 @@ export interface IssueMonitorSurfaceProps {
 
 /**
  * Pinned banner rendered between the issue title and description while a
- * monitor is waiting. Replaces the description-area "Monitor scheduled" card
+ * monitor is waiting. Replaces the description-area t("components.issueMonitorBanner.monitorScheduled", { defaultValue: "Monitor scheduled" }) card
  * for the waiting state (PAP-14557 decision 1) — the two never render at once.
  */
 export function IssueMonitorBanner({

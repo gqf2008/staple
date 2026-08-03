@@ -1,4 +1,5 @@
 import { Clock, RotateCcw, AlertCircle, Loader2, CheckCircle2 } from "lucide-react";
+import { t } from "../i18n";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import { cn, formatDateTime } from "@/lib/utils";
@@ -48,8 +49,8 @@ export function IssueScheduledRetryCard({
       ? scheduledRetry.scheduledRetryAttempt
       : null;
 
-  const badgeLabel = continuation ? "Continuation scheduled" : "Retry scheduled";
-  const titleAction = continuation ? "Automatic continuation" : "Automatic retry";
+  const badgeLabel = continuation ? t("components.issueScheduledRetry.continuationScheduled", { defaultValue: "Continuation scheduled" }) : t("components.issueScheduledRetry.retryScheduled", { defaultValue: "Retry scheduled" });
+  const titleAction = continuation ? t("components.issueScheduledRetry.autoContinuation", { defaultValue: "Automatic continuation" }) : t("components.issueScheduledRetry.autoRetry", { defaultValue: "Automatic retry" });
   let titleSuffix: string;
   if (relative === "now") {
     titleSuffix = "due now";
@@ -61,8 +62,8 @@ export function IssueScheduledRetryCard({
   const title = `${titleAction} ${titleSuffix}`;
 
   const helperIdle = continuation
-    ? "Pulls continuation forward immediately"
-    : "Pulls retry forward immediately";
+    ? t("components.issueScheduledRetry.pullContinuation", { defaultValue: "Pulls continuation forward immediately" })
+    : t("components.issueScheduledRetry.pullRetry", { defaultValue: "Pulls retry forward immediately" });
   const isError = retryNow.isError || retryNow.lastError !== null;
   const isSuccessTransient = retryNow.isSuccess
     && (retryNow.data?.outcome === "promoted" || retryNow.data?.outcome === "already_promoted");
@@ -137,7 +138,7 @@ export function IssueScheduledRetryCard({
             ) : isSuccessTransient ? (
               <span className="inline-flex items-center gap-1.5">
                 <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-                {retryNow.data?.outcome === "already_promoted" ? "Already promoted" : "Promoted"}
+                {retryNow.data?.outcome === "already_promoted" ? t("components.issueScheduledRetry.alreadyPromoted", { defaultValue: "Already promoted" }) : t("components.issueScheduledRetry.promoted", { defaultValue: "Promoted" })}
               </span>
             ) : (
               <span className="inline-flex items-center gap-1.5">
@@ -148,11 +149,11 @@ export function IssueScheduledRetryCard({
           </Button>
           <span className="text-right text-xs text-muted-foreground sm:max-w-(--sz-12rem)">
             {retryNow.isPending
-              ? "Promoting scheduled retry"
+              ? t("components.issueScheduledRetry.promotingRetry", { defaultValue: "Promoting scheduled retry" })
               : isSuccessTransient
                 ? retryNow.data?.outcome === "already_promoted"
-                  ? "Already promoted — run starting"
-                  : "Promoted — run starting"
+                  ? t("components.issueScheduledRetry.promotedRunStarting", { defaultValue: "Already promoted — run starting" })
+                  : t("components.issueScheduledRetry.promotedRunStarting2", { defaultValue: "Promoted — run starting" })
                 : helperIdle}
           </span>
         </div>
@@ -180,7 +181,7 @@ export function RetryErrorBand({ error, onRetry, className }: RetryErrorBandProp
     >
       <AlertCircle className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden="true" />
       <div className="min-w-0 flex-1">
-        <div className="font-medium">Couldn't retry now</div>
+        <div className="font-medium">{t("components.issueScheduledRetry.retryFailed", { defaultValue: "Couldn't retry now" })}</div>
         <div className="mt-0.5 text-muted-foreground">{error.message}</div>
       </div>
       <button

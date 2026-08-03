@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import {
   AlertTriangle,
   ArrowRight,
@@ -128,7 +129,7 @@ function effectSummary(
       return `Cancel ${target} and its sub-tree (${pluralize(descendantCount + 1, "issue")})`;
     }
     default:
-      return "Apply effect";
+      return t("components.decisionCard.applyEffect", { defaultValue: "Apply effect" });
   }
 }
 
@@ -283,18 +284,18 @@ export function DecisionCard({
             : "failed";
 
   const badgeLabel = open
-    ? "Pending"
+    ? t("components.decisionCard.pending", { defaultValue: "Pending" })
     : decision.status === "expired"
-      ? "Expired"
+      ? t("components.decisionCard.expired", { defaultValue: "Expired" })
       : decision.status === "cancelled"
-        ? "Cancelled"
+        ? t("components.decisionCard.cancelled", { defaultValue: "Cancelled" })
         : dismissed
-          ? "Dismissed"
+          ? t("components.decisionCard.dismissed", { defaultValue: "Dismissed" })
           : decision.executionStatus === "succeeded"
-            ? "Decided"
+            ? t("components.decisionCard.decided", { defaultValue: "Decided" })
             : decision.executionStatus === "partial"
-              ? "Partial"
-              : "Failed";
+              ? t("components.decisionCard.partial", { defaultValue: "Partial" })
+              : t("components.decisionCard.failed", { defaultValue: "Failed" });
 
   const requiredUnmet = (decision.inputs ?? []).some(
     (field) => field.required && !(inputValues[field.id] ?? "").trim(),
@@ -506,7 +507,7 @@ export function DecisionCard({
                       value={confirmText}
                       onChange={(event) => setConfirmText(event.target.value)}
                       placeholder={confirmToken}
-                      aria-label="Type the issue identifier to confirm"
+                      aria-label={t("components.decisionCard.typeToConfirm", { defaultValue: "Type the issue identifier to confirm" })}
                       autoFocus
                       className="mt-1"
                     />
@@ -528,7 +529,7 @@ export function DecisionCard({
                         onClick={() => onDecide?.(option.id, inputValues)}
                       >
                         {busy && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-                        {previewRows ? `Cancel ${pluralize(previewRows.length, "issue")}` : "Cancel tree"}
+                        {previewRows ? `Cancel ${pluralize(previewRows.length, "issue")}` : t("components.decisionCard.cancelTree", { defaultValue: "Cancel tree" })}
                       </Button>
                     </div>
                   </div>
@@ -540,7 +541,7 @@ export function DecisionCard({
           {/* Always-present zero-effect Dismiss (telemetered "no", distinct from expiry) */}
           {!decision.options.some((option) => option.effects.length === 0) && (
             <div className="flex items-center justify-between gap-2 pt-1">
-              <span className="text-xs text-muted-foreground">Not now?</span>
+              <span className="text-xs text-muted-foreground">{t("components.decisionCard.notNow", { defaultValue: "Not now?" })}</span>
               <Button variant="ghost" size="sm" disabled={busy} onClick={() => onDismiss?.()}>
                 Dismiss — no effects
               </Button>
@@ -561,7 +562,7 @@ export function DecisionCard({
               <p className="mt-1">
                 {((decision.metadata as { expiredReason?: string } | null)?.expiredReason === "target_gone")
                   ? "A target issue was cancelled before this was decided."
-                  : "No response before the expiry deadline."}
+                  : t("components.decisionCard.noResponse", { defaultValue: "No response before the expiry deadline." })}
                 {decision.continuationPolicy === "wake_origin_agent" && " The proposer was re-woken."}
               </p>
             </div>
