@@ -6,6 +6,7 @@
 
 pub mod assets;
 pub mod companies;
+pub mod costs;
 pub mod documents;
 pub mod goals;
 pub mod heartbeat_runs;
@@ -22,6 +23,10 @@ pub use assets::{
 };
 pub use companies::{
     CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,
+};
+pub use costs::{
+    AgentCostRow, BudgetSummary, CostError, CostEventOutcome, CostEventRecord, CostRepository,
+    NewCostEvent, TursoCostRepository,
 };
 pub use documents::{
     DocumentError, DocumentRecord, DocumentRepository, NewIssueDocument, TursoDocumentRepository,
