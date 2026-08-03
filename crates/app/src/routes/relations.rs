@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::IssueRelationDto,
     error::ApiError,
     routes::{Id, is_uuid},
@@ -62,6 +63,15 @@ pub async fn add_blocker(
         })
         .await
         .map_err(relation_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &relation.company_id,
+        "blocker.added",
+        "issue_relation",
+        &relation.id,
+        Some(json!({ "blockingIssueId": relation.issue_id, "blockedIssueId": relation.related_issue_id })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(relation.into())))
 }
 
@@ -76,7 +86,18 @@ pub async fn remove_blocker(cx: &Cx) -> Result<StatusCode, ApiError> {
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
     {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(relation) => {
+            log_activity(
+                &state.activity,
+                &relation.company_id,
+                "blocker.removed",
+                "issue_relation",
+                &relation.id,
+                None,
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Blocker relation not found")),
     }
 }

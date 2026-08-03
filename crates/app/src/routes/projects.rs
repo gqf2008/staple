@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::ProjectDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -182,6 +183,15 @@ pub async fn create_project(
         })
         .await
         .map_err(project_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &project.company_id,
+        "project.created",
+        "project",
+        &project.id,
+        Some(json!({ "name": project.name })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(project.into())))
 }
 
@@ -224,7 +234,18 @@ pub async fn update_project(
         .await
         .map_err(project_error_to_api)?
     {
-        Some(project) => Ok(Json(project.into())),
+        Some(project) => {
+            log_activity(
+                &state.activity,
+                &project.company_id,
+                "project.updated",
+                "project",
+                &project.id,
+                None,
+            )
+            .await?;
+            Ok(Json(project.into()))
+        }
         None => Err(ApiError::not_found("Project not found")),
     }
 }
@@ -240,7 +261,18 @@ pub async fn delete_project(cx: &Cx) -> Result<StatusCode, ApiError> {
         .await
         .map_err(project_error_to_api)?
     {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(project) => {
+            log_activity(
+                &state.activity,
+                &project.company_id,
+                "project.deleted",
+                "project",
+                &project.id,
+                None,
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Project not found")),
     }
 }

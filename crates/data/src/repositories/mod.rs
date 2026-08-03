@@ -4,6 +4,8 @@
 //! company-scoped, and the schema's composite foreign keys enforce company
 //! boundaries at the SQL level.
 
+pub mod activity;
+pub mod approvals;
 pub mod assets;
 pub mod companies;
 pub mod costs;
@@ -17,6 +19,13 @@ pub mod issues;
 pub mod projects;
 pub mod work_products;
 
+pub use activity::{
+    ActivityEntry, ActivityError, ActivityRepository, NewActivity, TursoActivityRepository,
+};
+pub use approvals::{
+    ApprovalDecision, ApprovalError, ApprovalRecord, ApprovalRepository, NewApproval,
+    TursoApprovalRepository, allowed_approval_transition,
+};
 pub use assets::{
     AssetError, AssetRecord, AssetRepository, IssueAttachmentRecord, NewAsset, NewIssueAttachment,
     TursoAssetRepository,

@@ -13,6 +13,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::{AssetDto, IssueAttachmentDto},
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -85,6 +86,15 @@ pub async fn upload_asset(
         })
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
+    log_activity(
+        &state.activity,
+        &asset.company_id,
+        "asset.uploaded",
+        "asset",
+        &asset.id,
+        Some(json!({ "objectKey": asset.object_key, "byteSize": asset.byte_size })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(asset.into())))
 }
 
@@ -135,6 +145,15 @@ pub async fn attach_asset(
         })
         .await
         .map_err(asset_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &attachment.company_id,
+        "attachment.created",
+        "issue_attachment",
+        &attachment.id,
+        Some(json!({ "issueId": attachment.issue_id, "assetId": attachment.asset_id })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(attachment.into())))
 }
 
