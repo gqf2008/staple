@@ -377,7 +377,7 @@ impl DocumentRepository for TursoDocumentRepository {
              FROM issue_documents idoc
              JOIN documents d ON d.id = idoc.document_id
              WHERE idoc.issue_id = ?1 AND idoc.key = ?2";
-        let mut rows = conn.query(&sql, libsql::params![issue_id, key]).await?;
+        let mut rows = conn.query(sql, libsql::params![issue_id, key]).await?;
         match rows.next().await? {
             Some(row) => Ok(Some(row_to_document(&row)?)),
             None => Ok(None),
