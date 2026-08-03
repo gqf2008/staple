@@ -547,3 +547,108 @@ impl From<staple_data::HeartbeatRunRecord> for HeartbeatRunDto {
         }
     }
 }
+
+/// Cost event resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CostEventDto {
+    /// Event id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Agent id.
+    pub agent_id: String,
+    /// Issue id.
+    pub issue_id: Option<String>,
+    /// Billing code.
+    pub billing_code: Option<String>,
+    /// Provider.
+    pub provider: String,
+    /// Model.
+    pub model: String,
+    /// Input tokens.
+    pub input_tokens: i64,
+    /// Output tokens.
+    pub output_tokens: i64,
+    /// Cost in cents.
+    pub cost_cents: i64,
+    /// ISO 8601 occurrence time.
+    pub occurred_at: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::CostEventRecord> for CostEventDto {
+    fn from(record: staple_data::CostEventRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            agent_id: record.agent_id,
+            issue_id: record.issue_id,
+            billing_code: record.billing_code,
+            provider: record.provider,
+            model: record.model,
+            input_tokens: record.input_tokens,
+            output_tokens: record.output_tokens,
+            cost_cents: record.cost_cents,
+            occurred_at: record.occurred_at,
+            created_at: record.created_at,
+        }
+    }
+}
+
+/// Company budget summary resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BudgetSummaryDto {
+    /// Company id.
+    pub company_id: String,
+    /// Monthly budget in cents.
+    pub budget_monthly_cents: i64,
+    /// Spent this month in cents.
+    pub spent_monthly_cents: i64,
+    /// Remaining cents.
+    pub remaining_cents: i64,
+    /// Agents paused by budget exhaustion.
+    pub paused_agents: i64,
+}
+
+impl From<staple_data::BudgetSummary> for BudgetSummaryDto {
+    fn from(summary: staple_data::BudgetSummary) -> Self {
+        Self {
+            company_id: summary.company_id,
+            budget_monthly_cents: summary.budget_monthly_cents,
+            spent_monthly_cents: summary.spent_monthly_cents,
+            remaining_cents: summary.remaining_cents,
+            paused_agents: summary.paused_agents,
+        }
+    }
+}
+
+/// Per-agent cost row.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentCostRowDto {
+    /// Agent id.
+    pub agent_id: String,
+    /// Agent name.
+    pub agent_name: String,
+    /// Agent status.
+    pub status: String,
+    /// Agent monthly budget.
+    pub budget_monthly_cents: i64,
+    /// Agent spent this month.
+    pub spent_monthly_cents: i64,
+}
+
+impl From<staple_data::AgentCostRow> for AgentCostRowDto {
+    fn from(row: staple_data::AgentCostRow) -> Self {
+        Self {
+            agent_id: row.agent_id,
+            agent_name: row.agent_name,
+            status: row.status,
+            budget_monthly_cents: row.budget_monthly_cents,
+            spent_monthly_cents: row.spent_monthly_cents,
+        }
+    }
+}
