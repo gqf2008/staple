@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56、插件生态 #57 完成）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56、插件生态 #57、agent runtime #62 完成）。
 
 ## 使用方式
 
@@ -24,7 +24,7 @@
 | **P0 执行控制面：heartbeat** | 发起/观察/取消/恢复、原子 checkout、执行锁 | ✅ 完成 | `routes/heartbeat.rs`；并发互斥测试 |
 | **P0 执行控制面：watchdog** | §9.9 授权契约（子树、排除 task_watchdog 分支） | ✅ 完成 | `watchdog_authorized` + 测试 |
 | **P0 执行控制面：失败归因** | infrastructure vs agent | ✅ 完成 | `error_kind` 列 + 测试 |
-| **P0 执行控制面：recovery issue** | recovery actions、wake 调度 | ⏳ 进行中 | 授权门已就绪；调度/恢复执行未实现 |
+| **P0 执行控制面：recovery issue** | recovery actions、wake 调度 | ✅ 完成 | `agent_runtime` 仓库（迁移 0015）；issue #62；recovery 状态机 + wake 入队/消费测试 |
 | **P1 身份与安全：认证** | board 会话、agent API keys（哈希、吊销）、公司边界 | ✅ 完成 | `auth.rs`、`api_keys.rs`；三身份权限测试 |
 | **P1 身份与安全：权限矩阵** | §9 权限矩阵（scoped grants、tasks:assign_scope、inbox:manage、manager-subtree 子预算） | ✅ 完成 | `principal_permission_grants`（迁移 0012）+ `permissions.rs` 评估器 + 路由；issue #55（成员/实例角色等由 #56 覆盖） |
 | **P1 治理：预算/成本** | cost_events、聚合、硬停自动暂停 | ✅ 完成 | `costs.rs`；耗尽暂停 + 重置恢复测试 |
@@ -52,7 +52,6 @@
 
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
-| recovery actions / wake 调度 | watchdog 授权已实现，调度器未实现 | 进行中 |
 | managed checkout / git 凭据 | 上游近期新增 | 未开始 |
 | decision desk 完整 retention/sweeper | 基础队列/三态已实现 | 进行中 |
 | UI 完整功能（搜索、看板拖拽、设置页等） | 骨架 + 核心页已实现 | 进行中 |

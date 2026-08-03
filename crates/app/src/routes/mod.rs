@@ -4,6 +4,7 @@ use topcoat::router::path_param;
 
 pub mod activity;
 pub mod adapters;
+pub mod agent_runtime;
 pub mod agents;
 pub mod approvals;
 pub mod assets;

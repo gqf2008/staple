@@ -5,6 +5,7 @@
 //! boundaries at the SQL level.
 
 pub mod activity;
+pub mod agent_runtime;
 pub mod agents;
 pub mod api_keys;
 pub mod approvals;
@@ -40,6 +41,11 @@ pub mod workspaces;
 
 pub use activity::{
     ActivityEntry, ActivityError, ActivityRepository, NewActivity, TursoActivityRepository,
+};
+pub use agent_runtime::{
+    AgentRuntimeError, AgentRuntimeRepository, AgentRuntimeStateRecord, AgentTaskSessionRecord,
+    AgentWakeupRequestRecord, IssueRecoveryActionRecord, NewRecoveryAction, NewRuntimeState,
+    NewTaskSession, NewWakeupRequest, TursoAgentRuntimeRepository,
 };
 pub use agents::{
     AgentBudgetRecord, AgentError, AgentHierarchyRow, AgentRepository, TursoAgentRepository,
