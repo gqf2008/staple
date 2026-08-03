@@ -58,7 +58,33 @@
     "all": "全部",
     "selectCompanyFirst": "请先选择公司。",
     "done": "完成",
-    "undo": "撤销"
+    "undo": "撤销",
+    "join": "加入",
+    "leave": "离开",
+    "joining": "正在加入…",
+    "leaving": "正在离开…",
+    "joinName": "加入 {{name}}",
+    "leaveName": "离开 {{name}}",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "saveFailed": "保存失败 — 重试",
+    "requestedBy": "由以下发起",
+    "approvalCreated": "审批请求创建于 {{time}}",
+    "decisionNote": "决策说明。",
+    "viewDetails": "查看详情",
+    "approve": "批准",
+    "approving": "正在批准…",
+    "reject": "拒绝",
+    "rejecting": "正在拒绝…",
+    "raiseBudgetResume": "提高预算并恢复",
+    "applying": "正在应用…",
+    "keepPaused": "保持暂停",
+    "newBudgetUsd": "新预算（USD）",
+    "hardStop": "{{scope}} 硬停止",
+    "spendVsLimit": "支出已达 {{spent}}，上限为 {{limit}}。",
+    "newBudgetMustExceed": "新预算必须高于当前实际支出。",
+    "scopePausedDesc": "此作用域已暂停。在解决预算事件前，新的心跳不会启动。",
+    "projectPausedDesc": "项目执行已暂停。在解决预算事件前，此项目中的新工作不会开始。"
   },
   "pages": {
     "dashboard": {
@@ -279,6 +305,43 @@
       "unknownProject": "未知项目",
       "unknownAgent": "未知智能体",
       "unassigned": "未分配"
+    }
+  },
+  "status": {
+    "queued": "排队中",
+    "running": "运行中",
+    "succeeded": "成功",
+    "failed": "失败",
+    "timed_out": "超时",
+    "cancelled": "已取消",
+    "planned": "已规划",
+    "active": "活跃",
+    "achieved": "已达成",
+    "pending": "待处理",
+    "revision_requested": "已要求修改",
+    "approved": "已批准",
+    "rejected": "已拒绝",
+    "idle": "空闲",
+    "error": "错误",
+    "paused": "已暂停",
+    "backlog": "待办",
+    "todo": "待办",
+    "in_progress": "进行中",
+    "in_review": "审核中",
+    "done": "已完成",
+    "blocked": "已阻塞",
+    "terminated": "已终止",
+    "dismissed": "已忽略",
+    "escalated": "已升级",
+    "resolved": "已解决",
+    "open": "未处理"
+  },
+  "approvals": {
+    "type": {
+      "hire_agent": "雇佣智能体",
+      "approve_ceo_strategy": "CEO 战略",
+      "budget_override_required": "预算调整",
+      "request_board_approval": "董事会审批"
     }
   }
 }

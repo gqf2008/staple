@@ -1,12 +1,21 @@
 import { UserPlus, Lightbulb, ShieldAlert, ShieldCheck } from "lucide-react";
 import { formatCents } from "../lib/utils";
+import { t } from "../i18n";
 
-export const typeLabel: Record<string, string> = {
-  hire_agent: "Hire Agent",
-  approve_ceo_strategy: "CEO Strategy",
-  budget_override_required: "Budget Override",
-  request_board_approval: "Board Approval",
-};
+export function typeLabel(type: string): string {
+  switch (type) {
+    case "hire_agent":
+      return t("approvals.type.hire_agent", { defaultValue: "Hire Agent" });
+    case "approve_ceo_strategy":
+      return t("approvals.type.approve_ceo_strategy", { defaultValue: "CEO Strategy" });
+    case "budget_override_required":
+      return t("approvals.type.budget_override_required", { defaultValue: "Budget Override" });
+    case "request_board_approval":
+      return t("approvals.type.request_board_approval", { defaultValue: "Board Approval" });
+    default:
+      return type;
+  }
+}
 
 function firstNonEmptyString(...values: unknown[]): string | null {
   for (const value of values) {
@@ -28,7 +37,7 @@ export function approvalSubject(payload?: Record<string, unknown> | null): strin
 
 /** Build a contextual label for an approval, e.g. "Hire Agent: Designer" */
 export function approvalLabel(type: string, payload?: Record<string, unknown> | null): string {
-  const base = typeLabel[type] ?? type;
+  const base = typeLabel(type);
   const subject = approvalSubject(payload);
   if (subject) {
     return `${base}: ${subject}`;

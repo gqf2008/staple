@@ -58,7 +58,33 @@
     "all": "All",
     "selectCompanyFirst": "Select a company first.",
     "done": "Done",
-    "undo": "Undo"
+    "undo": "Undo",
+    "join": "Join",
+    "leave": "Leave",
+    "joining": "Joining...",
+    "leaving": "Leaving...",
+    "joinName": "Join {{name}}",
+    "leaveName": "Leave {{name}}",
+    "star": "Star {{name}}",
+    "unstar": "Unstar {{name}}",
+    "saveFailed": "Couldn't save — retry",
+    "requestedBy": "Requested by",
+    "approvalCreated": "Approval request created {{time}}",
+    "decisionNote": "Decision note.",
+    "viewDetails": "View details",
+    "approve": "Approve",
+    "approving": "Approving...",
+    "reject": "Reject",
+    "rejecting": "Rejecting...",
+    "raiseBudgetResume": "Raise budget & resume",
+    "applying": "Applying...",
+    "keepPaused": "Keep paused",
+    "newBudgetUsd": "New budget (USD)",
+    "hardStop": "{{scope}} hard stop",
+    "spendVsLimit": "Spending reached {{spent}} against a limit of {{limit}}.",
+    "newBudgetMustExceed": "The new budget must exceed current observed spend.",
+    "scopePausedDesc": "This scope is paused. New heartbeats will not start until you resolve the budget incident.",
+    "projectPausedDesc": "Project execution is paused. New work in this project will not start until you resolve the budget incident."
   },
   "pages": {
     "dashboard": {
@@ -279,6 +305,43 @@
       "unknownProject": "Unknown project",
       "unknownAgent": "Unknown agent",
       "unassigned": "Unassigned"
+    }
+  },
+  "status": {
+    "queued": "Queued",
+    "running": "Running",
+    "succeeded": "Succeeded",
+    "failed": "Failed",
+    "timed_out": "Timed out",
+    "cancelled": "Cancelled",
+    "planned": "Planned",
+    "active": "Active",
+    "achieved": "Achieved",
+    "pending": "Pending",
+    "revision_requested": "Revision requested",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "idle": "Idle",
+    "error": "Error",
+    "paused": "Paused",
+    "backlog": "Backlog",
+    "todo": "Todo",
+    "in_progress": "In progress",
+    "in_review": "In review",
+    "done": "Done",
+    "blocked": "Blocked",
+    "terminated": "Terminated",
+    "dismissed": "Dismissed",
+    "escalated": "Escalated",
+    "resolved": "Resolved",
+    "open": "Open"
+  },
+  "approvals": {
+    "type": {
+      "hire_agent": "Hire Agent",
+      "approve_ceo_strategy": "CEO Strategy",
+      "budget_override_required": "Budget Override",
+      "request_board_approval": "Board Approval"
     }
   }
 }

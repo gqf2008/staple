@@ -58,7 +58,33 @@
     "all": "全部",
     "selectCompanyFirst": "請先選擇公司。",
     "done": "完成",
-    "undo": "復原"
+    "undo": "復原",
+    "join": "加入",
+    "leave": "離開",
+    "joining": "正在加入…",
+    "leaving": "正在離開…",
+    "joinName": "加入 {{name}}",
+    "leaveName": "離開 {{name}}",
+    "star": "收藏 {{name}}",
+    "unstar": "取消收藏 {{name}}",
+    "saveFailed": "儲存失敗 — 重試",
+    "requestedBy": "由以下發起",
+    "approvalCreated": "審批請求建立於 {{time}}",
+    "decisionNote": "決策說明。",
+    "viewDetails": "檢視詳情",
+    "approve": "核准",
+    "approving": "正在核准…",
+    "reject": "拒絕",
+    "rejecting": "正在拒絕…",
+    "raiseBudgetResume": "提高預算並恢復",
+    "applying": "正在套用…",
+    "keepPaused": "保持暫停",
+    "newBudgetUsd": "新預算（USD）",
+    "hardStop": "{{scope}} 硬停止",
+    "spendVsLimit": "支出已達 {{spent}}，上限為 {{limit}}。",
+    "newBudgetMustExceed": "新預算必須高於目前實際支出。",
+    "scopePausedDesc": "此範圍已暫停。在解決預算事件前，新的心跳不會啟動。",
+    "projectPausedDesc": "專案執行已暫停。在解決預算事件前，此專案中的新工作不會開始。"
   },
   "pages": {
     "dashboard": {
@@ -279,6 +305,43 @@
       "unknownProject": "未知專案",
       "unknownAgent": "未知智慧體",
       "unassigned": "未指派"
+    }
+  },
+  "status": {
+    "queued": "排隊中",
+    "running": "執行中",
+    "succeeded": "成功",
+    "failed": "失敗",
+    "timed_out": "逾時",
+    "cancelled": "已取消",
+    "planned": "已規劃",
+    "active": "活躍",
+    "achieved": "已達成",
+    "pending": "待處理",
+    "revision_requested": "已要求修改",
+    "approved": "已核准",
+    "rejected": "已拒絕",
+    "idle": "閒置",
+    "error": "錯誤",
+    "paused": "已暫停",
+    "backlog": "待辦",
+    "todo": "待辦",
+    "in_progress": "進行中",
+    "in_review": "審核中",
+    "done": "已完成",
+    "blocked": "已封鎖",
+    "terminated": "已終止",
+    "dismissed": "已忽略",
+    "escalated": "已升級",
+    "resolved": "已解決",
+    "open": "未處理"
+  },
+  "approvals": {
+    "type": {
+      "hire_agent": "雇用智慧體",
+      "approve_ceo_strategy": "CEO 策略",
+      "budget_override_required": "預算調整",
+      "request_board_approval": "董事會審批"
     }
   }
 }
