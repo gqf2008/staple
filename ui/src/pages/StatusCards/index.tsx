@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { FlaskConical, Loader2, Plus } from "lucide-react";
 
@@ -27,13 +28,13 @@ export function StatusCards() {
 
   const [showArchived, setShowArchived] = useState(false);
   const [createOpen, setCreateOpen] = useState(false);
-  // Which tab the detail drawer opens to (the tile's "Query debug"/"Edit"
+  // Which tab the detail drawer opens to (the tile's t("pages.statusCardsIndex.queryDebug", { defaultValue: "Query debug" })/t("pages.statusCardsIndex.edit", { defaultValue: "Edit" })
   // actions deep-link into Settings).
   const [detailTab, setDetailTab] = useState("summary");
   const [actionError, setActionError] = useState<string | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Status" }]);
+    setBreadcrumbs([{ label: t("pages.statusCardsIndex.status", { defaultValue: "Status" }) }]);
   }, [setBreadcrumbs]);
 
   const activeQuery = useQuery({
@@ -75,25 +76,25 @@ export function StatusCards() {
     mutationFn: (id: string) => statusCardsApi.refresh(id),
     onMutate: () => setActionError(null),
     onSuccess: () => invalidateLists(),
-    onError: (err) => setActionError(err instanceof Error ? err.message : "Could not refresh the card."),
+    onError: (err) => setActionError(err instanceof Error ? err.message : t("pages.statusCardsIndex.refreshFailed", { defaultValue: "Could not refresh the card." })),
   });
   const recompileMutation = useMutation({
     mutationFn: (id: string) => statusCardsApi.recompile(id),
     onMutate: () => setActionError(null),
     onSuccess: () => invalidateLists(),
-    onError: (err) => setActionError(err instanceof Error ? err.message : "Could not run the card."),
+    onError: (err) => setActionError(err instanceof Error ? err.message : t("pages.statusCardsIndex.runFailed", { defaultValue: "Could not run the card." })),
   });
   const archiveMutation = useMutation({
     mutationFn: (id: string) => statusCardsApi.patch(id, { archived: true }),
     onMutate: () => setActionError(null),
     onSuccess: () => invalidateLists(),
-    onError: (err) => setActionError(err instanceof Error ? err.message : "Could not archive the card."),
+    onError: (err) => setActionError(err instanceof Error ? err.message : t("pages.statusCardsIndex.archiveFailed", { defaultValue: "Could not archive the card." })),
   });
   const restoreMutation = useMutation({
     mutationFn: (id: string) => statusCardsApi.patch(id, { archived: false }),
     onMutate: () => setActionError(null),
     onSuccess: () => invalidateLists(),
-    onError: (err) => setActionError(err instanceof Error ? err.message : "Could not restore the card."),
+    onError: (err) => setActionError(err instanceof Error ? err.message : t("pages.statusCardsIndex.restoreFailed", { defaultValue: "Could not restore the card." })),
   });
 
   const openDetail = (id: string, tab: string = "summary") => {
@@ -116,7 +117,7 @@ export function StatusCards() {
       {/* Header */}
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <h1 className="text-xl font-bold">Status</h1>
+          <h1 className="text-xl font-bold">{t("pages.statusCardsIndex.status", { defaultValue: "Status" })}</h1>
           <Badge variant="secondary" className="gap-1">
             <FlaskConical className="h-3 w-3" />
             Experimental
@@ -135,22 +136,22 @@ export function StatusCards() {
         </div>
       </div>
 
-      {actionError ? <InlineBanner tone="warning" title="Heads up">{actionError}</InlineBanner> : null}
+      {actionError ? <InlineBanner tone="warning" title={t("pages.statusCardsIndex.headsUp", { defaultValue: "Heads up" })}>{actionError}</InlineBanner> : null}
 
       {activeQuery.isLoading ? (
         <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
           <Loader2 className="h-4 w-4 animate-spin" /> Loading cards…
         </div>
       ) : activeQuery.isError ? (
-        <InlineBanner tone="danger" title="Could not load status cards">
-          {activeQuery.error instanceof Error ? activeQuery.error.message : "Try again."}
+        <InlineBanner tone="danger" title={t("pages.statusCardsIndex.loadFailed", { defaultValue: "Could not load status cards" })}>
+          {activeQuery.error instanceof Error ? activeQuery.error.message : t("pages.statusCardsIndex.tryAgain", { defaultValue: "Try again." })}
         </InlineBanner>
       ) : activeCards.length === 0 ? (
         <EmptyState
           icon={FlaskConical}
-          title="No status cards yet"
-          message="Create a card to keep a living summary of the issues you care about."
-          action={selectedCompanyId ? "New card" : undefined}
+          title={t("pages.statusCardsIndex.noCards", { defaultValue: "No status cards yet" })}
+          message={t("pages.statusCardsIndex.noCardsHint", { defaultValue: "Create a card to keep a living summary of the issues you care about." })}
+          action={selectedCompanyId ? t("pages.statusCardsIndex.newCard", { defaultValue: "New card" }) : undefined}
           onAction={() => setCreateOpen(true)}
         />
       ) : (
@@ -180,7 +181,7 @@ export function StatusCards() {
             onClick={() => setShowArchived((prev) => !prev)}
             className="text-xs text-muted-foreground underline-offset-2 hover:text-foreground hover:underline"
           >
-            {showArchived ? "Hide archived" : `Show archived (${archivedCards.length})`}
+            {showArchived ? t("pages.statusCardsIndex.hideArchived", { defaultValue: "Hide archived" }) : `Show archived (${archivedCards.length})`}
           </button>
           {showArchived
             ? archivedCards.map((card) => (

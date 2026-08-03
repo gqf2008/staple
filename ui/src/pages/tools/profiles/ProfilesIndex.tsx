@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../../i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { ArchiveRestore, MoreHorizontal, Plus, ShieldCheck, Users } from "lucide-react";
 import type { ToolProfileWithDetails } from "@paperclipai/shared";
@@ -81,45 +82,45 @@ export function ProfilesIndex({
     mutationFn: (profile: ToolProfileWithDetails) =>
       toolsApi.duplicateProfile(profile.id, { name: `${profile.name} (copy)` }),
     onSuccess: () => {
-      pushToast({ title: "Profile duplicated", body: "The copy is not assigned to anyone yet.", tone: "success" });
+      pushToast({ title: t("pages.tools.profilesIndex.profileDuplicated", { defaultValue: "Profile duplicated" }), body: t("pages.tools.profilesIndex.copyUnassigned", { defaultValue: "The copy is not assigned to anyone yet." }), tone: "success" });
       invalidate();
     },
     onError: (error: unknown) =>
-      pushToast({ title: "Could not duplicate", body: errorBody(error), tone: "error" }),
+      pushToast({ title: t("pages.tools.profilesIndex.duplicateFailed", { defaultValue: "Could not duplicate" }), body: errorBody(error), tone: "error" }),
   });
 
   const archive = useMutation({
     mutationFn: (profile: ToolProfileWithDetails) =>
       toolsApi.updateProfile(profile.id, { status: "archived" }),
     onSuccess: () => {
-      pushToast({ title: "Profile archived", tone: "success" });
+      pushToast({ title: t("pages.tools.profilesIndex.profileArchived", { defaultValue: "Profile archived" }), tone: "success" });
       invalidate();
     },
-    onError: (error: unknown) => pushToast({ title: "Could not archive", body: errorBody(error), tone: "error" }),
+    onError: (error: unknown) => pushToast({ title: t("pages.tools.profilesIndex.archiveFailed", { defaultValue: "Could not archive" }), body: errorBody(error), tone: "error" }),
   });
 
   const restore = useMutation({
     mutationFn: (profile: ToolProfileWithDetails) =>
       toolsApi.updateProfile(profile.id, { status: "active" }),
     onSuccess: () => {
-      pushToast({ title: "Profile restored", tone: "success" });
+      pushToast({ title: t("pages.tools.profilesIndex.profileRestored", { defaultValue: "Profile restored" }), tone: "success" });
       invalidate();
     },
-    onError: (error: unknown) => pushToast({ title: "Could not restore", body: errorBody(error), tone: "error" }),
+    onError: (error: unknown) => pushToast({ title: t("pages.tools.profilesIndex.restoreFailed", { defaultValue: "Could not restore" }), body: errorBody(error), tone: "error" }),
   });
 
   const remove = useMutation({
     mutationFn: (profile: ToolProfileWithDetails) => toolsApi.deleteProfile(profile.id),
     onSuccess: () => {
-      pushToast({ title: "Profile deleted", tone: "success" });
+      pushToast({ title: t("pages.tools.profilesIndex.profileDeleted", { defaultValue: "Profile deleted" }), tone: "success" });
       invalidate();
     },
-    onError: (error: unknown) => pushToast({ title: "Could not delete", body: errorBody(error), tone: "error" }),
+    onError: (error: unknown) => pushToast({ title: t("pages.tools.profilesIndex.deleteFailed", { defaultValue: "Could not delete" }), body: errorBody(error), tone: "error" }),
   });
 
   const header = (
     <ToolsPageHeader
-      title="Access profiles"
+      title={t("pages.tools.profilesIndex.title", { defaultValue: "Access profiles" })}
       description="Decide which tools your agents can use. Build a profile once, then assign it to the agents that need it."
       actions={
         <>
@@ -140,7 +141,7 @@ export function ProfilesIndex({
     <Sheet open={resolverOpen} onOpenChange={setResolverOpen}>
       <SheetContent className="w-full gap-0 p-0 sm:max-w-xl">
         <SheetHeader className="border-b border-border">
-          <SheetTitle>Check an agent's access</SheetTitle>
+          <SheetTitle>{t("pages.tools.profilesIndex.checkAccess", { defaultValue: "Check an agent's access" })}</SheetTitle>
           <SheetDescription>
             See exactly which tools an agent can use right now, and which profile allows each one.
           </SheetDescription>
@@ -156,7 +157,7 @@ export function ProfilesIndex({
     return (
       <div className="space-y-5">
         {header}
-        <LoadingState label="Loading profiles…" />
+        <LoadingState label={t("pages.tools.profilesIndex.loading", { defaultValue: "Loading profiles…" })} />
       </div>
     );
   }
@@ -187,7 +188,7 @@ export function ProfilesIndex({
               statusFilter === key ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:text-foreground",
             )}
           >
-            {key === "active" ? "Active" : "Archived"}
+            {key === "active" ? t("pages.tools.profilesIndex.active", { defaultValue: "Active" }) : t("pages.tools.profilesIndex.archived", { defaultValue: "Archived" })}
           </button>
         ))}
       </div>
@@ -213,11 +214,11 @@ export function ProfilesIndex({
             </colgroup>
             <thead>
               <tr className="border-b border-border bg-muted/40 text-left text-xs font-medium text-muted-foreground">
-                <th className="px-3 py-2 font-medium">Profile</th>
-                <th className="px-3 py-2 font-medium">Allows</th>
-                <th className="px-3 py-2 font-medium">Assigned to</th>
-                <th className="px-3 py-2 font-medium">Status</th>
-                <th className="px-3 py-2 font-medium">Updated</th>
+                <th className="px-3 py-2 font-medium">{t("pages.tools.profilesIndex.profile", { defaultValue: "Profile" })}</th>
+                <th className="px-3 py-2 font-medium">{t("pages.tools.profilesIndex.allows", { defaultValue: "Allows" })}</th>
+                <th className="px-3 py-2 font-medium">{t("pages.tools.profilesIndex.assignedTo", { defaultValue: "Assigned to" })}</th>
+                <th className="px-3 py-2 font-medium">{t("pages.tools.profilesIndex.status", { defaultValue: "Status" })}</th>
+                <th className="px-3 py-2 font-medium">{t("pages.tools.profilesIndex.updated", { defaultValue: "Updated" })}</th>
                 <th className="w-10 px-3 py-2" />
               </tr>
             </thead>
@@ -341,22 +342,22 @@ function RowMenu({
       <DropdownMenuTrigger asChild>
         <button
           type="button"
-          aria-label="Profile actions"
+          aria-label={t("pages.tools.profilesIndex.profileActions", { defaultValue: "Profile actions" })}
           className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground opacity-0 transition-opacity hover:bg-accent group-hover:opacity-100 data-[state=open]:opacity-100"
         >
           <MoreHorizontal className="h-4 w-4" />
         </button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onSelect={onEdit}>Edit</DropdownMenuItem>
-        <DropdownMenuItem onSelect={onDuplicate}>Duplicate</DropdownMenuItem>
+        <DropdownMenuItem onSelect={onEdit}>{t("pages.tools.profilesIndex.edit", { defaultValue: "Edit" })}</DropdownMenuItem>
+        <DropdownMenuItem onSelect={onDuplicate}>{t("pages.tools.profilesIndex.duplicate", { defaultValue: "Duplicate" })}</DropdownMenuItem>
         {onRestore ? (
           <DropdownMenuItem onSelect={onRestore}>
             <ArchiveRestore className="mr-1.5 h-4 w-4" />
             Restore
           </DropdownMenuItem>
         ) : (
-          <DropdownMenuItem onSelect={onArchive}>Archive</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onArchive}>{t("pages.tools.profilesIndex.archive", { defaultValue: "Archive" })}</DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onDelete} className="text-destructive focus:text-destructive">
@@ -372,7 +373,7 @@ function EmptyTemplatePicker({ onPick }: { onPick: (key: TemplateKey) => void })
   return (
     <div className="rounded-lg border border-dashed border-border p-6">
       <div className="mb-4 max-w-2xl">
-        <h3 className="text-base font-semibold text-foreground">Create your first access profile</h3>
+        <h3 className="text-base font-semibold text-foreground">{t("pages.tools.profilesIndex.createFirst", { defaultValue: "Create your first access profile" })}</h3>
         <p className="text-sm text-muted-foreground">
           Pick a starting point. You can fine-tune exactly which tools it allows in the next step.
         </p>

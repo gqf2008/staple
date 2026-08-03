@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { t } from "../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IssueComment } from "@paperclipai/shared";
 import { issuesApi } from "../api/issues";
@@ -28,30 +29,30 @@ function detectHiringPlan(body: string): boolean {
     /##?\s*(hiring|team|org|roles|plan)/i,
     /##?\s*(proposed|recommended)\s*(roles|hires|team)/i,
     /\n-\s+\*\*[^*]+\*\*/g, // bullet list with bold items (role names)
-    /\|\s*role\s*\|/i, // markdown table with "Role" header
+    /\|\s*role\s*\|/i, // markdown table with t("components.onboardingChat.role", { defaultValue: "Role" }) header
   ];
   return planPatterns.some((pattern) => pattern.test(body));
 }
 
 const QUEUED_MESSAGES = [
-  "Heartbeat triggered, waking up...",
-  "Initializing...",
-  "Getting ready...",
+  t("components.onboardingChat.wakingUp", { defaultValue: "Heartbeat triggered, waking up..." }),
+  t("components.onboardingChat.initializing", { defaultValue: "Initializing..." }),
+  t("components.onboardingChat.gettingReady", { defaultValue: "Getting ready..." }),
 ];
 
 const RUNNING_MESSAGES = [
-  "Working on a response...",
-  "Reading the conversation...",
-  "Thinking through the plan...",
-  "Drafting a response...",
-  "Still working...",
-  "Almost there...",
+  t("components.onboardingChat.workingOnResponse", { defaultValue: "Working on a response..." }),
+  t("components.onboardingChat.readingConversation", { defaultValue: "Reading the conversation..." }),
+  t("components.onboardingChat.thinkingPlan", { defaultValue: "Thinking through the plan..." }),
+  t("components.onboardingChat.draftingResponse", { defaultValue: "Drafting a response..." }),
+  t("components.onboardingChat.stillWorking", { defaultValue: "Still working..." }),
+  t("components.onboardingChat.almostThere", { defaultValue: "Almost there..." }),
 ];
 
 const WAITING_MESSAGES = [
-  "Waiting to wake up...",
-  "Heartbeat pending...",
-  "Should wake up soon...",
+  t("components.onboardingChat.waitingWake", { defaultValue: "Waiting to wake up..." }),
+  t("components.onboardingChat.heartbeatPending", { defaultValue: "Heartbeat pending..." }),
+  t("components.onboardingChat.wakeSoon", { defaultValue: "Should wake up soon..." }),
 ];
 
 function getCyclingMessage(messages: string[], elapsed: number, agentName: string): string {
@@ -271,7 +272,7 @@ export function OnboardingChat({
             setInput("I want to discuss the plan before you get started.");
             inputRef.current?.focus();
           }}
-          onStart={() => sendMessage("Yes, get started on the hiring plan!")}
+          onStart={() => sendMessage(t("components.onboardingChat.hiringPlanCta", { defaultValue: "Yes, get started on the hiring plan!" }))}
         />
         {comments?.map((comment) => {
           const isAgent = Boolean(comment.authorAgentId);
@@ -296,7 +297,7 @@ export function OnboardingChat({
                       : "text-foreground/70",
                   )}
                 >
-                  {isAgent ? agentName : "You"}
+                  {isAgent ? agentName : t("components.onboardingChat.you", { defaultValue: "You" })}
                 </span>
                 {isPlan && (
                   <span className="inline-flex items-center gap-0.5 text-(length:--text-nano) text-green-600 dark:text-green-400 font-medium">

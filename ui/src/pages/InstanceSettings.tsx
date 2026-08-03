@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Clock3, ExternalLink, Settings } from "lucide-react";
 import type { InstanceSchedulerHeartbeatAgent } from "@paperclipai/shared";
@@ -33,9 +34,9 @@ export function InstanceSettings() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
-      { label: "Instance settings", href: "/company/settings/instance/general" },
-      { label: "Heartbeats" },
+      { label: t("pages.instanceSettings.settings", { defaultValue: "Settings" }), href: "/company/settings" },
+      { label: t("pages.instanceSettings.instanceSettings", { defaultValue: "Instance settings" }), href: "/company/settings/instance/general" },
+      { label: t("pages.instanceSettings.heartbeats", { defaultValue: "Heartbeats" }) },
     ]);
   }, [setBreadcrumbs]);
 
@@ -74,7 +75,7 @@ export function InstanceSettings() {
       ]);
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to update heartbeat.");
+      setActionError(error instanceof Error ? error.message : t("pages.instanceSettings.updateFailed", { defaultValue: "Failed to update heartbeat." }));
     },
   });
 
@@ -104,7 +105,7 @@ export function InstanceSettings() {
       const failures = results.filter((result): result is PromiseRejectedResult => result.status === "rejected");
       if (failures.length > 0) {
         const firstError = failures[0]?.reason;
-        const detail = firstError instanceof Error ? firstError.message : "Unknown error";
+        const detail = firstError instanceof Error ? firstError.message : t("pages.instanceSettings.unknownError", { defaultValue: "Unknown error" });
         throw new Error(
           failures.length === 1
             ? `Failed to disable 1 timer heartbeat: ${detail}`
@@ -127,7 +128,7 @@ export function InstanceSettings() {
       ]);
     },
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to disable all heartbeats.");
+      setActionError(error instanceof Error ? error.message : t("pages.instanceSettings.disableAllFailed", { defaultValue: "Failed to disable all heartbeats." }));
     },
   });
 
@@ -151,7 +152,7 @@ export function InstanceSettings() {
   }, [agents]);
 
   if (heartbeatsQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading scheduler heartbeats...</div>;
+    return <div className="text-sm text-muted-foreground">{t("pages.instanceSettings.loading", { defaultValue: "Loading scheduler heartbeats..." })}</div>;
   }
 
   if (heartbeatsQuery.error) {
@@ -159,7 +160,7 @@ export function InstanceSettings() {
       <div className="text-sm text-destructive">
         {heartbeatsQuery.error instanceof Error
           ? heartbeatsQuery.error.message
-          : "Failed to load scheduler heartbeats."}
+          : t("pages.instanceSettings.loadFailed", { defaultValue: "Failed to load scheduler heartbeats." })}
       </div>
     );
   }
@@ -169,7 +170,7 @@ export function InstanceSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <Settings className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Scheduler Heartbeats</h1>
+          <h1 className="text-lg font-semibold">{t("pages.instanceSettings.schedulerHeartbeats", { defaultValue: "Scheduler Heartbeats" })}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
           Agents with a timer heartbeat enabled across all of your companies.
@@ -194,7 +195,7 @@ export function InstanceSettings() {
               disableAllMutation.mutate(agents);
             }}
           >
-            {disableAllMutation.isPending ? "Disabling..." : "Disable All"}
+            {disableAllMutation.isPending ? t("pages.instanceSettings.disabling", { defaultValue: "Disabling..." }) : t("pages.instanceSettings.disableAll", { defaultValue: "Disable All" })}
           </Button>
         )}
       </div>
@@ -208,7 +209,7 @@ export function InstanceSettings() {
       {agents.length === 0 ? (
         <EmptyState
           icon={Clock3}
-          message="No scheduler heartbeats match the current criteria."
+          message={t("pages.instanceSettings.noMatch", { defaultValue: "No scheduler heartbeats match the current criteria." })}
         />
       ) : (
         <div className="space-y-4">
@@ -230,7 +231,7 @@ export function InstanceSettings() {
                           variant={agent.schedulerActive ? "default" : "outline"}
                           className="shrink-0 text-(length:--text-nano) px-1.5 py-0"
                         >
-                          {agent.schedulerActive ? "On" : "Off"}
+                          {agent.schedulerActive ? "On" : t("pages.instanceSettings.off", { defaultValue: "Off" })}
                         </Badge>
                         <Link
                           to={buildAgentHref(agent)}
@@ -256,7 +257,7 @@ export function InstanceSettings() {
                           <Link
                             to={buildAgentHref(agent)}
                             className="text-muted-foreground hover:text-foreground"
-                            title="Full agent config"
+                            title={t("pages.instanceSettings.fullAgentConfig", { defaultValue: "Full agent config" })}
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                           </Link>
@@ -267,7 +268,7 @@ export function InstanceSettings() {
                             disabled={saving}
                             onClick={() => toggleMutation.mutate(agent)}
                           >
-                            {saving ? "..." : agent.heartbeatEnabled ? "Disable Timer Heartbeat" : "Enable Timer Heartbeat"}
+                            {saving ? "..." : agent.heartbeatEnabled ? t("pages.instanceSettings.disableTimer", { defaultValue: "Disable Timer Heartbeat" }) : t("pages.instanceSettings.enableTimer", { defaultValue: "Enable Timer Heartbeat" })}
                           </Button>
                         </span>
                       </div>
