@@ -12,10 +12,10 @@ use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
-    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, TursoWorkspaceRepository,
-    migrate, open,
+    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
