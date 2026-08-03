@@ -154,4 +154,18 @@ button.destructive { background: var(--color-destructive); color: var(--color-pr
 .meta-row { color: var(--color-muted-foreground); font-size: var(--font-size-sm); }
 
 section { margin-bottom: var(--space-8); }
+
+.nav-row { display: flex; gap: var(--space-3); flex-wrap: wrap; margin: var(--space-4) 0; }
+.nav-row a { color: var(--color-primary); text-decoration: none; font-size: var(--font-size-sm); }
+.nav-row a:hover { text-decoration: underline; }
+.muted-link { color: var(--color-muted-foreground); text-decoration: none; font-size: var(--font-size-sm); }
+
+.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--space-4); }
+.board-column { background: var(--color-muted); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); }
+.board-column-title { font-size: var(--font-size-sm); margin: 0 0 var(--space-3); }
+.board-column .list li { border-bottom: 1px solid var(--color-border); }
+.board-column form { margin: var(--space-1) 0 0; }
+
+form.stack-form { display: flex; flex-direction: column; gap: var(--space-2); max-width: 24rem; }
+form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 "#;

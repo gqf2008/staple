@@ -321,5 +321,27 @@ async fn core_business_flow_smoke() {
     let html = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(html.contains("Core task"));
 
+    // 5. New UI surfaces render: board, search, settings.
+    for (path, needle) in [
+        (format!("/companies/{company_id}/board"), "board-column"),
+        (
+            format!("/companies/{company_id}/search?q=Core"),
+            "Core task",
+        ),
+        (format!("/companies/{company_id}/settings"), "settings"),
+    ] {
+        let request = Request::builder()
+            .method(Method::GET)
+            .uri(path)
+            .body(Body::empty())
+            .unwrap();
+        let response = app.handle(request).await;
+        assert_eq!(response.status(), StatusCode::OK);
+        let (_, body) = response.into_parts();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
+        let html = String::from_utf8(bytes.to_vec()).unwrap();
+        assert!(html.contains(needle), "page missing {needle}");
+    }
+
     println!("smoke OK: single binary covered the core business flow");
 }
