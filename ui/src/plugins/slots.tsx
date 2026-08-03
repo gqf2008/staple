@@ -30,6 +30,7 @@ import {
   type ComponentType,
 } from "react";
 import * as ReactModule from "react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import type {
   PluginLauncherDeclaration,
@@ -154,7 +155,7 @@ function requiresEntityType(slotType: PluginUiSlotType): boolean {
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return "Unknown error";
+  return t("components.pluginSlots.unknownError", { defaultValue: "Unknown error" });
 }
 
 /**
@@ -295,7 +296,7 @@ function createReactShimSource(reactModule: object): string {
   return `
         const R = globalThis.__paperclipPluginBridge__?.react;
         if (!R) {
-          throw new Error("Paperclip plugin React runtime is not initialized.");
+          throw new Error(t("components.pluginSlots.runtimeNotInit", { defaultValue: "Paperclip plugin React runtime is not initialized." }));
         }
         export default R;
 ${namedExports}
@@ -711,7 +712,7 @@ class PluginSlotErrorBoundary extends Component<PluginSlotErrorBoundaryProps, Pl
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
     // Keep plugin failures isolated while preserving actionable diagnostics.
-    console.error("Plugin slot render failed", {
+    console.error(t("components.pluginSlots.renderFailed", { defaultValue: "Plugin slot render failed" }), {
       pluginKey: this.props.slot.pluginKey,
       slotId: this.props.slot.id,
       error,

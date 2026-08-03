@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   PIPELINE_CASE_BODY_DOCUMENT_KEY,
@@ -55,12 +56,12 @@ function getPipelineRevisionActor(
     const profile = maps.userProfileMap?.get(revision.createdByUserId);
     return {
       kind: "user",
-      name: profile?.label ?? (revision.createdByUserId === "local-board" ? "Board" : revision.createdByUserId.slice(0, 8)),
+      name: profile?.label ?? (revision.createdByUserId === "local-board" ? t("components.pipelineItemBodyDocument.board", { defaultValue: "Board" }) : revision.createdByUserId.slice(0, 8)),
       imageUrl: profile?.image ?? null,
     };
   }
 
-  return { kind: "system", name: "System" };
+  return { kind: "system", name: t("components.pipelineItemBodyDocument.system", { defaultValue: "System" }) };
 }
 
 function isNotFound(error: unknown) {
@@ -200,9 +201,9 @@ export function PipelineItemBodyDocument({
     onSuccess: async () => {
       setSelectedRevisionId(null);
       await invalidateAll();
-      pushToast({ title: "Revision restored", tone: "success" });
+      pushToast({ title: t("components.pipelineItemBodyDocument.revisionRestored", { defaultValue: "Revision restored" }), tone: "success" });
     },
-    onError: () => pushToast({ title: "Could not restore the revision", tone: "error" }),
+    onError: () => pushToast({ title: t("components.pipelineItemBodyDocument.restoreFailed", { defaultValue: "Could not restore the revision" }), tone: "error" }),
   });
 
   const beginEdit = useCallback(() => {
@@ -228,13 +229,13 @@ export function PipelineItemBodyDocument({
       if (error instanceof ApiError && error.status === 409) {
         await caseDocumentQuery.refetch();
         pushToast({
-          title: "Body changed elsewhere",
-          body: "This item body was updated by someone else. Reloaded the latest — re-apply your edit.",
+          title: t("components.pipelineItemBodyDocument.bodyChanged", { defaultValue: "Body changed elsewhere" }),
+          body: t("components.pipelineItemBodyDocument.bodyChangedHint", { defaultValue: "This item body was updated by someone else. Reloaded the latest — re-apply your edit." }),
           tone: "error",
         });
         return;
       }
-      pushToast({ title: "Could not save the body", tone: "error" });
+      pushToast({ title: t("components.pipelineItemBodyDocument.saveFailed", { defaultValue: "Could not save the body" }), tone: "error" });
     }
   }, [caseDocumentQuery, doc?.latestRevisionId, draftBody, pushToast, saveMutation]);
 
@@ -258,13 +259,13 @@ export function PipelineItemBodyDocument({
           await saveMutation.mutateAsync({
             body: latestBody,
             baseRevisionId: doc.latestRevisionId,
-            changeSummary: "Linked body to conversation for comments",
+            changeSummary: t("components.pipelineItemBodyDocument.linkedToConversation", { defaultValue: "Linked body to conversation for comments" }),
           });
         }
         setPanelOpen(true);
       } catch {
         setPendingStartAnchor(null);
-        pushToast({ title: "Could not start the conversation", tone: "error" });
+        pushToast({ title: t("components.pipelineItemBodyDocument.conversationFailed", { defaultValue: "Could not start the conversation" }), tone: "error" });
       }
     },
     [conversationIssueId, doc?.latestRevisionId, latestBody, onStartConversation, pushToast, saveMutation],
@@ -294,7 +295,7 @@ export function PipelineItemBodyDocument({
           <MarkdownEditor
             value={draftBody}
             onChange={setDraftBody}
-            placeholder="Write the item body in Markdown…"
+            placeholder={t("components.pipelineItemBodyDocument.placeholder", { defaultValue: "Write the item body in Markdown…" })}
             bordered={false}
             className="min-h-(--sz-220px) bg-transparent"
             contentClassName={bodyContentClassName}
@@ -313,7 +314,7 @@ export function PipelineItemBodyDocument({
             </Button>
             <Button size="sm" onClick={() => void handleSave()} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-              {saveMutation.isPending ? "Saving…" : "Save"}
+              {saveMutation.isPending ? t("components.pipelineItemBodyDocument.saving", { defaultValue: "Saving…" }) : t("components.pipelineItemBodyDocument.save", { defaultValue: "Save" })}
             </Button>
           </div>
         </div>
@@ -342,7 +343,7 @@ export function PipelineItemBodyDocument({
                 onClick={() => restoreMutation.mutate(selectedHistoricalRevision.id)}
                 disabled={restoreMutation.isPending}
               >
-                {restoreMutation.isPending ? "Restoring…" : "Restore this revision"}
+                {restoreMutation.isPending ? t("components.pipelineItemBodyDocument.restoring", { defaultValue: "Restoring…" }) : t("components.pipelineItemBodyDocument.restoreRevision", { defaultValue: "Restore this revision" })}
               </Button>
             </div>
           </div>
@@ -356,7 +357,7 @@ export function PipelineItemBodyDocument({
   } else if (!hasDocument) {
     // Truly empty (A).
     bodyContent = (
-      <EmptyState icon={FileText} message="No body yet. Capture the item's details here." action="Add the item body" onAction={beginEdit} />
+      <EmptyState icon={FileText} message={t("components.pipelineItemBodyDocument.noBody", { defaultValue: "No body yet. Capture the item's details here." })} action={t("components.pipelineItemBodyDocument.addBody", { defaultValue: "Add the item body" })} onAction={beginEdit} />
     );
   } else if (annotationsLinked && bodyIssueDocument) {
     bodyContent = (
@@ -406,14 +407,14 @@ export function PipelineItemBodyDocument({
 
   return (
     <section
-      aria-label="Item body"
+      aria-label={t("components.pipelineItemBodyDocument.itemBody", { defaultValue: "Item body" })}
       id="pipeline-item-body-document"
       data-testid="pipeline-item-body-document"
       className="rounded-lg border border-border p-3"
     >
       <DocumentFrameHeader
         documentKey={BODY_DOCUMENT_KEY}
-        documentLabel="Item body document"
+        documentLabel={t("components.pipelineItemBodyDocument.itemBodyDocument", { defaultValue: "Item body document" })}
         folded={folded}
         onToggleFolded={() => setFolded((value) => !value)}
         revisionMenu={hasDocument ? {
