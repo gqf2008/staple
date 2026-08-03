@@ -1,4 +1,13 @@
 //! Staple Turso/libSQL data layer.
 //!
-//! Schema, migrations, and repositories live here. See
-//! `doc/plans/2026-08-03-topcoat-turso-rewrite.md` for the data model plan.
+//! Owns the connection layer (`connection`), the versioned SQL migrations
+//! (`migrations`), and — in later milestones — the repositories.
+
+pub mod connection;
+pub mod migrations;
+
+pub use connection::{DataError, DbConfig, connect, open};
+pub use libsql::{Connection, Database};
+pub use migrations::{
+    MigrateError, Migration, load_migrations, migrate, migrate_conn, migrate_down,
+};

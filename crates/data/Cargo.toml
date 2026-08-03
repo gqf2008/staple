@@ -4,3 +4,12 @@ description = "Staple Turso/libSQL data layer: schema, migrations, repositories"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[dependencies]
+libsql = "0.9.30"
+thiserror = "2"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
+tracing = "0.1"
+
+[dev-dependencies]
+tempfile = "3"

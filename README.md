@@ -62,6 +62,12 @@ by `rust-toolchain.toml` (stable, edition 2024).
 - `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
 - `make build` — release build
 
+### Data layer
+
+- Embedded dev database at `data/staple.db` by default (override with `STAPLE_DB_PATH`)
+- Remote Turso: set `TURSO_URL` and `TURSO_AUTH_TOKEN`
+- Schema is versioned via SQL migrations in `crates/data/migrations/` (up/down, idempotent)
+
 Quick check while the app runs:
 
 ```sh
