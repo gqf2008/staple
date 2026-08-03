@@ -1,5 +1,14 @@
 {
   "app": {
+    "tools": "Tools",
+    "advancedSetup": "Advanced setup",
+    "createAnotherCompany": "Create another company",
+    "createFirstCompany": "Create your first company",
+    "onboardingAgentHint": "Run onboarding again to add an agent and a starter task for this company.",
+    "onboardingCompanyHint": "Run onboarding again to create another company and seed its first agent.",
+    "getStartedHint": "Get started by creating a company and your first agent.",
+    "addAgent": "Add Agent",
+    "startOnboarding": "Start Onboarding",
     "noCompanies": {
       "title": "Hozza létre első vállalatát",
       "description": "Kezdje egy vállalat létrehozásával.",
@@ -4534,6 +4543,52 @@
       "source": "Source",
       "loadingPolicies": "Loading policies…",
       "checkingTools": "Checking tools…"
+    },
+    "connectClientDialog": {
+      "connectClient": "Connect a client",
+      "clipboardUnavailable": "Clipboard access is unavailable.",
+      "copied": "Copied",
+      "copyFailed": "Copy failed",
+      "clients": "Clients",
+      "endpointUrl": "Endpoint URL",
+      "accessToken": "Access token",
+      "authHeader": "Authorization: Bearer <token>",
+      "noSnippets": "No client snippets available for this gateway.",
+      "token": "Token",
+      "tokens": "Tokens",
+      "bearer": "Bearer …"
+    },
+    "appPermissionsPanel": {
+      "everyAgent": "Every agent can use it",
+      "installedAll": "Installed on all agents",
+      "chooseAgents": "Choose agents to install on",
+      "installAll": "Install on all agents",
+      "readOnly": "Read only",
+      "readOnlyDesc": "Can look up context without changing anything.",
+      "canMakeChanges": "Can make changes",
+      "canMakeChangesDesc": "Can change something in another app.",
+      "whoCanUse": "Who can use it",
+      "allAgents": "All agents",
+      "allAgentsDesc": "Anyone you've added to Paperclip.",
+      "onlySpecific": "Only specific agents",
+      "pickWho": "Pick who can use it.",
+      "installedOnAgents": "Installed on agents",
+      "saving": "Saving…",
+      "actionPermissions": "Action permissions",
+      "saving2": "Saving...",
+      "off": "Off",
+      "allowed": "Allowed",
+      "askHumanFirst": "Ask a human first"
+    },
+    "appsBrowse": {
+      "company": "Company",
+      "apps": "Apps",
+      "browse": "Browse",
+      "searchPlaceholder": "Search apps…",
+      "searchAria": "Search apps",
+      "allApps": "All apps",
+      "comingSoon": "Coming soon",
+      "selectCompany": "Select a company to browse apps."
     }
   },
   "status": {
@@ -6878,6 +6933,72 @@
       "mermaidFailed": "Failed to render Mermaid diagram.",
       "mermaidRendering": "Rendering Mermaid diagram...",
       "scrollableTable": "Scrollable table"
+    },
+    "frontmatterPanel": {
+      "nameRequired": "SKILL.md needs a name.",
+      "nameHint": "Use lowercase letters, numbers and hyphens.",
+      "descRequired": "SKILL.md needs a description.",
+      "listExpected": "Expected a list — edit in YAML.",
+      "addTool": "Add a tool…",
+      "backspace": "Backspace",
+      "addTool2": "Add tool",
+      "frontmatterYaml": "Frontmatter YAML",
+      "frontmatter": "Frontmatter",
+      "none": "None",
+      "complexValue": "Complex value — edit in YAML.",
+      "rawYamlHint": "Editing raw YAML to preserve formatting the form can't reconstruct."
+    },
+    "chatComposer": {
+      "files": "Files",
+      "messagePlaceholder": "Message…",
+      "sendMessage": "Send message",
+      "uploading": "Uploading…",
+      "uploadFailed": "Upload failed",
+      "insertedInline": "Inserted inline",
+      "attached": "Attached",
+      "attachFiles": "Attach files"
+    },
+    "appsSidebar": {
+      "browse": "Browse",
+      "connections": "Connections",
+      "review": "Review",
+      "needsAttention": "Needs attention",
+      "runYourOwn": "Run your own",
+      "company": "Company",
+      "apps": "Apps"
+    },
+    "systemNotice": {
+      "systemWarning": "System warning",
+      "systemNotice": "System notice",
+      "systemAlert": "System alert",
+      "hideDetails": "Hide details",
+      "details": "Details"
+    },
+    "instanceSidebar": {
+      "profile": "Profile",
+      "general": "General",
+      "environments": "Environments",
+      "access": "Access",
+      "heartbeats": "Heartbeats",
+      "experimental": "Experimental",
+      "plugins": "Plugins",
+      "adapters": "Adapters"
+    },
+    "approvalPayload": {
+      "hireDesigner": "Hire Agent: Designer",
+      "role": "Role",
+      "title": "Title",
+      "icon": "Icon",
+      "scope": "Scope",
+      "window": "Window",
+      "metric": "Metric",
+      "skills": "Skills",
+      "name": "Name",
+      "capabilities": "Capabilities",
+      "adapter": "Adapter",
+      "summary": "Summary",
+      "onApproval": "On approval",
+      "risks": "Risks"
     }
   }
 }

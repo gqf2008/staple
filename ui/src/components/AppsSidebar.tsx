@@ -1,4 +1,5 @@
 import { ChevronLeft, AppWindow, Store, ShieldQuestion } from "lucide-react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Link } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
@@ -17,14 +18,14 @@ import { SidebarNavItem } from "./SidebarNavItem";
  *   ← Back · APPS: Browse / Connections / Review (n)
  *   DEVELOPER: Gateways / Profiles / Rules / Health / Activity
  *
- * The three consumer doors are peers: "Browse" (the store — discover + add),
- * "Connections" (your connected tools + health), and "Review" (PAP-12371,
+ * The three consumer doors are peers: t("components.appsSidebar.browse", { defaultValue: "Browse" }) (the store — discover + add),
+ * t("components.appsSidebar.connections", { defaultValue: "Connections" }) (your connected tools + health), and t("components.appsSidebar.review", { defaultValue: "Review" }) (PAP-12371,
  * Finding B — decisions waiting on your OK, with a live pending count).
- * "Needs attention" is no longer a door: health/error triage folds into
+ * t("components.appsSidebar.needsAttention", { defaultValue: "Needs attention" }) is no longer a door: health/error triage folds into
  * Connections as a status filter + banner, so approvals are never buried
  * behind an error label. The Developer section was folded in from the retired
  * ToolsSidebar (PAP-10915) so the whole Apps area shares one sidebar; a
- * one-line caption frames who it's for (Finding A). "Run your own" and "Paste a
+ * one-line caption frames who it's for (Finding A). t("components.appsSidebar.runYourOwn", { defaultValue: "Run your own" }) and "Paste a
  * config" moved out of the sidebar into rows on the Connect-an-app page
  * (PAP-10922).
  */
@@ -58,11 +59,11 @@ export function AppsSidebar() {
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{selectedCompany?.name ?? "Company"}</span>
+          <span className="truncate">{selectedCompany?.name ?? t("components.appsSidebar.company", { defaultValue: "Company" })}</span>
         </Link>
         <div className="flex items-center gap-2 px-2 py-1">
           <AppWindow className="h-4 w-4 text-muted-foreground shrink-0" />
-          <span className="flex-1 truncate text-sm font-bold text-foreground">Apps</span>
+          <span className="flex-1 truncate text-sm font-bold text-foreground">{t("components.appsSidebar.apps", { defaultValue: "Apps" })}</span>
         </div>
       </div>
 
@@ -71,11 +72,11 @@ export function AppsSidebar() {
           Apps
         </div>
         <div className="flex flex-col gap-0.5">
-          <SidebarNavItem to="/apps/browse" label="Browse" icon={Store} />
-          <SidebarNavItem to="/apps" label="Connections" icon={AppWindow} end />
+          <SidebarNavItem to="/apps/browse" label={t("components.appsSidebar.browse", { defaultValue: "Browse" })} icon={Store} />
+          <SidebarNavItem to="/apps" label={t("components.appsSidebar.connections", { defaultValue: "Connections" })} icon={AppWindow} end />
           <SidebarNavItem
             to="/apps/review"
-            label="Review"
+            label={t("components.appsSidebar.review", { defaultValue: "Review" })}
             icon={ShieldQuestion}
             badge={reviewCount > 0 ? reviewCount : undefined}
             badgeTone="warning"

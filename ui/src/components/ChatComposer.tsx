@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from "react";
 import { AlertTriangle, Check, Loader2, Paperclip, Send } from "lucide-react";
+import { t } from "../i18n";
 import { cn } from "../lib/utils";
 
 /**
@@ -105,7 +106,7 @@ function formatAttachmentSize(bytes: number | undefined): string {
 function dragHasFiles(evt: ReactDragEvent<HTMLDivElement>): boolean {
   const types = evt.dataTransfer?.types;
   if (!types) return false;
-  return Array.from(types).includes("Files");
+  return Array.from(types).includes(t("components.chatComposer.files", { defaultValue: "Files" }));
 }
 
 export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(function ChatComposer(
@@ -113,7 +114,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
     value,
     onChange,
     onSubmit,
-    placeholder = "Message…",
+    placeholder = t("components.chatComposer.messagePlaceholder", { defaultValue: "Message…" }),
     disabled = false,
     submitting = false,
     submitKey = "mod-enter",
@@ -121,7 +122,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
     tone = "standard",
     surface = "card",
     autoFocus = false,
-    sendLabel = "Send message",
+    sendLabel = t("components.chatComposer.sendMessage", { defaultValue: "Send message" }),
     onAttachFiles,
     attachments = [],
     attaching = false,
@@ -288,12 +289,12 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
             const sizeLabel = formatAttachmentSize(attachment.size);
             const statusLabel =
               attachment.status === "uploading"
-                ? "Uploading…"
+                ? t("components.chatComposer.uploading", { defaultValue: "Uploading…" })
                 : attachment.status === "error"
-                  ? attachment.error ?? "Upload failed"
+                  ? attachment.error ?? t("components.chatComposer.uploadFailed", { defaultValue: "Upload failed" })
                   : attachment.inline
-                    ? "Inserted inline"
-                    : "Attached";
+                    ? t("components.chatComposer.insertedInline", { defaultValue: "Inserted inline" })
+                    : t("components.chatComposer.attached", { defaultValue: "Attached" });
             return (
               <div
                 key={attachment.id}
@@ -342,8 +343,8 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
               type="button"
               onClick={triggerFilePicker}
               disabled={disabled || attaching}
-              aria-label="Attach files"
-              title="Attach files"
+              aria-label={t("components.chatComposer.attachFiles", { defaultValue: "Attach files" })}
+              title={t("components.chatComposer.attachFiles", { defaultValue: "Attach files" })}
               className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}

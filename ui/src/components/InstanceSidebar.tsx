@@ -1,4 +1,5 @@
 import { useQuery } from "@tanstack/react-query";
+import { t } from "../i18n";
 import { Clock3, Cpu, FlaskConical, MonitorCog, Puzzle, Settings, Shield, SlidersHorizontal, UserRoundPen } from "lucide-react";
 import type { PluginRecord } from "@paperclipai/shared";
 import { NavLink } from "@/lib/router";
@@ -39,13 +40,13 @@ export function InstanceSidebar() {
 
       <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-auto-hide flex flex-col gap-4 px-3 py-2">
         <div className="flex flex-col gap-0.5">
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/profile`} label="Profile" icon={UserRoundPen} end />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/general`} label="General" icon={SlidersHorizontal} end />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/environments`} label="Environments" icon={MonitorCog} end />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/access`} label="Access" icon={Shield} end />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/heartbeats`} label="Heartbeats" icon={Clock3} end />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/experimental`} label="Experimental" icon={FlaskConical} />
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/plugins`} label="Plugins" icon={Puzzle} />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/profile`} label={t("components.instanceSidebar.profile", { defaultValue: "Profile" })} icon={UserRoundPen} end />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/general`} label={t("components.instanceSidebar.general", { defaultValue: "General" })} icon={SlidersHorizontal} end />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/environments`} label={t("components.instanceSidebar.environments", { defaultValue: "Environments" })} icon={MonitorCog} end />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/access`} label={t("components.instanceSidebar.access", { defaultValue: "Access" })} icon={Shield} end />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/heartbeats`} label={t("components.instanceSidebar.heartbeats", { defaultValue: "Heartbeats" })} icon={Clock3} end />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/experimental`} label={t("components.instanceSidebar.experimental", { defaultValue: "Experimental" })} icon={FlaskConical} />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/plugins`} label={t("components.instanceSidebar.plugins", { defaultValue: "Plugins" })} icon={Puzzle} />
           {sidebarPlugins.length > 0 ? (
             <div className="ml-4 mt-1 flex flex-col gap-0.5 border-l border-border/70 pl-3">
               {sidebarPlugins.map((plugin) => (
@@ -67,7 +68,7 @@ export function InstanceSidebar() {
               ))}
             </div>
           ) : null}
-          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/adapters`} label="Adapters" icon={Cpu} />
+          <SidebarNavItem to={`${INSTANCE_SETTINGS_PATH_PREFIX}/adapters`} label={t("components.instanceSidebar.adapters", { defaultValue: "Adapters" })} icon={Cpu} />
         </div>
       </nav>
     </aside>

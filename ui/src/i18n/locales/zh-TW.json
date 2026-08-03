@@ -1,5 +1,14 @@
 {
   "app": {
+    "tools": "Tools",
+    "advancedSetup": "Advanced setup",
+    "createAnotherCompany": "Create another company",
+    "createFirstCompany": "Create your first company",
+    "onboardingAgentHint": "Run onboarding again to add an agent and a starter task for this company.",
+    "onboardingCompanyHint": "Run onboarding again to create another company and seed its first agent.",
+    "getStartedHint": "Get started by creating a company and your first agent.",
+    "addAgent": "Add Agent",
+    "startOnboarding": "Start Onboarding",
     "noCompanies": {
       "title": "建立您的第一家公司",
       "description": "從建立公司開始。",
@@ -4534,6 +4543,52 @@
       "source": "來源",
       "loadingPolicies": "正在載入策略…",
       "checkingTools": "正在檢查工具…"
+    },
+    "connectClientDialog": {
+      "connectClient": "連接用戶端",
+      "clipboardUnavailable": "剪貼簿存取無法使用。",
+      "copied": "已複製",
+      "copyFailed": "複製失敗",
+      "clients": "用戶端",
+      "endpointUrl": "端點 URL",
+      "accessToken": "存取權杖",
+      "authHeader": "Authorization: Bearer <token>",
+      "noSnippets": "此閘道沒有可用的用戶端程式碼片段。",
+      "token": "權杖",
+      "tokens": "權杖",
+      "bearer": "Bearer …"
+    },
+    "appPermissionsPanel": {
+      "everyAgent": "每個智慧體都可以使用",
+      "installedAll": "已安裝到全部智慧體",
+      "chooseAgents": "選擇要安裝的智慧體",
+      "installAll": "安裝到全部智慧體",
+      "readOnly": "唯讀",
+      "readOnlyDesc": "可以檢視內容而不變更任何內容。",
+      "canMakeChanges": "可以進行變更",
+      "canMakeChangesDesc": "可以變更其他應用中的內容。",
+      "whoCanUse": "誰可以使用",
+      "allAgents": "全部智慧體",
+      "allAgentsDesc": "你新增到 Paperclip 的任何人。",
+      "onlySpecific": "僅特定智慧體",
+      "pickWho": "選擇可以使用它的人。",
+      "installedOnAgents": "已安裝到的智慧體",
+      "saving": "正在儲存…",
+      "actionPermissions": "操作權限",
+      "saving2": "正在儲存…",
+      "off": "關閉",
+      "allowed": "已允許",
+      "askHumanFirst": "先詢問人類"
+    },
+    "appsBrowse": {
+      "company": "公司",
+      "apps": "應用",
+      "browse": "瀏覽",
+      "searchPlaceholder": "搜尋應用…",
+      "searchAria": "搜尋應用",
+      "allApps": "所有應用",
+      "comingSoon": "即將推出",
+      "selectCompany": "請選擇一家公司以瀏覽應用。"
     }
   },
   "status": {
@@ -6878,6 +6933,72 @@
       "mermaidFailed": "渲染 Mermaid 圖表失敗。",
       "mermaidRendering": "正在渲染 Mermaid 圖表...",
       "scrollableTable": "可捲動表格"
+    },
+    "frontmatterPanel": {
+      "nameRequired": "SKILL.md 需要名稱。",
+      "nameHint": "使用小寫字母、數字和連字號。",
+      "descRequired": "SKILL.md 需要描述。",
+      "listExpected": "應為清單 — 請在 YAML 中編輯。",
+      "addTool": "新增工具…",
+      "backspace": "退格鍵",
+      "addTool2": "新增工具",
+      "frontmatterYaml": "Frontmatter YAML",
+      "frontmatter": "Frontmatter",
+      "none": "無",
+      "complexValue": "複雜值 — 請在 YAML 中編輯。",
+      "rawYamlHint": "正在編輯原始 YAML，以保留表單無法重建的格式。"
+    },
+    "chatComposer": {
+      "files": "檔案",
+      "messagePlaceholder": "訊息…",
+      "sendMessage": "傳送訊息",
+      "uploading": "正在上傳…",
+      "uploadFailed": "上傳失敗",
+      "insertedInline": "已內嵌插入",
+      "attached": "已附加",
+      "attachFiles": "附加檔案"
+    },
+    "appsSidebar": {
+      "browse": "瀏覽",
+      "connections": "連線",
+      "review": "審查",
+      "needsAttention": "需要注意",
+      "runYourOwn": "自行執行",
+      "company": "公司",
+      "apps": "應用"
+    },
+    "systemNotice": {
+      "systemWarning": "系統警告",
+      "systemNotice": "系統通知",
+      "systemAlert": "系統警報",
+      "hideDetails": "隱藏詳情",
+      "details": "詳情"
+    },
+    "instanceSidebar": {
+      "profile": "個人資料",
+      "general": "一般",
+      "environments": "環境",
+      "access": "存取",
+      "heartbeats": "心跳",
+      "experimental": "實驗功能",
+      "plugins": "外掛",
+      "adapters": "介面卡"
+    },
+    "approvalPayload": {
+      "hireDesigner": "僱用智慧體：設計師",
+      "role": "角色",
+      "title": "頭銜",
+      "icon": "圖示",
+      "scope": "範圍",
+      "window": "視窗",
+      "metric": "指標",
+      "skills": "技能",
+      "name": "名稱",
+      "capabilities": "能力",
+      "adapter": "介面卡",
+      "summary": "摘要",
+      "onApproval": "核准後",
+      "risks": "風險"
     }
   }
 }

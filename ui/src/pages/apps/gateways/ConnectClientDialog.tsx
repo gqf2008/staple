@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../../i18n";
 import { Check, Copy } from "lucide-react";
 import type { ToolMcpGatewayTokenCreated, ToolMcpGatewayWithTokens } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
@@ -17,7 +18,7 @@ import { formatSnippetConfig, maskedTokenLabel, orderedSnippets } from "./gatewa
 type PanelKey = string; // snippet client key, or "raw_url"
 
 /**
- * "Connect a client" dialog (PAP-11178 design of record). Shows the copy-paste
+ * t("pages.connectClientDialog.connectClient", { defaultValue: "Connect a client" }) dialog (PAP-11178 design of record). Shows the copy-paste
  * config for each supported client plus a raw URL fallback. If a token was just
  * minted it can be revealed once here; otherwise the config carries a masked
  * placeholder and the value never persists in the DOM.
@@ -53,14 +54,14 @@ export function ConnectClientDialog({
   async function copyText(value: string, label: string) {
     try {
       if (typeof navigator === "undefined" || !navigator.clipboard?.writeText) {
-        throw new Error("Clipboard access is unavailable.");
+        throw new Error(t("pages.connectClientDialog.clipboardUnavailable", { defaultValue: "Clipboard access is unavailable." }));
       }
       await navigator.clipboard.writeText(value);
-      pushToast({ title: "Copied", body: label, tone: "success" });
+      pushToast({ title: t("pages.connectClientDialog.copied", { defaultValue: "Copied" }), body: label, tone: "success" });
     } catch (error) {
       pushToast({
-        title: "Copy failed",
-        body: error instanceof Error ? error.message : "Clipboard access is unavailable.",
+        title: t("pages.connectClientDialog.copyFailed", { defaultValue: "Copy failed" }),
+        body: error instanceof Error ? error.message : t("pages.connectClientDialog.clipboardUnavailable", { defaultValue: "Clipboard access is unavailable." }),
         tone: "error",
       });
     }
@@ -73,14 +74,14 @@ export function ConnectClientDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Connect a client</DialogTitle>
+          <DialogTitle>{t("pages.connectClientDialog.connectClient", { defaultValue: "Connect a client" })}</DialogTitle>
           <DialogDescription>
             Pick how you’ll point your client at this gateway.
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 sm:grid-cols-(--gtc-10)">
-          <nav className="flex gap-1 overflow-x-auto sm:flex-col" aria-label="Clients">
+          <nav className="flex gap-1 overflow-x-auto sm:flex-col" aria-label={t("pages.connectClientDialog.clients", { defaultValue: "Clients" })}>
             {snippets.map((snippet) => (
               <button
                 key={snippet.client}
@@ -113,12 +114,12 @@ export function ConnectClientDialog({
           <div className="min-w-0 space-y-3">
             {active === "raw_url" ? (
               <div className="space-y-1.5">
-                <div className="text-sm font-medium text-foreground">Endpoint URL</div>
+                <div className="text-sm font-medium text-foreground">{t("pages.connectClientDialog.endpointUrl", { defaultValue: "Endpoint URL" })}</div>
                 <div className="flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded-md bg-muted px-3 py-2 font-mono text-xs text-muted-foreground">
                     {endpoint}
                   </code>
-                  <Button variant="outline" size="sm" onClick={() => void copyText(endpoint, "Endpoint URL")}>
+                  <Button variant="outline" size="sm" onClick={() => void copyText(endpoint, t("pages.connectClientDialog.endpointUrl", { defaultValue: "Endpoint URL" }))}>
                     <Copy className="mr-1 h-3.5 w-3.5" />
                     Copy
                   </Button>
@@ -152,11 +153,11 @@ export function ConnectClientDialog({
                 ) : null}
               </div>
             ) : (
-              <p className="text-sm text-muted-foreground">No client snippets available for this gateway.</p>
+              <p className="text-sm text-muted-foreground">{t("pages.connectClientDialog.noSnippets", { defaultValue: "No client snippets available for this gateway." })}</p>
             )}
 
             <div className="space-y-1.5 rounded-md border border-border p-3">
-              <div className="text-xs font-medium text-muted-foreground">Token</div>
+              <div className="text-xs font-medium text-muted-foreground">{t("pages.connectClientDialog.token", { defaultValue: "Token" })}</div>
               {createdToken ? (
                 <div className="flex items-center gap-2">
                   <code className="min-w-0 flex-1 truncate rounded bg-background px-2 py-1.5 font-mono text-xs text-foreground">
@@ -166,7 +167,7 @@ export function ConnectClientDialog({
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => void copyText(createdToken.token, "Access token")}
+                      onClick={() => void copyText(createdToken.token, t("pages.connectClientDialog.accessToken", { defaultValue: "Access token" }))}
                     >
                       <Copy className="mr-1 h-3.5 w-3.5" />
                       Copy
@@ -179,8 +180,8 @@ export function ConnectClientDialog({
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Mint a token on the <span className="font-medium">Tokens</span> tab, then paste it where the
-                  snippet shows <code>Bearer …</code>. You won’t see a token’s full value again after it’s
+                  Mint a token on the <span className="font-medium">{t("pages.connectClientDialog.tokens", { defaultValue: "Tokens" })}</span> tab, then paste it where the
+                  snippet shows <code>{t("pages.connectClientDialog.bearer", { defaultValue: "Bearer …" })}</code>. You won’t see a token’s full value again after it’s
                   created.
                 </p>
               )}

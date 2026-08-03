@@ -1,6 +1,6 @@
 import { Navigate, Outlet, Route, Routes, useActiveCompanyPrefix, useLocation, useParams } from "@/lib/router";
 import { Button } from "@/components/ui/button";
-import { useTranslation } from "@/i18n";
+import { t, useTranslation } from "@/i18n";
 import { Layout } from "./components/Layout";
 import { ConferenceRoomChatGate } from "./components/ConferenceRoomChatGate";
 import { TaskChatRedesignGate } from "./components/TaskChatRedesignGate";
@@ -389,7 +389,7 @@ function LegacyToolsSettingsRedirect() {
   return <Navigate to={legacyToolsRedirectTarget(tab)} replace />;
 }
 
-// The developer "Tools" surface moved under the Apps "Advanced setup" door
+// The developer t("app.tools", { defaultValue: "Tools" }) surface moved under the Apps t("app.advancedSetup", { defaultValue: "Advanced setup" }) door
 // (PAP-10862). `/tools` and `/tools/:tab` redirect to their new home.
 function LegacyToolsRedirect() {
   const { tab } = useParams<{ tab?: string }>();
@@ -423,13 +423,13 @@ function OnboardingRoutePage() {
   const title = matchedCompany
     ? `Add another agent to ${matchedCompany.name}`
     : companies.length > 0
-      ? "Create another company"
-      : "Create your first company";
+      ? t("app.createAnotherCompany", { defaultValue: "Create another company" })
+      : t("app.createFirstCompany", { defaultValue: "Create your first company" });
   const description = matchedCompany
-    ? "Run onboarding again to add an agent and a starter task for this company."
+    ? t("app.onboardingAgentHint", { defaultValue: "Run onboarding again to add an agent and a starter task for this company." })
     : companies.length > 0
-      ? "Run onboarding again to create another company and seed its first agent."
-      : "Get started by creating a company and your first agent.";
+      ? t("app.onboardingCompanyHint", { defaultValue: "Run onboarding again to create another company and seed its first agent." })
+      : t("app.getStartedHint", { defaultValue: "Get started by creating a company and your first agent." });
 
   return (
     <div className="mx-auto max-w-xl py-10">
@@ -444,7 +444,7 @@ function OnboardingRoutePage() {
                 : openOnboarding()
             }
           >
-            {matchedCompany ? "Add Agent" : "Start Onboarding"}
+            {matchedCompany ? t("app.addAgent", { defaultValue: "Add Agent" }) : t("app.startOnboarding", { defaultValue: "Start Onboarding" })}
           </Button>
         </div>
       </div>
