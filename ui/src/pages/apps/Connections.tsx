@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { AppWindow, ShieldAlert, ShieldQuestion } from "lucide-react";
 import type {
@@ -34,7 +35,7 @@ const BROWSE_HREF = "/apps/browse";
 type StatusFilter = "all" | "attention";
 
 type AppStatus = {
-  label: "Healthy" | "Needs attention" | "Paused" | "Not connected";
+  label: string;
   tone: "connected" | "attention" | "paused" | "not_connected";
 };
 
@@ -54,19 +55,19 @@ type AppRow = {
  */
 function statusFor(application: ToolApplication, connections: ToolConnection[]): AppStatus {
   if (connections.length === 0) {
-    return { label: "Not connected", tone: "not_connected" };
+    return { label: t("pages.connections.notConnected", { defaultValue: "Not connected" }), tone: "not_connected" };
   }
   if (
     application.status === "disabled" ||
     application.status === "archived" ||
     connections.every((connection) => connection.enabled === false || connection.status === "disabled")
   ) {
-    return { label: "Paused", tone: "paused" };
+    return { label: t("pages.connections.paused", { defaultValue: "Paused" }), tone: "paused" };
   }
   if (connections.some((connection) => isAttentionHealthStatus(connection.healthStatus))) {
-    return { label: "Needs attention", tone: "attention" };
+    return { label: t("pages.connections.needsAttention", { defaultValue: "Needs attention" }), tone: "attention" };
   }
-  return { label: "Healthy", tone: "connected" };
+  return { label: t("pages.connections.healthy", { defaultValue: "Healthy" }), tone: "connected" };
 }
 
 /** The single health-derived predicate that drives highlight, pill, banner, filter (F6). */
@@ -90,9 +91,9 @@ export function Connections() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Connections" },
+      { label: selectedCompany?.name ?? t("pages.connections.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.connections.apps", { defaultValue: "Apps" }), href: "/apps" },
+      { label: t("pages.connections.title", { defaultValue: "Connections" }) },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name]);
@@ -130,7 +131,7 @@ export function Connections() {
     return map;
   }, [gallery]);
 
-  // "Actions on" = enabled tools in each app's per-connection access profile,
+  // t("pages.connections.actionsOn", { defaultValue: "Actions on" }) = enabled tools in each app's per-connection access profile,
   // mirroring what App detail shows so the count never disagrees with the page.
   const actionCountByConnection = useMemo(() => {
     const map = new Map<string, number>();
@@ -188,7 +189,7 @@ export function Connections() {
   const visibleRows = filter === "attention" ? rowsNeedingAttention : rows;
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to manage apps.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("pages.connections.selectCompany", { defaultValue: "Select a company to manage apps." })}</div>;
   }
 
   const loading = applicationsQuery.isLoading || connectionsQuery.isLoading || galleryQuery.isLoading;
@@ -206,12 +207,12 @@ export function Connections() {
         <div className="space-y-5">
           <header className="flex flex-wrap items-end justify-between gap-3">
             <div>
-              <h1 className="text-2xl font-bold tracking-tight">Connections</h1>
+              <h1 className="text-2xl font-bold tracking-tight">{t("pages.connections.title", { defaultValue: "Connections" })}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
                 The tools you’ve connected, and whether they’re working.
               </p>
             </div>
-            <Button onClick={() => navigate(BROWSE_HREF)}>Connect an app</Button>
+            <Button onClick={() => navigate(BROWSE_HREF)}>{t("pages.connections.connectApp", { defaultValue: "Connect an app" })}</Button>
           </header>
 
           <div className="flex flex-wrap items-center gap-2">
@@ -243,7 +244,7 @@ export function Connections() {
                   Your agents paused to check with you before making a change.
                 </div>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-amber-800 dark:text-amber-200">Review →</span>
+              <span className="shrink-0 text-xs font-semibold text-amber-800 dark:text-amber-200">{t("pages.connections.review", { defaultValue: "Review →" })}</span>
             </button>
           )}
 
@@ -262,7 +263,7 @@ export function Connections() {
                   {floatSummary(rowsNeedingAttention)}
                 </div>
               </div>
-              <span className="shrink-0 text-xs font-semibold text-red-800 dark:text-red-200">Fix →</span>
+              <span className="shrink-0 text-xs font-semibold text-red-800 dark:text-red-200">{t("pages.connections.fix", { defaultValue: "Fix →" })}</span>
             </button>
           )}
 
@@ -270,10 +271,10 @@ export function Connections() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5">App</th>
-                  <th className="px-4 py-2.5">Status</th>
-                  <th className="px-4 py-2.5">Actions</th>
-                  <th className="px-4 py-2.5">Last used</th>
+                  <th className="px-4 py-2.5">{t("pages.connections.app", { defaultValue: "App" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.connections.status", { defaultValue: "Status" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.connections.actions", { defaultValue: "Actions" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.connections.lastUsed", { defaultValue: "Last used" })}</th>
                   <th className="px-4 py-2.5" />
                 </tr>
               </thead>
@@ -283,20 +284,20 @@ export function Connections() {
                   const attention = rowNeedsAttention(row);
                   const hint =
                     status.tone === "attention"
-                      ? "The key stopped working — reconnect to fix."
+                      ? t("pages.connections.keyStopped", { defaultValue: "The key stopped working — reconnect to fix." })
                       : status.tone === "paused"
                         ? "Paused — agents can’t use it right now."
                         : status.tone === "not_connected"
-                          ? "Connect it so agents can use it."
+                          ? t("pages.connections.connectHint", { defaultValue: "Connect it so agents can use it." })
                         : null;
                   const appHref = primaryConnection
                     ? `/apps/${primaryConnection.id}`
                     : `/apps/app/${application.id}`;
                   const actionLabel = !primaryConnection
-                    ? "Connect"
+                    ? t("pages.connections.connect", { defaultValue: "Connect" })
                     : status.tone === "attention"
-                      ? "Reconnect"
-                      : "Open";
+                      ? t("pages.connections.reconnect", { defaultValue: "Reconnect" })
+                      : t("pages.connections.open", { defaultValue: "Open" });
                   return (
                     <tr
                       key={application.id}
@@ -423,7 +424,7 @@ function EmptyConnections({ onBrowse }: { onBrowse: () => void }) {
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Connections</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("pages.connections.title", { defaultValue: "Connections" })}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           The tools you’ve connected, and whether they’re working.
         </p>
@@ -433,9 +434,9 @@ function EmptyConnections({ onBrowse }: { onBrowse: () => void }) {
         <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-muted">
           <AppWindow className="h-6 w-6 text-muted-foreground" />
         </div>
-        <p className="mt-4 text-sm font-medium text-foreground">No connections yet.</p>
+        <p className="mt-4 text-sm font-medium text-foreground">{t("pages.connections.noConnections", { defaultValue: "No connections yet." })}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add one from <span className="font-medium text-foreground">Apps</span> to give your agents
+          Add one from <span className="font-medium text-foreground">{t("pages.connections.apps", { defaultValue: "Apps" })}</span> to give your agents
           the tools they need.
         </p>
         <Button className="mt-6" onClick={onBrowse}>

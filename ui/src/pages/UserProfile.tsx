@@ -1,4 +1,5 @@
 import { useEffect, useMemo } from "react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { AlertCircle, UserRound } from "lucide-react";
 import type { UserProfileDailyPoint, UserProfileWindowStats } from "@paperclipai/shared";
@@ -25,7 +26,7 @@ import {
 const NO_COMPANY = "__none__";
 
 function initials(name: string | null | undefined) {
-  const value = name?.trim() || "User";
+  const value = name?.trim() || t("pages.userProfile.user", { defaultValue: "User" });
   const parts = value.split(/\s+/).filter(Boolean);
   if (parts.length > 1) return `${parts[0]?.[0] ?? ""}${parts[parts.length - 1]?.[0] ?? ""}`.toUpperCase();
   return value.slice(0, 2).toUpperCase();
@@ -60,20 +61,20 @@ function WindowColumn({ stats }: { stats: UserProfileWindowStats }) {
       </div>
 
       <div className="grid grid-cols-2 gap-x-5 gap-y-3">
-        <Metric value={formatNumber(stats.touchedIssues)} label="Touched" />
-        <Metric value={formatNumber(stats.completedIssues)} label="Completed" />
-        <Metric value={formatNumber(stats.commentCount)} label="Comments" />
-        <Metric value={formatNumber(stats.activityCount)} label="Actions" />
+        <Metric value={formatNumber(stats.touchedIssues)} label={t("pages.userProfile.touched", { defaultValue: "Touched" })} />
+        <Metric value={formatNumber(stats.completedIssues)} label={t("pages.userProfile.completed", { defaultValue: "Completed" })} />
+        <Metric value={formatNumber(stats.commentCount)} label={t("pages.userProfile.comments", { defaultValue: "Comments" })} />
+        <Metric value={formatNumber(stats.activityCount)} label={t("pages.userProfile.actions", { defaultValue: "Actions" })} />
       </div>
 
       <div className="grid grid-cols-2 gap-x-5 gap-y-1.5 pt-3 text-xs tabular-nums text-muted-foreground">
-        <span>Tokens</span>
+        <span>{t("pages.userProfile.tokens", { defaultValue: "Tokens" })}</span>
         <span className="text-right text-foreground">{formatTokens(tokens)}</span>
-        <span>Spend</span>
+        <span>{t("pages.userProfile.spend", { defaultValue: "Spend" })}</span>
         <span className="text-right text-foreground">{formatCents(stats.costCents)}</span>
-        <span>Created</span>
+        <span>{t("pages.userProfile.created", { defaultValue: "Created" })}</span>
         <span className="text-right text-foreground">{formatNumber(stats.createdIssues)}</span>
-        <span>Open</span>
+        <span>{t("pages.userProfile.open", { defaultValue: "Open" })}</span>
         <span className="text-right text-foreground">{formatNumber(stats.assignedOpenIssues)}</span>
       </div>
     </div>
@@ -98,7 +99,7 @@ function UsageChart({ points }: { points: UserProfileDailyPoint[] }) {
   return (
     <section>
       <div className="flex flex-wrap items-baseline justify-between gap-3 border-b border-border pb-3">
-        <h2 className="text-sm font-semibold">Last 14 days</h2>
+        <h2 className="text-sm font-semibold">{t("pages.userProfile.last14Days", { defaultValue: "Last 14 days" })}</h2>
         <div className="flex items-baseline gap-4 text-xs text-muted-foreground">
           <span className="tabular-nums text-foreground">{formatTokens(totalTokensSum)}</span>
           <span>tokens total</span>
@@ -207,19 +208,19 @@ export function UserProfile() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Users" }, { label: data?.user.name ?? userSlug }]);
+    setBreadcrumbs([{ label: t("pages.userProfile.users", { defaultValue: "Users" }) }, { label: data?.user.name ?? userSlug }]);
   }, [data?.user.name, setBreadcrumbs, userSlug]);
 
   const allTime = data?.stats.find((entry) => entry.key === "all");
   const last7 = data?.stats.find((entry) => entry.key === "last7");
-  const displayName = data?.user.name?.trim() || data?.user.email?.split("@")[0] || "User";
+  const displayName = data?.user.name?.trim() || data?.user.email?.split("@")[0] || t("pages.userProfile.user", { defaultValue: "User" });
 
   const agentUsageRows = useMemo<UsageRow[]>(
     () =>
       (data?.topAgents ?? []).map((row) => ({
         key: row.agentId ?? "unknown",
         label: row.agentName ?? (row.agentId ? row.agentId.slice(0, 8) : "unknown"),
-        sublabel: "Task-linked usage",
+        sublabel: t("pages.userProfile.taskLinkedUsage", { defaultValue: "Task-linked usage" }),
         costCents: row.costCents,
         inputTokens: row.inputTokens,
         cachedInputTokens: row.cachedInputTokens,
@@ -243,7 +244,7 @@ export function UserProfile() {
   );
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={UserRound} message="Select a company to view user profiles." />;
+    return <EmptyState icon={UserRound} message={t("pages.userProfile.selectCompany", { defaultValue: "Select a company to view user profiles." })} />;
   }
 
   if (isLoading) {
@@ -251,7 +252,7 @@ export function UserProfile() {
   }
 
   if (error || !data) {
-    return <EmptyState icon={AlertCircle} message="User profile not found for this company." />;
+    return <EmptyState icon={AlertCircle} message={t("pages.userProfile.notFound", { defaultValue: "User profile not found for this company." })} />;
   }
 
   const allTimeTokens = allTime ? totalTokens(allTime) : 0;
@@ -283,9 +284,9 @@ export function UserProfile() {
         </div>
 
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          <HeroStat label="All-time tokens" value={formatTokens(allTimeTokens)} hint={formatCents(allTime?.costCents ?? 0) + " spent"} />
-          <HeroStat label="Completed" value={formatNumber(allTime?.completedIssues ?? 0)} hint={allTime ? `${completionRate(allTime)} rate` : undefined} />
-          <HeroStat label="Open assigned" value={formatNumber(allTime?.assignedOpenIssues ?? 0)} hint={`${formatNumber(allTime?.createdIssues ?? 0)} created`} />
+          <HeroStat label={t("pages.userProfile.allTimeTokens", { defaultValue: "All-time tokens" })} value={formatTokens(allTimeTokens)} hint={formatCents(allTime?.costCents ?? 0) + " spent"} />
+          <HeroStat label={t("pages.userProfile.completed", { defaultValue: "Completed" })} value={formatNumber(allTime?.completedIssues ?? 0)} hint={allTime ? `${completionRate(allTime)} rate` : undefined} />
+          <HeroStat label={t("pages.userProfile.openAssigned", { defaultValue: "Open assigned" })} value={formatNumber(allTime?.assignedOpenIssues ?? 0)} hint={`${formatNumber(allTime?.createdIssues ?? 0)} created`} />
           <HeroStat label="7-day actions" value={formatNumber(last7?.activityCount ?? 0)} hint={`${formatNumber(last7?.commentCount ?? 0)} comments`} />
         </div>
       </section>
@@ -299,11 +300,11 @@ export function UserProfile() {
       <div className="grid gap-10 pt-2 xl:grid-cols-2">
         <section>
           <div className="flex items-baseline justify-between gap-3 border-b border-border pb-3">
-            <h2 className="text-sm font-semibold">Recent tasks</h2>
+            <h2 className="text-sm font-semibold">{t("pages.userProfile.recentTasks", { defaultValue: "Recent tasks" })}</h2>
             <span className="text-xs text-muted-foreground tabular-nums">{data.recentIssues.length}</span>
           </div>
           {data.recentIssues.length === 0 ? (
-            <div className="pt-4 text-sm text-muted-foreground">No touched tasks yet.</div>
+            <div className="pt-4 text-sm text-muted-foreground">{t("pages.userProfile.noTouchedTasks", { defaultValue: "No touched tasks yet." })}</div>
           ) : (
             <ul className="divide-y divide-border">
               {data.recentIssues.map((issue) => (
@@ -327,11 +328,11 @@ export function UserProfile() {
 
         <section>
           <div className="flex items-baseline justify-between gap-3 border-b border-border pb-3">
-            <h2 className="text-sm font-semibold">Recent activity</h2>
+            <h2 className="text-sm font-semibold">{t("pages.userProfile.recentActivity", { defaultValue: "Recent activity" })}</h2>
             <span className="text-xs text-muted-foreground tabular-nums">{data.recentActivity.length}</span>
           </div>
           {data.recentActivity.length === 0 ? (
-            <div className="pt-4 text-sm text-muted-foreground">No direct user actions recorded yet.</div>
+            <div className="pt-4 text-sm text-muted-foreground">{t("pages.userProfile.noActions", { defaultValue: "No direct user actions recorded yet." })}</div>
           ) : (
             <ul className="divide-y divide-border">
               {data.recentActivity.map((event) => (
@@ -351,8 +352,8 @@ export function UserProfile() {
       </div>
 
       <div className="grid gap-10 xl:grid-cols-2">
-        <UsageList title="Agent attribution" empty="No issue-linked token usage yet." rows={agentUsageRows} />
-        <UsageList title="Provider mix" empty="No provider usage attributed yet." rows={providerUsageRows} />
+        <UsageList title={t("pages.userProfile.agentAttribution", { defaultValue: "Agent attribution" })} empty={t("pages.userProfile.noTokenUsage", { defaultValue: "No issue-linked token usage yet." })} rows={agentUsageRows} />
+        <UsageList title={t("pages.userProfile.providerMix", { defaultValue: "Provider mix" })} empty={t("pages.userProfile.noProviderUsage", { defaultValue: "No provider usage attributed yet." })} rows={providerUsageRows} />
       </div>
     </div>
   );
