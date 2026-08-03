@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 use serde_json::json;
-use staple_adapters::{AgentAdapter, InvocationInput};
+use staple_adapters::InvocationInput;
 use topcoat::{
     Result,
     context::{Cx, app_context},
