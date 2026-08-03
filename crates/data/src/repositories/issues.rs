@@ -204,6 +204,14 @@ pub trait IssueRepository: Send + Sync {
     ///
     /// Returns [`IssueError`] on database failure.
     async fn list_inbox(&self, company_id: &str) -> Result<Vec<IssueRecord>, IssueError>;
+
+    /// Searches issues by title/identifier/description (case-insensitive
+    /// substring) for a company, newest first.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IssueError`] on database failure.
+    async fn search(&self, company_id: &str, query: &str) -> Result<Vec<IssueRecord>, IssueError>;
 }
 
 /// Turso/libSQL implementation of [`IssueRepository`].
@@ -508,6 +516,25 @@ impl IssueRepository for TursoIssueRepository {
         }
         Ok(issues)
     }
+
+    async fn search(&self, company_id: &str, query: &str) -> Result<Vec<IssueRecord>, IssueError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let pattern = format!("%{}%", query.trim());
+        let sql = format!(
+            "SELECT {ISSUE_COLUMNS} FROM issues
+             WHERE company_id = ?1 AND (title LIKE ?2 OR identifier LIKE ?2
+                                        OR description LIKE ?2 OR id LIKE ?2)
+             ORDER BY updated_at DESC"
+        );
+        let mut rows = conn
+            .query(&sql, libsql::params![company_id, pattern])
+            .await?;
+        let mut issues = Vec::new();
+        while let Some(row) = rows.next().await? {
+            issues.push(row_to_issue(&row)?);
+        }
+        Ok(issues)
+    }
 }
 
 #[cfg(test)]
@@ -717,5 +744,50 @@ mod tests {
         let deleted = repo.delete(&created.id).await.unwrap().unwrap();
         assert_eq!(deleted.id, created.id);
         assert!(repo.get(&created.id).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn search_matches_title_identifier_and_description() {
+        let (_dir, repo, conn) = repo().await;
+        seed(&conn).await;
+        repo.create(NewIssue {
+            company_id: "c1".to_owned(),
+            project_id: None,
+            goal_id: None,
+            parent_id: None,
+            title: "Refactor the auth flow".to_owned(),
+            description: Some("improve security".to_owned()),
+            status: None,
+            priority: None,
+            assignee_agent_id: None,
+            assignee_user_id: None,
+            created_by_user_id: None,
+            work_mode: None,
+            billing_code: None,
+        })
+        .await
+        .unwrap();
+        repo.create(NewIssue {
+            company_id: "c1".to_owned(),
+            project_id: None,
+            goal_id: None,
+            parent_id: None,
+            title: "Docs update".to_owned(),
+            description: Some("write the refactor notes".to_owned()),
+            status: None,
+            priority: None,
+            assignee_agent_id: None,
+            assignee_user_id: None,
+            created_by_user_id: None,
+            work_mode: None,
+            billing_code: None,
+        })
+        .await
+        .unwrap();
+        let hits = repo.search("c1", "refactor").await.unwrap();
+        assert_eq!(hits.len(), 2);
+        let by_id = repo.search("c1", "docs").await.unwrap();
+        assert_eq!(by_id.len(), 1);
+        assert!(repo.search("c1", "nothing-here").await.unwrap().is_empty());
     }
 }

@@ -79,6 +79,15 @@ pub async fn company_overview(cx: &Cx) -> Result {
         <h1 class="page-title">(company.name)</h1>
         <p class="mono">(company.id)</p>
 
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/search"), lang))>(t(lang, "nav.search"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "nav.settings"))</a>
+        </nav>
+
         <section>
             <h2>(t(lang, "section.goals"))</h2>
             if goals.is_empty() {
@@ -119,8 +128,8 @@ pub async fn company_overview(cx: &Cx) -> Result {
                 <ul class="list">
                     for issue in issues {
                         <li>
-                            <span class="mono">(issue.identifier)</span>
-                            " " <strong>(issue.title)</strong>
+                            <span class="mono">(issue.identifier.clone())</span>
+                            " " <strong>(issue.title.clone())</strong>
                             " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
                         </li>
                     }
@@ -146,8 +155,8 @@ pub async fn company_issues(cx: &Cx) -> Result {
         <ul class="list">
             for issue in issues {
                 <li>
-                    <span class="mono">(issue.identifier)</span>
-                    " " <strong>(issue.title)</strong>
+                    <span class="mono">(issue.identifier.clone())</span>
+                    " " <strong>(issue.title.clone())</strong>
                     " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
                 </li>
             }
@@ -369,6 +378,224 @@ pub async fn activity(cx: &Cx) -> Result {
                 }
             </ul>
         }
+    }
+}
+
+/// Board page: status columns with per-issue status moves.
+#[page("/companies/{company_id}/board")]
+pub async fn board(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let issues = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let statuses = [
+        "backlog",
+        "todo",
+        "in_progress",
+        "in_review",
+        "blocked",
+        "done",
+    ];
+    let moveable = [
+        "backlog",
+        "todo",
+        "in_progress",
+        "in_review",
+        "blocked",
+        "done",
+        "cancelled",
+    ];
+    view! {
+        <h1 class="page-title">(t(lang, "board.title"))</h1>
+        <a class="muted-link" href=(with_lang(&format!("/companies/{company_id}"), lang))>"← "</a>
+        <div class="board-grid">
+            for status in statuses {
+                <section class="board-column">
+                    <h2 class="board-column-title">
+                        <span class=(status_badge_class(status))>(status)</span>
+                        " " <span class="mono">(
+                            issues.iter().filter(|issue| issue.status == status).count()
+                        )</span>
+                    </h2>
+                    <ul class="list">
+                        for issue in issues.iter().filter(|issue| issue.status == status) {
+                            <li>
+                                <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                    <span class="mono">(issue.identifier.clone())</span>
+                                    " " <strong>(issue.title.clone())</strong>
+                                </a>
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/issues/{}/status/ui", issue.id), lang))>
+                                    <select name="status">
+                                        for candidate in moveable {
+                                            if candidate != issue.status {
+                                                <option value=(candidate)>(candidate)</option>
+                                            }
+                                        }
+                                    </select>
+                                    <button type="submit">(t(lang, "board.move"))</button>
+                                </form>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+        </div>
+    }
+}
+
+/// Search query for the search page.
+#[topcoat::router::query_params]
+struct SearchQuery {
+    /// Search term.
+    q: Option<String>,
+}
+
+/// Search page: company/task search over issues.
+#[page("/companies/{company_id}/search")]
+pub async fn search(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let query = topcoat::router::query_params::<SearchQuery>(cx)
+        .ok()
+        .and_then(|params| params.q.clone())
+        .unwrap_or_default();
+    let trimmed = query.trim().to_owned();
+    let results = if trimmed.is_empty() {
+        Vec::new()
+    } else {
+        state
+            .issues
+            .search(&company_id, &trimmed)
+            .await
+            .map_err(to_topcoat_error)?
+    };
+    view! {
+        <h1 class="page-title">(t(lang, "search.title"))</h1>
+        <form class="inline-form" method="get"
+              action=(with_lang(&format!("/companies/{company_id}/search"), lang))>
+            <input type="text" name="q" value=(trimmed.clone()) placeholder=(t(lang, "search.placeholder"))>
+            <button type="submit">(t(lang, "search.submit"))</button>
+        </form>
+        if !trimmed.is_empty() {
+            if results.is_empty() {
+                <p class="empty">(t(lang, "search.noResults"))</p>
+            } else {
+                <ul class="list">
+                    for issue in results {
+                        <li>
+                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                <span class="mono">(issue.identifier.clone())</span>
+                                " " <strong>(issue.title.clone())</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        }
+    }
+}
+
+/// Settings page: company profile, budget, secrets, and skills.
+#[page("/companies/{company_id}/settings")]
+pub async fn settings(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company = state
+        .companies
+        .get(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let Some(company) = company else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let secrets = state
+        .secrets
+        .list_secrets(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let skills = state
+        .skills
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "settings.title"))</h1>
+
+        <section>
+            <h2>(t(lang, "settings.company"))</h2>
+            <form class="stack-form" method="post" action=(with_lang(&format!("/companies/{company_id}/settings/ui"), lang))>
+                <input type="hidden" name="action" value="company">
+                <label>"Name"</label>
+                <input type="text" name="name" value=(company.name)>
+                <label>"Description"</label>
+                <input type="text" name="description" value=(company.description.as_deref().unwrap_or_default())>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "settings.budget"))</h2>
+            <form class="inline-form" method="post" action=(with_lang(&format!("/companies/{company_id}/settings/ui"), lang))>
+                <input type="hidden" name="action" value="budget">
+                <input type="number" name="budgetMonthlyCents" value=(company.budget_monthly_cents) min="0">
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "settings.secrets"))</h2>
+            if secrets.is_empty() {
+                <p class="empty">(t(lang, "settings.noSecrets"))</p>
+            } else {
+                <ul class="list">
+                    for secret in secrets {
+                        <li>
+                            <span class="mono">(secret.name)</span>
+                            " " <span class="badge badge-default">(secret.latest_version) "v"</span>
+                        </li>
+                    }
+                </ul>
+            }
+            <form class="inline-form" method="post" action=(with_lang(&format!("/companies/{company_id}/settings/ui"), lang))>
+                <input type="hidden" name="action" value="secret">
+                <input type="text" name="name" placeholder=(t(lang, "settings.secretName"))>
+                <input type="password" name="value" placeholder=(t(lang, "settings.secretValue"))>
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "settings.skills"))</h2>
+            if skills.is_empty() {
+                <p class="empty">(t(lang, "settings.noSkills"))</p>
+            } else {
+                <ul class="list">
+                    for skill in skills {
+                        <li>
+                            <strong>(skill.name)</strong>
+                            " " <span class="badge badge-default">(skill.status)</span>
+                            if let Some(description) = &skill.description {
+                                " " <span class="meta-row">(description)</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            <form class="inline-form" method="post" action=(with_lang(&format!("/companies/{company_id}/settings/ui"), lang))>
+                <input type="hidden" name="action" value="skill">
+                <input type="text" name="name" placeholder=(t(lang, "settings.skillName"))>
+                <input type="text" name="description" placeholder=(t(lang, "settings.skillDescription"))>
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+        </section>
     }
 }
 
