@@ -355,7 +355,7 @@ impl DocumentRepository for TursoDocumentRepository {
              JOIN documents d ON d.id = idoc.document_id
              WHERE idoc.issue_id = ?1
              ORDER BY idoc.created_at";
-        let mut rows = conn.query(&sql, libsql::params![issue_id]).await?;
+        let mut rows = conn.query(sql, libsql::params![issue_id]).await?;
         let mut documents = Vec::new();
         while let Some(row) = rows.next().await? {
             documents.push(row_to_document(&row)?);
