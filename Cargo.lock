@@ -2378,8 +2378,10 @@ dependencies = [
 name = "staple-data"
 version = "0.1.0"
 dependencies = [
+ "aes-gcm",
  "async-trait",
  "libsql",
+ "rand 0.8.7",
  "serde_json",
  "tempfile",
  "thiserror 2.0.19",
