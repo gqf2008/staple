@@ -63,11 +63,11 @@ pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,
     TursoProjectRepository,
 };
-pub use work_products::{
-    NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
-    WorkProductRecord, WorkProductRepository,
-};
 pub use secrets::{
     CompanySecretRecord, NewSecret, SecretError, SecretRepository, SecretVersionRecord,
     TursoSecretRepository,
+};
+pub use work_products::{
+    NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
+    WorkProductRecord, WorkProductRepository,
 };

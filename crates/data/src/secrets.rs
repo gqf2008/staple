@@ -5,8 +5,7 @@
 //! semantics: the database alone is not enough to recover values.
 
 use std::{
-    fs,
-    io,
+    fs, io,
     path::{Path, PathBuf},
 };
 
@@ -57,16 +56,17 @@ impl SecretCipher {
                 key.copy_from_slice(&bytes);
                 key
             }
-            Ok(_) => return Err(CipherError::Key(io::Error::new(
-                io::ErrorKind::InvalidData,
-                "master key has an invalid length",
-            ))),
+            Ok(_) => {
+                return Err(CipherError::Key(io::Error::new(
+                    io::ErrorKind::InvalidData,
+                    "master key has an invalid length",
+                )));
+            }
             Err(error) if error.kind() == io::ErrorKind::NotFound => {
                 let mut key = [0u8; KEY_LEN];
                 rand::rngs::OsRng.fill_bytes(&mut key);
                 if let Some(parent) = path.parent() {
-                    fs::create_dir_all(parent)
-                        .map_err(|error| CipherError::Key(error))?;
+                    fs::create_dir_all(parent).map_err(CipherError::Key)?;
                 }
                 fs::write(path, key).map_err(CipherError::Key)?;
                 key
@@ -161,9 +161,9 @@ fn base64_decode(input: &str) -> Option<Vec<u8>> {
     let mut bits = 0u32;
     for ch in input.chars().filter(|ch| *ch != '=') {
         let value = match ch {
-            'A'..='Z' => *ch as u32 - 'A' as u32,
-            'a'..='z' => *ch as u32 - 'a' as u32 + 26,
-            '0'..='9' => *ch as u32 - '0' as u32 + 52,
+            'A'..='Z' => ch as u32 - 'A' as u32,
+            'a'..='z' => ch as u32 - 'a' as u32 + 26,
+            '0'..='9' => ch as u32 - '0' as u32 + 52,
             '+' => 62,
             '/' => 63,
             _ => return None,

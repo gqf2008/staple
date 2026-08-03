@@ -92,7 +92,8 @@ pub trait SecretRepository: Send + Sync {
     /// # Errors
     ///
     /// Returns [`SecretError`] on database failure.
-    async fn list_secrets(&self, company_id: &str) -> Result<Vec<CompanySecretRecord>, SecretError>;
+    async fn list_secrets(&self, company_id: &str)
+    -> Result<Vec<CompanySecretRecord>, SecretError>;
 
     /// Fetches secret metadata by name.
     ///
@@ -212,10 +213,7 @@ async fn secret_id(
 }
 
 /// The newest version number of a secret.
-async fn latest_version(
-    conn: &libsql::Connection,
-    secret_id: &str,
-) -> Result<i64, libsql::Error> {
+async fn latest_version(conn: &libsql::Connection, secret_id: &str) -> Result<i64, libsql::Error> {
     let mut rows = conn
         .query(
             "SELECT COALESCE(MAX(version), 0) FROM company_secret_versions WHERE secret_id = ?1",
@@ -271,14 +269,20 @@ impl SecretRepository for TursoSecretRepository {
              VALUES (?1, ?2, ?3, 'company', 'local_encrypted',
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'),
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
-            libsql::params![id.clone(), input.company_id, input.name],
+            libsql::params![id.clone(), input.company_id.clone(), input.name.clone()],
         )
         .await?;
         insert_version(&conn, &input.company_id, &id, 1, &encrypted).await?;
-        Ok(self.get_secret(&input.company_id, &input.name).await?.expect("secret was just inserted"))
+        Ok(self
+            .get_secret(&input.company_id, &input.name)
+            .await?
+            .expect("secret was just inserted"))
     }
 
-    async fn list_secrets(&self, company_id: &str) -> Result<Vec<CompanySecretRecord>, SecretError> {
+    async fn list_secrets(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<CompanySecretRecord>, SecretError> {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
@@ -355,7 +359,10 @@ impl SecretRepository for TursoSecretRepository {
         let version = latest_version(&conn, &id).await? + 1;
         let encrypted = self.cipher.encrypt(new_value.as_bytes())?;
         insert_version(&conn, company_id, &id, version, &encrypted).await?;
-        Ok(self.get_secret(company_id, name).await?.expect("secret exists"))
+        Ok(self
+            .get_secret(company_id, name)
+            .await?
+            .expect("secret exists"))
     }
 
     async fn rollback_secret(
@@ -381,7 +388,10 @@ impl SecretRepository for TursoSecretRepository {
         let encrypted = helpers::row_text(&row, 0)?.expect("encrypted_value is NOT NULL");
         let current = latest_version(&conn, &id).await?;
         insert_version(&conn, company_id, &id, current + 1, &encrypted).await?;
-        Ok(self.get_secret(company_id, name).await?.expect("secret exists"))
+        Ok(self
+            .get_secret(company_id, name)
+            .await?
+            .expect("secret exists"))
     }
 
     async fn list_versions(
@@ -397,7 +407,7 @@ impl SecretRepository for TursoSecretRepository {
             .query(
                 "SELECT id, secret_id, version, created_at FROM company_secret_versions
                  WHERE secret_id = ?1 ORDER BY version",
-                libsql::params![id],
+                libsql::params![id.clone()],
             )
             .await?;
         let mut versions = Vec::new();
@@ -421,15 +431,17 @@ impl SecretRepository for TursoSecretRepository {
         let Some(secret) = self.get_secret(company_id, name).await? else {
             return Ok(None);
         };
-        let id = secret_id(&conn, company_id, name).await?.expect("secret exists");
+        let id = secret_id(&conn, company_id, name)
+            .await?
+            .expect("secret exists");
         conn.execute(
             "DELETE FROM company_secret_versions WHERE secret_id = ?1",
-            libsql::params![id],
+            libsql::params![id.clone()],
         )
         .await?;
         conn.execute(
             "DELETE FROM company_secrets WHERE id = ?1",
-            libsql::params![id],
+            libsql::params![id.clone()],
         )
         .await?;
         Ok(Some(secret))
@@ -478,7 +490,11 @@ mod tests {
         assert_eq!(created.latest_version, 1);
 
         // Value roundtrip.
-        let value = repo.get_secret_value("c1", "github_token").await.unwrap().unwrap();
+        let value = repo
+            .get_secret_value("c1", "github_token")
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(value, "v1-secret");
 
         // Duplicate name rejected.
@@ -499,7 +515,10 @@ mod tests {
             .unwrap();
         assert_eq!(rotated.latest_version, 2);
         assert_eq!(
-            repo.get_secret_value("c1", "github_token").await.unwrap().unwrap(),
+            repo.get_secret_value("c1", "github_token")
+                .await
+                .unwrap()
+                .unwrap(),
             "v2-secret"
         );
 
@@ -510,32 +529,44 @@ mod tests {
         assert_eq!(versions[1].version, 2);
 
         // Rollback to v1 -> v3 with v1's value.
-        let rolled = repo
-            .rollback_secret("c1", "github_token", 1)
-            .await
-            .unwrap();
+        let rolled = repo.rollback_secret("c1", "github_token", 1).await.unwrap();
         assert_eq!(rolled.latest_version, 3);
         assert_eq!(
-            repo.get_secret_value("c1", "github_token").await.unwrap().unwrap(),
+            repo.get_secret_value("c1", "github_token")
+                .await
+                .unwrap()
+                .unwrap(),
             "v1-secret"
         );
 
-        // Encrypted at rest: raw column must not contain the plaintext.
-        let mut rows = conn
-            .query(
-                "SELECT encrypted_value FROM company_secret_versions WHERE version = 1",
-                (),
-            )
-            .await
-            .unwrap();
-        let row = rows.next().await.unwrap().unwrap();
-        let stored = helpers::row_text(&row, 0).unwrap().unwrap();
-        assert!(!stored.contains("v1-secret"));
+        // Encrypted at rest: raw column must not contain the plaintext
+        // (scope the read so its statement releases any read lock).
+        {
+            let mut rows = conn
+                .query(
+                    "SELECT encrypted_value FROM company_secret_versions WHERE version = 1",
+                    (),
+                )
+                .await
+                .unwrap();
+            let row = rows.next().await.unwrap().unwrap();
+            let stored = helpers::row_text(&row, 0).unwrap().unwrap();
+            assert!(!stored.contains("v1-secret"));
+        }
 
         // Delete.
-        let deleted = repo.delete_secret("c1", "github_token").await.unwrap().unwrap();
+        let deleted = repo
+            .delete_secret("c1", "github_token")
+            .await
+            .unwrap()
+            .unwrap();
         assert_eq!(deleted.name, "github_token");
-        assert!(repo.get_secret("c1", "github_token").await.unwrap().is_none());
+        assert!(
+            repo.get_secret("c1", "github_token")
+                .await
+                .unwrap()
+                .is_none()
+        );
     }
 
     #[tokio::test]

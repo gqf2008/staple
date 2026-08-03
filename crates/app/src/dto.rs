@@ -740,3 +740,62 @@ impl From<staple_data::ActivityEntry> for ActivityEntryDto {
         }
     }
 }
+
+/// Company secret metadata (no value material).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanySecretDto {
+    /// Secret id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Name.
+    pub name: String,
+    /// Scope.
+    pub scope: String,
+    /// Provider.
+    pub provider: String,
+    /// Latest version.
+    pub latest_version: i64,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::CompanySecretRecord> for CompanySecretDto {
+    fn from(record: staple_data::CompanySecretRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            name: record.name,
+            scope: record.scope,
+            provider: record.provider,
+            latest_version: record.latest_version,
+            created_at: record.created_at,
+        }
+    }
+}
+
+/// Secret version metadata.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecretVersionDto {
+    /// Version id.
+    pub id: String,
+    /// Secret id.
+    pub secret_id: String,
+    /// Version number.
+    pub version: i64,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::SecretVersionRecord> for SecretVersionDto {
+    fn from(record: staple_data::SecretVersionRecord) -> Self {
+        Self {
+            id: record.id,
+            secret_id: record.secret_id,
+            version: record.version,
+            created_at: record.created_at,
+        }
+    }
+}
