@@ -9,13 +9,13 @@ use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
 use staple_app::storage::LocalStorage;
 use staple_app::{router, state::AppState};
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoPermissionGrantRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -66,6 +66,16 @@ async fn core_business_flow_smoke() {
 
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(seed_db)),
+        agents: Arc::new(TursoAgentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        permission_grants: Arc::new(TursoPermissionGrantRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
         goals: Arc::new(TursoGoalRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await

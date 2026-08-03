@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54 完成）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55 完成）。
 
 ## 使用方式
 
@@ -26,7 +26,7 @@
 | **P0 执行控制面：失败归因** | infrastructure vs agent | ✅ 完成 | `error_kind` 列 + 测试 |
 | **P0 执行控制面：recovery issue** | recovery actions、wake 调度 | ⏳ 进行中 | 授权门已就绪；调度/恢复执行未实现 |
 | **P1 身份与安全：认证** | board 会话、agent API keys（哈希、吊销）、公司边界 | ✅ 完成 | `auth.rs`、`api_keys.rs`；三身份权限测试 |
-| **P1 身份与安全：权限矩阵** | §9 权限矩阵 | ⏳ 进行中 | 核心 board-only/公司作用域已强制；完整矩阵（子预算、inbox 管理授权等）未全覆盖 |
+| **P1 身份与安全：权限矩阵** | §9 权限矩阵（scoped grants、tasks:assign_scope、inbox:manage、manager-subtree 子预算） | ✅ 完成 | `principal_permission_grants`（迁移 0012）+ `permissions.rs` 评估器 + 路由；issue #55（成员/实例角色等由 #56 覆盖） |
 | **P1 治理：预算/成本** | cost_events、聚合、硬停自动暂停 | ✅ 完成 | `costs.rs`；耗尽暂停 + 重置恢复测试 |
 | **P1 治理：审批门** | approvals §8.3 状态机、审批门 | ✅ 完成 | `approvals.rs`；budget override 门测试 |
 | **P1 治理：审计** | activity_log 全量 mutating 动作 | ✅ 完成 | `activity.rs` + 全路由接入 |
@@ -50,7 +50,6 @@
 
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
-| 完整权限矩阵（§9.8 scoped grants、inbox:manage 等） | 子集已实现 | 进行中 |
 | recovery actions / wake 调度 | watchdog 授权已实现，调度器未实现 | 进行中 |
 | managed checkout / git 凭据 | 上游近期新增 | 未开始 |
 | decision desk 完整 retention/sweeper | 基础队列/三态已实现 | 进行中 |

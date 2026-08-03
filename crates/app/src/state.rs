@@ -3,12 +3,12 @@
 use std::sync::Arc;
 
 use staple_data::{
-    ActivityRepository, ApiKeyRepository, ApprovalRepository, AssetRepository, CompanyRepository,
-    CostRepository, DecisionRepository, DocumentRepository, EnvironmentRepository,
-    ExternalObjectRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
-    ProjectRepository, RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
-    WorkspaceRepository,
+    ActivityRepository, AgentRepository, ApiKeyRepository, ApprovalRepository, AssetRepository,
+    CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
+    EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
+    IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
+    LabelRepository, PermissionGrantRepository, ProjectRepository, RoutineRepository,
+    SecretRepository, SkillRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -19,6 +19,10 @@ use staple_adapters::{AdapterRegistry, PluginReport};
 pub struct AppState {
     /// Companies repository.
     pub companies: Arc<dyn CompanyRepository>,
+    /// Agents repository (org hierarchy, subordinate budgets).
+    pub agents: Arc<dyn AgentRepository>,
+    /// Principal permission grants repository.
+    pub permission_grants: Arc<dyn PermissionGrantRepository>,
     /// Goals repository.
     pub goals: Arc<dyn GoalRepository>,
     /// Projects repository.

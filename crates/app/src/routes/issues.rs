@@ -14,6 +14,7 @@ use crate::{
     auth::enforce_company_scope,
     dto::IssueDto,
     error::ApiError,
+    permissions::{authorize_assignment, authorize_inbox_manage},
     routes::{CompanyId, Id, is_uuid},
     state::AppState,
 };
@@ -214,6 +215,18 @@ pub async fn create_issue(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     enforce_company_scope(cx, &company_id)?;
     let state = app_context::<AppState>(cx);
+    if let Some(assignee_agent_id) = &body.assignee_agent_id {
+        authorize_assignment(
+            state,
+            cx,
+            &company_id,
+            json!({
+                "projectId": body.project_id.as_deref(),
+                "assigneeAgentId": assignee_agent_id,
+            }),
+        )
+        .await?;
+    }
     let issue = state
         .issues
         .create(NewIssue {
@@ -271,6 +284,24 @@ pub async fn update_issue(
     validate_update(&body)?;
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
+    if let Some(Some(assignee_agent_id)) = &body.assignee_agent_id {
+        let existing = state
+            .issues
+            .get(&id)
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?
+            .ok_or_else(|| ApiError::not_found("Issue not found"))?;
+        authorize_assignment(
+            state,
+            cx,
+            &existing.company_id,
+            json!({
+                "projectId": existing.project_id,
+                "assigneeAgentId": assignee_agent_id,
+            }),
+        )
+        .await?;
+    }
     let patch = IssuePatch {
         title: body.title.map(|value| value.trim().to_owned()),
         description: body.description,
@@ -337,11 +368,33 @@ pub async fn list_inbox(cx: &Cx) -> Result<Json<Vec<IssueDto>>, ApiError> {
     Ok(Json(issues.into_iter().map(IssueDto::from).collect()))
 }
 
+/// Body for `POST /api/issues/{id}/archive` / `unarchive`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InboxActionRequest {
+    /// Target user whose inbox is managed (required when an agent acts on
+    /// another user's inbox; checked against the `inbox:manage` grant).
+    #[serde(default)]
+    pub user_id: Option<String>,
+}
+
 /// `POST /api/issues/{id}/archive` — archives an issue (hidden from inbox).
 #[route(POST "/api/issues/{id}/archive")]
-pub async fn archive_issue(cx: &Cx) -> Result<Json<IssueDto>, ApiError> {
+pub async fn archive_issue(
+    cx: &Cx,
+    Json(body): Json<InboxActionRequest>,
+) -> Result<Json<IssueDto>, ApiError> {
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
+    let issue = state
+        .issues
+        .get(&id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Issue not found"))?;
+    if let Some(user_id) = &body.user_id {
+        authorize_inbox_manage(state, cx, &issue.company_id, user_id).await?;
+    }
     match state
         .issues
         .set_hidden(&id, true)
@@ -355,9 +408,21 @@ pub async fn archive_issue(cx: &Cx) -> Result<Json<IssueDto>, ApiError> {
 
 /// `POST /api/issues/{id}/unarchive` — restores an archived issue.
 #[route(POST "/api/issues/{id}/unarchive")]
-pub async fn unarchive_issue(cx: &Cx) -> Result<Json<IssueDto>, ApiError> {
+pub async fn unarchive_issue(
+    cx: &Cx,
+    Json(body): Json<InboxActionRequest>,
+) -> Result<Json<IssueDto>, ApiError> {
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
+    let issue = state
+        .issues
+        .get(&id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Issue not found"))?;
+    if let Some(user_id) = &body.user_id {
+        authorize_inbox_manage(state, cx, &issue.company_id, user_id).await?;
+    }
     match state
         .issues
         .set_hidden(&id, false)

@@ -4,3 +4,6 @@ description = "Staple domain models and business rules (pure Rust, no I/O)"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
+
+[dependencies]
+serde_json = "1"

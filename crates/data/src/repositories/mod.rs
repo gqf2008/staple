@@ -5,6 +5,7 @@
 //! boundaries at the SQL level.
 
 pub mod activity;
+pub mod agents;
 pub mod api_keys;
 pub mod approvals;
 pub mod assets;
@@ -22,6 +23,7 @@ pub mod issue_relations;
 pub mod issue_structure;
 pub mod issues;
 pub mod labels;
+pub mod permission_grants;
 pub mod projects;
 pub mod routines;
 pub mod secrets;
@@ -31,6 +33,9 @@ pub mod workspaces;
 
 pub use activity::{
     ActivityEntry, ActivityError, ActivityRepository, NewActivity, TursoActivityRepository,
+};
+pub use agents::{
+    AgentBudgetRecord, AgentError, AgentHierarchyRow, AgentRepository, TursoAgentRepository,
 };
 pub use api_keys::{
     AgentApiKeyRecord, AgentPrincipal, ApiKeyError, ApiKeyRepository, NewAgentApiKey,
@@ -91,6 +96,10 @@ pub use issues::{
 };
 pub use labels::{
     IssueLabelRecord, LabelError, LabelRecord, LabelRepository, NewLabel, TursoLabelRepository,
+};
+pub use permission_grants::{
+    NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,
+    TursoPermissionGrantRepository,
 };
 pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,
