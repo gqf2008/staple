@@ -51,3 +51,16 @@ MIT (kept from the upstream snapshot for attribution; see [LICENSE](LICENSE)).
 Starting work on this repo? Read
 [doc/plans/2026-08-03-codex-onboarding.md](doc/plans/2026-08-03-codex-onboarding.md)
 first — it covers the workspace, issue-driven workflow, and coding rules.
+
+## Rust development
+
+The rewrite lives in `crates/` as a Cargo workspace. The toolchain is pinned
+by `rust-toolchain.toml` (stable, edition 2024).
+
+- `make dev` — run the app
+- `make test` — run all workspace tests
+- `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
+- `make build` — release build
+
+CI (`.github/workflows/ci.yml`) runs fmt, clippy, tests, and the release build
+on every push/PR.

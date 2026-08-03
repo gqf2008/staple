@@ -13,7 +13,7 @@ coverage/
 ._*
 .AppleDouble
 .LSOverride
-data/
+/data/
 .paperclip/
 .pnpm-store/
 tmp-*
@@ -69,3 +69,7 @@ tests/storybook-visual/playwright-report/
 .superpowers/
 .claude/worktrees/
 .herenow
+
+# Rust
+target/
+**/target/

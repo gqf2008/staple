@@ -1,0 +1,6 @@
+[package]
+name = "staple-domain"
+description = "Staple domain models and business rules (pure Rust, no I/O)"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
