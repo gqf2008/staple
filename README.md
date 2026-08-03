@@ -45,3 +45,9 @@ only consumes it as a reference; changes never merge back.
 ## License
 
 MIT (kept from the upstream snapshot for attribution; see [LICENSE](LICENSE)).
+
+## For Codex agents
+
+Starting work on this repo? Read
+[doc/plans/2026-08-03-codex-onboarding.md](doc/plans/2026-08-03-codex-onboarding.md)
+first — it covers the workspace, issue-driven workflow, and coding rules.
