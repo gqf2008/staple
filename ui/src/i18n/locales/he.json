@@ -4589,6 +4589,66 @@
       "allApps": "All apps",
       "comingSoon": "Coming soon",
       "selectCompany": "Select a company to browse apps."
+    },
+    "systemNoticeUxLab2": {
+      "owner": "Owner",
+      "cto": "CTO",
+      "sourceRun": "Source run: 9cdba892-c7ca-4d93-8604-4843873b127c",
+      "recoveryRun": "Recovery run: 61fdb79b-8012-4676-ac71-2971830e126a"
+    },
+    "profileWizardRoute": {
+      "company": "Company",
+      "apps": "Apps",
+      "accessProfiles": "Access profiles",
+      "resumeDraft": "Resume draft",
+      "newProfile": "New profile",
+      "finishProfile": "Finish your profile",
+      "newAccessProfile": "New access profile",
+      "selectCompany": "Select a company to create a profile."
+    },
+    "profileActionDialog": {
+      "archiveProfile": "Archive profile",
+      "archive": "Archive",
+      "restoreProfile": "Restore profile",
+      "restoreHint": "This profile will be active again and can be assigned to agents.",
+      "restore": "Restore",
+      "deleteProfile": "Delete profile",
+      "delete": "Delete",
+      "companyDefaultHint": "Choose another access profile and make it the company default first.",
+      "cancel": "Cancel"
+    },
+    "gatewayDetail": {
+      "company": "Company",
+      "apps": "Apps",
+      "gateways": "Gateways",
+      "gatewayOn": "Gateway on",
+      "gatewayOff": "Gateway off",
+      "updateFailed": "Couldn't update the gateway",
+      "gatewayTabs": "Gateway tabs",
+      "selectCompany": "Select a company to manage gateways.",
+      "notFound": "We couldn't find that gateway."
+    },
+    "reviewQueueCard": {
+      "askFirst": "Ask first",
+      "waitingForOk": "Waiting for your OK",
+      "allowedOnce": "Allowed once",
+      "alwaysAllowed": "Always allowed",
+      "declined": "Declined",
+      "thisAction": "This action",
+      "tryAgain": "Please try again."
+    },
+    "issueChatLongThreadPerf": {
+      "fixtureRows": "Fixture rows",
+      "markdownRows": "Markdown rows",
+      "profilerCommits": "Profiler commits",
+      "mountDuration": "Mount duration",
+      "latestDuration": "Latest duration",
+      "maxDuration": "Max duration",
+      "totalDuration": "Total duration",
+      "issueDocuments": "Issue documents",
+      "subIssues": "Sub-issues",
+      "baselineMetrics": "Baseline metrics",
+      "fixtureShape": "Fixture shape"
     }
   },
   "status": {
@@ -6999,6 +7059,60 @@
       "summary": "Summary",
       "onApproval": "On approval",
       "risks": "Risks"
+    },
+    "searchResultRow": {
+      "comment": "Comment",
+      "doc": "Doc",
+      "artifact": "Artifact",
+      "description": "Description",
+      "agent": "Agent",
+      "project": "Project"
+    },
+    "searchFilterSheet": {
+      "showResults": "Show results",
+      "status": "Status",
+      "priority": "Priority",
+      "assignee": "Assignee",
+      "project": "Project",
+      "label": "Label",
+      "updated": "Updated",
+      "filters": "Filters",
+      "sortBy": "Sort by"
+    },
+    "taskChatThread": {
+      "running": "Running…",
+      "noMessages": "No messages yet.",
+      "planUpdated": "Plan updated",
+      "planCreated": "Plan created",
+      "queued": "Queued",
+      "waitingToStart": "Waiting to start"
+    },
+    "sidebarCompanyMenu": {
+      "openSwitcher": "Open company switcher",
+      "selectCompany": "Select company",
+      "done": "Done",
+      "edit": "Edit",
+      "invitePeople": "Invite people",
+      "signingOut": "Signing out...",
+      "signOut": "Sign out",
+      "noCompanies": "No companies",
+      "createNewCompany": "Create new company...",
+      "companySettings": "Company settings"
+    },
+    "sidebar2": {
+      "keepExpanded": "Keep sidebar expanded",
+      "expandSidebar": "Expand sidebar",
+      "collapseSidebar": "Collapse sidebar",
+      "newTask": "New Task"
+    },
+    "outputFeedbackButtons": {
+      "addNote": "Add a short note",
+      "saving": "Saving...",
+      "saveNote": "Save note",
+      "dontAllow": "Don't allow",
+      "alwaysAllow": "Always allow",
+      "whatBetter": "What could have been better?",
+      "feedbackPreference": "Save your feedback sharing preference"
     }
   }
 }

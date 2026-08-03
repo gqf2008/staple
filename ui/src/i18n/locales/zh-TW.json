@@ -4589,6 +4589,66 @@
       "allApps": "所有應用",
       "comingSoon": "即將推出",
       "selectCompany": "請選擇一家公司以瀏覽應用。"
+    },
+    "systemNoticeUxLab2": {
+      "owner": "負責人",
+      "cto": "CTO",
+      "sourceRun": "來源執行：9cdba892-c7ca-4d93-8604-4843873b127c",
+      "recoveryRun": "恢復執行：61fdb79b-8012-4676-ac71-2971830e126a"
+    },
+    "profileWizardRoute": {
+      "company": "公司",
+      "apps": "應用",
+      "accessProfiles": "存取設定檔",
+      "resumeDraft": "繼續草稿",
+      "newProfile": "新設定檔",
+      "finishProfile": "完成你的設定檔",
+      "newAccessProfile": "新存取設定檔",
+      "selectCompany": "請選擇一家公司以建立設定檔。"
+    },
+    "profileActionDialog": {
+      "archiveProfile": "歸檔設定檔",
+      "archive": "歸檔",
+      "restoreProfile": "恢復設定檔",
+      "restoreHint": "此設定檔將重新啟動，並可分配給智慧體。",
+      "restore": "恢復",
+      "deleteProfile": "刪除設定檔",
+      "delete": "刪除",
+      "companyDefaultHint": "請先選擇另一個存取設定檔並設為公司預設。",
+      "cancel": "取消"
+    },
+    "gatewayDetail": {
+      "company": "公司",
+      "apps": "應用",
+      "gateways": "閘道",
+      "gatewayOn": "閘道已開啟",
+      "gatewayOff": "閘道已關閉",
+      "updateFailed": "無法更新閘道",
+      "gatewayTabs": "閘道頁籤",
+      "selectCompany": "請選擇一家公司以管理閘道。",
+      "notFound": "我們找不到該閘道。"
+    },
+    "reviewQueueCard": {
+      "askFirst": "先詢問",
+      "waitingForOk": "等待你的確認",
+      "allowedOnce": "允許一次",
+      "alwaysAllowed": "始終允許",
+      "declined": "已拒絕",
+      "thisAction": "此操作",
+      "tryAgain": "請重試。"
+    },
+    "issueChatLongThreadPerf": {
+      "fixtureRows": "fixture 列數",
+      "markdownRows": "Markdown 列數",
+      "profilerCommits": "分析器提交數",
+      "mountDuration": "掛載耗時",
+      "latestDuration": "最近耗時",
+      "maxDuration": "最大耗時",
+      "totalDuration": "總耗時",
+      "issueDocuments": "任務文件",
+      "subIssues": "子任務",
+      "baselineMetrics": "基線指標",
+      "fixtureShape": "fixture 結構"
     }
   },
   "status": {
@@ -6999,6 +7059,60 @@
       "summary": "摘要",
       "onApproval": "核准後",
       "risks": "風險"
+    },
+    "searchResultRow": {
+      "comment": "評論",
+      "doc": "文件",
+      "artifact": "產物",
+      "description": "描述",
+      "agent": "智慧體",
+      "project": "專案"
+    },
+    "searchFilterSheet": {
+      "showResults": "顯示結果",
+      "status": "狀態",
+      "priority": "優先權",
+      "assignee": "負責人",
+      "project": "專案",
+      "label": "標籤",
+      "updated": "更新時間",
+      "filters": "篩選",
+      "sortBy": "排序依據"
+    },
+    "taskChatThread": {
+      "running": "正在執行…",
+      "noMessages": "暫無訊息。",
+      "planUpdated": "計畫已更新",
+      "planCreated": "計畫已建立",
+      "queued": "排隊中",
+      "waitingToStart": "等待開始"
+    },
+    "sidebarCompanyMenu": {
+      "openSwitcher": "開啟公司切換器",
+      "selectCompany": "選擇公司",
+      "done": "完成",
+      "edit": "編輯",
+      "invitePeople": "邀請人員",
+      "signingOut": "正在登出…",
+      "signOut": "登出",
+      "noCompanies": "暫無公司",
+      "createNewCompany": "建立新公司...",
+      "companySettings": "公司設定"
+    },
+    "sidebar2": {
+      "keepExpanded": "保持側邊欄展開",
+      "expandSidebar": "展開側邊欄",
+      "collapseSidebar": "收合側邊欄",
+      "newTask": "新增任務"
+    },
+    "outputFeedbackButtons": {
+      "addNote": "新增簡短備註",
+      "saving": "正在儲存…",
+      "saveNote": "儲存備註",
+      "dontAllow": "不允許",
+      "alwaysAllow": "始終允許",
+      "whatBetter": "哪些方面可以更好？",
+      "feedbackPreference": "儲存你的意見回饋分享偏好"
     }
   }
 }

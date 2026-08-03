@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, type ComponentProps } from "react";
+import { t } from "../i18n";
 import { IssueChatThread } from "@/components/IssueChatThread";
 import { useLiveRunTranscripts, type RunTranscriptSource } from "@/components/transcript/useLiveRunTranscripts";
 import { commentsToTaskChatItems } from "@/components/task-chat/task-chat-adapter";
@@ -50,7 +51,7 @@ export type TaskChatThreadProps = ComponentProps<typeof IssueChatThread>;
  * one-line "✓ Worked · …" summary (runs already terminal at mount collapse
  * instantly). Settled turns interleave after the run's last comment
  * (comment.runId linkage) — the agent's reply bubble above, the folded activity
- * summary below, so the live "Running…" pill reads as being replaced by the
+ * summary below, so the live t("components.taskChatThread.running", { defaultValue: "Running…" }) pill reads as being replaced by the
  * summary in place. flag-OFF remains byte-for-byte IssueChatThread.
  */
 export function TaskChatThread(props: TaskChatThreadProps) {
@@ -69,7 +70,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
     footer,
     showComposer = true,
     composerDisabledReason,
-    emptyMessage = "No messages yet.",
+    emptyMessage = t("components.taskChatThread.noMessages", { defaultValue: "No messages yet." }),
     companyId,
     linkedRuns,
     liveRuns,
@@ -164,7 +165,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
 
   // Each terminal run's turn anchors immediately after the run's last comment
   // (its reply bubble), via the comment.runId linkage — the summary line lands
-  // below the bubble, where the live "Running…" pill sat.
+  // below the bubble, where the live t("components.taskChatThread.running", { defaultValue: "Running…" }) pill sat.
   const lastCommentIdByRun = useMemo(() => {
     const map = new Map<string, string>();
     for (const comment of comments) {
@@ -222,7 +223,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
           id,
           kind: "marker",
           variant: "turn_boundary",
-          label: revision > 1 ? "Plan updated" : "Plan created",
+          label: revision > 1 ? t("components.taskChatThread.planUpdated", { defaultValue: "Plan updated" }) : t("components.taskChatThread.planCreated", { defaultValue: "Plan created" }),
           detail: `rev ${revision} — see the Plan tab`,
         },
       });
@@ -312,7 +313,7 @@ export function TaskChatThread(props: TaskChatThreadProps) {
       const startedAt = liveRun.startedAt ? new Date(liveRun.startedAt).getTime() : null;
       const queued = liveRun.status === "queued";
       const status = queued
-        ? { label: "Queued", detail: "Waiting to start", toolName: undefined }
+        ? { label: t("components.taskChatThread.queued", { defaultValue: "Queued" }), detail: t("components.taskChatThread.waitingToStart", { defaultValue: "Waiting to start" }), toolName: undefined }
         : deriveRunStatusLabel(entries);
       out.push({
         id: `${liveRun.id}:status`,

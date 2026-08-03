@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import type { ToolMcpGatewayTokenCreated } from "@paperclipai/shared";
@@ -96,9 +97,9 @@ export function GatewayDetail() {
   useEffect(() => {
     if (!gateway) return;
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Gateways", href: "/apps/gateways" },
+      { label: selectedCompany?.name ?? t("pages.gatewayDetail.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.gatewayDetail.apps", { defaultValue: "Apps" }), href: "/apps" },
+      { label: t("pages.gatewayDetail.gateways", { defaultValue: "Gateways" }), href: "/apps/gateways" },
       { label: gateway.name },
     ]);
     return () => setBreadcrumbs([]);
@@ -111,7 +112,7 @@ export function GatewayDetail() {
       }),
     onSuccess: async (updated) => {
       pushToast({
-        title: updated.status === "active" ? "Gateway on" : "Gateway off",
+        title: updated.status === "active" ? t("pages.gatewayDetail.gatewayOn", { defaultValue: "Gateway on" }) : t("pages.gatewayDetail.gatewayOff", { defaultValue: "Gateway off" }),
         body:
           updated.status === "active"
             ? `${updated.name} is exposing its tools again.`
@@ -122,14 +123,14 @@ export function GatewayDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update the gateway",
+        title: t("pages.gatewayDetail.updateFailed", { defaultValue: "Couldn't update the gateway" }),
         body: error instanceof Error ? error.message : String(error),
         tone: "error",
       }),
   });
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to manage gateways.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("pages.gatewayDetail.selectCompany", { defaultValue: "Select a company to manage gateways." })}</div>;
   }
   if (!activeTab) {
     return <Navigate replace to={gatewayTabHref(gatewayId, "overview")} />;
@@ -183,7 +184,7 @@ export function GatewayDetail() {
         </Button>
       </div>
 
-      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label="Gateway tabs">
+      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label={t("pages.gatewayDetail.gatewayTabs", { defaultValue: "Gateway tabs" })}>
         {GATEWAY_TABS.map((item) => {
           const isActive = item.key === activeTab;
           return (

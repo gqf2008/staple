@@ -4589,6 +4589,66 @@
       "allApps": "全部应用",
       "comingSoon": "即将推出",
       "selectCompany": "请选择一家公司以浏览应用。"
+    },
+    "systemNoticeUxLab2": {
+      "owner": "负责人",
+      "cto": "CTO",
+      "sourceRun": "源运行：9cdba892-c7ca-4d93-8604-4843873b127c",
+      "recoveryRun": "恢复运行：61fdb79b-8012-4676-ac71-2971830e126a"
+    },
+    "profileWizardRoute": {
+      "company": "公司",
+      "apps": "应用",
+      "accessProfiles": "访问配置文件",
+      "resumeDraft": "继续草稿",
+      "newProfile": "新配置文件",
+      "finishProfile": "完成你的配置文件",
+      "newAccessProfile": "新访问配置文件",
+      "selectCompany": "请选择一家公司以创建配置文件。"
+    },
+    "profileActionDialog": {
+      "archiveProfile": "归档配置文件",
+      "archive": "归档",
+      "restoreProfile": "恢复配置文件",
+      "restoreHint": "此配置文件将重新激活，并可分配给智能体。",
+      "restore": "恢复",
+      "deleteProfile": "删除配置文件",
+      "delete": "删除",
+      "companyDefaultHint": "请先选择另一个访问配置文件并设为公司默认。",
+      "cancel": "取消"
+    },
+    "gatewayDetail": {
+      "company": "公司",
+      "apps": "应用",
+      "gateways": "网关",
+      "gatewayOn": "网关已开启",
+      "gatewayOff": "网关已关闭",
+      "updateFailed": "无法更新网关",
+      "gatewayTabs": "网关页签",
+      "selectCompany": "请选择一家公司以管理网关。",
+      "notFound": "我们找不到该网关。"
+    },
+    "reviewQueueCard": {
+      "askFirst": "先询问",
+      "waitingForOk": "等待你的确认",
+      "allowedOnce": "允许一次",
+      "alwaysAllowed": "始终允许",
+      "declined": "已拒绝",
+      "thisAction": "此操作",
+      "tryAgain": "请重试。"
+    },
+    "issueChatLongThreadPerf": {
+      "fixtureRows": "fixture 行数",
+      "markdownRows": "Markdown 行数",
+      "profilerCommits": "分析器提交数",
+      "mountDuration": "挂载耗时",
+      "latestDuration": "最近耗时",
+      "maxDuration": "最大耗时",
+      "totalDuration": "总耗时",
+      "issueDocuments": "任务文档",
+      "subIssues": "子任务",
+      "baselineMetrics": "基线指标",
+      "fixtureShape": "fixture 结构"
     }
   },
   "status": {
@@ -6999,6 +7059,60 @@
       "summary": "摘要",
       "onApproval": "批准后",
       "risks": "风险"
+    },
+    "searchResultRow": {
+      "comment": "评论",
+      "doc": "文档",
+      "artifact": "产物",
+      "description": "描述",
+      "agent": "智能体",
+      "project": "项目"
+    },
+    "searchFilterSheet": {
+      "showResults": "显示结果",
+      "status": "状态",
+      "priority": "优先级",
+      "assignee": "负责人",
+      "project": "项目",
+      "label": "标签",
+      "updated": "更新时间",
+      "filters": "筛选",
+      "sortBy": "排序依据"
+    },
+    "taskChatThread": {
+      "running": "正在运行…",
+      "noMessages": "暂无消息。",
+      "planUpdated": "计划已更新",
+      "planCreated": "计划已创建",
+      "queued": "排队中",
+      "waitingToStart": "等待开始"
+    },
+    "sidebarCompanyMenu": {
+      "openSwitcher": "打开公司切换器",
+      "selectCompany": "选择公司",
+      "done": "完成",
+      "edit": "编辑",
+      "invitePeople": "邀请人员",
+      "signingOut": "正在退出登录…",
+      "signOut": "退出登录",
+      "noCompanies": "暂无公司",
+      "createNewCompany": "创建新公司...",
+      "companySettings": "公司设置"
+    },
+    "sidebar2": {
+      "keepExpanded": "保持侧边栏展开",
+      "expandSidebar": "展开侧边栏",
+      "collapseSidebar": "收起侧边栏",
+      "newTask": "新建任务"
+    },
+    "outputFeedbackButtons": {
+      "addNote": "添加简短备注",
+      "saving": "正在保存…",
+      "saveNote": "保存备注",
+      "dontAllow": "不允许",
+      "alwaysAllow": "始终允许",
+      "whatBetter": "哪些方面可以更好？",
+      "feedbackPreference": "保存你的反馈分享偏好"
     }
   }
 }

@@ -258,8 +258,8 @@ export function SystemNoticeUxLab() {
                   },
                   {
                     kind: "agent",
-                    label: "Owner",
-                    name: "CTO",
+                    label: t("pages.systemNoticeUxLab2.owner", { defaultValue: "Owner" }),
+                    name: t("pages.systemNoticeUxLab2.cto", { defaultValue: "CTO" }),
                     href: "/PAP/agents/cto",
                   },
                 ],
@@ -308,8 +308,8 @@ export function SystemNoticeUxLab() {
                         <p className="m-0 font-semibold">{t("pages.systemNoticeUxLab.handoffMissing2", { defaultValue: "Successful run handoff missing" })}</p>
                         <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-(length:--text-compact) leading-5">
                           <li>{t("pages.systemNoticeUxLab.sourceIssue", { defaultValue: "Source issue: PAP-3440" })}</li>
-                          <li>Source run: 9cdba892-c7ca-4d93-8604-4843873b127c</li>
-                          <li>Recovery run: 61fdb79b-8012-4676-ac71-2971830e126a</li>
+                          <li>{t("pages.systemNoticeUxLab2.sourceRun", { defaultValue: "Source run: 9cdba892-c7ca-4d93-8604-4843873b127c" })}</li>
+                          <li>{t("pages.systemNoticeUxLab2.recoveryRun", { defaultValue: "Recovery run: 61fdb79b-8012-4676-ac71-2971830e126a" })}</li>
                           <li>{t("pages.systemNoticeUxLab.statusBefore", { defaultValue: "Status before: in_progress" })}</li>
                           <li>{t("pages.systemNoticeUxLab.normalizedCause", { defaultValue: "Normalized cause: Run completed without disposition" })}</li>
                           <li>{t("pages.systemNoticeUxLab.recoveryOwnerCto", { defaultValue: "Recovery owner: CTO" })}</li>

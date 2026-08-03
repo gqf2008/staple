@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, ShieldQuestion, X } from "lucide-react";
 import type { ToolActionRequestListItem } from "@paperclipai/shared";
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { MarkdownBody } from "@/components/MarkdownBody";
 
 /**
- * "Ask first" review queue (M1b float / M9 card, PAP-10859).
+ * t("pages.reviewQueueCard.askFirst", { defaultValue: "Ask first" }) review queue (M1b float / M9 card, PAP-10859).
  *
  * Renders pending `tool_action_requests` as prosumer cards with three choices:
  *   • Allow once   → approve this single request
@@ -25,7 +26,7 @@ import { MarkdownBody } from "@/components/MarkdownBody";
 export function ReviewQueueCard({
   connectionId,
   emptyState = "hidden",
-  heading = "Waiting for your OK",
+  heading = t("pages.reviewQueueCard.waitingForOk", { defaultValue: "Waiting for your OK" }),
 }: {
   connectionId?: string;
   emptyState?: "hidden" | "reassure";
@@ -89,7 +90,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     mutationFn: () => toolsApi.approveActionRequest(companyId, item.request.id),
     onMutate: () => setResolving("allow"),
     onSuccess: () => {
-      pushToast({ title: "Allowed once", body: `${actionLabel(item)} can run this time.`, tone: "success" });
+      pushToast({ title: t("pages.reviewQueueCard.allowedOnce", { defaultValue: "Allowed once" }), body: `${actionLabel(item)} can run this time.`, tone: "success" });
       invalidate();
     },
     onError: (error) => {
@@ -108,7 +109,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     onMutate: () => setResolving("always"),
     onSuccess: () => {
       pushToast({
-        title: "Always allowed",
+        title: t("pages.reviewQueueCard.alwaysAllowed", { defaultValue: "Always allowed" }),
         body: `${actionLabel(item)} won’t ask again.`,
         tone: "success",
       });
@@ -126,7 +127,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     mutationFn: () => toolsApi.declineActionRequest(companyId, item.request.id),
     onMutate: () => setResolving("decline"),
     onSuccess: () => {
-      pushToast({ title: "Declined", body: `${actionLabel(item)} won’t run.`, tone: "info" });
+      pushToast({ title: t("pages.reviewQueueCard.declined", { defaultValue: "Declined" }), body: `${actionLabel(item)} won’t run.`, tone: "info" });
       invalidate();
     },
     onError: (error) => {
@@ -180,7 +181,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
 }
 
 function actionLabel(item: ToolActionRequestListItem): string {
-  if (!item.toolTitle && !item.toolName) return "This action";
+  if (!item.toolTitle && !item.toolName) return t("pages.reviewQueueCard.thisAction", { defaultValue: "This action" });
   return humanizeConnectionDisplayName(item.toolName ?? "", { title: item.toolTitle });
 }
 
@@ -190,7 +191,7 @@ function failToast(
 ) {
   pushToast({
     title: "Couldn’t save that",
-    body: error instanceof Error ? error.message : "Please try again.",
+    body: error instanceof Error ? error.message : t("pages.reviewQueueCard.tryAgain", { defaultValue: "Please try again." }),
     tone: "error",
   });
 }

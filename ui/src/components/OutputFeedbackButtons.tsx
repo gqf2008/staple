@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "../i18n";
 import type { FeedbackDataSharingPreference, FeedbackVoteValue } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -141,11 +142,11 @@ export function OutputFeedbackButtons({
       </div>
       {collectingDownvoteReason ? (
         <div className="mt-2 rounded-md border border-border/60 bg-accent/20 p-3">
-          <div className="mb-2 text-sm font-medium">What could have been better?</div>
+          <div className="mb-2 text-sm font-medium">{t("components.outputFeedbackButtons.whatBetter", { defaultValue: "What could have been better?" })}</div>
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("components.outputFeedbackButtons.addNote", { defaultValue: "Add a short note" })}
             className="min-h-20 resize-y bg-background"
             disabled={disabled || isSaving}
           />
@@ -174,7 +175,7 @@ export function OutputFeedbackButtons({
                 });
               }}
             >
-              {isSaving ? "Saving..." : "Save note"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.saveNote", { defaultValue: "Save note" })}
             </Button>
           </div>
         </div>
@@ -191,7 +192,7 @@ export function OutputFeedbackButtons({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save your feedback sharing preference</DialogTitle>
+            <DialogTitle>{t("components.outputFeedbackButtons.feedbackPreference", { defaultValue: "Save your feedback sharing preference" })}</DialogTitle>
             <DialogDescription>
               Choose whether voted AI outputs can be shared with Paperclip Labs. This
               answer becomes the default for future thumbs up and thumbs down votes.
@@ -202,9 +203,9 @@ export function OutputFeedbackButtons({
               This vote is always saved locally.
             </p>
             <p>
-              Choose <span className="font-medium text-foreground">Always allow</span> to share
+              Choose <span className="font-medium text-foreground">{t("components.outputFeedbackButtons.alwaysAllow", { defaultValue: "Always allow" })}</span> to share
               this vote and future voted AI outputs. Choose{" "}
-              <span className="font-medium text-foreground">Don't allow</span> to keep this vote
+              <span className="font-medium text-foreground">{t("components.outputFeedbackButtons.dontAllow", { defaultValue: "Don't allow" })}</span> to keep this vote
               and future votes local.
             </p>
             <p>
@@ -238,7 +239,7 @@ export function OutputFeedbackButtons({
                 );
               }}
             >
-              {isSaving ? "Saving..." : "Don't allow"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.dontAllow", { defaultValue: "Don't allow" })}
             </Button>
             <Button
               type="button"
@@ -258,7 +259,7 @@ export function OutputFeedbackButtons({
                 );
               }}
             >
-              {isSaving ? "Saving..." : "Always allow"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.alwaysAllow", { defaultValue: "Always allow" })}
             </Button>
           </DialogFooter>
         </DialogContent>

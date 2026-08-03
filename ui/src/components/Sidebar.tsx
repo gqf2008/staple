@@ -155,8 +155,8 @@ export function Sidebar() {
                   variant="ghost"
                   size="icon-sm"
                   className="text-muted-foreground shrink-0"
-                  aria-label="Keep sidebar expanded"
-                  title="Keep sidebar expanded"
+                  aria-label={t("components.sidebar2.keepExpanded", { defaultValue: "Keep sidebar expanded" })}
+                  title={t("components.sidebar2.keepExpanded", { defaultValue: "Keep sidebar expanded" })}
                   onClick={() => setCollapsed(false)}
                 >
                   <Pin className="h-4 w-4" />
@@ -167,8 +167,8 @@ export function Sidebar() {
                   size="icon-sm"
                   className="text-muted-foreground shrink-0"
                   aria-expanded={!collapsed}
-                  aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-                  title={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+                  aria-label={collapsed ? t("components.sidebar2.expandSidebar", { defaultValue: "Expand sidebar" }) : t("components.sidebar2.collapseSidebar", { defaultValue: "Collapse sidebar" })}
+                  title={collapsed ? t("components.sidebar2.expandSidebar", { defaultValue: "Expand sidebar" }) : t("components.sidebar2.collapseSidebar", { defaultValue: "Collapse sidebar" })}
                   onClick={() => toggleCollapsed()}
                 >
                   {collapsed ? <PanelLeftOpen className="h-4 w-4" /> : <PanelLeftClose className="h-4 w-4" />}
@@ -187,17 +187,17 @@ export function Sidebar() {
               <button
                 onClick={() => openNewIssue()}
                 data-slot="icon-button"
-                aria-label={rail ? "New Task" : undefined}
+                aria-label={rail ? t("components.sidebar2.newTask", { defaultValue: "New Task" }) : undefined}
                 className="flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-foreground/80 hover:bg-accent/50 hover:text-foreground transition-colors"
               >
                 <SquarePen className="h-4 w-4 shrink-0" />
-                <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>New Task</span>
+                <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "truncate"}>{t("components.sidebar2.newTask", { defaultValue: "New Task" })}</span>
               </button>
             );
             return rail ? (
               <Tooltip>
                 <TooltipTrigger asChild>{newTaskButton}</TooltipTrigger>
-                <TooltipContent side="right">New Task</TooltipContent>
+                <TooltipContent side="right">{t("components.sidebar2.newTask", { defaultValue: "New Task" })}</TooltipContent>
               </Tooltip>
             ) : (
               newTaskButton
