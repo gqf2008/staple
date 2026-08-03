@@ -80,6 +80,92 @@ pub struct DecisionTriageRecord {
     pub decided_by_user_id: Option<String>,
 }
 
+/// An immutable triage event.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecisionTriageEventRecord {
+    /// Event id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Triage id.
+    pub triage_id: String,
+    /// Event type (`decided` | `snoozed` | `kept` | `archived` | `restored`).
+    pub event_type: String,
+    /// Decision at the time.
+    pub decision: Option<String>,
+    /// Deciding user.
+    pub decided_by_user_id: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+/// Retention state for a triage source.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecisionRetentionRecord {
+    /// Retention id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Triage id.
+    pub triage_id: String,
+    /// Source kind.
+    pub source_kind: String,
+    /// Source id.
+    pub source_id: String,
+    /// Keep marker (skip the sweeper).
+    pub keep: bool,
+    /// Archived flag.
+    pub archived: bool,
+    /// ISO 8601 archive time.
+    pub archived_at: Option<String>,
+    /// Archive reason.
+    pub archived_reason: Option<String>,
+    /// ISO 8601 restore time.
+    pub restored_at: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+/// An archive-notification outbox row.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecisionOutboxRecord {
+    /// Outbox id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Triage id.
+    pub triage_id: String,
+    /// Notification kind.
+    pub notification_kind: String,
+    /// Recipient user id.
+    pub recipient_user_id: Option<String>,
+    /// Status (`pending` | `sent` | `failed`).
+    pub status: String,
+    /// Attempt count.
+    pub attempt_count: i64,
+    /// Last error.
+    pub last_error: Option<String>,
+    /// Dedupe key.
+    pub dedupe_key: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 sent time.
+    pub sent_at: Option<String>,
+}
+
+/// Result of a retention sweep.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecisionSweepResult {
+    /// Number of triage rows archived.
+    pub archived: i64,
+    /// Number of notifications enqueued.
+    pub notifications_enqueued: i64,
+}
+
 /// Decision desk errors.
 #[derive(Debug, Error)]
 pub enum DecisionError {
@@ -176,6 +262,113 @@ pub trait DecisionRepository: Send + Sync {
         &self,
         company_id: &str,
     ) -> Result<Vec<DecisionTriageRecord>, DecisionError>;
+
+    /// Appends an immutable triage event.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] when the triage row is missing.
+    async fn append_triage_event(
+        &self,
+        company_id: &str,
+        triage_id: &str,
+        event_type: &str,
+        decision: Option<String>,
+        decided_by_user_id: Option<String>,
+    ) -> Result<DecisionTriageEventRecord, DecisionError>;
+
+    /// Lists triage events for a company (optionally one triage).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] on database failure.
+    async fn list_triage_events(
+        &self,
+        company_id: &str,
+        triage_id: Option<&str>,
+    ) -> Result<Vec<DecisionTriageEventRecord>, DecisionError>;
+
+    /// Marks a triage source as keep (skip the sweeper).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] when the triage row is missing.
+    async fn retention_set_keep(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+        keep: bool,
+    ) -> Result<DecisionRetentionRecord, DecisionError>;
+
+    /// Archives a triage source and enqueues a deduped notification.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] when the triage row is missing.
+    async fn retention_archive(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+        reason: Option<String>,
+        recipient_user_id: Option<String>,
+    ) -> Result<DecisionRetentionRecord, DecisionError>;
+
+    /// Restores an archived triage source.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] when the triage row is missing.
+    async fn retention_restore(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+    ) -> Result<DecisionRetentionRecord, DecisionError>;
+
+    /// Lists retention state for a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] on database failure.
+    async fn list_retention(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DecisionRetentionRecord>, DecisionError>;
+
+    /// Lists archive-notification outbox rows for a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] on database failure.
+    async fn list_outbox(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DecisionOutboxRecord>, DecisionError>;
+
+    /// Marks an outbox row sent.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] on database failure.
+    async fn outbox_mark_sent(
+        &self,
+        company_id: &str,
+        id: &str,
+    ) -> Result<Option<DecisionOutboxRecord>, DecisionError>;
+
+    /// Sweeps triage rows older than `older_than_days` that are not kept:
+    /// archives them and enqueues deduped notifications. Built-in task.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DecisionError`] on database failure.
+    async fn sweep(
+        &self,
+        company_id: &str,
+        older_than_days: i64,
+    ) -> Result<DecisionSweepResult, DecisionError>;
 }
 
 /// Turso/libSQL implementation of [`DecisionRepository`].
@@ -441,6 +634,416 @@ impl DecisionRepository for TursoDecisionRepository {
         }
         Ok(triage)
     }
+
+    async fn append_triage_event(
+        &self,
+        company_id: &str,
+        triage_id: &str,
+        event_type: &str,
+        decision: Option<String>,
+        decided_by_user_id: Option<String>,
+    ) -> Result<DecisionTriageEventRecord, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::row_belongs_to_company(&conn, "decision_triage", triage_id, company_id).await?
+        {
+            return Err(DecisionError::QueueNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        conn.execute(
+            "INSERT INTO decision_triage_events
+               (id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            libsql::params![
+                id.clone(),
+                company_id,
+                triage_id,
+                event_type,
+                decision,
+                decided_by_user_id
+            ],
+        )
+        .await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+                 FROM decision_triage_events WHERE id = ?1",
+                libsql::params![id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("event was just inserted");
+        Ok(row_to_event(&row)?)
+    }
+
+    async fn list_triage_events(
+        &self,
+        company_id: &str,
+        triage_id: Option<&str>,
+    ) -> Result<Vec<DecisionTriageEventRecord>, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = match triage_id {
+            Some(triage_id) => conn
+                .query(
+                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+                     FROM decision_triage_events WHERE company_id = ?1 AND triage_id = ?2
+                     ORDER BY created_at",
+                    libsql::params![company_id, triage_id],
+                )
+                .await?,
+            None => conn
+                .query(
+                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+                     FROM decision_triage_events WHERE company_id = ?1 ORDER BY created_at",
+                    libsql::params![company_id],
+                )
+                .await?,
+        };
+        let mut events = Vec::new();
+        while let Some(row) = rows.next().await? {
+            events.push(row_to_event(&row)?);
+        }
+        Ok(events)
+    }
+
+    async fn retention_set_keep(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+        keep: bool,
+    ) -> Result<DecisionRetentionRecord, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let triage_id = resolve_triage(&conn, company_id, source_kind, source_id).await?;
+        let id = Uuid::new_v4().to_string();
+        conn.execute(
+            "INSERT INTO decision_retention
+               (id, company_id, triage_id, source_kind, source_id, keep, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+             ON CONFLICT (company_id, triage_id)
+             DO UPDATE SET keep = excluded.keep,
+                           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')",
+            libsql::params![
+                id.clone(),
+                company_id,
+                triage_id.clone(),
+                source_kind,
+                source_id,
+                i64::from(keep)
+            ],
+        )
+        .await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
+                        archived_at, archived_reason, restored_at, created_at
+                 FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
+                libsql::params![company_id, triage_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("retention was just upserted");
+        Ok(row_to_retention(&row)?)
+    }
+
+    async fn retention_archive(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+        reason: Option<String>,
+        recipient_user_id: Option<String>,
+    ) -> Result<DecisionRetentionRecord, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let triage_id = resolve_triage(&conn, company_id, source_kind, source_id).await?;
+        let id = Uuid::new_v4().to_string();
+        conn.execute(
+            "INSERT INTO decision_retention
+               (id, company_id, triage_id, source_kind, source_id, keep, archived,
+                archived_at, archived_reason, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, 0, 1, strftime('%Y-%m-%dT%H:%M:%fZ','now'), ?6,
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+             ON CONFLICT (company_id, triage_id)
+             DO UPDATE SET archived = 1, keep = 0,
+                           archived_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                           archived_reason = COALESCE(?6, archived_reason),
+                           restored_at = NULL,
+                           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')",
+            libsql::params![
+                id.clone(),
+                company_id,
+                triage_id.clone(),
+                source_kind,
+                source_id,
+                reason
+            ],
+        )
+        .await?;
+        // Deduped outbox entry (one per triage + kind).
+        let dedupe_key = format!("{company_id}:{triage_id}:archive");
+        let outbox_id = Uuid::new_v4().to_string();
+        let outbox_result = conn
+            .execute(
+                "INSERT INTO decision_archive_notification_outbox
+                   (id, company_id, triage_id, notification_kind, recipient_user_id, status,
+                    dedupe_key, created_at)
+                 VALUES (?1, ?2, ?3, 'archive', ?4, 'pending', ?5,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+                 ON CONFLICT (company_id, dedupe_key) DO NOTHING",
+                libsql::params![
+                    outbox_id,
+                    company_id,
+                    triage_id.clone(),
+                    recipient_user_id,
+                    dedupe_key
+                ],
+            )
+            .await?;
+        let _ = outbox_result;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
+                        archived_at, archived_reason, restored_at, created_at
+                 FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
+                libsql::params![company_id, triage_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("retention exists");
+        Ok(row_to_retention(&row)?)
+    }
+
+    async fn retention_restore(
+        &self,
+        company_id: &str,
+        source_kind: &str,
+        source_id: &str,
+    ) -> Result<DecisionRetentionRecord, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let triage_id = resolve_triage(&conn, company_id, source_kind, source_id).await?;
+        let updated = conn
+            .execute(
+                "UPDATE decision_retention SET archived = 0, restored_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE company_id = ?1 AND triage_id = ?2",
+                libsql::params![company_id, triage_id.clone()],
+            )
+            .await?;
+        if updated == 0 {
+            return Err(DecisionError::QueueNotFound);
+        }
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
+                        archived_at, archived_reason, restored_at, created_at
+                 FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
+                libsql::params![company_id, triage_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("retention exists");
+        Ok(row_to_retention(&row)?)
+    }
+
+    async fn list_retention(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DecisionRetentionRecord>, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
+                        archived_at, archived_reason, restored_at, created_at
+                 FROM decision_retention WHERE company_id = ?1 ORDER BY updated_at DESC",
+                libsql::params![company_id],
+            )
+            .await?;
+        let mut retention = Vec::new();
+        while let Some(row) = rows.next().await? {
+            retention.push(row_to_retention(&row)?);
+        }
+        Ok(retention)
+    }
+
+    async fn list_outbox(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DecisionOutboxRecord>, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, notification_kind, recipient_user_id, status,
+                        attempt_count, last_error, dedupe_key, created_at, sent_at
+                 FROM decision_archive_notification_outbox
+                 WHERE company_id = ?1 ORDER BY created_at DESC",
+                libsql::params![company_id],
+            )
+            .await?;
+        let mut outbox = Vec::new();
+        while let Some(row) = rows.next().await? {
+            outbox.push(row_to_outbox(&row)?);
+        }
+        Ok(outbox)
+    }
+
+    async fn outbox_mark_sent(
+        &self,
+        company_id: &str,
+        id: &str,
+    ) -> Result<Option<DecisionOutboxRecord>, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "UPDATE decision_archive_notification_outbox
+                 SET status = 'sent', sent_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE company_id = ?1 AND id = ?2 AND status = 'pending'",
+                libsql::params![company_id, id],
+            )
+            .await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, triage_id, notification_kind, recipient_user_id, status,
+                        attempt_count, last_error, dedupe_key, created_at, sent_at
+                 FROM decision_archive_notification_outbox WHERE id = ?1",
+                libsql::params![id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("outbox exists");
+        Ok(Some(row_to_outbox(&row)?))
+    }
+
+    async fn sweep(
+        &self,
+        company_id: &str,
+        older_than_days: i64,
+    ) -> Result<DecisionSweepResult, DecisionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut archived = 0i64;
+        let mut notifications = 0i64;
+        // Candidate triage rows older than the window, without an active
+        // retention row that keeps or archives them.
+        let mut rows = conn
+            .query(
+                "SELECT t.id, t.source_kind, t.source_id
+                 FROM decision_triage t
+                 LEFT JOIN decision_retention r ON r.company_id = t.company_id AND r.triage_id = t.id
+                 WHERE t.company_id = ?1
+                   AND (r.id IS NULL OR (r.keep = 0 AND r.archived = 0))
+                   AND t.updated_at < datetime('now', ?2)",
+                libsql::params![company_id, format!("-{older_than_days} days")],
+            )
+            .await?;
+        let mut candidates = Vec::new();
+        while let Some(row) = rows.next().await? {
+            candidates.push((
+                helpers::row_text(&row, 0)?.expect("triage id"),
+                helpers::row_text(&row, 1)?.expect("source_kind"),
+                helpers::row_text(&row, 2)?.expect("source_id"),
+            ));
+        }
+        for (triage_id, source_kind, source_id) in candidates {
+            let updated = conn
+                .execute(
+                    "INSERT INTO decision_retention
+                       (id, company_id, triage_id, source_kind, source_id, keep, archived,
+                        archived_at, archived_reason, created_at, updated_at)
+                     VALUES (?1, ?2, ?3, ?4, ?5, 0, 1, strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                             'sweeper:90d', strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                             strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+                     ON CONFLICT (company_id, triage_id) DO UPDATE SET archived = 1, keep = 0,
+                           archived_at = strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                           restored_at = NULL,
+                           updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')",
+                    libsql::params![
+                        Uuid::new_v4().to_string(),
+                        company_id,
+                        triage_id.clone(),
+                        source_kind,
+                        source_id
+                    ],
+                )
+                .await?;
+            archived += updated as i64;
+            let dedupe_key = format!("{company_id}:{triage_id}:archive");
+            let outbox_result = conn
+                .execute(
+                    "INSERT INTO decision_archive_notification_outbox
+                       (id, company_id, triage_id, notification_kind, status, dedupe_key, created_at)
+                     VALUES (?1, ?2, ?3, 'archive', 'pending', ?4,
+                             strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+                     ON CONFLICT (company_id, dedupe_key) DO NOTHING",
+                    libsql::params![Uuid::new_v4().to_string(), company_id, triage_id, dedupe_key],
+                )
+                .await?;
+            notifications += outbox_result as i64;
+        }
+        Ok(DecisionSweepResult {
+            archived,
+            notifications_enqueued: notifications,
+        })
+    }
+}
+
+fn row_to_event(row: &libsql::Row) -> Result<DecisionTriageEventRecord, libsql::Error> {
+    Ok(DecisionTriageEventRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        triage_id: helpers::row_text(row, 2)?.expect("triage_id"),
+        event_type: helpers::row_text(row, 3)?.expect("event_type"),
+        decision: helpers::row_text(row, 4)?,
+        decided_by_user_id: helpers::row_text(row, 5)?,
+        created_at: helpers::row_text(row, 6)?.expect("created_at"),
+    })
+}
+
+fn row_to_retention(row: &libsql::Row) -> Result<DecisionRetentionRecord, libsql::Error> {
+    Ok(DecisionRetentionRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        triage_id: helpers::row_text(row, 2)?.expect("triage_id"),
+        source_kind: helpers::row_text(row, 3)?.expect("source_kind"),
+        source_id: helpers::row_text(row, 4)?.expect("source_id"),
+        keep: helpers::row_i64(row, 5)? != 0,
+        archived: helpers::row_i64(row, 6)? != 0,
+        archived_at: helpers::row_text(row, 7)?,
+        archived_reason: helpers::row_text(row, 8)?,
+        restored_at: helpers::row_text(row, 9)?,
+        created_at: helpers::row_text(row, 10)?.expect("created_at"),
+    })
+}
+
+fn row_to_outbox(row: &libsql::Row) -> Result<DecisionOutboxRecord, libsql::Error> {
+    Ok(DecisionOutboxRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        triage_id: helpers::row_text(row, 2)?.expect("triage_id"),
+        notification_kind: helpers::row_text(row, 3)?.expect("notification_kind"),
+        recipient_user_id: helpers::row_text(row, 4)?,
+        status: helpers::row_text(row, 5)?.expect("status"),
+        attempt_count: helpers::row_i64(row, 6)?,
+        last_error: helpers::row_text(row, 7)?,
+        dedupe_key: helpers::row_text(row, 8)?.expect("dedupe_key"),
+        created_at: helpers::row_text(row, 9)?.expect("created_at"),
+        sent_at: helpers::row_text(row, 10)?,
+    })
+}
+
+async fn resolve_triage(
+    conn: &libsql::Connection,
+    company_id: &str,
+    source_kind: &str,
+    source_id: &str,
+) -> Result<String, DecisionError> {
+    let mut rows = conn
+        .query(
+            "SELECT id FROM decision_triage WHERE company_id = ?1 AND source_kind = ?2 AND source_id = ?3",
+            libsql::params![company_id, source_kind, source_id],
+        )
+        .await?;
+    match rows.next().await? {
+        Some(row) => Ok(helpers::row_text(&row, 0)?.expect("triage id")),
+        None => Err(DecisionError::QueueNotFound),
+    }
 }
 
 #[cfg(test)]
@@ -536,5 +1139,156 @@ mod tests {
         assert_eq!(triage2.decision.as_deref(), Some("rejected"));
         let all = repo.list_triage("c1").await.unwrap();
         assert_eq!(all.len(), 1);
+    }
+
+    #[tokio::test]
+    async fn retention_archive_restore_and_outbox_dedupe() {
+        let (_dir, repo) = repo().await;
+        let triage = repo
+            .set_triage(
+                "c1",
+                "issue",
+                "i1",
+                TriageInput {
+                    decide_by: None,
+                    snoozed_until: None,
+                    decision: Some("approved".to_owned()),
+                    decided_by_user_id: Some("board".to_owned()),
+                },
+            )
+            .await
+            .unwrap();
+        repo.append_triage_event(
+            "c1",
+            &triage.id,
+            "decided",
+            Some("approved".to_owned()),
+            None,
+        )
+        .await
+        .unwrap();
+        assert!(
+            repo.list_triage_events("c1", Some(&triage.id))
+                .await
+                .unwrap()
+                .len()
+                == 1
+        );
+
+        let kept = repo
+            .retention_set_keep("c1", "issue", "i1", true)
+            .await
+            .unwrap();
+        assert!(kept.keep);
+        let archived = repo
+            .retention_archive(
+                "c1",
+                "issue",
+                "i1",
+                Some("90d".to_owned()),
+                Some("u1".to_owned()),
+            )
+            .await
+            .unwrap();
+        assert!(archived.archived);
+        assert!(!archived.keep);
+        // Archiving again keeps the outbox deduped (one row).
+        repo.retention_archive(
+            "c1",
+            "issue",
+            "i1",
+            Some("90d".to_owned()),
+            Some("u1".to_owned()),
+        )
+        .await
+        .unwrap();
+        let outbox = repo.list_outbox("c1").await.unwrap();
+        assert_eq!(outbox.len(), 1);
+        assert_eq!(outbox[0].status, "pending");
+
+        // Mark sent.
+        let sent = repo
+            .outbox_mark_sent("c1", &outbox[0].id)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(sent.status, "sent");
+        assert!(
+            repo.outbox_mark_sent("c1", &outbox[0].id)
+                .await
+                .unwrap()
+                .is_none()
+        );
+
+        // Restore.
+        let restored = repo.retention_restore("c1", "issue", "i1").await.unwrap();
+        assert!(!restored.archived);
+        assert!(restored.restored_at.is_some());
+        assert!(repo.list_retention("c1").await.unwrap().len() == 1);
+    }
+
+    #[tokio::test]
+    async fn sweep_archives_old_triage_and_enqueues_dedupe_notifications() {
+        let (_dir, repo) = repo().await;
+        // Old triage row (created now; backdate via SQL so the sweeper sees it).
+        let triage = repo
+            .set_triage(
+                "c1",
+                "issue",
+                "old",
+                TriageInput {
+                    decide_by: None,
+                    snoozed_until: None,
+                    decision: None,
+                    decided_by_user_id: None,
+                },
+            )
+            .await
+            .unwrap();
+        let conn = crate::connect(&repo.db).await.unwrap();
+        conn.execute(
+            "UPDATE decision_triage SET updated_at = datetime('now', '-100 days') WHERE id = ?1",
+            libsql::params![triage.id],
+        )
+        .await
+        .unwrap();
+        // Kept triage must survive the sweep.
+        let kept = repo
+            .set_triage(
+                "c1",
+                "issue",
+                "kept",
+                TriageInput {
+                    decide_by: None,
+                    snoozed_until: None,
+                    decision: None,
+                    decided_by_user_id: None,
+                },
+            )
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE decision_triage SET updated_at = datetime('now', '-100 days') WHERE id = ?1",
+            libsql::params![kept.id],
+        )
+        .await
+        .unwrap();
+        repo.retention_set_keep("c1", "issue", "kept", true)
+            .await
+            .unwrap();
+
+        let result = repo.sweep("c1", 90).await.unwrap();
+        assert_eq!(result.archived, 1);
+        assert_eq!(result.notifications_enqueued, 1);
+        let retention = repo.list_retention("c1").await.unwrap();
+        let old_row = retention.iter().find(|r| r.source_id == "old").unwrap();
+        assert!(old_row.archived);
+        let kept_row = retention.iter().find(|r| r.source_id == "kept").unwrap();
+        assert!(!kept_row.archived);
+
+        // Second sweep is a no-op (already archived, notifications deduped).
+        let again = repo.sweep("c1", 90).await.unwrap();
+        assert_eq!(again.archived, 0);
+        assert_eq!(again.notifications_enqueued, 0);
     }
 }

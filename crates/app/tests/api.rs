@@ -4228,3 +4228,177 @@ async fn agent_runtime_and_recovery_flow() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn decision_retention_sweeper_flow() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Triage row (old enough for the sweeper).
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-triage",
+        json!({ "sourceKind": "issue", "sourceId": "i-old", "decision": "approved" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let triage_id = body["id"].as_str().unwrap().to_owned();
+    conn.execute(
+        &format!(
+            "UPDATE decision_triage SET updated_at = datetime('now', '-100 days') WHERE id = '{triage_id}'"
+        ),
+        (),
+    )
+    .await
+    .unwrap();
+    // Kept triage.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-triage",
+        json!({ "sourceKind": "issue", "sourceId": "i-kept" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let kept_triage_id = body["id"].as_str().unwrap().to_owned();
+    conn.execute(
+        &format!(
+            "UPDATE decision_triage SET updated_at = datetime('now', '-100 days') WHERE id = '{kept_triage_id}'"
+        ),
+        (),
+    )
+    .await
+    .unwrap();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-retention/issue/i-kept/keep",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Append a triage event.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-triage-events",
+        json!({ "triageId": triage_id, "eventType": "decided", "decision": "approved" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, events) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/c1/decision-triage-events?triageId={triage_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(events.as_array().unwrap().len(), 1);
+
+    // Run the 90-day sweeper: old triage archived + notification enqueued;
+    // kept triage survives.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-desk/sweep",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["archived"], 1);
+    assert_eq!(body["notificationsEnqueued"], 1);
+
+    let (status, retention) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/decision-retention",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let rows = retention.as_array().unwrap();
+    assert!(
+        rows.iter()
+            .any(|r| r["sourceId"] == "i-old" && r["archived"] == true)
+    );
+    assert!(
+        rows.iter()
+            .any(|r| r["sourceId"] == "i-kept" && r["archived"] == false)
+    );
+
+    // Outbox has one pending notification; mark it sent.
+    let (status, outbox) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/decision-archive-notification-outbox",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(outbox.as_array().unwrap().len(), 1);
+    let outbox_id = outbox.as_array().unwrap()[0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/decision-archive-notification-outbox/{outbox_id}/sent"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "sent");
+
+    // Manual archive then restore.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-retention/issue/i-kept/archive",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-retention/issue/i-kept/restore",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["archived"], false);
+    assert!(body["restoredAt"].is_string());
+    // Restore clears keep; re-keep so the second sweep is a true no-op.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-retention/issue/i-kept/keep",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Second sweep is a no-op (already archived, notification deduped).
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-desk/sweep",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["archived"], 0);
+    assert_eq!(body["notificationsEnqueued"], 0);
+}

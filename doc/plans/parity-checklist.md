@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56、插件生态 #57、agent runtime #62 完成）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56、插件生态 #57、agent runtime #62、决策桌 #63 完成）。
 
 ## 使用方式
 
@@ -31,7 +31,7 @@
 | **P1 治理：审批门** | approvals §8.3 状态机、审批门 | ✅ 完成 | `approvals.rs`；budget override 门测试 |
 | **P1 治理：审计** | activity_log 全量 mutating 动作 | ✅ 完成 | `activity.rs` + 全路由接入 |
 | **P1 治理：密钥** | company_secrets 版本化、加密、redaction | ✅ 完成 | `secrets.rs`、`secrets/` cipher；加密静态断言 + redact |
-| **P2 治理扩展：决策桌** | queues/items/triage | ✅ 完成 | `decision_desk.rs`（迁移 0006） |
+| **P2 治理扩展：决策桌** | queues/items/triage + triage 历史/retention/sweeper/通知 outbox | ✅ 完成 | `decision_desk.rs`（迁移 0006 + 0016）；issue #63；retention 归档/恢复 + 通知去重 + 90 天 sweeper |
 | **P2 治理扩展：skills** | 公司技能库 + 策略评估器 | ✅ 完成 | `skills.rs` 纯评估器 + repository（迁移 0008） |
 | **P2 治理扩展：inbox** | 归档/恢复、注意力排序 | ✅ 完成 | `set_hidden`/`list_inbox`；排序为更新时间倒序 |
 | **P2 治理扩展：external objects** | 关联 + 状态刷新 | ✅ 完成 | `external_objects.rs`（迁移 0007） |
@@ -53,7 +53,6 @@
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
 | managed checkout / git 凭据 | 上游近期新增 | 未开始 |
-| decision desk 完整 retention/sweeper | 基础队列/三态已实现 | 进行中 |
 | UI 完整功能（搜索、看板拖拽、设置页等） | 骨架 + 核心页已实现 | 进行中 |
 | **UI 国际化（i18n）** | 上游已合入 zh-CN/zh-TW 全量 sweep + 多语言 locale（`ui/src/i18n/locales/*.json`，约 2100 键）；Rust/Topcoat UI 已有 en + zh-CN 轻量 i18n 层（`crates/app/src/i18n.rs`，`?lang=` 切换，6 个看板页面全量接入，issue #50/PR #51） | ✅ 完成（zh-TW 与完整键集为后续增量） |
 
