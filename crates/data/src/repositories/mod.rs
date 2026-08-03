@@ -78,7 +78,8 @@ pub use costs::{
     NewCostEvent, TursoCostRepository,
 };
 pub use decision_desk::{
-    DecisionError, DecisionQueueItemRecord, DecisionQueueRecord, DecisionRepository,
+    DecisionError, DecisionOutboxRecord, DecisionQueueItemRecord, DecisionQueueRecord,
+    DecisionRepository, DecisionRetentionRecord, DecisionSweepResult, DecisionTriageEventRecord,
     DecisionTriageRecord, TriageInput, TursoDecisionRepository,
 };
 pub use documents::{

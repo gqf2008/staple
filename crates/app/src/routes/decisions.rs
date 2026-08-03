@@ -201,3 +201,198 @@ fn decision_error_to_api(error: staple_data::DecisionError) -> ApiError {
         other => ApiError::internal(other.to_string()),
     }
 }
+
+/// Body for `POST /api/companies/{companyId}/decision-triage-events`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AppendTriageEventRequest {
+    /// Triage id.
+    pub triage_id: String,
+    /// Event type.
+    pub event_type: String,
+    /// Decision.
+    #[serde(default)]
+    pub decision: Option<String>,
+}
+
+/// `GET /api/companies/{companyId}/decision-triage-events?triageId=...`.
+#[route(GET "/api/companies/{company_id}/decision-triage-events")]
+pub async fn list_triage_events(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::DecisionTriageEventRecord>>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let triage_id = topcoat::router::query_params::<TriageQuery>(cx)
+        .ok()
+        .and_then(|query| query.triage_id.clone());
+    let events = state
+        .decisions
+        .list_triage_events(&company_id, triage_id.as_deref())
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(events))
+}
+
+/// `POST /api/companies/{companyId}/decision-triage-events` — appends an
+/// immutable triage event.
+#[route(POST "/api/companies/{company_id}/decision-triage-events")]
+pub async fn append_triage_event(
+    cx: &Cx,
+    Json(body): Json<AppendTriageEventRequest>,
+) -> Result<(StatusCode, Json<staple_data::DecisionTriageEventRecord>), ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let event = state
+        .decisions
+        .append_triage_event(
+            &company_id,
+            &body.triage_id,
+            &body.event_type,
+            body.decision,
+            None,
+        )
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok((StatusCode::CREATED, Json(event)))
+}
+
+/// `GET /api/companies/{companyId}/decision-retention`.
+#[route(GET "/api/companies/{company_id}/decision-retention")]
+pub async fn list_retention(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::DecisionRetentionRecord>>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let retention = state
+        .decisions
+        .list_retention(&company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(retention))
+}
+
+/// `POST /api/companies/{companyId}/decision-retention/{sourceKind}/{sourceId}/keep`.
+#[route(POST "/api/companies/{company_id}/decision-retention/{source_kind}/{source_id}/keep")]
+pub async fn set_keep(cx: &Cx) -> Result<Json<staple_data::DecisionRetentionRecord>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let source_kind = path_param::<SourceKind>(cx)?.to_string();
+    let source_id = path_param::<SourceId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let record = state
+        .decisions
+        .retention_set_keep(&company_id, &source_kind, &source_id, true)
+        .await
+        .map_err(decision_error_to_api)?;
+    Ok(Json(record))
+}
+
+/// `POST /api/companies/{companyId}/decision-retention/{sourceKind}/{sourceId}/archive`.
+#[route(POST "/api/companies/{company_id}/decision-retention/{source_kind}/{source_id}/archive")]
+pub async fn archive_retention(
+    cx: &Cx,
+) -> Result<Json<staple_data::DecisionRetentionRecord>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let source_kind = path_param::<SourceKind>(cx)?.to_string();
+    let source_id = path_param::<SourceId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let record = state
+        .decisions
+        .retention_archive(
+            &company_id,
+            &source_kind,
+            &source_id,
+            Some("manual".to_owned()),
+            None,
+        )
+        .await
+        .map_err(decision_error_to_api)?;
+    Ok(Json(record))
+}
+
+/// `POST /api/companies/{companyId}/decision-retention/{sourceKind}/{sourceId}/restore`.
+#[route(POST "/api/companies/{company_id}/decision-retention/{source_kind}/{source_id}/restore")]
+pub async fn restore_retention(
+    cx: &Cx,
+) -> Result<Json<staple_data::DecisionRetentionRecord>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let source_kind = path_param::<SourceKind>(cx)?.to_string();
+    let source_id = path_param::<SourceId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let record = state
+        .decisions
+        .retention_restore(&company_id, &source_kind, &source_id)
+        .await
+        .map_err(decision_error_to_api)?;
+    Ok(Json(record))
+}
+
+/// `GET /api/companies/{companyId}/decision-archive-notification-outbox`.
+#[route(GET "/api/companies/{company_id}/decision-archive-notification-outbox")]
+pub async fn list_outbox(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::DecisionOutboxRecord>>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let outbox = state
+        .decisions
+        .list_outbox(&company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(outbox))
+}
+
+/// `POST /api/companies/{companyId}/decision-archive-notification-outbox/{id}/sent`.
+#[route(POST "/api/companies/{company_id}/decision-archive-notification-outbox/{id}/sent")]
+pub async fn mark_outbox_sent(
+    cx: &Cx,
+) -> Result<Json<staple_data::DecisionOutboxRecord>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let id = path_param::<crate::routes::Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    state
+        .decisions
+        .outbox_mark_sent(&company_id, &id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .map(Json)
+        .ok_or_else(|| ApiError::not_found("Outbox row not found or already sent"))
+}
+
+/// `POST /api/companies/{companyId}/decision-desk/sweep` — runs the built-in
+/// 90-day retention sweeper.
+#[route(POST "/api/companies/{company_id}/decision-desk/sweep")]
+pub async fn sweep_retention(cx: &Cx) -> Result<Json<staple_data::DecisionSweepResult>, ApiError> {
+    crate::auth::require_board(cx)?;
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let result = state
+        .decisions
+        .sweep(&company_id, 90)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(result))
+}
+
+/// `{source_kind}` path parameter.
+#[path_param(error = bad_request("Invalid source kind"))]
+pub(crate) struct SourceKind(String);
+
+/// `{source_id}` path parameter.
+#[path_param(error = bad_request("Invalid source id"))]
+pub(crate) struct SourceId(String);
+
+/// Query for triage events.
+#[topcoat::router::query_params]
+struct TriageQuery {
+    /// Optional triage filter.
+    #[serde(rename = "triageId")]
+    triage_id: Option<String>,
+}
