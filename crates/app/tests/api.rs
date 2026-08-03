@@ -11,9 +11,10 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoSecretRepository, TursoWorkProductRepository, migrate, open,
+    TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
+    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
+    TursoSecretRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -72,6 +73,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let api_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let decisions_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let external_objects_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -93,6 +100,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
+        decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
+        external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
     };
     (state, seed_db)
 }
@@ -2068,4 +2077,143 @@ async fn three_identity_permission_matrix() {
     )
     .await;
     assert_eq!(status, StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn decision_desk_and_inbox_and_external_objects() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "T").await;
+
+    // Decision queue.
+    let (status, queue) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues"),
+        json!({ "name": "approvals", "retentionDays": 30 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(queue["name"], "approvals");
+    let queue_id = queue["id"].as_str().unwrap().to_owned();
+
+    // Duplicate queue -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues"),
+        json!({ "name": "approvals" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Queue item.
+    let (status, item) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues/{queue_id}/items"),
+        json!({ "sourceKind": "issue", "sourceId": issue_id, "payload": { "n": 1 } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(item["sourceId"], issue_id);
+    let (status, items) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/decision-queues/{queue_id}/items"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(items.as_array().unwrap().len(), 1);
+
+    // Triage.
+    let (status, triage) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-triage"),
+        json!({ "sourceKind": "issue", "sourceId": issue_id, "decision": "keep", "decidedByUserId": "board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(triage["decision"], "keep");
+
+    // Inbox: issue present; archive -> gone; unarchive -> back.
+    let (status, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(inbox.as_array().unwrap().len(), 1);
+
+    let (status, archived) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/archive"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(archived["hiddenAt"].is_string());
+
+    let (_, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(inbox.as_array().unwrap().len(), 0);
+
+    let (_, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/unarchive"),
+        json!({}),
+    )
+    .await;
+    let (_, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(inbox.as_array().unwrap().len(), 1);
+
+    // External objects.
+    let (status, external) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/external-objects"),
+        json!({ "kind": "github_pr", "externalId": "42", "url": "https://github.com/x/y/pull/42" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(external["status"], "pending");
+    let external_id = external["id"].as_str().unwrap().to_owned();
+
+    let (status, refreshed) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/external-objects/{external_id}/refresh"),
+        json!({ "status": "merged" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(refreshed["status"], "merged");
+    assert!(refreshed["lastSyncedAt"].is_string());
+
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/issues/{issue_id}/external-objects"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
 }

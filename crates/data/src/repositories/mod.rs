@@ -10,7 +10,9 @@ pub mod approvals;
 pub mod assets;
 pub mod companies;
 pub mod costs;
+pub mod decision_desk;
 pub mod documents;
+pub mod external_objects;
 pub mod goals;
 pub mod heartbeat_runs;
 mod helpers;
@@ -43,9 +45,17 @@ pub use costs::{
     AgentCostRow, BudgetSummary, CostError, CostEventOutcome, CostEventRecord, CostRepository,
     NewCostEvent, TursoCostRepository,
 };
+pub use decision_desk::{
+    DecisionError, DecisionQueueItemRecord, DecisionQueueRecord, DecisionRepository,
+    DecisionTriageRecord, TriageInput, TursoDecisionRepository,
+};
 pub use documents::{
     DocumentError, DocumentRecord, DocumentRepository, NewIssueDocument, TursoDocumentRepository,
     UpdateIssueDocument,
+};
+pub use external_objects::{
+    ExternalObjectError, ExternalObjectRecord, ExternalObjectRepository, NewExternalObject,
+    TursoExternalObjectRepository,
 };
 pub use goals::{GoalError, GoalPatch, GoalRecord, GoalRepository, NewGoal, TursoGoalRepository};
 pub use heartbeat_runs::{

@@ -4,10 +4,11 @@ use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
     SecretCipher, TursoActivityRepository, TursoApiKeyRepository, TursoApprovalRepository,
-    TursoAssetRepository, TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoWorkProductRepository, default_key_path, migrate, open,
+    TursoAssetRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
+    TursoDocumentRepository, TursoExternalObjectRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository,
+    TursoWorkProductRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -33,6 +34,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let activity_db = open(&db_config).await?;
     let secrets_db = open(&db_config).await?;
     let api_keys_db = open(&db_config).await?;
+    let decisions_db = open(&db_config).await?;
+    let external_objects_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let secret_cipher = SecretCipher::load_or_create(default_key_path())
         .map_err(|error| Box::<dyn Error>::from(error.to_string()))?;
@@ -53,6 +56,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
+        decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
+        external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
