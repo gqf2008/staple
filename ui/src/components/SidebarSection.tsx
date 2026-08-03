@@ -18,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "@/lib/utils";
 import { useSidebarNavExpanded } from "./SidebarNavItem";
 
 type SidebarSectionIcon = ComponentType<{ className?: string }>;
@@ -70,7 +70,9 @@ function SidebarSectionHeader({
   label,
   menu,
 }: Pick<SidebarSectionProps, "collapsible" | "headerAction" | "label" | "menu">) {
-  const { isMobile } = useSidebar();
+  const { isMobile, collapsed, peeking } = useSidebar();
+  const forceExpanded = useSidebarNavExpanded();
+  const rail = collapsed && !peeking && !forceExpanded;
   const [menuOpen, setMenuOpen] = useState(false);
   const hasMenu = Boolean(
     menu && ((menu.actions?.length ?? 0) > 0 || (menu.radioChoices?.length ?? 0) > 0),
@@ -89,7 +91,7 @@ function SidebarSectionHeader({
     "h-5 w-5 shrink-0 text-muted-foreground/60 transition-opacity hover:text-foreground data-[state=open]:opacity-100",
     headerControlVisibilityClassName,
   );
-  const headerContent = <span className={labelClassName}>{label}</span>;
+  const headerContent = <span className={cn(labelClassName, rail && SIDEBAR_RAIL_HIDDEN_LABEL)}>{label}</span>;
   const HeaderActionIcon = headerAction?.icon;
 
   const headingControl = hasMenu ? (

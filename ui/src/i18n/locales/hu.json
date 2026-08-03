@@ -7012,7 +7012,9 @@
       "actions": "Actions",
       "pages": "Pages",
       "tasks": "Tasks",
-      "agents": "Agents"
+      "agents": "Agents",
+      "title": "Command Palette",
+      "searchPlaceholder": "Search for a command to run..."
     },
     "agentMultiSelect": {
       "placeholder": "Select agent…",
@@ -7236,6 +7238,9 @@
     "themeToggle": {
       "switchToLight": "Switch to light mode",
       "switchToDark": "Switch to dark mode"
+    },
+    "activeAgentsPanel": {
+      "noRecentRuns": "No recent agent runs."
     }
   },
   "priorities": {
@@ -11149,7 +11154,26 @@
         "cleared-responsible": "cleared the responsible",
         "updated-blockers": {
           "2": "updated blockers on"
-        }
+        },
+        "verb-created": "created",
+        "verb-updated": "updated",
+        "verb-deleted": "deleted",
+        "verb-released": "released",
+        "verb-paused": "paused",
+        "verb-resumed": "resumed",
+        "verb-terminated": "terminated",
+        "verb-approved": "approved",
+        "verb-rejected": "rejected",
+        "verb-archived": "archived",
+        "verb-reactivated": "reactivated",
+        "built-in-agent-provisioned": "built in agent provisioned",
+        "built-in-agent-routine-reconciled": "built in agent routine reconciled",
+        "agent-hire-created": "agent hire created",
+        "agent-instructions-file-updated": "agent instructions file updated",
+        "changed-status-from-to": "changed status from {{from}} to {{to}} on",
+        "changed-status-to": "changed status to {{status}} on",
+        "changed-priority-from-to": "changed priority from {{from}} to {{to}} on",
+        "changed-priority-to": "changed priority to {{priority}} on"
       },
       "agent-onboarding-prompt": {
         "no-candidate-urls-available": "- (No candidate URLs are available yet.)"
@@ -11510,7 +11534,17 @@
         "ask-mode": "Ask mode",
         "ask-mode-submission-click": "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work.",
         "plan-mode-submission-click": "Plan mode is on for this submission. Click to change.",
-        "agent-mode-submission-click": "Agent mode for this submission. Click to change."
+        "agent-mode-submission-click": "Agent mode for this submission. Click to change.",
+        "agent": "Agent",
+        "plan": "Plan",
+        "ask": "Ask"
+      },
+      "timeago": {
+        "minutes": "{{count}}m ago",
+        "hours": "{{count}}h ago",
+        "days": "{{count}}d ago",
+        "weeks": "{{count}}w ago",
+        "months": "{{count}}mo ago"
       }
     },
     "api": {

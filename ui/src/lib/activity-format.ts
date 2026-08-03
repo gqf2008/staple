@@ -23,10 +23,10 @@ interface ActivityFormatOptions {
 }
 
 const ACTIVITY_ROW_VERBS: Record<string, string> = {
-  "issue.created": "created",
-  "issue.updated": "updated",
+  "issue.created": t("ui.lib.activity-format.verb-created"),
+  "issue.updated": t("ui.lib.activity-format.verb-updated"),
   "issue.checked_out": t("ui.lib.activity-format.checked"),
-  "issue.released": "released",
+  "issue.released": t("ui.lib.activity-format.verb-released"),
   "issue.comment_added": t("ui.lib.activity-format.commented"),
   "issue.comment_cancelled": t("ui.lib.activity-format.cancelled-queued-comment"),
   "issue.comment_deleted": t("ui.lib.activity-format.deleted-comment"),
@@ -46,7 +46,7 @@ const ACTIVITY_ROW_VERBS: Record<string, string> = {
   "issue.monitor_recovery_issue_created": t("ui.lib.activity-format.created-monitor-recovery"),
   "issue.monitor_escalated_to_board": t("ui.lib.activity-format.escalated-monitor"),
   "issue.commented": t("ui.lib.activity-format.commented"),
-  "issue.deleted": "deleted",
+  "issue.deleted": t("ui.lib.activity-format.verb-deleted"),
   "issue.successful_run_handoff_required": t("ui.lib.activity-format.flagged-missing-next-step"),
   "issue.successful_run_handoff_resolved": t("ui.lib.activity-format.recorded-next-step-chosen"),
   "issue.successful_run_handoff_escalated": t("ui.lib.activity-format.escalated-missing-next-step"),
@@ -54,12 +54,12 @@ const ACTIVITY_ROW_VERBS: Record<string, string> = {
   "issue.recovery_action_opened": t("ui.lib.activity-format.opened-recovery-action"),
   "issue.recovery_action_resolved": t("ui.lib.activity-format.resolved-recovery-action"),
   "issue.recovery_action_escalated": t("ui.lib.activity-format.escalated-recovery-action"),
-  "agent.created": "created",
-  "agent.updated": "updated",
-  "agent.paused": "paused",
-  "agent.resumed": "resumed",
+  "agent.created": t("ui.lib.activity-format.verb-created"),
+  "agent.updated": t("ui.lib.activity-format.verb-updated"),
+  "agent.paused": t("ui.lib.activity-format.verb-paused"),
+  "agent.resumed": t("ui.lib.activity-format.verb-resumed"),
   "agent.error_cleared": t("ui.lib.activity-format.cleared-error"),
-  "agent.terminated": "terminated",
+  "agent.terminated": t("ui.lib.activity-format.verb-terminated"),
   "agent.key_created": t("ui.lib.activity-format.created-api-key"),
   "agent.budget_updated": t("ui.lib.activity-format.updated-budget"),
   "agent.runtime_session_reset": t("ui.lib.activity-format.reset-session"),
@@ -68,20 +68,20 @@ const ACTIVITY_ROW_VERBS: Record<string, string> = {
   "heartbeat.output_stale_source_resolved": t("ui.lib.activity-format.system-folded-stale-run"),
   "heartbeat.output_stale_recovery_recursion_refused": t("ui.lib.activity-format.refused-recovery-recovery"),
   "approval.created": t("ui.lib.activity-format.requested-approval"),
-  "approval.approved": "approved",
-  "approval.rejected": "rejected",
-  "project.created": "created",
-  "project.updated": "updated",
-  "project.deleted": "deleted",
-  "goal.created": "created",
-  "goal.updated": "updated",
-  "goal.deleted": "deleted",
+  "approval.approved": t("ui.lib.activity-format.verb-approved"),
+  "approval.rejected": t("ui.lib.activity-format.verb-rejected"),
+  "project.created": t("ui.lib.activity-format.verb-created"),
+  "project.updated": t("ui.lib.activity-format.verb-updated"),
+  "project.deleted": t("ui.lib.activity-format.verb-deleted"),
+  "goal.created": t("ui.lib.activity-format.verb-created"),
+  "goal.updated": t("ui.lib.activity-format.verb-updated"),
+  "goal.deleted": t("ui.lib.activity-format.verb-deleted"),
   "cost.reported": t("ui.lib.activity-format.reported-cost"),
   "cost.recorded": t("ui.lib.activity-format.recorded-cost"),
   "company.created": t("ui.lib.activity-format.created-company"),
   "company.updated": t("ui.lib.activity-format.updated-company"),
-  "company.archived": "archived",
-  "company.reactivated": "reactivated",
+  "company.archived": t("ui.lib.activity-format.verb-archived"),
+  "company.reactivated": t("ui.lib.activity-format.verb-reactivated"),
   "company.budget_updated": t("ui.lib.activity-format.updated-budget"),
   "audit.exported": t("ui.lib.activity-format.exported-agent-audit-log"),
 };
@@ -129,8 +129,8 @@ const ISSUE_ACTIVITY_LABELS: Record<string, string> = {
   "heartbeat.output_stale_source_resolved": t("ui.lib.activity-format.system-folded-stale-run.2"),
   "heartbeat.output_stale_recovery_recursion_refused": t("ui.lib.activity-format.refused-recovery-recovery-escalation"),
   "approval.created": t("ui.lib.activity-format.requested-approval"),
-  "approval.approved": "approved",
-  "approval.rejected": "rejected",
+  "approval.approved": t("ui.lib.activity-format.verb-approved"),
+  "approval.rejected": t("ui.lib.activity-format.verb-rejected"),
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -232,14 +232,14 @@ function formatIssueUpdatedVerb(details: ActivityDetails): string | null {
   if (details.status !== undefined) {
     const from = previous.status;
     return from
-      ? `changed status from ${humanizeValue(from)} to ${humanizeValue(details.status)} on`
-      : `changed status to ${humanizeValue(details.status)} on`;
+      ? t("ui.lib.activity-format.changed-status-from-to", { from: humanizeValue(from), to: humanizeValue(details.status) })
+      : t("ui.lib.activity-format.changed-status-to", { status: humanizeValue(details.status) });
   }
   if (details.priority !== undefined) {
     const from = previous.priority;
     return from
-      ? `changed priority from ${humanizeValue(from)} to ${humanizeValue(details.priority)} on`
-      : `changed priority to ${humanizeValue(details.priority)} on`;
+      ? t("ui.lib.activity-format.changed-priority-from-to", { from: humanizeValue(from), to: humanizeValue(details.priority) })
+      : t("ui.lib.activity-format.changed-priority-to", { priority: humanizeValue(details.priority) });
   }
   return null;
 }
@@ -348,7 +348,13 @@ export function formatActivityVerb(
   });
   if (structuredChange) return structuredChange;
 
-  return ACTIVITY_ROW_VERBS[action] ?? action.replace(/[._]/g, " ");
+    const extra: Record<string, string> = {
+    "built_in_agent.provisioned": t("ui.lib.activity-format.built-in-agent-provisioned"),
+    "built_in_agent.routine_reconciled": t("ui.lib.activity-format.built-in-agent-routine-reconciled"),
+    "agent.hire_created": t("ui.lib.activity-format.agent-hire-created"),
+    "agent.instructions_file_updated": t("ui.lib.activity-format.agent-instructions-file-updated"),
+  };
+  return ACTIVITY_ROW_VERBS[action] ?? extra[action] ?? action.replace(/[._]/g, " ");
 }
 
 export function formatIssueActivityAction(

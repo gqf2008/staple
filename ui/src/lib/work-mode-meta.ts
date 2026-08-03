@@ -48,7 +48,7 @@ export function workModeMetaList(): WorkModeMeta[] {
     {
       value: "standard",
       label: t("ui.lib.work-mode-meta.agent-mode"),
-      shortLabel: "Agent",
+      shortLabel: t("ui.lib.work-mode-meta.agent"),
       icon: Hammer,
       tone: "neutral",
       classes: STANDARD_CLASSES,
@@ -64,7 +64,7 @@ export function workModeMetaList(): WorkModeMeta[] {
     {
       value: "ask",
       label: t("ui.lib.work-mode-meta.ask-mode"),
-      shortLabel: "Ask",
+      shortLabel: t("ui.lib.work-mode-meta.ask"),
       icon: MessageCircleQuestion,
       tone: "ask",
       classes: ASK_CLASSES,

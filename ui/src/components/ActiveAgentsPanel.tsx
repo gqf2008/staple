@@ -74,7 +74,7 @@ export function ActiveAgentsPanel({
   cardLimit = DASHBOARD_RUN_CARD_LIMIT,
   gridClassName,
   cardClassName,
-  emptyMessage = "No recent agent runs.",
+  emptyMessage = t("components.activeAgentsPanel.noRecentRuns"),
   queryScope = "dashboard",
   showMoreLink = true,
 }: ActiveAgentsPanelProps) {

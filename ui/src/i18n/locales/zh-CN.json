@@ -7012,7 +7012,9 @@
       "actions": "操作",
       "pages": "页面",
       "tasks": "任务",
-      "agents": "智能体"
+      "agents": "智能体",
+      "title": "命令面板",
+      "searchPlaceholder": "搜索要运行的命令…"
     },
     "agentMultiSelect": {
       "placeholder": "选择智能体…",
@@ -7236,6 +7238,9 @@
     "themeToggle": {
       "switchToLight": "切换到浅色模式",
       "switchToDark": "切换到深色模式"
+    },
+    "activeAgentsPanel": {
+      "noRecentRuns": "暂无最近的智能体运行。"
     }
   },
   "priorities": {
@@ -11149,7 +11154,26 @@
         "cleared-responsible": "清除了责任人",
         "updated-blockers": {
           "2": "更新了以下阻塞项"
-        }
+        },
+        "verb-created": "创建了",
+        "verb-updated": "更新了",
+        "verb-deleted": "删除了",
+        "verb-released": "释放了",
+        "verb-paused": "暂停了",
+        "verb-resumed": "恢复了",
+        "verb-terminated": "终止了",
+        "verb-approved": "批准了",
+        "verb-rejected": "拒绝了",
+        "verb-archived": "归档了",
+        "verb-reactivated": "重新激活了",
+        "built-in-agent-provisioned": "配置了内置智能体",
+        "built-in-agent-routine-reconciled": "对账了内置智能体例程",
+        "agent-hire-created": "发起了雇佣",
+        "agent-instructions-file-updated": "更新了指令文件",
+        "changed-status-from-to": "将状态从 {{from}} 改为 {{to}}",
+        "changed-status-to": "将状态改为 {{status}}",
+        "changed-priority-from-to": "将优先级从 {{from}} 改为 {{to}}",
+        "changed-priority-to": "将优先级改为 {{priority}}"
       },
       "agent-onboarding-prompt": {
         "no-candidate-urls-available": "- （还没有可用的候选 URL。）"
@@ -11510,7 +11534,17 @@
         "ask-mode": "提问模式",
         "ask-mode-submission-click": "此提交的提问模式。点击更改。责任人将在此线程中回答；不进行实现工作。",
         "plan-mode-submission-click": "此提交的计划模式已开启。点击更改。",
-        "agent-mode-submission-click": "此提交的智能体模式。点击更改。"
+        "agent-mode-submission-click": "此提交的智能体模式。点击更改。",
+        "agent": "智能体",
+        "plan": "计划",
+        "ask": "提问"
+      },
+      "timeago": {
+        "minutes": "{{count}} 分钟前",
+        "hours": "{{count}} 小时前",
+        "days": "{{count}} 天前",
+        "weeks": "{{count}} 周前",
+        "months": "{{count}} 个月前"
       }
     },
     "api": {

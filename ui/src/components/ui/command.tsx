@@ -32,8 +32,8 @@ function Command({
 }
 
 function CommandDialog({
-  title = "Command Palette",
-  description = "Search for a command to run...",
+  title = t("components.commandPalette.title"),
+  description = t("components.commandPalette.searchPlaceholder"),
   children,
   className,
   showCloseButton = true,

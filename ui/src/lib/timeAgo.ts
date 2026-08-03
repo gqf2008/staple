@@ -13,20 +13,20 @@ export function timeAgo(date: Date | string): string {
   if (seconds < MINUTE) return t("pages.apps.testPanel.justNow");
   if (seconds < HOUR) {
     const m = Math.floor(seconds / MINUTE);
-    return `${m}m ago`;
+    return t("ui.lib.timeago.minutes", { count: m });
   }
   if (seconds < DAY) {
     const h = Math.floor(seconds / HOUR);
-    return `${h}h ago`;
+    return t("ui.lib.timeago.hours", { count: h });
   }
   if (seconds < WEEK) {
     const d = Math.floor(seconds / DAY);
-    return `${d}d ago`;
+    return t("ui.lib.timeago.days", { count: d });
   }
   if (seconds < MONTH) {
     const w = Math.floor(seconds / WEEK);
-    return `${w}w ago`;
+    return t("ui.lib.timeago.weeks", { count: w });
   }
   const mo = Math.floor(seconds / MONTH);
-  return `${mo}mo ago`;
+  return t("ui.lib.timeago.months", { count: mo });
 }
