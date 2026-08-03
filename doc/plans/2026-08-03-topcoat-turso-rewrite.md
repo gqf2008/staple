@@ -2,13 +2,13 @@
 
 日期：2026-08-03
 状态：规划中（Phase 0 已完成）
-范围：`gqf2008/paperclip-rs`（独立项目，非 fork）
+范围：`gqf2008/staple`（独立项目，非 fork）
 
 ## 1. 背景与目标
 
 以 **Topcoat + Turso 从零重写** Paperclip（AI 智能体公司控制面）。项目架构：
 
-- **`gqf2008/paperclip-rs`（本仓库，独立项目）**：不是 GitHub fork，不跟踪上游。
+- **`gqf2008/staple`（本仓库，独立项目）**：不是 GitHub fork，不跟踪上游。
   重写工作全部在这里进行，最终完全替换上游 Node.js 代码。
 - **`gqf2008/paperclip`（参考镜像 fork）**：保留上游全量代码与自动同步
   （`sync/upstream` 分支 + fast-forward/PR 工作流），只作为功能参考，永不合并回本仓库。
@@ -56,7 +56,7 @@
 
 ## 5. 分阶段路线图
 
-- **Phase 0（已完成）**：独立仓库 `gqf2008/paperclip-rs`、参考镜像 fork（含自动同步）、本规划。
+- **Phase 0（已完成）**：独立仓库 `gqf2008/staple`、参考镜像 fork（含自动同步）、本规划。
 - **Phase 1：Rust 骨架 + 数据层**。Cargo workspace（`crates/`）、Topcoat 最小应用、Turso 连接、schema 建模（对齐 §7 数据模型）、迁移工具。验证：`/api/health`、companies CRUD。
 - **Phase 2：核心 API**。issues/agents/heartbeat/budgets/approvals/audit/secrets，逐步以 Rust 服务替换 Node 路由。每完成一模块跑上游对应测试作为行为基准。
 - **Phase 3：Topcoat UI**。看板与详情页，对齐现有 DESIGN.md 的设计令牌体系。
@@ -65,7 +65,7 @@
 
 ## 6. 上游参考策略（本仓库不直接同步）
 
-- **本仓库（paperclip-rs）**：无 `upstream` remote、无同步工作流。上游只以文档与测试形式沉淀为需求（见 parity checklist）。
+- **本仓库（staple）**：无 `upstream` remote、无同步工作流。上游只以文档与测试形式沉淀为需求（见 parity checklist）。
 - **参考镜像（gqf2008/paperclip）**：`.github/workflows/sync-upstream.yml` 每 6 小时 + 手动触发同步；未分叉自动 fast-forward，分叉后开 PR。本地可用 `scripts/sync-upstream.sh`。
 - **功能对齐机制**：维护 `doc/plans/parity-checklist.md`，镜像每次合入上游后，把新功能登记为需求/测试，翻译成 Rust 实现任务。
 
@@ -85,6 +85,6 @@
 
 ## 9. 附：已落地的基础设施
 
-- 独立仓库 `gqf2008/paperclip-rs`（默认分支 `main`，非 fork）。
+- 独立仓库 `gqf2008/staple`（默认分支 `main`，非 fork）。
 - 参考镜像 `gqf2008/paperclip`：master 与上游同步、`sync/upstream` 镜像分支、自动同步工作流（已验证）、本地脚本。
 - 本规划文档。

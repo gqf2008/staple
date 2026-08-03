@@ -1,6 +1,6 @@
-# paperclip-rs
+# Staple
 
-**paperclip-rs** is an independent, from-scratch rewrite of the Paperclip
+**Staple** is an independent, from-scratch rewrite of the Paperclip
 control plane for AI-agent companies, built with **Rust + Topcoat + Turso**.
 
 > This repository is **not a GitHub fork**. It is not linked to
