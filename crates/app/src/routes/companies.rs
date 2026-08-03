@@ -9,14 +9,10 @@ use topcoat::{
     router::{StatusCode, content::Json, path_param, route},
 };
 
-use crate::{dto::CompanyDto, error::ApiError, state::AppState};
+use crate::{dto::CompanyDto, error::ApiError, routes::CompanyId, state::AppState};
 
 /// Largest allowed attachment size in bytes (upstream constant).
 const MAX_COMPANY_ATTACHMENT_MAX_BYTES: i64 = 1024 * 1024 * 1024;
-
-/// Typed `company_id` path segment.
-#[path_param(error = bad_request("Invalid company id"))]
-struct CompanyId(String);
 
 /// Body for `POST /api/companies`.
 #[derive(Debug, Deserialize)]
