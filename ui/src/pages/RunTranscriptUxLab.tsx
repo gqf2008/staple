@@ -3,6 +3,7 @@
 // are deliberate one-off decoration, reverted from --gradient-extract-*/--shadow-extract-*
 // tokens; the file is on the check-token-gates allowlist in ui/src/index.css.
 import { useState } from "react";
+import { t } from "../i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { cn, formatDateTime } from "../lib/utils";
@@ -23,22 +24,22 @@ const surfaceOptions: Array<{
 }> = [
   {
     id: "detail",
-    label: "Run Detail",
-    eyebrow: "Full transcript",
+    label: t("pages.runTranscriptUxLab.runDetail", { defaultValue: "Run Detail" }),
+    eyebrow: t("pages.runTranscriptUxLab.fullTranscript", { defaultValue: "Full transcript" }),
     description: "The long-form run page with the `Nice | Raw` toggle and the most inspectable transcript view.",
     icon: MonitorCog,
   },
   {
     id: "live",
-    label: "Issue Widget",
-    eyebrow: "Live stream",
+    label: t("pages.runTranscriptUxLab.issueWidget", { defaultValue: "Issue Widget" }),
+    eyebrow: t("pages.runTranscriptUxLab.liveStream", { defaultValue: "Live stream" }),
     description: "The issue-detail live run widget, optimized for following an active run without leaving the task page.",
     icon: RadioTower,
   },
   {
     id: "dashboard",
-    label: "Dashboard Card",
-    eyebrow: "Dense card",
+    label: t("pages.runTranscriptUxLab.dashboardCard", { defaultValue: "Dashboard Card" }),
+    eyebrow: t("pages.runTranscriptUxLab.denseCard", { defaultValue: "Dense card" }),
     description: "The active-agents dashboard card, tuned for compact scanning while keeping the same transcript language.",
     icon: PanelsTopLeft,
   },
@@ -169,7 +170,7 @@ function DashboardPreview({
                 <Identity name={runTranscriptFixtureMeta.agentName} size="sm" />
               </div>
               <div className="mt-2 text-(length:--text-micro) text-muted-foreground">
-                {streaming ? "Live now" : "Finished 2m ago"}
+                {streaming ? t("pages.runTranscriptUxLab.liveNow", { defaultValue: "Live now" }) : t("pages.runTranscriptUxLab.finished2mAgo", { defaultValue: "Finished 2m ago" })}
               </div>
             </div>
             <Badge variant="outline" className="[&>svg]:size-2.5 border-border/70 bg-background/70 py-1 text-(length:--text-nano) text-muted-foreground">
@@ -212,7 +213,7 @@ export function RunTranscriptUxLab() {
                 <FlaskConical className="h-3.5 w-3.5" />
                 UX Lab
               </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight">Run Transcript Fixtures</h1>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight">{t("pages.runTranscriptUxLab.title", { defaultValue: "Run Transcript Fixtures" })}</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Built from a real Paperclip development run, then sanitized so no secrets, local paths, or environment details survive into the fixture.
               </p>
@@ -315,7 +316,7 @@ export function RunTranscriptUxLab() {
                 className="rounded-full"
                 onClick={() => setStreaming((value) => !value)}
               >
-                {streaming ? "Show settled state" : "Show streaming state"}
+                {streaming ? t("pages.runTranscriptUxLab.showSettled", { defaultValue: "Show settled state" }) : t("pages.runTranscriptUxLab.showStreaming", { defaultValue: "Show streaming state" })}
               </Button>
             </div>
 

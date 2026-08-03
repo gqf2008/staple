@@ -307,7 +307,7 @@ function defaultExecutionWorkspaceModeForIssueDefaults(
 }
 
 function isWorkModePeriodShortcut(e: Pick<React.KeyboardEvent, "code" | "ctrlKey" | "key" | "metaKey">) {
-  const isPeriod = e.code === "Period" || e.key === ".";
+  const isPeriod = e.code === t("components.newIssueDialog2.period", { defaultValue: "Period" }) || e.key === ".";
   return (e.metaKey || e.ctrlKey) && isPeriod;
 }
 
@@ -637,7 +637,7 @@ export function NewIssueDialog() {
 
   const uploadDescriptionImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!effectiveCompanyId) throw new Error("No company selected");
+      if (!effectiveCompanyId) throw new Error(t("components.newIssueDialog2.noCompany", { defaultValue: "No company selected" }));
       return assetsApi.uploadImage(effectiveCompanyId, file, "issues/drafts");
     },
   });
@@ -1099,13 +1099,13 @@ export function NewIssueDialog() {
   }
 
   function handleFileDragEnter(evt: DragEvent<HTMLDivElement>) {
-    if (!evt.dataTransfer.types.includes("Files")) return;
+    if (!evt.dataTransfer.types.includes(t("components.newIssueDialog2.files", { defaultValue: "Files" }))) return;
     evt.preventDefault();
     setIsFileDragOver(true);
   }
 
   function handleFileDragOver(evt: DragEvent<HTMLDivElement>) {
-    if (!evt.dataTransfer.types.includes("Files")) return;
+    if (!evt.dataTransfer.types.includes(t("components.newIssueDialog2.files", { defaultValue: "Files" }))) return;
     evt.preventDefault();
     evt.dataTransfer.dropEffect = "copy";
     setIsFileDragOver(true);
@@ -1164,12 +1164,12 @@ export function NewIssueDialog() {
     && !isUsingParentExecutionWorkspace;
   const assigneeOptionsTitle =
     assigneeAdapterType === "claude_local"
-      ? "Claude options"
+      ? t("components.newIssueDialog2.claudeOptions", { defaultValue: "Claude options" })
       : assigneeAdapterType === "codex_local"
-        ? "Codex options"
+        ? t("components.newIssueDialog2.codexOptions", { defaultValue: "Codex options" })
         : assigneeAdapterType === "opencode_local"
-          ? "OpenCode options"
-        : "Agent options";
+          ? t("components.newIssueDialog2.opencodeOptions", { defaultValue: "OpenCode options" })
+        : t("components.newIssueDialog2.agentOptions", { defaultValue: "Agent options" });
   const thinkingEffortOptions =
     assigneeAdapterType === "codex_local"
       ? issueThinkingEffortOptions().codex_local
@@ -1880,9 +1880,9 @@ export function NewIssueDialog() {
                         onClick={() => setAssigneeModelLane(lane)}
                       >
                         {lane === "primary"
-                          ? "Primary"
+                          ? t("components.newIssueDialog2.primary", { defaultValue: "Primary" })
                           : lane === "cheap"
-                            ? "Cheap"
+                            ? t("components.newIssueDialog2.cheap", { defaultValue: "Cheap" })
                             : t("components.dialogs.newIssue.custom", { defaultValue: "Custom" })}
                       </button>
                     ))}
@@ -2238,7 +2238,7 @@ export function NewIssueDialog() {
           >
             <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
             <span className="leading-snug">
-              Assigning implies executable intent - leave status as <span className="font-medium">Backlog</span> only to deliberately park this. The assignee will not be woken until status moves to <span className="font-medium">Todo</span> or <span className="font-medium">In Progress</span>.
+              Assigning implies executable intent - leave status as <span className="font-medium">{t("components.newIssueDialog2.backlog", { defaultValue: "Backlog" })}</span> only to deliberately park this. The assignee will not be woken until status moves to <span className="font-medium">{t("components.newIssueDialog2.todo", { defaultValue: "Todo" })}</span> or <span className="font-medium">{t("components.newIssueDialog2.inProgress", { defaultValue: "In Progress" })}</span>.
             </span>
           </div>
         ) : null}

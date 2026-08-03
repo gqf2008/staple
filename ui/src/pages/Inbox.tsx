@@ -2301,15 +2301,15 @@ export function Inbox() {
             items={[
               {
                 value: "mine",
-                label: "Mine",
+                label: t("pages.inbox2.mine", { defaultValue: "Mine" }),
               },
               {
                 value: "recent",
-                label: "Recent",
+                label: t("pages.inbox2.recent", { defaultValue: "Recent" }),
               },
-              { value: "unread", label: "Unread" },
+              { value: "unread", label: t("pages.inbox2.unread", { defaultValue: "Unread" }) },
               { value: "blocked", label: "Blocked" },
-              { value: "all", label: "All" },
+              { value: "all", label: t("pages.inbox2.all", { defaultValue: "All" }) },
             ]}
           />
         </Tabs>

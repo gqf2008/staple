@@ -50,19 +50,19 @@ export const AGENT_FILTER_TABS = ["all", "active", "paused", "error", "builtin"]
 type FilterTab = (typeof AGENT_FILTER_TABS)[number];
 
 const AGENT_FILTER_TAB_ITEMS: { value: FilterTab; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "active", label: "Active" },
-  { value: "paused", label: "Paused" },
-  { value: "error", label: "Error" },
-  { value: "builtin", label: "Built-in" },
+  { value: "all", label: t("pages.agents2.all", { defaultValue: "All" }) },
+  { value: "active", label: t("pages.agents2.active", { defaultValue: "Active" }) },
+  { value: "paused", label: t("pages.agents2.paused", { defaultValue: "Paused" }) },
+  { value: "error", label: t("pages.agents2.error", { defaultValue: "Error" }) },
+  { value: "builtin", label: t("pages.agents2.builtin", { defaultValue: "Built-in" }) },
 ];
 
 const AGENT_TAB_LABELS: Record<FilterTab, string> = {
-  all: "All",
-  active: "Active",
-  paused: "Paused",
-  error: "Error",
-  builtin: "Built-in",
+  all: t("pages.agents2.all", { defaultValue: "All" }),
+  active: t("pages.agents2.active", { defaultValue: "Active" }),
+  paused: t("pages.agents2.paused", { defaultValue: "Paused" }),
+  error: t("pages.agents2.error", { defaultValue: "Error" }),
+  builtin: t("pages.agents2.builtin", { defaultValue: "Built-in" }),
 };
 
 function isFilterTab(value: string): value is FilterTab {
