@@ -216,12 +216,10 @@ export function TestPanel({
       <div className="rounded-lg border border-border bg-card p-6 text-center">
         <p className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.noAgentsToTest", { defaultValue: "No agents to test as" })}</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-          Only agents you can assign tasks to can preview {appName}. Give an agent access in{" "}
+          {t("ui.pages.apps.app-detail.testpanel.only-agents-you-can")}{appName}{t("ui.pages.apps.app-detail.testpanel.give-agent-access")}{" "}
           <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-            Permissions
-          </Link>{" "}
-          to test it here.
-        </p>
+            {t("pages.agentDetail.permissions")}</Link>{" "}
+          {t("ui.pages.apps.app-detail.testpanel.test-here")}</p>
       </div>
     );
   }
@@ -263,13 +261,12 @@ export function TestPanel({
           <FilterChip label={`Read ${readActions.length}`} active={kindFilter === "read"} onClick={() => setKindFilter("read")} />
           <FilterChip label={`Write ${writeActions.length}`} active={kindFilter === "write"} onClick={() => setKindFilter("write")} />
         </div>
-        <p className="text-xs text-muted-foreground">{visibleCount} matches · sorted A–Z</p>
+        <p className="text-xs text-muted-foreground">{visibleCount} {t("ui.pages.apps.app-detail.testpanel.matches-sorted")}</p>
       </div>
 
       {visibleCount === 0 ? (
         <div className="rounded-lg border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No actions match “{query}”. Clear the search to see them all.
-        </div>
+          {t("ui.pages.apps.app-detail.testpanel.no-actions-match")}{query}{t("ui.pages.apps.app-detail.testpanel.clear-search-see-them")}</div>
       ) : (
         <div className="space-y-6">
           {visibleRead.length > 0 && selectedAgent && (
@@ -315,8 +312,7 @@ function EmptyState({ connectionId, appName }: { connectionId: string; appName: 
     <div className="rounded-lg border border-border bg-card p-8 text-center">
       <p className="text-base font-bold text-foreground">{t("pages.apps.testPanel.nothingToTest", { defaultValue: "Nothing to test yet" })}</p>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
-        Once {appName} is connected, the actions it offers will show up here so you can try them out.
-      </p>
+        {t("ui.pages.apps.app-detail.testpanel.once")}{appName} {t("ui.pages.apps.app-detail.testpanel.connected-actions-offers-will")}</p>
       <Button asChild className="mt-4" variant="outline">
         <Link to={appTabHref(connectionId, "setup")}>{t("pages.apps.testPanel.goToSetup", { defaultValue: "Go to Setup" })}</Link>
       </Button>
@@ -347,7 +343,7 @@ function TestAsHeader({
     return (
       <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border pb-3">
         <p className="text-sm text-muted-foreground">
-          Testing as{" "}
+          {t("ui.pages.apps.app-detail.testpanel.testing")}{" "}
           <AgentPicker
             agents={agents}
             selectedAgent={selectedAgent}
@@ -377,8 +373,7 @@ function TestAsHeader({
         <p className="text-sm text-muted-foreground">{accessSummaryLine(selectedAgent.effectiveAccess)}</p>
       </div>
       <p className="mt-2 text-xs text-muted-foreground">
-        Runs real actions in {appName}, exactly as this agent would.
-      </p>
+        {t("ui.pages.apps.app-detail.testpanel.runs-real-actions")}{appName}{t("ui.pages.apps.app-detail.testpanel.exactly-agent-would")}</p>
     </div>
   );
 }
@@ -476,23 +471,21 @@ function AgentPicker({
         </div>
         <div className="border-t border-border px-3 py-2 text-(length:--text-micro) text-muted-foreground">
           <p>{t("pages.apps.testPanel.assignableHint", { defaultValue: "Only agents you can assign tasks to are listed." })}</p>
-          <p>Pick one to preview what they'd see in {appName}.</p>
+          <p>{t("ui.pages.apps.app-detail.testpanel.pick-one-preview-what")}{appName}.</p>
         </div>
         <div className="border-t border-border p-3">
           <p className="text-xs font-semibold text-foreground">{t("pages.apps.testPanel.badgesMeaning", { defaultValue: "What the badges mean" })}</p>
           <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.allowed", { defaultValue: "Allowed" })}</span> — runs immediately when you press Run.</li>
-            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.askFirst", { defaultValue: "Ask first" })}</span> — Run is parked in Review for your OK.</li>
+            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.allowed", { defaultValue: "Allowed" })}</span> {t("ui.pages.apps.app-detail.testpanel.runs-immediately-when-you")}</li>
+            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.askFirst", { defaultValue: "Ask first" })}</span> {t("ui.pages.apps.app-detail.testpanel.run-parked-review-your")}</li>
             <li>
-              <span className="font-medium text-foreground">{t("pages.apps.testPanel.off", { defaultValue: "Off" })}</span> — won't run. Change it in{" "}
+              <span className="font-medium text-foreground">{t("pages.apps.testPanel.off", { defaultValue: "Off" })}</span> {t("ui.pages.apps.app-detail.testpanel.won-run-change")}{" "}
               <Link className="text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-                Permissions
-              </Link>.
+                {t("pages.agentDetail.permissions")}</Link>.
             </li>
           </ul>
           <p className="mt-2 text-(length:--text-micro) text-muted-foreground">
-            Badges reflect this agent's current settings, not yours. Swap agents to see how an action would behave for each.
-          </p>
+            {t("ui.pages.apps.app-detail.testpanel.badges-reflect-agent-current")}</p>
         </div>
       </PopoverContent>
     </Popover>
@@ -815,8 +808,7 @@ function ActionTester({
         <Button onClick={onRun} disabled={running} size="sm">
           {running ? (
             <>
-              <Loader2 className="h-3.5 w-3.5 animate-spin" /> Running…
-            </>
+              <Loader2 className="h-3.5 w-3.5 animate-spin" /> {t("components.issueThreadInteraction.running")}</>
           ) : (
             <>
               <Play className="h-3.5 w-3.5" /> {outcome ? t("pages.apps.testPanel.runAgain", { defaultValue: "Run again" }) : t("pages.apps.testPanel.run", { defaultValue: "Run" })}
@@ -824,8 +816,7 @@ function ActionTester({
           )}
         </Button>
         <Button onClick={onReset} disabled={running} size="sm" variant="ghost">
-          Reset
-        </Button>
+          {t("components.builtInBundle.reset")}</Button>
       </div>
 
       {running && (
@@ -834,7 +825,7 @@ function ActionTester({
 
       {run.isError && !running && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Couldn't reach {agent.name}. {run.error instanceof Error ? run.error.message : t("pages.apps.testPanel.tryAgain", { defaultValue: "Please try again." })}
+          {t("ui.pages.apps.app-detail.testpanel.couldn-reach")}{agent.name}. {run.error instanceof Error ? run.error.message : t("pages.apps.testPanel.tryAgain", { defaultValue: "Please try again." })}
         </div>
       )}
 
@@ -873,10 +864,9 @@ function RunningCard({
         {verb} {appName} as {agentName}.
       </p>
       <div className="mt-3 flex items-center justify-between">
-        <span className="text-xs text-muted-foreground">Started {seconds(elapsedMs)} ago · Press cancel to stop</span>
+        <span className="text-xs text-muted-foreground">{t("components.issueProperties.started")}{seconds(elapsedMs)} {t("ui.pages.apps.app-detail.testpanel.ago-press-cancel-stop")}</span>
         <Button onClick={onCancel} size="sm" variant="outline">
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
       </div>
     </div>
   );
@@ -1000,7 +990,7 @@ function AllowedResult({
       </div>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
-        Ran as {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
+        {t("ui.pages.apps.app-detail.testpanel.ran")}{outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
       </p>
 
       {!isEmptyResult(value) && (
@@ -1015,13 +1005,12 @@ function AllowedResult({
       <RawResponseDisclosure value={value} />
 
       <p className="mt-3 text-xs text-muted-foreground">
-        This call is in the{" "}
+        {t("ui.pages.apps.app-detail.testpanel.call")}{" "}
         <Link className="text-primary hover:underline" to={appTabHref(connectionId, "activity")}>
-          Activity tab
-        </Link>
+          {t("ui.pages.apps.app-detail.testpanel.activity-tab")}</Link>
         .
       </p>
-      <p className="mt-1 text-xs text-muted-foreground">Last run finished in {seconds(outcome.durationMs)}.</p>
+      <p className="mt-1 text-xs text-muted-foreground">{t("ui.pages.apps.app-detail.testpanel.last-run-finished")}{seconds(outcome.durationMs)}.</p>
     </div>
   );
 }
@@ -1053,7 +1042,7 @@ function PrettyPreview({ value }: { value: unknown }) {
           </tbody>
         </table>
         {rows.length > shown.length && (
-          <p className="px-2.5 py-1.5 text-(length:--text-micro) text-muted-foreground">… {rows.length - shown.length} more rows</p>
+          <p className="px-2.5 py-1.5 text-(length:--text-micro) text-muted-foreground">… {rows.length - shown.length} {t("ui.pages.apps.app-detail.testpanel.more-rows")}</p>
         )}
       </div>
     );
@@ -1129,12 +1118,12 @@ function ErrorResult({
       </div>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
-        Tried as {outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
+        {t("ui.pages.apps.app-detail.testpanel.tried")}{outcome.agentName} · {seconds(outcome.durationMs)} · {relTime(outcome.ranAt)}
       </p>
       <div className="mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What {appName} said</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("ui.pages.apps.app-detail.testpanel.what")}{appName} said</p>
         <p className="mt-1 break-words text-sm text-foreground">{error.message}</p>
-        {error.reasonCode && <p className="mt-0.5 text-xs text-muted-foreground">code: {error.reasonCode}</p>}
+        {error.reasonCode && <p className="mt-0.5 text-xs text-muted-foreground">{t("ui.pages.apps.app-detail.testpanel.code")}{error.reasonCode}</p>}
       </div>
       <div className="mt-3">
         <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.whatToTry", { defaultValue: "What to try" })}</p>
@@ -1146,10 +1135,9 @@ function ErrorResult({
       </div>
       <p className="mt-3 text-xs text-muted-foreground">{t("pages.apps.testPanel.adjustInput", { defaultValue: "Adjust the input above and try again." })}</p>
       <p className="mt-1 text-xs text-muted-foreground">
-        Also visible in the{" "}
+        {t("ui.pages.apps.app-detail.testpanel.also-visible")}{" "}
         <Link className="text-primary hover:underline" to={appTabHref(connectionId, "activity")}>
-          Activity tab
-        </Link>
+          {t("ui.pages.apps.app-detail.testpanel.activity-tab")}</Link>
         .
       </p>
     </div>
@@ -1262,7 +1250,7 @@ function AskFirstResult({
         <ShieldQuestion className="h-4 w-4 text-amber-600 dark:text-amber-400" />
         <span className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.sentForOk", { defaultValue: "Sent for your OK." })}</span>
       </div>
-      <p className="mt-0.5 text-xs text-muted-foreground">{outcome.agentName} needs your approval before this runs.</p>
+      <p className="mt-0.5 text-xs text-muted-foreground">{outcome.agentName} {t("ui.pages.apps.app-detail.testpanel.needs-your-approval-before")}</p>
 
       <dl className="mt-3 space-y-1.5 text-sm">
         <div className="flex gap-3">
@@ -1286,12 +1274,10 @@ function AskFirstResult({
 
       {!settled && (
         <p className="mt-3 text-sm text-foreground">
-          Approve it in the{" "}
+          {t("ui.pages.apps.app-detail.testpanel.approve")}{" "}
           <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "review")}>
-            Review tab
-          </Link>{" "}
-          to finish the test. You can also cancel the request.
-        </p>
+            {t("ui.pages.apps.app-detail.testpanel.review-tab")}</Link>{" "}
+          {t("ui.pages.apps.app-detail.testpanel.finish-test-you-can")}</p>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
@@ -1362,21 +1348,19 @@ function OffExplanation({
         <div className="flex items-start gap-2 rounded-md border border-border bg-muted/40 p-3">
           <Ban className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
           <div className="text-sm text-muted-foreground">
-            <p className="font-medium text-foreground">{title} is off for {agent.name}.</p>
+            <p className="font-medium text-foreground">{title} {t("ui.pages.apps.app-detail.testpanel.off")}{agent.name}.</p>
             <p className="mt-0.5">{t("pages.apps.testPanel.wontRun", { defaultValue: "It won't run here, and it won't run from a task either." })}</p>
             <p className="mt-2">
-              Want to test it? Turn it on for {agent.name} in{" "}
+              {t("ui.pages.apps.app-detail.testpanel.want-test-turn")}{agent.name} in{" "}
               <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
-                Permissions
-              </Link>{" "}
-              — set it to Allowed or Ask first.
-            </p>
+                {t("pages.agentDetail.permissions")}</Link>{" "}
+              {t("ui.pages.apps.app-detail.testpanel.set-allowed-ask-first")}</p>
           </div>
         </div>
         <Button asChild size="sm">
           <Link to={permHref}>{t("pages.apps.testPanel.openPermissions", { defaultValue: "Open Permissions →" })}</Link>
         </Button>
-        <p className="text-xs text-muted-foreground">No call will be made — this action is off for {agent.name}.</p>
+        <p className="text-xs text-muted-foreground">{t("ui.pages.apps.app-detail.testpanel.no-call-will-made")}{agent.name}.</p>
       </div>
 
       <aside className="rounded-md border border-border bg-card p-3">
@@ -1385,7 +1369,7 @@ function OffExplanation({
         {auditHint && <p className="mt-1.5 text-(length:--text-micro) text-muted-foreground">{auditHint}</p>}
         {otherSettings.length > 0 && (
           <div className="mt-3">
-            <p className="text-(length:--text-micro) font-medium text-muted-foreground">Other agents using {appName}:</p>
+            <p className="text-(length:--text-micro) font-medium text-muted-foreground">{t("ui.pages.apps.app-detail.testpanel.other-agents-using")}{appName}:</p>
             <ul className="mt-1 space-y-0.5 text-(length:--text-micro) text-muted-foreground">
               {otherSettings.map((s) => (
                 <li key={s.name}>

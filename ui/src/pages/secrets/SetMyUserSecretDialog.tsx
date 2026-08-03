@@ -107,8 +107,7 @@ export function SetMyUserSecretDialog({
           <DialogDescription>
             {definition ? (
               <>
-                This value is yours only. It is used when you are the user responsible for a run that
-                needs <span className="font-mono">{definition.key}</span>.
+                {t("ui.pages.secrets.setmyusersecretdialog.value-yours-only-used")}<span className="font-mono">{definition.key}</span>.
               </>
             ) : null}
           </DialogDescription>
@@ -132,14 +131,12 @@ export function SetMyUserSecretDialog({
                 <Input
                   value={externalRef}
                   onChange={(event) => setExternalRef(event.target.value)}
-                  placeholder="provider reference or ARN"
+                  placeholder={t("ui.pages.secrets.setmyusersecretdialog.provider-reference-arn")}
                   className="font-mono text-sm"
                   autoFocus
                 />
                 <p className="text-(length:--text-micro) text-muted-foreground">
-                  Points at your own credential in the configured provider. Paperclip stores the
-                  reference, not the value.
-                </p>
+                  {t("ui.pages.secrets.setmyusersecretdialog.points-your-own-credential")}</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -152,8 +149,7 @@ export function SetMyUserSecretDialog({
                   autoFocus
                 />
                 <p className="text-(length:--text-micro) text-muted-foreground">
-                  Stored encrypted. Never shown back to anyone, including admins.
-                </p>
+                  {t("ui.pages.secrets.setmyusersecretdialog.stored-encrypted-never-shown")}</p>
               </div>
             )}
 
@@ -163,8 +159,7 @@ export function SetMyUserSecretDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={save.isPending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button onClick={() => save.mutate()} disabled={!canSave || save.isPending}>
             {save.isPending ? t("pages.secrets.setMyUserSecret.saving", { defaultValue: "Saving…" }) : existingSecret ? t("pages.secrets.setMyUserSecret.updateValue2", { defaultValue: "Update value" }) : t("pages.secrets.setMyUserSecret.saveValue", { defaultValue: "Save value" })}
           </Button>

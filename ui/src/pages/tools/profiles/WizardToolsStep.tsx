@@ -85,9 +85,7 @@ export function WizardToolsStep(props: WizardToolsStepProps) {
         <div>
           <p className="text-sm font-medium text-foreground">{t("pages.tools.wizardToolsStep.appConnectionsSoon", { defaultValue: "App connections are coming soon" })}</p>
           <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-            Profiles will be available once app connections are ready. Browse the planned integrations in the
-            meantime.
-          </p>
+            {t("ui.pages.tools.profiles.wizardtoolsstep.profiles-will-available-once")}</p>
         </div>
         <Button asChild variant="outline">
           <Link to="/apps/browse">{t("pages.tools.wizardToolsStep.browseConnections", { defaultValue: "Browse app connections" })}</Link>
@@ -130,7 +128,7 @@ export function WizardToolsStep(props: WizardToolsStepProps) {
       {filteredGroups.length === 0 ? (
         // Cold state B (AP17): a search/filter that matches nothing.
         <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border py-10 text-center">
-          <p className="text-sm font-medium text-foreground">No tools match “{search}”.</p>
+          <p className="text-sm font-medium text-foreground">{t("ui.pages.tools.profiles.wizardtoolsstep.no-tools-match")}{search}”.</p>
           <button
             type="button"
             onClick={() => {
@@ -139,8 +137,7 @@ export function WizardToolsStep(props: WizardToolsStepProps) {
             }}
             className="text-sm font-medium text-primary hover:underline"
           >
-            Clear search
-          </button>
+            {t("pages.search.clearSearch")}</button>
         </div>
       ) : (
         <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
@@ -204,7 +201,7 @@ function AppRow({
           )}
           <span className="flex flex-col">
             <span className="text-sm font-medium text-foreground">
-              All {group.name} tools ({group.tools.length})
+              {t("common.all")}{group.name} {t("ui.pages.tools.profiles.wizardtoolsstep.tools")}{group.tools.length})
             </span>
             <span className="text-xs text-muted-foreground">
               {state === "indeterminate"
@@ -287,10 +284,9 @@ function NewToolsRadio({
                 {opt.label}
                 {opt.recommended ? (
                   <Badge variant="outline" className="text-(length:--text-nano)">
-                    Recommended
-                  </Badge>
+                    {t("components.issueRecoveryAction.recommended")}</Badge>
                 ) : (
-                  <span className="text-xs font-normal text-amber-600">(risky)</span>
+                  <span className="text-xs font-normal text-amber-600">{t("ui.pages.tools.profiles.wizardtoolsstep.risky")}</span>
                 )}
               </span>
               <span className="text-xs text-muted-foreground">{opt.hint}</span>
@@ -355,9 +351,7 @@ function AdvancedRules({
       </CollapsibleTrigger>
       <CollapsibleContent className="space-y-3 border-t border-border px-4 py-3">
         <p className="text-xs text-muted-foreground">
-          Match tools by a name pattern, a risk level, or a specific tool ID. These run on top of the choices
-          above.
-        </p>
+          {t("ui.pages.tools.profiles.wizardtoolsstep.match-tools-name-pattern")}</p>
 
         {rules.length > 0 ? (
           <ul className="space-y-1.5">
@@ -423,8 +417,7 @@ function AdvancedRules({
           )}
           <Button type="button" variant="outline" size="sm" onClick={addRule}>
             <Plus className="mr-1 h-3.5 w-3.5" />
-            Add rule
-          </Button>
+            {t("ui.pages.tools.profiles.wizardtoolsstep.add-rule")}</Button>
         </div>
       </CollapsibleContent>
     </Collapsible>

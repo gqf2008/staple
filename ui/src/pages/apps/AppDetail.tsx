@@ -345,8 +345,7 @@ export function AppDetail() {
       <div className="max-w-3xl p-6">
         <p className="text-sm text-muted-foreground">{t("pages.appDetail.notFound", { defaultValue: "We couldn't find that app." })}</p>
         <Button className="mt-4" variant="outline" onClick={() => navigate("/apps")}>
-          Back to apps
-        </Button>
+          {t("pages.appNotConnected.backToApps")}</Button>
       </div>
     );
   }
@@ -520,8 +519,7 @@ function AppDetailHeader({
                 {renamePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("pages.appDetail.save", { defaultValue: "Save" })}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={onRenameCancel} disabled={renamePending}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             </form>
           ) : (
             <div className="flex items-center gap-1.5">

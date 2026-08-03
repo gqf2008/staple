@@ -841,9 +841,9 @@ export function OnboardingWizard() {
                       <p className="text-xs text-muted-foreground">
                         {step === 3 ? (
                           <>
-                            Name your lead. They'll help drive{" "}
+                            {t("ui.components.onboardingwizard.name-your-lead-they")}{" "}
                             <span className="font-medium text-foreground">{companyName}</span>{" "}
-                            toward its mission. We default to{" "}
+                            {t("ui.components.onboardingwizard.toward-mission-we-default")}{" "}
                             <span className="font-medium text-foreground">{t("components.onboardingWizard.chiefOfStaff", { defaultValue: "Chief of staff" })}</span> —
                             rename it to anything you like.
                           </>
@@ -871,8 +871,7 @@ export function OnboardingWizard() {
                       ) : (
                         <>
                           <span className="font-medium text-foreground">{agentName}</span>{" "}
-                          is online and ready to work!
-                        </>
+                          {t("ui.components.onboardingwizard.online-ready-work")}</>
                       )}
                     </p>
                   </div>
@@ -889,15 +888,14 @@ export function OnboardingWizard() {
                     <div>
                       <h3 className="font-medium">{t("components.onboardingWizard.tellUsTeam", { defaultValue: "Tell us about your team" })}</h3>
                       <p className="text-xs text-muted-foreground">
-                        We'll use this to set up your lead agent and plan which agents to add.
-                      </p>
+                        {t("ui.components.onboardingwizard.we-ll-use-set")}</p>
                     </div>
                   </div>
                   <div className="group">
                     <label className="text-xs text-muted-foreground mb-1 block">{t("components.onboardingWizard.workOn", { defaultValue: "What does your team work on?" })}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="e.g. We create educational YouTube content about AI"
+                      placeholder={t("ui.components.onboardingwizard.we-create-educational-youtube")}
                       value={q1}
                       onChange={(e) => setQ1(e.target.value)}
                     />
@@ -906,7 +904,7 @@ export function OnboardingWizard() {
                     <label className="text-xs text-muted-foreground mb-1 block">{t("components.onboardingWizard.workflows", { defaultValue: "What are your current workflows?" })}</label>
                     <textarea
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
-                      placeholder="e.g. Manual content creation, spreadsheet tracking, email outreach"
+                      placeholder={t("ui.components.onboardingwizard.manual-content-creation-spreadsheet")}
                       value={growWorkflows}
                       onChange={(e) => setGrowWorkflows(e.target.value)}
                     />
@@ -915,7 +913,7 @@ export function OnboardingWizard() {
                     <label className="text-xs text-muted-foreground mb-1 block">{t("components.onboardingWizard.painPoints", { defaultValue: "What pain points would you solve with AI?" })}</label>
                     <textarea
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
-                      placeholder="e.g. Can't produce content fast enough, no time for social media"
+                      placeholder={t("ui.components.onboardingwizard.can-produce-content-fast")}
                       value={growPainPoints}
                       onChange={(e) => setGrowPainPoints(e.target.value)}
                     />
@@ -924,7 +922,7 @@ export function OnboardingWizard() {
                     <label className="text-xs text-muted-foreground mb-1 block">{t("components.onboardingWizard.automateFirst", { defaultValue: "What would you automate first?" })}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="e.g. Social media scheduling and content repurposing"
+                      placeholder={t("ui.components.onboardingwizard.social-media-scheduling-content")}
                       value={growAutomate}
                       onChange={(e) => setGrowAutomate(e.target.value)}
                     />
@@ -942,8 +940,7 @@ export function OnboardingWizard() {
                             setCompanyGoal(parts.join(". "));
                           }}
                         >
-                          Generate mission from answers
-                        </Button>
+                          {t("ui.components.onboardingwizard.generate-mission-from-answers")}</Button>
                       )}
                       {companyGoal.trim() && (
                         <div className="group">
@@ -961,8 +958,7 @@ export function OnboardingWizard() {
                     className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => { setOnboardingPath(null); setStep(0); }}
                   >
-                    ← Back to start
-                  </button>
+                    {t("ui.components.onboardingwizard.back-start")}</button>
                 </div>
               )}
 
@@ -976,8 +972,7 @@ export function OnboardingWizard() {
                     <div>
                       <h3 className="font-medium">{t("components.onboardingWizard.nameCompany", { defaultValue: "Name your company" })}</h3>
                       <p className="text-xs text-muted-foreground">
-                        What should we call your company?
-                      </p>
+                        {t("ui.components.onboardingwizard.what-should-we-call")}</p>
                     </div>
                   </div>
                   <div className="mt-3 group">
@@ -989,11 +984,10 @@ export function OnboardingWizard() {
                           : "text-muted-foreground group-focus-within:text-foreground"
                       )}
                     >
-                      Company name
-                    </label>
+                      {t("components.onboardingWizard.companyName")}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                      placeholder="Acme Corp"
+                      placeholder={t("ui.components.onboardingwizard.acme-corp")}
                       value={companyName}
                       onChange={(e) => setCompanyName(e.target.value)}
                       onKeyDown={(e) => {
@@ -1010,8 +1004,7 @@ export function OnboardingWizard() {
                     className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => { setOnboardingPath(null); setStep(0); }}
                   >
-                    ← Back to start
-                  </button>
+                    {t("ui.components.onboardingwizard.back-start")}</button>
                 </div>
               )}
 
@@ -1025,16 +1018,14 @@ export function OnboardingWizard() {
                     <div>
                       <h3 className="font-medium">{t("components.onboardingWizard.defineMission", { defaultValue: "Define your mission" })}</h3>
                       <p className="text-xs text-muted-foreground">
-                        Your mission guides everything — your lead agent, who you bring on, and the work <strong>{companyName}</strong> takes on.
-                      </p>
+                        {t("ui.components.onboardingwizard.your-mission-guides-everything")}<strong>{companyName}</strong> {t("ui.components.onboardingwizard.takes")}</p>
                     </div>
                   </div>
 
                   {/* Mission path selector */}
                   <div className="space-y-3">
                     <label className="text-xs text-foreground block">
-                      How would you like to define your mission?
-                    </label>
+                      {t("ui.components.onboardingwizard.how-would-you-like")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       <button
                         className={cn(
@@ -1046,10 +1037,9 @@ export function OnboardingWizard() {
                         onClick={() => setMissionPath("direct")}
                       >
                         <Sparkles className="h-4 w-4" />
-                        <span className="font-medium">I know my mission</span>
+                        <span className="font-medium">{t("ui.components.onboardingwizard.know-my-mission")}</span>
                         <span className="text-muted-foreground text-(length:--text-nano)">
-                          Type it directly
-                        </span>
+                          {t("ui.components.onboardingwizard.type-directly")}</span>
                       </button>
                       <button
                         className={cn(
@@ -1063,8 +1053,7 @@ export function OnboardingWizard() {
                         <ListTodo className="h-4 w-4" />
                         <span className="font-medium">{t("components.onboardingWizard.helpMe", { defaultValue: "Help me figure it out" })}</span>
                         <span className="text-muted-foreground text-(length:--text-nano)">
-                          Answer a few questions
-                        </span>
+                          {t("ui.components.onboardingwizard.answer-few-questions")}</span>
                       </button>
                     </div>
                   </div>
@@ -1081,8 +1070,7 @@ export function OnboardingWizard() {
                               : "text-muted-foreground group-focus-within:text-foreground"
                           )}
                         >
-                          Mission
-                        </label>
+                          {t("components.onboardingWizard.mission")}</label>
                         <textarea
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-60px)"
                           placeholder={t("components.onboardingWizard.missionPrompt", { defaultValue: "What is your team trying to achieve?" })}
@@ -1116,11 +1104,10 @@ export function OnboardingWizard() {
                     <div className="space-y-3 animate-in fade-in duration-200">
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What does your team work on?
-                        </label>
+                          {t("components.onboardingWizard.workOn")}</label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. We create educational YouTube content about AI"
+                          placeholder={t("ui.components.onboardingwizard.we-create-educational-youtube")}
                           value={q1}
                           onChange={(e) => setQ1(e.target.value)}
                           autoFocus
@@ -1128,33 +1115,30 @@ export function OnboardingWizard() {
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          Who do you serve?
-                        </label>
+                          {t("ui.components.onboardingwizard.who-do-you-serve")}</label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Non-technical professionals curious about AI tools"
+                          placeholder={t("ui.components.onboardingwizard.non-technical-professionals-curious")}
                           value={q2}
                           onChange={(e) => setQ2(e.target.value)}
                         />
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What's your biggest bottleneck right now?
-                        </label>
+                          {t("ui.components.onboardingwizard.what-your-biggest-bottleneck")}</label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Can't produce content fast enough across multiple channels"
+                          placeholder={t("ui.components.onboardingwizard.can-produce-content-fast-alt")}
                           value={q3}
                           onChange={(e) => setQ3(e.target.value)}
                         />
                       </div>
                       <div className="group">
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          What would success look like in 6 months?
-                        </label>
+                          {t("ui.components.onboardingwizard.what-would-success-look")}</label>
                         <input
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
-                          placeholder="e.g. Publishing daily content across 4 platforms with a team of AI agents"
+                          placeholder={t("ui.components.onboardingwizard.publishing-daily-content-across")}
                           value={q4}
                           onChange={(e) => setQ4(e.target.value)}
                         />
@@ -1168,8 +1152,7 @@ export function OnboardingWizard() {
                             setMissionConfirmed(true);
                           }}
                         >
-                          Generate my mission
-                        </Button>
+                          {t("ui.components.onboardingwizard.generate-my-mission")}</Button>
                       )}
                     </div>
                   )}
@@ -1179,8 +1162,7 @@ export function OnboardingWizard() {
                     <div className="space-y-3 animate-in fade-in duration-200">
                       <div className="group">
                         <label className="text-xs text-foreground mb-1 block">
-                          Here's your draft mission — edit it however you like:
-                        </label>
+                          {t("ui.components.onboardingwizard.here-your-draft-mission")}</label>
                         <textarea
                           className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50 resize-none min-h-(--sz-80px)"
                           value={companyGoal}
@@ -1192,24 +1174,21 @@ export function OnboardingWizard() {
                         className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                         onClick={() => { setMissionConfirmed(false); setCompanyGoal(""); }}
                       >
-                        ← Back to questions
-                      </button>
+                        {t("ui.components.onboardingwizard.back-questions")}</button>
                     </div>
                   )}
 
                   {/* Confirm mission note */}
                   {companyGoal.trim() && (
                     <p className="text-(length:--text-micro) text-muted-foreground italic">
-                      You can always change your mission later in settings.
-                    </p>
+                      {t("ui.components.onboardingwizard.you-can-always-change")}</p>
                   )}
 
                   <button
                     className="text-(length:--text-micro) text-muted-foreground hover:text-foreground transition-colors"
                     onClick={() => setStep(1)}
                   >
-                    ← Change company name
-                  </button>
+                    {t("ui.components.onboardingwizard.change-company-name")}</button>
                 </div>
               )}
 
@@ -1218,8 +1197,7 @@ export function OnboardingWizard() {
                 <div className="space-y-5">
                   <div>
                     <label className="text-xs text-muted-foreground mb-1 block">
-                      Name
-                    </label>
+                      {t("components.agentConfigForm.name")}</label>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring placeholder:text-muted-foreground/50"
                       placeholder={t("components.onboardingWizard.chiefOfStaff", { defaultValue: "Chief of staff" })}
@@ -1243,8 +1221,7 @@ export function OnboardingWizard() {
                   {/* Adapter type radio cards */}
                   <div>
                     <label className="text-xs text-muted-foreground mb-2 block">
-                      Adapter type
-                    </label>
+                      {t("components.agentConfigForm.adapterType")}</label>
                     <div className="grid grid-cols-2 gap-2">
                       {recommendedAdapters.map((opt) => (
                         <button
@@ -1270,8 +1247,7 @@ export function OnboardingWizard() {
                         >
                           {opt.recommended && (
                             <Badge variant="ghost" className="absolute -top-1.5 right-1.5 bg-green-500 text-white text-(length:--text-nano) font-semibold px-1.5 leading-none">
-                              Recommended
-                            </Badge>
+                              {t("components.issueRecoveryAction.recommended")}</Badge>
                           )}
                           <opt.icon className="h-4 w-4" />
                           <span className="font-medium">{opt.label}</span>
@@ -1292,8 +1268,7 @@ export function OnboardingWizard() {
                           showMoreAdapters ? "rotate-0" : "-rotate-90"
                         )}
                       />
-                      More Agent Adapter Types
-                    </button>
+                      {t("ui.components.onboardingwizard.more-agent-adapter-types")}</button>
 
                     {showMoreAdapters && (
                       <div className="grid grid-cols-2 gap-2 mt-2">
@@ -1346,8 +1321,7 @@ export function OnboardingWizard() {
                     <div className="space-y-3">
                       <div>
                         <label className="text-xs text-muted-foreground mb-1 block">
-                          Model
-                        </label>
+                          {t("components.agentConfigForm.model")}</label>
                         <Popover
                           open={modelOpen}
                           onOpenChange={(next) => {
@@ -1394,8 +1368,7 @@ export function OnboardingWizard() {
                                   setModelOpen(false);
                                 }}
                               >
-                                Default
-                              </button>
+                                {t("components.agentConfigForm.default")}</button>
                             )}
                             <div className="max-h-(--sz-240px) overflow-y-auto">
                               {groupedModels.map((group) => (
@@ -1435,8 +1408,7 @@ export function OnboardingWizard() {
                             </div>
                             {filteredModels.length === 0 && (
                               <p className="px-2 py-1.5 text-xs text-muted-foreground">
-                                No models discovered.
-                              </p>
+                                {t("ui.components.onboardingwizard.no-models-discovered")}</p>
                             )}
                           </PopoverContent>
                         </Popover>
@@ -1449,12 +1421,9 @@ export function OnboardingWizard() {
                       <div className="flex items-center justify-between gap-2">
                         <div>
                           <p className="text-xs font-medium">
-                            Adapter environment check
-                          </p>
+                            {t("ui.components.onboardingwizard.adapter-environment-check")}</p>
                           <p className="text-(length:--text-micro) text-muted-foreground">
-                            Runs a live probe that asks the adapter CLI to
-                            respond with hello.
-                          </p>
+                            {t("ui.components.onboardingwizard.runs-live-probe-asks")}</p>
                         </div>
                         <Button
                           size="sm"
@@ -1486,11 +1455,9 @@ export function OnboardingWizard() {
                       {shouldSuggestUnsetAnthropicApiKey && (
                         <div className="rounded-md border border-amber-300/60 bg-amber-50/40 px-2.5 py-2 space-y-2">
                           <p className="text-(length:--text-micro) text-amber-900/90 leading-relaxed">
-                            Claude failed while{" "}
-                            <span className="font-mono">ANTHROPIC_API_KEY</span>{" "}
-                            is set. You can clear it in this adapter config
-                            and retry the probe.
-                          </p>
+                            {t("ui.components.onboardingwizard.claude-failed-while")}{" "}
+                            <span className="font-mono">{t("ui.components.onboardingwizard.anthropic-api-key")}</span>{" "}
+                            {t("ui.components.onboardingwizard.set-you-can-clear")}</p>
                           <Button
                             size="sm"
                             variant="outline"
@@ -1522,7 +1489,7 @@ export function OnboardingWizard() {
                               : `${effectiveAdapterCommand} --print - --output-format stream-json --verbose`}
                           </p>
                           <p className="text-muted-foreground">
-                            Prompt:{" "}
+                            {t("ui.components.onboardingwizard.prompt")}{" "}
                             <span className="font-mono">{t("components.onboardingWizard.respondHello", { defaultValue: "Respond with hello." })}</span>
                           </p>
                           {adapterType === "cursor" ||
@@ -1530,7 +1497,7 @@ export function OnboardingWizard() {
                           adapterType === "gemini_local" ||
                           adapterType === "opencode_local" ? (
                             <p className="text-muted-foreground">
-                              If auth fails, set{" "}
+                              {t("ui.components.onboardingwizard.if-auth-fails-set")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
                                   ? "CURSOR_API_KEY"
@@ -1538,7 +1505,7 @@ export function OnboardingWizard() {
                                     ? "GEMINI_API_KEY"
                                     : "OPENAI_API_KEY"}
                               </span>{" "}
-                              in env or run{" "}
+                              {t("ui.components.onboardingwizard.env-run")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
                                   ? "agent login"
@@ -1552,10 +1519,9 @@ export function OnboardingWizard() {
                             </p>
                           ) : (
                             <p className="text-muted-foreground">
-                              If login is required, run{" "}
-                              <span className="font-mono">claude login</span>{" "}
-                              and retry.
-                            </p>
+                              {t("ui.components.onboardingwizard.if-login-required-run")}{" "}
+                              <span className="font-mono">{t("ui.components.onboardingwizard.claude-login")}</span>{" "}
+                              {t("ui.components.onboardingwizard.retry")}</p>
                           )}
                         </div>
                       )}
@@ -1620,8 +1586,7 @@ export function OnboardingWizard() {
                     </p>
                   )}
                   <p className="text-xs text-muted-foreground text-center">
-                    We'll create the first task for {agentName} and take you to the dashboard.
-                  </p>
+                    {t("ui.components.onboardingwizard.we-ll-create-first")}{agentName} {t("ui.components.onboardingwizard.take-you-dashboard")}</p>
                 </div>
               )}
 
@@ -1643,8 +1608,7 @@ export function OnboardingWizard() {
                       disabled={loading}
                     >
                       <ArrowLeft className="h-3.5 w-3.5 mr-1" />
-                      Back
-                    </Button>
+                      {t("pages.teamCatalog.back")}</Button>
                   )}
                 </div>
                 <div className="flex items-center gap-2">
@@ -1657,8 +1621,7 @@ export function OnboardingWizard() {
                         setStep(2);
                       }}
                     >
-                      Next
-                      <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      {t("ui.components.imagegallerymodal.next")}<ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   )}
                   {step === 2 && (
@@ -1681,8 +1644,7 @@ export function OnboardingWizard() {
                       disabled={!agentName.trim()}
                       onClick={() => setStep(4)}
                     >
-                      Next
-                      <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                      {t("ui.components.imagegallerymodal.next")}<ArrowRight className="h-3.5 w-3.5 ml-1" />
                     </Button>
                   )}
                   {step === 4 && (
@@ -1779,7 +1741,7 @@ function AdapterEnvironmentResult({
             )}
             {check.hint && (
               <span className="block opacity-90 break-words">
-                Hint: {check.hint}
+                {t("ui.components.agentconfigform.hint")}{check.hint}
               </span>
             )}
           </div>

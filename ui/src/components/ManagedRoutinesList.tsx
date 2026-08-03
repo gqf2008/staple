@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Button } from "@/components/ui/button";
 import {
   RoutineListRow,
@@ -136,7 +137,7 @@ export function ManagedRoutinesList({
               secondaryDetails={
                 <span className="flex flex-wrap items-center gap-x-3 gap-y-1">
                   {routine.resourceKey ? <span>{routine.resourceKey}</span> : null}
-                  {routine.cronExpression ? <span>Schedule {routine.cronExpression}</span> : null}
+                  {routine.cronExpression ? <span>{t("components.routineSections.schedule")}{routine.cronExpression}</span> : null}
                 </span>
               }
               onRunNow={() => onRunNow?.(routine)}

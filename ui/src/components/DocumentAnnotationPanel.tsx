@@ -75,7 +75,7 @@ export function DocumentAnnotationPanel(props: AnnotationPanelProps) {
           className="paperclip-doc-annotation-sheet z-(--z-60) flex max-h-(--sz-88vh) flex-col rounded-none border-t border-border bg-popover p-0 text-popover-foreground shadow-2xl"
         >
           <SheetTitle className="sr-only">
-            Comments on {props.documentKey} revision {props.documentRevisionNumber}
+            {t("ui.components.documentannotationpanel.comments")}{props.documentKey} revision {props.documentRevisionNumber}
           </SheetTitle>
           <div className="mx-auto mt-2 h-1.5 w-12 shrink-0 rounded-full bg-muted-foreground/30" aria-hidden="true" />
           <AnnotationPanelBody {...props} />
@@ -453,8 +453,7 @@ function AnnotationPanelBody(props: AnnotationPanelProps) {
                 setComposerValue("");
               }}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="button"
               size="sm"
@@ -558,12 +557,10 @@ function ThreadCard(props: {
               >
                 {thread.status === "resolved" ? (
                   <>
-                    <RotateCcw className="h-3 w-3" /> Reopen
-                  </>
+                    <RotateCcw className="h-3 w-3" /> {t("ui.components.documentannotationpanel.reopen")}</>
                 ) : (
                   <>
-                    <Check className="h-3 w-3" /> Resolve
-                  </>
+                    <Check className="h-3 w-3" /> {t("ui.components.documentannotationpanel.resolve")}</>
                 )}
               </Button>
               <Button
@@ -595,8 +592,7 @@ function ThreadCard(props: {
                     }}
                   >
                     <Copy className="h-3.5 w-3.5" />
-                    Copy link
-                  </DropdownMenuItem>
+                    {t("components.fileViewer.copyLink")}</DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>
@@ -651,7 +647,7 @@ function CommentRow({
           </Avatar>
           <span className="truncate font-medium text-foreground">{author.name}</span>
           {author.role === "agent" ? (
-            <span className="text-muted-foreground">· agent</span>
+            <span className="text-muted-foreground">{t("ui.components.documentannotationpanel.agent")}</span>
           ) : null}
         </span>
         <span className="shrink-0 text-muted-foreground">{relativeTime(comment.createdAt)}</span>

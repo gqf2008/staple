@@ -76,7 +76,7 @@ export function CodexLocalConfigFields({
         <>
           <Field
             label={t("components.codexConfig.acpCommand", { defaultValue: "ACP server command" })}
-            hint="Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary."
+            hint={t("ui.adapters.codex-local.config-fields.optional-override-codex-acp")}
           >
             <DraftInput
               value={
@@ -137,7 +137,7 @@ export function CodexLocalConfigFields({
           </Field>
           <Field
             label={t("components.codexConfig.acpStateDir", { defaultValue: "ACP state directory" })}
-            hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
+            hint={t("ui.adapters.claude-local.config-fields.optional-acp-session-state")}
           >
             <div className="flex items-center gap-2">
               <DraftInput
@@ -160,7 +160,7 @@ export function CodexLocalConfigFields({
           </Field>
           <Field
             label={t("components.codexConfig.warmIdleMs", { defaultValue: "ACP warm process idle ms" })}
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            hint={t("ui.adapters.claude-local.config-fields.defaults-which-closes-acp")}
           >
             {isCreate ? (
               <input

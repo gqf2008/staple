@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -24,7 +25,7 @@ export function OpenCodeLocalConfigFields({
   return (
     <>
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("components.claudeConfig.instructionsFile")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -50,7 +51,7 @@ export function OpenCodeLocalConfigFields({
         </Field>
       )}
       <ToggleField
-        label="Skip permissions"
+        label={t("components.claudeConfig.skipPermissions")}
         hint={help.dangerouslySkipPermissions}
         checked={
           isCreate

@@ -285,8 +285,7 @@ export function AgentMultiSelect({
             <div className="flex items-center gap-2">
               {staged ? (
                 <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={pending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
               ) : null}
               <Button
                 type="button"

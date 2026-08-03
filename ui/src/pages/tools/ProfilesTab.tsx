@@ -447,7 +447,7 @@ function EntryFields({
       {selectorType === "tool_name" ? (
         <div className="space-y-1.5 sm:col-span-2">
           <Label htmlFor="tool-name">{t("pages.tools.profiles.toolName", { defaultValue: "Tool name" })}</Label>
-          <Input id="tool-name" value={toolName} onChange={(event) => setToolName(event.target.value)} placeholder="e.g. send_email or slack.list_*" />
+          <Input id="tool-name" value={toolName} onChange={(event) => setToolName(event.target.value)} placeholder={t("ui.pages.tools.profilestab.send-email-slack-list")} />
         </div>
       ) : null}
       {selectorType === "risk_level" ? (
@@ -500,8 +500,7 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
       </div>
       {!agentId ? (
         <div className="rounded-lg border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
-          Pick an agent to see what it can use right now.
-        </div>
+          {t("ui.pages.tools.profilestab.pick-agent-see-what")}</div>
       ) : effective.isLoading ? (
         <LoadingState label={t("pages.tools.profiles.checkingAccess", { defaultValue: "Checking access..." })} />
       ) : effective.error ? (
@@ -517,8 +516,7 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
             </div>
             {(effective.data?.allowedToolNames ?? []).length === 0 ? (
               <div className="rounded-lg border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
-                This agent cannot use any app tools right now.
-              </div>
+                {t("ui.pages.tools.profilestab.agent-cannot-use-any")}</div>
             ) : (
               <div className="flex flex-wrap gap-2">
                 {(effective.data?.allowedToolNames ?? []).slice(0, 80).map((tool) => (
@@ -531,8 +529,7 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
             <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.title", { defaultValue: "Access profiles" })}</h3>
             {(effective.data?.profiles ?? []).length === 0 ? (
               <div className="rounded-lg border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
-                No active profile applies to this agent.
-              </div>
+                {t("ui.pages.tools.profilestab.no-active-profile-applies")}</div>
             ) : (
               <div className="divide-y divide-border rounded-lg border border-border">
                 {(effective.data?.profiles ?? []).map((profile) => (
@@ -558,7 +555,7 @@ function SourceBadge({ source }: { source: AllowSource }) {
     return <Badge variant="secondary">explicit</Badge>;
   }
   if (source.kind === "default") {
-    return <Badge variant="outline">default allow</Badge>;
+    return <Badge variant="outline">{t("ui.pages.tools.profilestab.default-allow")}</Badge>;
   }
   return (
     <Badge variant="outline" className="gap-1 border-amber-500/50 text-amber-700 dark:text-amber-400">
@@ -639,9 +636,7 @@ function AllowList({ rows, catalogLoading }: { rows: AllowListRow[]; catalogLoad
       {patternCount > 0 ? (
         <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
           <AlertTriangle className="mt-0.5 h-3 w-3 shrink-0 text-amber-500" />
-          Tools marked <span className="font-medium">pattern</span> were pulled in by a wildcard, application,
-          connection, or risk selector rather than named explicitly — review them when the catalog changes.
-        </p>
+          {t("ui.pages.tools.profilestab.tools-marked")}<span className="font-medium">pattern</span> {t("ui.pages.tools.profilestab.were-pulled-wildcard-application")}</p>
       ) : null}
     </div>
   );
@@ -921,12 +916,11 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
     <div className="space-y-4">
       <ToolsPageHeader
         title={t("pages.tools.profiles.title", { defaultValue: "Access profiles" })}
-        description="Reusable bundles of allowed applications, connections, and tools, assignable to agents, projects, routines, or issues."
+        description={t("ui.pages.tools.profilestab.reusable-bundles-allowed-applications")}
         actions={
           <Button size="sm" onClick={() => setCreateOpen(true)}>
             <Plus className="mr-1 h-4 w-4" />
-            New profile
-          </Button>
+            {t("pages.tools.profiles.newProfile")}</Button>
         }
       />
 
@@ -1022,8 +1016,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
           <DialogHeader>
             <DialogTitle>{editProfile ? t("pages.tools.profiles.editProfile", { defaultValue: "Edit profile" }) : t("pages.tools.profiles.newProfile", { defaultValue: "New profile" })}</DialogTitle>
             <DialogDescription>
-              Profile rules are enforced by the tool gateway policy service.
-            </DialogDescription>
+              {t("ui.pages.tools.profilestab.profile-rules-enforced-tool")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -1108,8 +1101,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
               resetProfileForm();
               resetEntryForm();
             }}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button disabled={!name.trim() || createProfile.isPending || updateProfile.isPending} onClick={saveProfile}>
               {editProfile ? t("pages.tools.profiles.save", { defaultValue: "Save" }) : createProfile.isPending ? t("pages.tools.profiles.creating", { defaultValue: "Creating..." }) : t("pages.tools.profiles.create", { defaultValue: "Create" })}
             </Button>
@@ -1149,8 +1141,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
           <DialogFooter>
             <Button variant="outline" onClick={() => setEntryProfile(null)}>{t("pages.tools.profiles.cancel", { defaultValue: "Cancel" })}</Button>
             <Button disabled={addEntry.isPending} onClick={saveEntry}>
-              Add entry
-            </Button>
+              {t("pages.tools.profiles.addEntry")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1226,8 +1217,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
           <DialogFooter>
             <Button variant="outline" onClick={() => setBindProfileFor(null)}>{t("pages.tools.profiles.cancel", { defaultValue: "Cancel" })}</Button>
             <Button disabled={bind.isPending} onClick={saveBinding}>
-              Bind
-            </Button>
+              {t("ui.pages.tools.profilestab.bind")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -1297,16 +1287,13 @@ function ProfileDetail({
           <div className="flex shrink-0 flex-wrap gap-1.5">
             <Button size="sm" variant="outline" onClick={onEdit}>
               <Pencil className="mr-1 h-3.5 w-3.5" />
-              Edit
-            </Button>
+              {t("components.issueProperties.edit")}</Button>
             <Button size="sm" variant="outline" onClick={onAddEntry}>
               <Plus className="mr-1 h-3.5 w-3.5" />
-              Entry
-            </Button>
+              {t("ui.pages.tools.profilestab.entry")}</Button>
             <Button size="sm" variant="outline" onClick={onBind}>
               <Link2 className="mr-1 h-3.5 w-3.5" />
-              Bind
-            </Button>
+              {t("ui.pages.tools.profilestab.bind")}</Button>
           </div>
         </div>
 
@@ -1339,13 +1326,12 @@ function ProfileDetail({
           <h4 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.effectiveScope", { defaultValue: "Effective scope" })}</h4>
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-md border border-border px-2 py-1 text-muted-foreground">
-              Default <span className="font-medium text-foreground">{profile.defaultAction}</span>
+              {t("components.agentConfigForm.default")}<span className="font-medium text-foreground">{profile.defaultAction}</span>
             </span>
             <span className="rounded-md border border-border px-2 py-1 text-muted-foreground">
-              <span className="font-medium text-foreground">{rows.length}</span> tools allowed
-            </span>
+              <span className="font-medium text-foreground">{rows.length}</span> {t("ui.pages.tools.profilestab.tools-allowed")}</span>
             <span className="rounded-md border border-border px-2 py-1 text-muted-foreground">
-              <span className="font-medium text-foreground">{includeCount}</span> include /{" "}
+              <span className="font-medium text-foreground">{includeCount}</span> {t("ui.pages.tools.profilestab.include")}{" "}
               <span className="font-medium text-foreground">{excludeCount}</span> exclude
             </span>
           </div>

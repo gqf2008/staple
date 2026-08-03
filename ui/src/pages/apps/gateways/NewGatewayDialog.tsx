@@ -95,9 +95,7 @@ export function NewGatewayDialog({
         <DialogHeader>
           <DialogTitle>{t("pages.newGatewayDialog.newGateway", { defaultValue: "New gateway" })}</DialogTitle>
           <DialogDescription>
-            One safe MCP endpoint that exposes only the apps in its access profile. Hand it to a client
-            like Cursor or Claude Desktop.
-          </DialogDescription>
+            {t("ui.pages.apps.gateways.newgatewaydialog.one-safe-mcp-endpoint")}</DialogDescription>
         </DialogHeader>
         <form className="space-y-4" onSubmit={submit}>
           <label className="block space-y-1.5">
@@ -129,8 +127,7 @@ export function NewGatewayDialog({
               ))}
             </select>
             <span className="text-xs text-muted-foreground">
-              The profile decides which tools this gateway allows. You can change it later.
-            </span>
+              {t("ui.pages.apps.gateways.newgatewaydialog.profile-decides-which-tools")}</span>
           </label>
           <label className="block space-y-1.5">
             <span className="text-xs font-medium text-muted-foreground">{t("pages.newGatewayDialog.description", { defaultValue: "Description (optional)" })}</span>
@@ -143,13 +140,11 @@ export function NewGatewayDialog({
           </label>
           {noProfiles ? (
             <p className="text-xs text-destructive">
-              Create an access profile under Advanced before adding a gateway.
-            </p>
+              {t("ui.pages.apps.gateways.newgatewaydialog.create-access-profile-under")}</p>
           ) : null}
           <DialogFooter>
             <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="submit"
               disabled={createMutation.isPending || noProfiles || !name.trim() || !profileId}

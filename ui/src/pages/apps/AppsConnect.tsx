@@ -513,8 +513,7 @@ function StepHeader({
           </div>
         </div>
         <Button variant="ghost" size="sm" onClick={onCancel}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
       </div>
       {step !== "gallery" && (
         <div className="mt-4">
@@ -559,8 +558,7 @@ function ZapierConnectStep({
         <div className="min-w-0">
           <h2 className="text-xl font-bold tracking-tight">{t("pages.appsConnect.connectZapier", { defaultValue: "Connect Zapier" })}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Paste the complete MCP URL Zapier gives you, including its token.
-          </p>
+            {t("pages.appsConnect.zapierUrlHint")}</p>
         </div>
       </div>
 
@@ -577,8 +575,7 @@ function ZapierConnectStep({
           autoFocus
         />
         <p className="mt-2 text-xs text-muted-foreground">
-          The token is part of the URL. Paperclip stores it securely and checks the connection before enabling actions.
-        </p>
+          {t("ui.pages.apps.appsconnect.token-part-url-paperclip")}</p>
         {link.trim() && !isZapierLink && (
           <p className="mt-2 text-xs text-destructive">{t("pages.appsConnect.zapierUrlInvalid", { defaultValue: "Paste a valid Zapier URL to continue." })}</p>
         )}
@@ -586,8 +583,7 @@ function ZapierConnectStep({
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <Button onClick={onConnect} disabled={submitting || !isZapierLink}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {submitting ? t("pages.appsConnect.checking", { defaultValue: "Checking…" }) : t("pages.appsConnect.checkLink", { defaultValue: "Check link" })}
@@ -710,7 +706,7 @@ function GalleryStep({
       </div>
 
       {filtered.length === 0 && (
-        <div className="py-10 text-center text-sm text-muted-foreground">No apps match “{search}”.</div>
+        <div className="py-10 text-center text-sm text-muted-foreground">{t("ui.pages.apps.appsconnect.no-apps-match")}{search}”.</div>
       )}
 
       <div
@@ -734,7 +730,7 @@ function GalleryStep({
           </p>
           {!zapierSource && (
             <p className="mt-1 text-xs text-muted-foreground">
-              Any remote tool URL works here — including a local MCP server like{" "}
+              {t("ui.pages.apps.appsconnect.any-remote-tool-url")}{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs">http://127.0.0.1:8848/mcp</code>.
             </p>
           )}
@@ -742,7 +738,7 @@ function GalleryStep({
             <div className="mt-3 flex items-center justify-between gap-3 rounded-lg border border-border bg-muted/40 px-3 py-2">
               <div className="flex min-w-0 items-center gap-2 text-sm">
                 <AppLogo name={matchedEntry.name} logoUrl={matchedEntry.branding.logoUrl} size={24} />
-                <span className="truncate">This looks like {matchedEntry.name}.</span>
+                <span className="truncate">{t("ui.pages.apps.appsconnect.looks-like")}{matchedEntry.name}.</span>
               </div>
               <Button
                 type="button"
@@ -783,8 +779,7 @@ function GalleryStep({
               className="h-10"
             />
             <Button type="button" variant="outline" onClick={continueWithLink}>
-              Continue
-            </Button>
+              {t("pages.appsConnect.continue")}</Button>
           </div>
           {linkError && <div className="text-xs text-destructive">{linkError}</div>}
         </div>
@@ -793,19 +788,18 @@ function GalleryStep({
       <div className="border-t border-border pt-5">
         <div className="text-sm font-semibold text-foreground">{t("pages.appsConnect.moreWays", { defaultValue: "More ways to connect" })}</div>
         <p className="mt-1 text-xs text-muted-foreground">
-          For tools that aren’t in the gallery. You’ll need details from the tool’s docs.
-        </p>
+          {t("ui.pages.apps.appsconnect.tools-aren-gallery-you")}</p>
         <div className="mt-3 flex flex-col gap-2">
           <ConnectMethodRow
             icon={TerminalSquare}
             title={t("pages.appsConnect.runYourOwn", { defaultValue: "Run your own" })}
-            description="Register a command Paperclip runs in your workspace for a tool that isn’t listed."
+            description={t("ui.pages.apps.appsconnect.register-command-paperclip-runs")}
             onClick={onRunYourOwn}
           />
           <ConnectMethodRow
             icon={ClipboardPaste}
             title={t("pages.appsConnect.pasteConfig", { defaultValue: "Paste a config" })}
-            description="Already have a setup snippet from a README? Paste it and we’ll connect it."
+            description={t("ui.pages.apps.appsconnect.already-have-setup-snippet")}
             onClick={onPasteConfig}
           />
         </div>
@@ -906,8 +900,7 @@ function LinkConnectStep({
             className="mt-2 h-11"
           />
           <p className="mt-2 text-xs text-muted-foreground">
-            We filled this in from the link. Change it if you’d like.
-          </p>
+            {t("ui.pages.apps.appsconnect.we-filled-from-link")}</p>
         </div>
 
         <div>
@@ -950,8 +943,7 @@ function LinkConnectStep({
               <div>
                 <div className="text-sm font-medium text-foreground">{t("pages.appsConnect.keySecure", { defaultValue: "Your key is stored securely." })}</div>
                 <div className="text-xs text-muted-foreground">
-                  You can replace it anytime from this app’s page.
-                </div>
+                  {t("ui.pages.apps.appsconnect.you-can-replace-anytime")}</div>
               </div>
             </div>
           </div>
@@ -960,12 +952,10 @@ function LinkConnectStep({
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            We’ll check the link before turning anything on.
-          </span>
+            {t("ui.pages.apps.appsconnect.we-ll-check-link")}</span>
           <Button onClick={onConnect} disabled={submitting || (needsKey && keyValue.trim().length === 0)}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitting ? t("pages.appsConnect.checking", { defaultValue: "Checking…" }) : t("pages.appsConnect.checkLink", { defaultValue: "Check link" })}
@@ -1019,8 +1009,7 @@ function ConnectionNameField({
         className="mt-2 h-11"
       />
       <p className="mt-2 text-xs text-muted-foreground">
-        We filled this in from the app. Change it to tell connections apart.
-      </p>
+        {t("ui.pages.apps.appsconnect.we-filled-from-app")}</p>
     </div>
   );
 }
@@ -1096,17 +1085,14 @@ function KeyStep({
                   onClick={() => void navigator.clipboard?.writeText(robotEmail)}
                 >
                   <Copy className="mr-2 h-4 w-4" />
-                  Copy
-                </Button>
+                  {t("components.commentThread.copy")}</Button>
               </div>
               <p className="mt-2 text-xs text-muted-foreground">
-                In Google Sheets, click Share and add this email as an Editor. Then paste the sheet links below.
-              </p>
+                {t("ui.pages.apps.appsconnect.google-sheets-click-share")}</p>
             </div>
           ) : (
             <div className="rounded-lg bg-muted/50 p-4 text-sm text-muted-foreground">
-              Google Sheets is not available on this instance yet.
-            </div>
+              {t("ui.pages.apps.appsconnect.google-sheets-not-available")}</div>
           )}
 
           <div>
@@ -1128,8 +1114,7 @@ function KeyStep({
 
         <div className="mt-8 flex items-center justify-between">
           <Button variant="ghost" onClick={onBack} disabled={submitting}>
-            Back
-          </Button>
+            {t("pages.teamCatalog.back")}</Button>
           <Button onClick={onConnect} disabled={submitting || !canConnect}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitting ? t("pages.appsConnect.checking", { defaultValue: "Checking…" }) : t("pages.appsConnect.connect", { defaultValue: "Connect" })}
@@ -1144,7 +1129,7 @@ function KeyStep({
       <div className="flex items-center gap-3">
         <AppLogo name={entry.name} logoUrl={entry.branding.logoUrl} size={48} />
         <div>
-          <h2 className="text-xl font-bold tracking-tight">Connect {entry.name}</h2>
+          <h2 className="text-xl font-bold tracking-tight">{t("pages.appNotConnected.connect")}{entry.name}</h2>
           <p className="text-sm text-muted-foreground">{copy.short}</p>
         </div>
       </div>
@@ -1154,8 +1139,7 @@ function KeyStep({
 
         {fields.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            This app doesn’t need a key. Just connect to continue.
-          </p>
+            {t("ui.pages.apps.appsconnect.app-doesn-need-key")}</p>
         ) : (
           fields.map((field) => (
             <div key={field.configPath}>
@@ -1177,8 +1161,7 @@ function KeyStep({
                   rel="noreferrer"
                   className="mt-2 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline underline-offset-2"
                 >
-                  Where do I find this?
-                  <ArrowUpRight className="h-3 w-3" />
+                  {t("ui.pages.apps.appsconnect.where-do-find")}<ArrowUpRight className="h-3 w-3" />
                 </a>
               )}
             </div>
@@ -1190,20 +1173,17 @@ function KeyStep({
           <div>
             <div className="text-sm font-medium text-foreground">{t("pages.appsConnect.keySecure", { defaultValue: "Your key is stored securely." })}</div>
             <div className="text-xs text-muted-foreground">
-              You can replace it anytime from this app’s page.
-            </div>
+              {t("ui.pages.apps.appsconnect.you-can-replace-anytime")}</div>
           </div>
         </div>
       </div>
 
       <div className="mt-8 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            We’ll check the key before turning anything on.
-          </span>
+            {t("ui.pages.apps.appsconnect.we-ll-check-key")}</span>
           <Button onClick={onConnect} disabled={submitting || !allFilled}>
             {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {submitting ? t("pages.appsConnect.checking", { defaultValue: "Checking…" }) : t("pages.appsConnect.connect", { defaultValue: "Connect" })}
@@ -1265,8 +1245,7 @@ function ActionGroup({
               </div>
               {showAskFirst && (
                 <span className="inline-flex items-center rounded-full border border-amber-500/40 bg-amber-500/10 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:text-amber-300">
-                  Ask first
-                </span>
+                  {t("pages.apps.testPanel.askFirst")}</span>
               )}
               <ToggleSwitch checked={on} onCheckedChange={(next) => onToggle(action.catalogEntryId, next)} />
             </div>
@@ -1307,17 +1286,16 @@ function ActionsStep({
         </span>
         <div>
           <div className="text-lg font-bold text-foreground">
-            Connected to {appName} — it offers {total} {total === 1 ? "action" : "actions"}.
+            {t("ui.pages.apps.appsconnect.connected")}{appName} {t("ui.pages.apps.appsconnect.offers")}{total} {total === 1 ? "action" : "actions"}.
           </div>
           <div className="text-sm text-muted-foreground">
-            Read-only actions are on. Anything that can change something starts off — turn on the ones you want.
-          </div>
+            {t("ui.pages.apps.appsconnect.read-only-actions-anything")}</div>
         </div>
       </div>
 
       <ActionGroup
         title={t("pages.appsConnect.readOnly", { defaultValue: "Read only" })}
-        hint="these can look but not change anything"
+        hint={t("ui.pages.apps.appsconnect.these-can-look-but")}
         actions={readOnly}
         enabled={enabled}
         onToggle={onToggle}
@@ -1328,7 +1306,7 @@ function ActionsStep({
 
       <ActionGroup
         title={t("pages.appsConnect.canMakeChanges", { defaultValue: "Can make changes" })}
-        hint="these change something in another app"
+        hint={t("ui.pages.apps.appsconnect.these-change-something-another")}
         actions={canMakeChanges}
         enabled={enabled}
         onToggle={onToggle}
@@ -1339,14 +1317,12 @@ function ActionsStep({
 
       <div className="flex items-center justify-between pt-1">
         <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <div className="flex items-center gap-3">
           <span className="hidden text-xs text-muted-foreground sm:inline">
-            If {appName} adds new actions later, they start off until you review them.
-          </span>
+            {t("ui.pages.apps.appsconnect.if")}{appName} {t("ui.pages.apps.appsconnect.adds-new-actions-later")}</span>
           <Button onClick={onContinue} disabled={enabledCount === 0}>
-            Continue with {enabledCount} {enabledCount === 1 ? "action" : "actions"} on
+            {t("ui.pages.apps.appsconnect.continue")}{enabledCount} {enabledCount === 1 ? "action" : "actions"} on
           </Button>
         </div>
       </div>
@@ -1384,8 +1360,8 @@ function WhoStep({
   return (
     <div className="mx-auto max-w-xl">
       <div className="rounded-2xl border border-border bg-card p-8">
-        <h2 className="text-xl font-bold tracking-tight">Who can use {appName}?</h2>
-        <p className="mt-1 text-sm text-muted-foreground">You can change this later from the app’s page.</p>
+        <h2 className="text-xl font-bold tracking-tight">{t("ui.pages.apps.appsconnect.who-can-use")}{appName}?</h2>
+        <p className="mt-1 text-sm text-muted-foreground">{t("ui.pages.apps.appsconnect.you-can-change-later")}</p>
 
         <div className="mt-6 space-y-3">
           <button
@@ -1401,12 +1377,10 @@ function WhoStep({
               <div className="flex items-center gap-2">
                 <span className="font-bold text-foreground">{t("pages.appsConnect.allAgents2", { defaultValue: "All agents" })}</span>
                 <span className="rounded-full bg-foreground px-2 py-0.5 text-(length:--text-nano) font-bold text-background">
-                  Recommended
-                </span>
+                  {t("components.issueRecoveryAction.recommended")}</span>
               </div>
               <p className="mt-1 text-xs text-muted-foreground">
-                Anyone you’ve added to Paperclip can use {appName} in their tasks. This is what most teams want.
-              </p>
+                {t("ui.pages.apps.appsconnect.anyone-you-ve-added")}{appName} {t("ui.pages.apps.appsconnect.their-tasks-what-most")}</p>
             </div>
           </button>
 
@@ -1421,7 +1395,7 @@ function WhoStep({
             <Radio selected={access === "specific"} />
             <div className="flex-1">
               <span className="font-semibold text-foreground">{t("pages.appsConnect.onlySpecific", { defaultValue: "Only specific agents" })}</span>
-              <p className="mt-1 text-xs text-muted-foreground">Tick the agents who can use {appName}.</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("ui.pages.apps.appsconnect.tick-agents-who-can")}{appName}.</p>
             </div>
           </button>
 
@@ -1439,11 +1413,9 @@ function WhoStep({
 
       <div className="mt-6 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <Button onClick={onContinue} disabled={!canFinish}>
-          Continue to install
-        </Button>
+          {t("ui.pages.apps.appsconnect.continue-install")}</Button>
       </div>
     </div>
   );
@@ -1496,10 +1468,9 @@ export function InstallStep({
   return (
     <div className="mx-auto max-w-xl">
       <div className="rounded-2xl border border-border bg-card p-8">
-        <h2 className="text-xl font-bold tracking-tight">Install {appName} tools?</h2>
+        <h2 className="text-xl font-bold tracking-tight">{t("pages.adapterManager.install")}{appName} {t("ui.pages.apps.appsconnect.tools")}</h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Access is permission. Install decides whose runs actually carry these tools.
-        </p>
+          {t("ui.pages.apps.appsconnect.access-permission-install-decides")}</p>
 
         <div className="mt-5">
           <InlineBanner tone="info" compact>
@@ -1520,8 +1491,7 @@ export function InstallStep({
             <div>
               <span className="font-semibold text-foreground">{t("pages.appsConnect.notYet", { defaultValue: "Not yet" })}</span>
               <p className="mt-1 text-xs text-muted-foreground">
-                Keep {appName} permitted only. You can install it later from the app or agent page.
-              </p>
+                {t("ui.pages.apps.appsconnect.keep")}{appName} {t("ui.pages.apps.appsconnect.permitted-only-you-can")}</p>
             </div>
           </button>
 
@@ -1536,7 +1506,7 @@ export function InstallStep({
             <Radio selected={installMode === "specific"} />
             <div className="flex-1">
               <span className="font-semibold text-foreground">{t("pages.appsConnect.specificAgents2", { defaultValue: "Specific agents" })}</span>
-              <p className="mt-1 text-xs text-muted-foreground">Tick the agents that should load {appName} every run.</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t("ui.pages.apps.appsconnect.tick-agents-should-load")}{appName} {t("ui.pages.apps.appsconnect.every-run")}</p>
             </div>
           </button>
 
@@ -1577,8 +1547,7 @@ export function InstallStep({
 
       <div className="mt-6 flex items-center justify-between">
         <Button variant="ghost" onClick={onBack} disabled={submitting}>
-          Back
-        </Button>
+          {t("pages.teamCatalog.back")}</Button>
         <Button onClick={onFinish} disabled={submitting || !canFinish}>
           {submitting && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
           {submitting ? t("pages.appsConnect.finishing", { defaultValue: "Finishing..." }) : t("pages.appsConnect.finishSetup", { defaultValue: "Finish setup" })}
@@ -1630,7 +1599,7 @@ function SuccessStep({
       </div>
       <div className="mt-6 flex items-center justify-center gap-2">
         <AppLogo name={appName} logoUrl={logoUrl} size={28} />
-        <h2 className="text-2xl font-bold tracking-tight">{appName} is ready.</h2>
+        <h2 className="text-2xl font-bold tracking-tight">{appName} {t("ui.pages.apps.appsconnect.ready")}</h2>
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {installMode === "none"
@@ -1638,13 +1607,12 @@ function SuccessStep({
           : t("pages.appsConnect.installedHint", { defaultValue: "Installed agents will load it on their next run." })}
       </p>
       <p className="mt-1 text-xs text-muted-foreground">
-        {enabledCount} {enabledCount === 1 ? "action" : "actions"} on ·{" "}
+        {enabledCount} {enabledCount === 1 ? "action" : "actions"} {t("ui.pages.apps.appsconnect.text")}{" "}
         {access === "all" ? t("pages.appsConnect.allAgents", { defaultValue: "All agents can use it" }) : t("pages.appsConnect.specificAgents", { defaultValue: "Specific agents can use it" })} · {installSummary}
       </p>
       <div className="mt-8">
         <Button size="lg" className="px-10" onClick={onDone}>
-          Done
-        </Button>
+          {t("common.done")}</Button>
       </div>
     </div>
   );

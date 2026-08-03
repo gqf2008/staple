@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { type ReactNode, useMemo, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -123,8 +124,7 @@ export function SearchFilterMenu(props: SearchFilterMenuProps) {
               className="text-xs text-muted-foreground hover:text-foreground"
               onClick={() => props.onClear()}
             >
-              Clear
-            </button>
+              {t("components.issueProperties.clear")}</button>
           ) : null}
         </div>
 

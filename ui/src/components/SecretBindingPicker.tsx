@@ -170,8 +170,7 @@ export function SecretBindingPicker({
               onClick={() => onChange(null)}
               disabled={disabled}
             >
-              <X className="h-3 w-3" /> Clear
-            </button>
+              <X className="h-3 w-3" /> {t("components.issueProperties.clear")}</button>
           ) : null}
         </div>
       ) : null}
@@ -253,13 +252,12 @@ export function SecretBindingPicker({
       {selectedSecret ? (
         <p className={cn("text-(length:--text-micro) text-muted-foreground", statusTone(selectedSecret.status))}>
           {selectedSecret.status !== "active" ? `Status: ${selectedSecret.status}. ` : null}
-          Bound to {versionDisplay(value?.version)} · {selectedSecret.key}
+          {t("ui.components.secretbindingpicker.bound")}{versionDisplay(value?.version)} · {selectedSecret.key}
         </p>
       ) : crossCompanyHint ? (
         <p className="text-(length:--text-micro) text-muted-foreground flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
-          Owned by {crossCompanyHint.companyName ? `the ${crossCompanyHint.companyName} company` : "another company"}. The binding keeps working; selecting a secret from this list re-points it here.
-        </p>
+          {t("ui.components.secretbindingpicker.owned")}{crossCompanyHint.companyName ? `the ${crossCompanyHint.companyName} company` : "another company"}{t("ui.components.secretbindingpicker.binding-keeps-working-selecting")}</p>
       ) : missingHint ? (
         <p className="text-(length:--text-micro) text-destructive flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
@@ -277,8 +275,7 @@ export function SecretBindingPicker({
       ) : selectedMissing ? (
         <p className="text-(length:--text-micro) text-destructive flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
-          The previously selected secret is no longer available. Pick another or remove the binding.
-        </p>
+          {t("ui.components.secretbindingpicker.previously-selected-secret-no")}</p>
       ) : (filteredSecrets.length === 0 && !secretsQuery.isPending) ? (
         <p className="text-(length:--text-micro) text-muted-foreground">{emptyHint}</p>
       ) : null}
@@ -295,7 +292,7 @@ export function SecretBindingPicker({
                 id="secret-name"
                 value={createName}
                 onChange={(event) => setCreateName(event.target.value)}
-                placeholder="OPENAI_API_KEY"
+                placeholder={t("ui.components.secretbindingpicker.openai-api-key")}
                 autoFocus
               />
             </div>
@@ -310,8 +307,7 @@ export function SecretBindingPicker({
                 className="font-mono text-xs"
               />
               <p className="text-(length:--text-micro) text-muted-foreground mt-1">
-                The value is stored once and never re-displayed. Rotate to replace.
-              </p>
+                {t("ui.components.secretbindingpicker.value-stored-once-never")}</p>
             </div>
             <div>
               <label className="text-xs font-medium text-foreground/80" htmlFor="secret-description">{t("components.secretBindingPicker.description", { defaultValue: "Description" })}</label>
@@ -332,8 +328,7 @@ export function SecretBindingPicker({
               disabled={!createName.trim() || !createValue || createMutation.isPending}
             >
               {createMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
-              Create &amp; bind
-            </Button>
+              {t("ui.components.secretbindingpicker.create-amp-bind")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

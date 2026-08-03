@@ -347,8 +347,7 @@ export function RoutineRunVariablesDialog({
           )}
           <DialogTitle>{t("components.routineRunVariables.runRoutine", { defaultValue: "Run routine" })}</DialogTitle>
           <DialogDescription>
-            Choose the agent and optional project for this one run. Routine defaults are prefilled and won&apos;t be changed.
-          </DialogDescription>
+            {t("ui.components.routinerunvariablesdialog.choose-agent-optional-project")}</DialogDescription>
         </DialogHeader>
 
         <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
@@ -480,8 +479,8 @@ export function RoutineRunVariablesDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__unset__">{t("components.routineRunVariables.noValue", { defaultValue: "No value" })}</SelectItem>
-                    <SelectItem value="true">True</SelectItem>
-                    <SelectItem value="false">False</SelectItem>
+                    <SelectItem value="true">{t("ui.components.routinerunvariablesdialog.true")}</SelectItem>
+                    <SelectItem value="false">{t("ui.components.routinerunvariablesdialog.false")}</SelectItem>
                   </SelectContent>
                 </Select>
               ) : variable.type === "select" ? (
@@ -539,18 +538,16 @@ export function RoutineRunVariablesDialog({
             <p className="mr-auto text-xs text-amber-600">{t("components.routineRunVariables.defaultAgentRequired", { defaultValue: "Default agent required for this run." })}</p>
           ) : missingRequired.length > 0 ? (
             <p className="mr-auto text-xs text-amber-600">
-              Missing: {missingRequired.join(", ")}
+              {t("ui.components.routinerunvariablesdialog.missing")}{missingRequired.join(", ")}
             </p>
           ) : workspaceSelectionEnabled && !workspaceConfigValid ? (
             <p className="mr-auto text-xs text-amber-600">
-              Choose an existing workspace before running.
-            </p>
+              {t("ui.components.routinerunvariablesdialog.choose-existing-workspace-before")}</p>
           ) : (
             <span className="mr-auto" />
           )}
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             onClick={() => {
               const nextVariables: Record<string, string | number | boolean> = {};

@@ -379,7 +379,7 @@ type LookupMaps = {
 function RuleSentence({ sentence }: { sentence: ReturnType<typeof policySentence> }) {
   return (
     <span>
-      When <strong>{sentence.who}</strong> uses <strong>{sentence.uses}</strong> →{" "}
+      {t("pages.tools.policies.when")}<strong>{sentence.who}</strong> uses <strong>{sentence.uses}</strong> →{" "}
       <strong>{sentence.outcome}</strong>
     </span>
   );
@@ -441,8 +441,7 @@ function PolicySimulator({
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-base">
             <FlaskConical className="h-4 w-4" />
-            Test a rule
-          </SheetTitle>
+            {t("ui.pages.tools.policiestab.test-rule")}</SheetTitle>
           <SheetDescription>{t("pages.tools.policies.testHint", { defaultValue: "Pick an agent and an action to see what Paperclip would do." })}</SheetDescription>
         </SheetHeader>
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -468,7 +467,7 @@ function PolicySimulator({
                 id="test-action"
                 value={toolName}
                 onChange={(e) => setToolName(e.target.value)}
-                placeholder="e.g. gmail.send_email"
+                placeholder={t("ui.pages.tools.policiestab.gmail-send-email")}
               />
             </div>
           </div>
@@ -495,9 +494,9 @@ function PolicySimulator({
               <details className="text-xs text-muted-foreground">
                 <summary className="cursor-pointer text-foreground">{t("pages.tools.policies.details", { defaultValue: "Details" })}</summary>
                 <div className="mt-2 space-y-1 font-mono">
-                  <div>reason: {result.reasonCode}</div>
-                  <div>matched rule ids: {result.matchedPolicyIds.length ? result.matchedPolicyIds.join(", ") : "none"}</div>
-                  <div>effective profiles: {result.effectiveProfileIds.length ? result.effectiveProfileIds.join(", ") : "none"}</div>
+                  <div>{t("ui.pages.tools.policiestab.reason")}{result.reasonCode}</div>
+                  <div>{t("ui.pages.tools.policiestab.matched-rule-ids")}{result.matchedPolicyIds.length ? result.matchedPolicyIds.join(", ") : "none"}</div>
+                  <div>{t("ui.pages.tools.policiestab.effective-profiles")}{result.effectiveProfileIds.length ? result.effectiveProfileIds.join(", ") : "none"}</div>
                 </div>
               </details>
             </div>
@@ -560,8 +559,7 @@ function RuleBuilder({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <Button variant="ghost" size="sm" className="px-0" onClick={onCancel}>
-            Back to rules
-          </Button>
+            {t("ui.pages.tools.policiestab.back-rules")}</Button>
           <h2 className="text-lg font-semibold text-foreground">{form.id ? t("pages.tools.policies.editRule", { defaultValue: "Edit rule" }) : t("pages.tools.policies.newRule", { defaultValue: "New rule" })}</h2>
         </div>
         <div className="flex gap-2">
@@ -729,8 +727,7 @@ function RuleBuilder({
       <details className="rounded-md border border-border p-3">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-foreground">
           <ChevronDown className="h-4 w-4" />
-          Advanced
-        </summary>
+          {t("components.issueRunLedger.advanced")}</summary>
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="rule-name">{t("pages.tools.policies.ruleName", { defaultValue: "Rule name" })}</Label>
@@ -989,12 +986,10 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
           <>
             <Button size="sm" variant="outline" onClick={() => setTestOpen(true)}>
               <FlaskConical className="mr-1 h-4 w-4" />
-              Test a rule
-            </Button>
+              {t("ui.pages.tools.policiestab.test-rule")}</Button>
             <Button size="sm" onClick={() => setForm(emptyPolicyForm())}>
               <Plus className="mr-1 h-4 w-4" />
-              New rule
-            </Button>
+              {t("pages.tools.policies.newRule")}</Button>
           </>
         }
       />
@@ -1079,24 +1074,20 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onSelect={() => setForm(policyToForm(policy))}>
                                 <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
+                                {t("components.issueProperties.edit")}</DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => duplicate.mutate(policy)}>
                                 <Copy className="mr-2 h-4 w-4" />
-                                Duplicate
-                              </DropdownMenuItem>
+                                {t("pages.tools.profilesIndex.duplicate")}</DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => updatePolicy.mutate({ policyId: policy.id, body: { enabled: false } })}>
                                 <RotateCcw className="mr-2 h-4 w-4" />
-                                Turn off
-                              </DropdownMenuItem>
+                                {t("ui.pages.tools.policiestab.turn-off")}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onSelect={() => setConfirm({ kind: "delete-rule", policy, hits })}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
+                                {t("common.delete")}</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -1119,8 +1110,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
           <ErrorState error={trustRules.error} onRetry={() => trustRules.refetch()} />
         ) : (trustRules.data?.trustRules ?? []).length === 0 ? (
           <div className="rounded-md border border-border px-4 py-6 text-sm text-muted-foreground">
-            No remembered approvals yet.
-          </div>
+            {t("ui.pages.tools.policiestab.no-remembered-approvals-yet")}</div>
         ) : (
           <div className="divide-y divide-border rounded-md border border-border">
             {(trustRules.data?.trustRules ?? []).map((rule) => (
@@ -1130,7 +1120,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                     <RuleSentence sentence={policySentence(rule, maps, catalogByToolName)} />
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Remembered <RelativeTime value={rule.updatedAt} />
+                    {t("ui.pages.tools.policiestab.remembered")}<RelativeTime value={rule.updatedAt} />
                   </div>
                 </div>
                 <Button
@@ -1139,8 +1129,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                   disabled={!rule.enabled || revoke.isPending}
                   onClick={() => setConfirm({ kind: "forget-approval", policy: rule })}
                 >
-                  Forget
-                </Button>
+                  {t("pages.tools.policies.forget")}</Button>
               </div>
             ))}
           </div>

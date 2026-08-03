@@ -120,19 +120,17 @@ export function StatusCards() {
           <h1 className="text-xl font-bold">{t("pages.statusCardsIndex.status", { defaultValue: "Status" })}</h1>
           <Badge variant="secondary" className="gap-1">
             <FlaskConical className="h-3 w-3" />
-            Experimental
-          </Badge>
+            {t("components.companySettingsSidebar.experimental")}</Badge>
         </div>
         <div className="flex items-center gap-4">
           {showCostMeter ? (
             <span className="text-xs text-muted-foreground">
-              Today: {formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
+              {t("ui.pages.statuscards.statuscarddetaildrawer.today")}{formatTokens(todayTotals.tokens)} · ~{formatCents(todayTotals.cents)}
             </span>
           ) : null}
           <Button onClick={() => setCreateOpen(true)} disabled={!selectedCompanyId}>
             <Plus className="h-4 w-4" />
-            New card
-          </Button>
+            {t("pages.statusCardsIndex.newCard")}</Button>
         </div>
       </div>
 
@@ -140,8 +138,7 @@ export function StatusCards() {
 
       {activeQuery.isLoading ? (
         <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" /> Loading cards…
-        </div>
+          <Loader2 className="h-4 w-4 animate-spin" /> {t("ui.pages.statuscards.index.loading-cards")}</div>
       ) : activeQuery.isError ? (
         <InlineBanner tone="danger" title={t("pages.statusCardsIndex.loadFailed", { defaultValue: "Could not load status cards" })}>
           {activeQuery.error instanceof Error ? activeQuery.error.message : t("pages.statusCardsIndex.tryAgain", { defaultValue: "Try again." })}

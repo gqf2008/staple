@@ -158,8 +158,7 @@ export function ArtifactsPanel({ taskId, isAgentWorking, openDocKey, openDocTitl
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Loading...
-          </div>
+            {t("components.sidebarServerInfo.loading")}</div>
         ) : filtered.length === 0 ? (
           <div className="px-4 py-8 text-center">
             <Package className="h-8 w-8 mx-auto text-muted-foreground/40 mb-3" />
@@ -216,8 +215,7 @@ export function ArtifactsPanel({ taskId, isAgentWorking, openDocKey, openDocTitl
                         {showGenerating ? (
                           <Badge variant="ghost" className="[&>svg]:size-2.5 text-(length:--text-nano) px-1.5 bg-blue-500/10 text-blue-600 dark:text-blue-400">
                             <Loader2 className="h-2.5 w-2.5 animate-spin" />
-                            Generating...
-                          </Badge>
+                            {t("components.summarySlotCard.generating")}</Badge>
                         ) : (
                           <Badge variant="ghost" className={cn("text-(length:--text-nano) px-1.5", badge.className)}>
                             {badge.label}
@@ -284,8 +282,7 @@ function DocumentViewer({
         {isLoading ? (
           <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
             <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-            Loading document...
-          </div>
+            {t("ui.components.artifactspanel.loading-document")}</div>
         ) : error ? (
           <p className="text-sm text-muted-foreground">{t("components.artifactsPanel.docUnavailable", { defaultValue: "Document not available yet." })}</p>
         ) : doc?.body ? (
@@ -303,14 +300,12 @@ function DocumentViewer({
           <p className="text-(length:--text-micro) text-muted-foreground mb-2">{t("components.artifactsPanel.docNeedsReview", { defaultValue: "This document needs your review." })}</p>
           <div className="flex items-center gap-3">
             <Button size="lg" className="h-11 px-8 text-base font-semibold flex-1 rounded-lg bg-green-700 hover:bg-green-800 text-white border-0" onClick={onApprove}>
-              Approve
-            </Button>
+              {t("common.approve")}</Button>
             <Button size="lg" className="h-11 px-8 text-base font-semibold flex-1 rounded-lg bg-red-900 hover:bg-red-950 text-white border-0" onClick={() => {
               onReject?.();
               onBack();
             }}>
-              Reject
-            </Button>
+              {t("common.reject")}</Button>
           </div>
         </div>
       )}
@@ -319,8 +314,7 @@ function DocumentViewer({
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 text-green-500" />
             <p className="text-(length:--text-compact) font-medium text-green-700 dark:text-green-400">
-              Approved — hire tasks created
-            </p>
+              {t("ui.components.artifactspanel.approved-hire-tasks-created")}</p>
           </div>
         </div>
       )}
@@ -329,8 +323,7 @@ function DocumentViewer({
           <div className="flex items-center gap-2">
             <XCircle className="h-4 w-4 text-orange-500" />
             <p className="text-(length:--text-compact) font-medium text-orange-700 dark:text-orange-400">
-              Changes requested — CEO is revising
-            </p>
+              {t("ui.components.artifactspanel.changes-requested-ceo-revising")}</p>
           </div>
         </div>
       )}

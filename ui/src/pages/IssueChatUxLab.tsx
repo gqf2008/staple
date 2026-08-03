@@ -151,25 +151,19 @@ export function IssueChatUxLab() {
           <div className="p-6 sm:p-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
               <FlaskConical className="h-3.5 w-3.5" />
-              Chat UX Lab
-            </div>
+              {t("ui.pages.issuechatuxlab.chat-ux-lab")}</div>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">{t("pages.issueChatUxLab.title", { defaultValue: "Issue chat review surface" })}</h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
-              This page exercises the real assistant-ui issue chat with fixture-backed messages. Use it to review
-              spacing, chronology, running states, tool rendering, activity rows, queueing, and composer behavior
-              without needing a live issue in progress.
-            </p>
+              {t("ui.pages.issuechatuxlab.page-exercises-real-assistant")}</p>
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
                 /tests/ux/chat
               </Badge>
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                assistant-ui thread
-              </Badge>
+                {t("ui.pages.issuechatuxlab.assistant-ui-thread")}</Badge>
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                fixture-backed live run
-              </Badge>
+                {t("ui.pages.issuechatuxlab.fixture-backed-live-run")}</Badge>
             </div>
 
             <div className="mt-6 flex flex-wrap items-center gap-3">
@@ -181,16 +175,14 @@ export function IssueChatUxLab() {
                 className="inline-flex items-center gap-2 rounded-full border border-border/70 bg-background/80 px-3 py-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
               >
                 <Route className="h-3.5 w-3.5" />
-                Jump to live execution preview
-              </a>
+                {t("ui.pages.issuechatuxlab.jump-live-execution-preview")}</a>
             </div>
           </div>
 
           <aside className="border-t border-border/60 bg-background/70 p-6 lg:border-l lg:border-t-0">
             <div className="mb-4 flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
               <WandSparkles className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
-              Covered states
-            </div>
+              {t("ui.pages.inviteuxlab.covered-states")}</div>
             <div className="space-y-3">
               {highlights.map((highlight) => (
                 <div
@@ -209,20 +201,18 @@ export function IssueChatUxLab() {
         id="rotating-text"
         eyebrow={t("pages.issueChatUxLab.animationDemo", { defaultValue: "Animation demo" })}
         title={t("pages.issueChatUxLab.rotatingReasoning", { defaultValue: "Rotating reasoning text" })}
-        description="Isolated ticker that cycles sample reasoning lines on a timer. The outgoing line slides up and fades out while the incoming line slides up from below. Runs in a loop so you can tune timing and easing without needing a live stream."
+        description={t("ui.pages.issuechatuxlab.isolated-ticker-cycles-sample")}
         accentClassName="bg-[linear-gradient(180deg,rgba(168,85,247,0.06),transparent_28%),var(--background)]"
       >
         <div className="space-y-4">
           <div className="rounded-xl border border-border/60 bg-accent/10 p-4">
             <div className="mb-2 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Default interval (2.2s)
-            </div>
+              {t("ui.pages.issuechatuxlab.default-interval-2s")}</div>
             <RotatingReasoningDemo />
           </div>
           <div className="rounded-xl border border-border/60 bg-accent/10 p-4">
             <div className="mb-2 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Fast interval (1s) — stress test
-            </div>
+              {t("ui.pages.issuechatuxlab.fast-interval-1s-stress")}</div>
             <RotatingReasoningDemo intervalMs={1000} />
           </div>
         </div>
@@ -238,28 +228,25 @@ export function IssueChatUxLab() {
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="rounded-xl border border-border/60 bg-accent/10 p-4">
             <div className="mb-3 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Active run — shimmer
-            </div>
+              {t("ui.pages.issuechatuxlab.active-run-shimmer")}</div>
             <div className="flex items-center gap-2.5 rounded-lg px-1 py-2">
               <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground/80">
                 <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" />
                 <span className="shimmer-text">{t("pages.issueChatUxLab.working", { defaultValue: "Working" })}</span>
               </span>
-              <span className="text-xs text-muted-foreground/60">for 12s</span>
+              <span className="text-xs text-muted-foreground/60">{t("ui.pages.issuechatuxlab.12s")}</span>
             </div>
           </div>
           <div className="rounded-xl border border-border/60 bg-accent/10 p-4">
             <div className="mb-3 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Completed run — static
-            </div>
+              {t("ui.pages.issuechatuxlab.completed-run-static")}</div>
             <div className="flex items-center gap-2.5 rounded-lg px-1 py-2">
               <span className="inline-flex items-center gap-2 text-sm font-medium text-foreground/80">
                 <span className="flex h-4 w-4 shrink-0 items-center justify-center">
                   <span className="h-1.5 w-1.5 rounded-full bg-emerald-500/70" />
                 </span>
-                Worked
-              </span>
-              <span className="text-xs text-muted-foreground/60">for 1 min 24s</span>
+                {t("components.issueChatThread.worked")}</span>
+              <span className="text-xs text-muted-foreground/60">{t("ui.pages.issuechatuxlab.min-24s")}</span>
             </div>
           </div>
         </div>
@@ -269,7 +256,7 @@ export function IssueChatUxLab() {
         id="live-execution"
         eyebrow={t("pages.issueChatUxLab.primaryPreview", { defaultValue: "Primary preview" })}
         title={t("pages.issueChatUxLab.liveThread", { defaultValue: "Live execution thread" })}
-        description="Shows the fully active state: timeline events, historical run marker, a running assistant reply with reasoning and tools, and a queued follow-up from the user."
+        description={t("ui.pages.issuechatuxlab.shows-fully-active-state")}
         accentClassName="bg-[linear-gradient(180deg,rgba(6,182,212,0.05),transparent_28%),var(--background)]"
       >
         <IssueChatThread
@@ -321,7 +308,7 @@ export function IssueChatUxLab() {
         <LabSection
           eyebrow={t("pages.issueChatUxLab.settledReview", { defaultValue: "Settled review" })}
           title={t("pages.issueChatUxLab.durableComments", { defaultValue: "Durable comments and feedback" })}
-          description="Shows the post-run state: assistant comment feedback controls, historical run context, and timeline reassignment without any active stream."
+          description={t("ui.pages.issuechatuxlab.shows-post-run-state")}
           accentClassName="bg-[linear-gradient(180deg,rgba(168,85,247,0.05),transparent_26%),var(--background)]"
         >
           <IssueChatThread
@@ -345,7 +332,7 @@ export function IssueChatUxLab() {
           <LabSection
             eyebrow={t("pages.issueChatUxLab.emptyThread", { defaultValue: "Empty thread" })}
             title={t("pages.issueChatUxLab.emptyComposer", { defaultValue: "Empty state and disabled composer" })}
-            description="Keeps the message area visible even when there is no thread yet, and replaces the composer with an explicit warning when replies are blocked."
+            description={t("ui.pages.issuechatuxlab.keeps-message-area-visible")}
             accentClassName="bg-[linear-gradient(180deg,rgba(245,158,11,0.08),transparent_26%),var(--background)]"
           >
             <IssueChatThread
@@ -366,28 +353,22 @@ export function IssueChatUxLab() {
             <CardHeader className="px-5 pt-5 pb-0">
               <div className="flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
                 <MessagesSquare className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
-                Review checklist
-              </div>
+                {t("ui.pages.issuechatuxlab.review-checklist")}</div>
               <CardTitle className="text-lg">{t("pages.issueChatUxLab.whatToEvaluate", { defaultValue: "What to evaluate on this page" })}</CardTitle>
               <CardDescription>
-                This route should be the fastest way to inspect the chat system before or after tweaks.
-              </CardDescription>
+                {t("ui.pages.issuechatuxlab.route-should-fastest-way")}</CardDescription>
             </CardHeader>
             <CardContent className="space-y-3 px-5 pb-5 pt-0 text-sm text-muted-foreground">
               <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
                 <div className="mb-1 flex items-center gap-2 font-medium text-foreground">
                   <Bot className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
-                  Message hierarchy
-                </div>
-                Check that user, assistant, and system rows scan differently without feeling like separate products.
-              </div>
+                  {t("ui.pages.issuechatuxlab.message-hierarchy")}</div>
+                {t("ui.pages.issuechatuxlab.check-user-assistant-system")}</div>
               <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
                 <div className="mb-1 flex items-center gap-2 font-medium text-foreground">
                   <Sparkles className="h-4 w-4 text-cyan-700 dark:text-cyan-300" />
-                  Stream polish
-                </div>
-                Watch the live preview for reasoning density, tool expansion behavior, and queued follow-up readability.
-              </div>
+                  {t("ui.pages.issuechatuxlab.stream-polish")}</div>
+                {t("ui.pages.issuechatuxlab.watch-live-preview-reasoning")}</div>
             </CardContent>
           </Card>
         </div>

@@ -205,8 +205,7 @@ export function IssueMonitorComposerStrip({
         {onCheckNow ? <CheckNowButton onCheckNow={onCheckNow} checkingNow={checkingNow} /> : null}
       </div>
       <p className="mt-1.5 text-xs text-muted-foreground">
-        Sending a reply wakes the agent now — before the scheduled check.
-      </p>
+        {t("ui.components.issuemonitorbanner.sending-reply-wakes-agent")}</p>
     </div>
   );
 }

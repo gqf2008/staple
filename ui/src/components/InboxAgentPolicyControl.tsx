@@ -128,9 +128,7 @@ export function InboxAgentPolicyControl({ companyId }: { companyId: string | nul
           <h2 className="text-base font-semibold">{t("components.inboxAgentPolicy.title", { defaultValue: "Let agents tidy my inbox" })}</h2>
         </div>
         <p className="max-w-2xl text-sm text-muted-foreground">
-          Choose whether the agents you manage may archive tasks out of your inbox on your behalf. You can
-          undo any archive, and every agent archive is attributed in the task&apos;s properties.
-        </p>
+          {t("ui.components.inboxagentpolicycontrol.choose-whether-agents-you")}</p>
       </div>
 
       <RadioCardGroup
@@ -145,7 +143,7 @@ export function InboxAgentPolicyControl({ companyId }: { companyId: string | nul
         <div className="max-w-2xl space-y-2 rounded-md border border-border p-3">
           <div className="text-sm font-medium">{t("components.inboxAgentPolicy.allowedAgents", { defaultValue: "Agents allowed to tidy my inbox" })}</div>
           {selectableAgents.length === 0 ? (
-            <p className="text-xs text-muted-foreground">You don&apos;t manage any agents yet.</p>
+            <p className="text-xs text-muted-foreground">{t("ui.components.inboxagentpolicycontrol.you-don-apos-manage")}</p>
           ) : (
             <ul className="space-y-1.5">
               {selectableAgents.map((agent) => {

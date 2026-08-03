@@ -537,7 +537,7 @@ function ProvenanceBadge({ packageName, packageVersion }: { packageName: string 
           <span>{packageName}{packageVersion ? ` v${packageVersion}` : ""}</span>
         </span>
       </TooltipTrigger>
-      <TooltipContent>Installed from the app-shipped skills catalog. Provenance is signed by package version and content hash.</TooltipContent>
+      <TooltipContent>{t("ui.pages.companyskills.installed-from-app-shipped")}</TooltipContent>
     </Tooltip>
   );
 }
@@ -901,8 +901,7 @@ function SkillCard({
                 <>
                   <DropdownMenuItem onSelect={() => onOpenMove(card)}>
                     <FolderInput className="h-3.5 w-3.5" />
-                    Move to folder…
-                  </DropdownMenuItem>
+                    {t("ui.pages.companyskills.move-folder")}</DropdownMenuItem>
                   <DropdownMenuSeparator />
                 </>
               ) : null}
@@ -920,8 +919,7 @@ function SkillCard({
       {card.forkedFrom ? (
         <div className="mt-2 inline-flex items-center gap-1 text-(length:--text-micro) text-muted-foreground">
           <GitFork className="h-3 w-3" aria-hidden="true" />
-          Forked
-        </div>
+          {t("ui.pages.companyskills.forked")}</div>
       ) : null}
 
       {/* Always reserve two lines so cards line up even without a description. */}
@@ -954,8 +952,7 @@ function SkillCard({
         <div className="mt-2 flex flex-wrap items-center gap-1">
           {card.installed ? (
             <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-(length:--text-nano) text-emerald-700 dark:text-emerald-300">
-              Installed
-            </Badge>
+              {t("pages.agentToolsTab.installed")}</Badge>
           ) : null}
           {card.categories.slice(0, 2).map((category) => (
             <SkillCategoryChip key={category} label={category} />
@@ -963,8 +960,7 @@ function SkillCard({
           {card.required ? (
             <Badge variant="outline" className="ml-auto border-border bg-muted/60 text-(length:--text-nano) text-muted-foreground">
               <Lock className="h-3 w-3" aria-hidden="true" />
-              Bundled
-            </Badge>
+              {t("components.folderControls.bundled")}</Badge>
           ) : null}
         </div>
       </div>
@@ -1172,8 +1168,7 @@ export function DiscoveryGrid({
           <p className="text-xs text-muted-foreground">{t("pages.companySkills2.storeSubtitle", { defaultValue: "Discover, install, fork, share" })}</p>
         </div>
         <div className="px-4 pb-1 pt-3 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-          Categories
-        </div>
+          {t("pages.companySkills2.categories")}</div>
         <div className="min-h-0 flex-1 overflow-y-auto pb-4">
           <CategoryNav
             categories={categories}
@@ -1249,34 +1244,28 @@ export function DiscoveryGrid({
           <Button asChild variant="outline" size="sm">
             <Link to="/skills/studio">
               <FlaskConical className="h-3.5 w-3.5" />
-              Studio
-            </Link>
+              {t("pages.skillStudio.studio")}</Link>
           </Button>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button size="sm" variant="default">
                 <Plus className="mr-1 h-3.5 w-3.5" />
-                New
-                <ChevronDown className="ml-1 h-3.5 w-3.5" />
+                {t("components.issueDocuments.new")}<ChevronDown className="ml-1 h-3.5 w-3.5" />
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={onCreate}>
                 <Pencil className="mr-2 h-4 w-4" />
-                Create new skill
-              </DropdownMenuItem>
+                {t("ui.pages.companyskills.create-new-skill")}</DropdownMenuItem>
               <DropdownMenuItem onSelect={onBrowseCatalog}>
                 <Boxes className="mr-2 h-4 w-4" />
-                Browse catalog
-              </DropdownMenuItem>
+                {t("ui.pages.companyskills.browse-catalog")}</DropdownMenuItem>
               <DropdownMenuItem onSelect={onImport}>
                 <Globe className="mr-2 h-4 w-4" />
-                Import from path or URL
-              </DropdownMenuItem>
+                {t("pages.skills.importFromProject.title")}</DropdownMenuItem>
               <DropdownMenuItem onSelect={onImportFromProject}>
                 <FolderSearch className="mr-2 h-4 w-4" />
-                Import skills from project
-              </DropdownMenuItem>
+                {t("ui.pages.companyskills.import-skills-from-project")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
           {folderResult && onFolderSelect ? (
@@ -1292,8 +1281,7 @@ export function DiscoveryGrid({
           {onCreateFolder ? (
             <Button variant="outline" size="sm" onClick={onCreateFolder}>
               <Plus className="mr-1 h-3.5 w-3.5" />
-              New folder
-            </Button>
+              {t("components.folderControls.newFolder")}</Button>
           ) : null}
           {onToggleSelectMode ? (
             <Button variant="ghost" size="sm" onClick={onToggleSelectMode}>
@@ -1317,7 +1305,7 @@ export function DiscoveryGrid({
                   value={activeCategory ?? "__all__"}
                   onValueChange={(value) => onCategoryChange(value === "__all__" ? null : value)}
                 >
-                  <DropdownMenuRadioItem value="__all__">All ({categoryTotal})</DropdownMenuRadioItem>
+                  <DropdownMenuRadioItem value="__all__">{t("ui.pages.companyskills.all")}{categoryTotal})</DropdownMenuRadioItem>
                   {categories.map((category) => (
                     <DropdownMenuRadioItem key={category.slug} value={category.slug} className="capitalize">
                       {category.slug} ({category.count})
@@ -1399,11 +1387,9 @@ export function DiscoveryGrid({
               {totalCount === 0 ? (
                 <div className="mt-3 flex flex-col items-center gap-2">
                   <Button size="sm" onClick={onBrowseCatalog}>
-                    <Boxes className="mr-1.5 h-3.5 w-3.5" /> Browse catalog
-                  </Button>
+                    <Boxes className="mr-1.5 h-3.5 w-3.5" /> {t("ui.pages.companyskills.browse-catalog")}</Button>
                   <Button size="sm" variant="ghost" onClick={onCreate}>
-                    Create a skill
-                  </Button>
+                    {t("ui.pages.companyskills.create-skill")}</Button>
                 </div>
               ) : (search || activeCategory || sourceFilterActive) ? (
                 <div className="mt-3 flex justify-center">
@@ -1416,8 +1402,7 @@ export function DiscoveryGrid({
                       setSourceBadgeFilter("all");
                     }}
                   >
-                    Clear filters
-                  </Button>
+                    {t("components.routineOperate.clearFilters")}</Button>
                 </div>
               ) : null}
             </div>
@@ -1508,7 +1493,7 @@ function NewSkillWizard({
       {draft.forkedFromName ? (
         <div className="flex items-center gap-2 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
           <GitFork className="h-3.5 w-3.5" />
-          Forking {draft.forkedFromName}
+          {t("ui.pages.companyskills.forking")}{draft.forkedFromName}
         </div>
       ) : null}
 
@@ -1601,7 +1586,7 @@ function NewSkillWizard({
             <Input
               value={categoryDraft}
               onChange={(event) => patchDraft({ categories: splitCategoryDraft(event.target.value) })}
-              placeholder="engineering, review, memory"
+              placeholder={t("ui.pages.companyskills.engineering-review-memory")}
               className="h-9"
             />
           </div>
@@ -1666,16 +1651,13 @@ function NewSkillWizard({
 
       <div className="flex items-center justify-between gap-2 border-t border-border pt-3">
         <Button variant="ghost" size="sm" onClick={onCancel} disabled={isPending}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" onClick={() => setStep((value) => Math.max(0, value - 1))} disabled={isPending || step === 0}>
-            Back
-          </Button>
+            {t("pages.teamCatalog.back")}</Button>
           {step < steps.length - 1 ? (
             <Button size="sm" onClick={() => setStep((value) => Math.min(steps.length - 1, value + 1))} disabled={!nameValid}>
-              Next
-            </Button>
+              {t("ui.components.imagegallerymodal.next")}</Button>
           ) : (
             <Button size="sm" onClick={submit} disabled={isPending || !nameValid}>
               {isPending ? t("pages.companySkills.creating", { defaultValue: "Creating..." }) : draft.forkedFromSkillId ? t("pages.companySkills.createFork", { defaultValue: "Create fork" }) : t("pages.companySkills.createSkill", { defaultValue: "Create skill" })}
@@ -1728,8 +1710,7 @@ function CatalogList({
   if (filtered.length === 0) {
     return (
       <div className="px-4 py-6 text-sm text-muted-foreground">
-        No catalog skills match this filter.
-      </div>
+        {t("ui.pages.companyskills.no-catalog-skills-match")}</div>
     );
   }
 
@@ -1805,7 +1786,7 @@ function CatalogList({
       {bundled.length > 0 && kindFilter !== "optional" ? (
         <div>
           <div className="border-b border-border bg-background px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Bundled · {bundled.length}
+            {t("ui.pages.companyskills.bundled")}{bundled.length}
           </div>
           {bundled.map(renderRow)}
         </div>
@@ -1813,7 +1794,7 @@ function CatalogList({
       {optional.length > 0 && kindFilter !== "bundled" ? (
         <div>
           <div className="border-b border-border bg-background px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Optional · {optional.length}
+            {t("ui.pages.companyskills.optional")}{optional.length}
           </div>
           {optional.map(renderRow)}
         </div>
@@ -1821,7 +1802,7 @@ function CatalogList({
       {installed.length > 0 ? (
         <div>
           <div className="border-b border-border bg-background px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            Installed · {installed.length}
+            {t("ui.pages.companyskills.installed")}{installed.length}
           </div>
           {installed.map(renderRow)}
         </div>
@@ -1871,8 +1852,7 @@ function CatalogDetailPane({
           <span>
             <Button disabled>
               <Download className="mr-1.5 h-3.5 w-3.5" />
-              Install skill
-            </Button>
+              {t("pages.companySkills.installSkill")}</Button>
           </span>
         </TooltipTrigger>
         <TooltipContent>{t("pages.companySkills2.invalidMarkdown", { defaultValue: "This skill cannot be installed — its content is not valid Agent Skills markdown." })}</TooltipContent>
@@ -1889,15 +1869,13 @@ function CatalogDetailPane({
     cta = (
       <Button onClick={onUpdate} disabled={loadingPrimaryAction} className="border-amber-500/40 bg-amber-500/20 text-amber-900 dark:text-amber-100 hover:bg-amber-500/30">
         <ArrowUpCircle className="mr-1.5 h-3.5 w-3.5" />
-        Update from catalog
-      </Button>
+        {t("ui.pages.companyskills.update-from-catalog")}</Button>
     );
   } else {
     cta = (
       <Button variant="ghost" onClick={() => installedSkillId && onOpenInstalled(installedSkillId)}>
         <Check className="mr-1.5 h-3.5 w-3.5" />
-        Installed · Open in library
-      </Button>
+        {t("ui.pages.companyskills.installed-open-library")}</Button>
     );
   }
 
@@ -1932,25 +1910,24 @@ function CatalogDetailPane({
               <TooltipTrigger asChild>
                 <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-(length:--text-micro) text-amber-800 dark:text-amber-200">
                   <ArrowUpCircle className="h-3 w-3" aria-hidden="true" />
-                  Update available
-                </Badge>
+                  {t("components.resourceStatusChip.updateAvailable")}</Badge>
               </TooltipTrigger>
               <TooltipContent>{t("pages.companySkills2.hashChanged", { defaultValue: "Catalog content hash has changed since this skill was installed." })}</TooltipContent>
             </Tooltip>
           ) : null}
           {skill.requires.length > 0 ? (
             <Badge variant="outline" className="border-border bg-muted/40 text-(length:--text-micro) text-muted-foreground">
-              Requires: {skill.requires.join(", ")}
+              {t("ui.pages.companyskills.requires")}{skill.requires.join(", ")}
             </Badge>
           ) : null}
           {skill.recommendedForRoles.length > 0 ? (
             <Badge variant="outline" className="border-border bg-muted/40 text-(length:--text-micro) text-muted-foreground">
-              Roles: {skill.recommendedForRoles.join(" · ")}
+              {t("ui.pages.companyskills.roles")}{skill.recommendedForRoles.join(" · ")}
             </Badge>
           ) : null}
           {skill.tags.length > 0 ? (
             <Badge variant="outline" className="border-border bg-muted/40 text-(length:--text-micro) text-muted-foreground">
-              Tags: {skill.tags.join(" · ")}
+              {t("ui.pages.companyskills.tags")}{skill.tags.join(" · ")}
             </Badge>
           ) : null}
         </div>
@@ -2078,8 +2055,7 @@ function InstallPreviewDialog({
                 {skill.compatibility === "compatible" ? (
                   <span className="inline-flex items-center gap-1 text-muted-foreground">
                     <Check className="h-3 w-3" aria-hidden="true" />
-                    Compatible
-                  </span>
+                    {t("pages.teamCatalog.compatible")}</span>
                 ) : (
                   <CompatChip compatibility={skill.compatibility} />
                 )}
@@ -2098,7 +2074,7 @@ function InstallPreviewDialog({
 
           <div className="rounded-md border border-border">
             <div className="border-b border-border px-3 py-2 text-xs uppercase tracking-wide text-muted-foreground">
-              Files ({skill.files.length})
+              {t("ui.pages.companyskills.files")}{skill.files.length})
             </div>
             <div className="max-h-48 overflow-y-auto">
               {skill.files.map((file) => (
@@ -2113,8 +2089,7 @@ function InstallPreviewDialog({
 
           {conflict ? (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
-              An existing skill with key <span className="font-mono">{conflict.key}</span> is installed (
-              {conflict.sourceLabel ?? conflict.sourceType}). Installing will {defaultAction === "update" ? "overwrite the catalog content" : "replace the existing skill"}.
+              {t("ui.pages.companyskills.existing-skill-key")}<span className="font-mono">{conflict.key}</span> {t("ui.pages.companyskills.installed-alt")}{conflict.sourceLabel ?? conflict.sourceType}{t("ui.pages.companyskills.installing-will")}{defaultAction === "update" ? "overwrite the catalog content" : "replace the existing skill"}.
             </div>
           ) : null}
 
@@ -2124,8 +2099,7 @@ function InstallPreviewDialog({
             className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
           >
             {advancedOpen ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-            Advanced
-          </button>
+            {t("components.issueRunLedger.advanced")}</button>
           {advancedOpen ? (
             <div className="space-y-3 rounded-md border border-border p-3 text-xs">
               <div>
@@ -2148,8 +2122,7 @@ function InstallPreviewDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={isPending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             variant={confirmVariant}
             onClick={() => onConfirm({ slug: slug.trim().length > 0 ? slug.trim() : null, force })}
@@ -2241,8 +2214,7 @@ function AttachAgentsPopover({
       renderNameSuffix={(agent) => (agent as AttachAgentOption).paused ? (
         <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
           <Pause className="h-2.5 w-2.5" aria-hidden="true" />
-          Paused
-        </Badge>
+          {t("status.paused")}</Badge>
       ) : null}
     />
   );
@@ -2378,17 +2350,15 @@ function SkillList({
     if (sourceFilter !== "all" && skills.length > 0) {
       return (
         <div className="px-4 py-6 text-sm text-muted-foreground">
-          No {SOURCE_FILTER_LABELS[sourceFilter].toLowerCase()} skills installed.{" "}
+          No {SOURCE_FILTER_LABELS[sourceFilter].toLowerCase()} {t("ui.pages.companyskills.skills-installed")}{" "}
           <button type="button" className="text-foreground underline" onClick={onClearFilters}>
-            Clear filter
-          </button>
+            {t("ui.pages.companyskills.clear-filter")}</button>
         </div>
       );
     }
     return (
       <div className="px-4 py-6 text-sm text-muted-foreground">
-        No skills match this filter.
-      </div>
+        {t("ui.pages.companyskills.no-skills-match-filter")}</div>
     );
   }
 
@@ -2675,8 +2645,7 @@ function SkillLocationCard({
         {onMove ? (
           <Button size="sm" variant="outline" onClick={onMove}>
             <FolderInput className="mr-1.5 h-3.5 w-3.5" />
-            Move
-          </Button>
+            {t("ui.pages.companyskills.move")}</Button>
         ) : null}
       </div>
     </section>
@@ -2710,8 +2679,7 @@ function SkillTagsEditor({
     <section>
       <div className="mb-2 flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">
         <Hash className="h-3 w-3" />
-        Tags
-      </div>
+        {t("components.issueColumns.tags")}</div>
       <div className="flex flex-wrap gap-1.5">
         {categories.map((tag) => (
           <span
@@ -2958,13 +2926,13 @@ export function SkillDetailPage({
                     className={cn("px-3 py-1.5 text-sm", viewMode === "preview" ? "text-foreground" : "text-muted-foreground")}
                     onClick={() => setViewMode("preview")}
                   >
-                    <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> View</span>
+                    <span className="flex items-center gap-1.5"><Eye className="h-3.5 w-3.5" /> {t("components.builtInBundle.view")}</span>
                   </button>
                   <button
                     className={cn("border-l border-border px-3 py-1.5 text-sm", viewMode === "code" ? "text-foreground" : "text-muted-foreground")}
                     onClick={() => setViewMode("code")}
                   >
-                    <span className="flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" /> Code</span>
+                    <span className="flex items-center gap-1.5"><Code2 className="h-3.5 w-3.5" /> {t("pages.training.code")}</span>
                   </button>
                 </div>
               ) : null}
@@ -2979,8 +2947,7 @@ export function SkillDetailPage({
                   </>
                 ) : (
                   <Button variant="ghost" size="sm" onClick={() => setEditMode(true)}>
-                    <Pencil className="mr-1.5 h-3.5 w-3.5" /> Edit
-                  </Button>
+                    <Pencil className="mr-1.5 h-3.5 w-3.5" /> {t("components.issueProperties.edit")}</Button>
                 )
               ) : !skill.editable ? (
                 <Button
@@ -2991,8 +2958,7 @@ export function SkillDetailPage({
                   title={skill.editableReason ?? t("pages.companySkills.forkToEdit", { defaultValue: "Fork this skill to edit it." })}
                 >
                   <GitFork className="mr-1.5 h-3.5 w-3.5" />
-                  Fork
-                </Button>
+                  {t("pages.companySkills2.fork")}</Button>
               ) : null}
             </div>
           </div>
@@ -3058,8 +3024,7 @@ export function SkillDetailPage({
                   <span>{t("pages.companySkills.readOnly", { defaultValue: "Read only" })}</span>
                   <Button type="button" variant="outline" size="xs" onClick={onFork}>
                     <GitFork className="mr-1 h-3 w-3" />
-                    Fork
-                  </Button>
+                    {t("pages.companySkills2.fork")}</Button>
                 </>
               )}
             </div>
@@ -3083,8 +3048,7 @@ export function SkillDetailPage({
             onClick={() => openVersionDiff()}
             disabled={sortedVersions.length < 2}
           >
-            <History className="mr-1.5 h-3.5 w-3.5" /> Compare
-          </Button>
+            <History className="mr-1.5 h-3.5 w-3.5" /> {t("ui.pages.companyskills.compare")}</Button>
         </div>
         <div className="border-y border-border">
           {versionsLoading ? (
@@ -3106,8 +3070,7 @@ export function SkillDetailPage({
                   size="sm"
                   onClick={() => openVersionDiff(version.id)}
                 >
-                  View diff
-                </Button>
+                  {t("ui.components.issuedocumentssection.view-diff")}</Button>
               </div>
             ))
           )}
@@ -3147,8 +3110,7 @@ export function SkillDetailPage({
         </div>
         {attached.length === 0 ? (
           <div className="rounded-md border border-dashed border-border py-8 text-center text-sm text-muted-foreground">
-            No agents are using this skill yet. Use “Add to agent” to attach it.
-          </div>
+            {t("ui.pages.companyskills.no-agents-using-skill")}</div>
         ) : (
           <div className="border-y border-border">
             {attached.map((agent) => {
@@ -3162,8 +3124,7 @@ export function SkillDetailPage({
                       {meta?.paused ? (
                         <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
                           <Pause className="h-2.5 w-2.5" aria-hidden="true" />
-                          Paused
-                        </Badge>
+                          {t("status.paused")}</Badge>
                       ) : null}
                     </div>
                     <div className="mt-0.5 text-xs text-muted-foreground">{agent.adapterType}</div>
@@ -3172,8 +3133,7 @@ export function SkillDetailPage({
                     to={`/agents/${agent.urlKey}/skills`}
                     className="shrink-0 text-xs text-muted-foreground no-underline hover:text-foreground"
                   >
-                    View
-                  </Link>
+                    {t("components.builtInBundle.view")}</Link>
                 </div>
               );
             })}
@@ -3221,7 +3181,7 @@ export function SkillDetailPage({
                         <SourceIcon className="h-4 w-4" />
                       </span>
                     </TooltipTrigger>
-                    <TooltipContent>Installed from {source.label}</TooltipContent>
+                    <TooltipContent>{t("ui.pages.companyskills.installed-from")}{source.label}</TooltipContent>
                   </Tooltip>
                 </div>
                 {/* GitHub-style "by" attribution sits directly under the title. */}
@@ -3267,8 +3227,7 @@ export function SkillDetailPage({
             <Button variant="outline" size="sm" asChild>
               <Link to={resolvedStudioHref}>
                 <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
-                Open in Studio
-              </Link>
+                {t("ui.pages.companyskills.open-studio")}</Link>
             </Button>
             <div className="flex items-center overflow-hidden rounded-md border border-border">
               <Tooltip>
@@ -3454,12 +3413,11 @@ export function SkillDetailPage({
                 </div>
                 <Button variant="outline" size="sm" className="w-full" onClick={onCheckUpdates} disabled={checkUpdatesPending || updateStatusLoading}>
                   <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", (checkUpdatesPending || updateStatusLoading) && "animate-spin")} />
-                  Check for updates
-                </Button>
+                  {t("ui.pages.companyskills.check-updates")}</Button>
                 {updateStatus?.supported && updateStatus.hasUpdate ? (
                   <Button size="sm" className="w-full" onClick={onInstallUpdate} disabled={installUpdatePending}>
                     <ArrowUpCircle className={cn("mr-1.5 h-3.5 w-3.5", installUpdatePending && "animate-spin")} />
-                    Install update{latestPin ? ` ${latestPin}` : ""}
+                    {t("pages.companySkills.installUpdate")}{latestPin ? ` ${latestPin}` : ""}
                   </Button>
                 ) : updateStatus?.supported && !updateStatus.hasUpdate && !updateStatusLoading ? (
                   <p className="text-xs text-muted-foreground">{t("pages.companySkills2.upToDate", { defaultValue: "Up to date." })}</p>
@@ -3501,8 +3459,7 @@ export function SkillDetailPage({
             }}
             disabled={savePending}
           >
-            Discard
-          </Button>
+            {t("ui.components.routinesavebar.discard")}</Button>
           <Button size="sm" onClick={onSave} disabled={savePending}>
             <Save className="mr-1.5 h-3.5 w-3.5" />
             {savePending ? t("pages.companySkills.saving2", { defaultValue: "Saving…" }) : t("pages.companySkills.saveChanges", { defaultValue: "Save changes" })}
@@ -3514,7 +3471,7 @@ export function SkillDetailPage({
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>{t("pages.companySkills2.skillSettings", { defaultValue: "Skill settings" })}</DialogTitle>
-            <DialogDescription>Manage how {detail.name} is grouped and shared.</DialogDescription>
+            <DialogDescription>{t("ui.pages.companyskills.manage-how")}{detail.name} {t("ui.pages.companyskills.grouped-shared")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-5">
             <div className="space-y-1.5">
@@ -3522,7 +3479,7 @@ export function SkillDetailPage({
               <Input
                 value={settingsCategoryDraft}
                 onChange={(event) => setSettingsCategoryDraft(event.target.value)}
-                placeholder="engineering, review, memory"
+                placeholder={t("ui.pages.companyskills.engineering-review-memory")}
                 className="h-9"
                 disabled={updateSettingsPending}
               />
@@ -3552,8 +3509,7 @@ export function SkillDetailPage({
                 }}
                 disabled={!settingsDirty || updateSettingsPending}
               >
-                Reset
-              </Button>
+                {t("components.builtInBundle.reset")}</Button>
               <Button
                 type="button"
                 size="sm"
@@ -3682,8 +3638,7 @@ function SkillPane({
             <Button variant="outline" size="sm" asChild>
               <Link to={skillStudioRoute(detail.id)}>
                 <FlaskConical className="mr-1.5 h-3.5 w-3.5" />
-                Open in Studio
-              </Link>
+                {t("ui.pages.companyskills.open-studio")}</Link>
             </Button>
             <Button
               variant="ghost"
@@ -3752,8 +3707,7 @@ function SkillPane({
                   disabled={checkUpdatesPending || updateStatusLoading}
                 >
                   <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", (checkUpdatesPending || updateStatusLoading) && "animate-spin")} />
-                  Check for updates
-                </Button>
+                  {t("ui.pages.companyskills.check-updates")}</Button>
                 {updateStatus?.supported && updateStatus.hasUpdate && (
                   <Button
                     size="sm"
@@ -3761,7 +3715,7 @@ function SkillPane({
                     disabled={installUpdatePending}
                   >
                     <RefreshCw className={cn("mr-1.5 h-3.5 w-3.5", installUpdatePending && "animate-spin")} />
-                    Install update{latestPin ? ` ${latestPin}` : ""}
+                    {t("pages.companySkills.installUpdate")}{latestPin ? ` ${latestPin}` : ""}
                   </Button>
                 )}
                 {updateStatus?.supported && !updateStatus.hasUpdate && !updateStatusLoading && (
@@ -3790,10 +3744,9 @@ function SkillPane({
                 <TooltipTrigger asChild>
                   <Badge variant="outline" className="border-violet-500/40 bg-violet-500/10 text-(length:--text-micro) text-violet-200">
                     <Pencil className="h-3 w-3" aria-hidden="true" />
-                    Locally modified
-                  </Badge>
+                    {t("ui.pages.companyskills.locally-modified")}</Badge>
                 </TooltipTrigger>
-                <TooltipContent>You have edited this skill after installing. Updates from the catalog will overwrite your changes.</TooltipContent>
+                <TooltipContent>{t("ui.pages.companyskills.you-have-edited-skill")}</TooltipContent>
               </Tooltip>
             ) : null}
             {(() => {
@@ -3847,8 +3800,7 @@ function SkillPane({
                 >
                   <span className="flex items-center gap-1.5">
                     <Eye className="h-3.5 w-3.5" />
-                    View
-                  </span>
+                    {t("components.builtInBundle.view")}</span>
                 </button>
                 <button
                   className={cn("border-l border-border px-3 py-1.5 text-sm", viewMode === "code" && "text-foreground", viewMode !== "code" && "text-muted-foreground")}
@@ -3856,16 +3808,14 @@ function SkillPane({
                 >
                   <span className="flex items-center gap-1.5">
                     <Code2 className="h-3.5 w-3.5" />
-                    Code
-                  </span>
+                    {t("pages.training.code")}</span>
                 </button>
               </div>
             )}
             {editMode && file?.editable && (
               <>
                 <Button variant="ghost" size="sm" onClick={() => setEditMode(false)} disabled={savePending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
                 <Button size="sm" onClick={onSave} disabled={savePending}>
                   <Save className="mr-1.5 h-3.5 w-3.5" />
                   {savePending ? t("pages.companySkills.saving", { defaultValue: "Saving..." }) : t("pages.companySkills.save", { defaultValue: "Save" })}
@@ -5038,8 +4988,7 @@ export function CompanySkills() {
           <DialogHeader>
             <DialogTitle>{t("pages.companySkills.removeSkill", { defaultValue: "Remove skill" })}</DialogTitle>
             <DialogDescription>
-              Remove this skill from the company library. If any agents still use it, removal will be blocked until it is detached.
-            </DialogDescription>
+              {t("ui.pages.companyskills.remove-skill-from-company")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <p>
@@ -5049,25 +4998,22 @@ export function CompanySkills() {
             </p>
             {deleteTargetDetail?.usedByAgents?.length ? (
               <div className="rounded-md border border-border px-3 py-3 text-muted-foreground">
-                Currently used by {deleteTargetDetail.usedByAgents.map((agent) => agent.name).join(", ")}.
+                {t("ui.pages.companyskills.currently-used")}{deleteTargetDetail.usedByAgents.map((agent) => agent.name).join(", ")}.
               </div>
             ) : null}
             {(deleteTargetDetail?.usedByAgents.length ?? 0) > 0 ? (
               <p className="text-muted-foreground">
-                Detach this skill from all agents to enable removal.
-              </p>
+                {t("ui.pages.companyskills.detach-skill-from-all")}</p>
             ) : null}
           </div>
           <DialogFooter>
             {(deleteTargetDetail?.usedByAgents.length ?? 0) > 0 ? (
               <Button variant="ghost" onClick={() => closeDeleteDialog(false)}>
-                Close
-              </Button>
+                {t("components.fileViewer.close")}</Button>
             ) : (
               <>
                 <Button variant="ghost" onClick={() => closeDeleteDialog(false)} disabled={deleteSkill.isPending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
                 <Button
                   variant="destructive"
                   onClick={() => deleteSkill.mutate()}
@@ -5086,8 +5032,7 @@ export function CompanySkills() {
           <DialogHeader>
             <DialogTitle>{t("pages.companySkills2.addSource", { defaultValue: "Add a skill source" })}</DialogTitle>
             <DialogDescription>
-              Paste a local path, GitHub URL, or `skills.sh` command into the field first.
-            </DialogDescription>
+              {t("ui.pages.companyskills.paste-local-path-github")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm">
             <a
@@ -5099,8 +5044,7 @@ export function CompanySkills() {
               <span>
                 <span className="block font-medium">{t("pages.companySkills2.browseSkillsSh", { defaultValue: "Browse skills.sh" })}</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Find install commands and paste one here.
-                </span>
+                  {t("pages.companySkills2.installCommandsHint")}</span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             </a>
@@ -5113,8 +5057,7 @@ export function CompanySkills() {
               <span>
                 <span className="block font-medium">{t("pages.companySkills2.searchGitHub", { defaultValue: "Search GitHub" })}</span>
                 <span className="mt-1 block text-muted-foreground">
-                  Look for repositories with `SKILL.md`, then paste the repo URL here.
-                </span>
+                  {t("ui.pages.companyskills.look-repositories-skill-md")}</span>
               </span>
               <ExternalLink className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
             </a>
@@ -5150,8 +5093,7 @@ export function CompanySkills() {
           <DialogHeader>
             <DialogTitle>{t("pages.companySkills2.importSkill", { defaultValue: "Import a skill" })}</DialogTitle>
             <DialogDescription>
-              Paste a local path, GitHub URL, or `skills.sh` command to import a skill into this company.
-            </DialogDescription>
+              {t("ui.pages.companyskills.paste-local-path-github-alt")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-border pb-2">
@@ -5261,8 +5203,7 @@ export function CompanySkills() {
               className="mb-3 inline-flex items-center gap-1.5 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground"
             >
               <ChevronLeft className="h-4 w-4" />
-              Back
-            </Link>
+              {t("pages.teamCatalog.back")}</Link>
             <h1 className="text-2xl font-semibold">{studioTitle}</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">{studioDescription}</p>
           </div>
@@ -5443,8 +5384,7 @@ export function CompanySkills() {
               className="inline-flex items-center gap-1.5 text-sm text-muted-foreground no-underline transition-colors hover:text-foreground"
             >
               <ChevronLeft className="h-4 w-4" />
-              Back to store
-            </Link>
+              {t("pages.companySkills.backToStore")}</Link>
           </div>
           {catalogListQuery.isLoading || catalogDetailQuery.isLoading ? (
             <PageSkeleton variant="detail" />

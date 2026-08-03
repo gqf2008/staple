@@ -99,8 +99,7 @@ export function IssueColumnPicker({
         <DropdownMenuLabel className="px-2 pb-1 pt-1.5">
           <div className="space-y-1">
             <div className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Desktop task rows
-            </div>
+              {t("ui.components.issuecolumns.desktop-task-rows")}</div>
             <div className="text-sm font-medium text-foreground">
               {title}
             </div>
@@ -130,8 +129,7 @@ export function IssueColumnPicker({
           onSelect={onResetColumns}
           className="rounded-lg px-3 py-2 text-sm"
         >
-          Reset defaults
-          <span className="ml-auto text-xs text-muted-foreground">status, id, updated</span>
+          {t("ui.components.issuecolumns.reset-defaults")}<span className="ml-auto text-xs text-muted-foreground">{t("ui.components.issuecolumns.status-id-updated")}</span>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
@@ -196,8 +194,7 @@ export function InboxIssueMetaLeading({
               "text-blue-600 dark:text-blue-400",
             )}
           >
-            Live
-          </span>
+            {t("components.issueChatThread.live")}</span>
         </Badge>
       )}
       {showSubtreeLiveChip && !isLive && subtreeLiveCount > 0 && (
@@ -216,8 +213,7 @@ export function InboxIssueMetaLeading({
             aria-hidden="true"
           />
           <span className="hidden text-(length:--text-micro) font-medium text-muted-foreground sm:inline">
-            {subtreeLiveCount} live below
-          </span>
+            {subtreeLiveCount} {t("ui.components.issuecolumns.live-below")}</span>
         </Badge>
       )}
     </>
@@ -308,8 +304,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              Unassigned
-            </span>
+              {t("components.commentThread.unassigned")}</span>
           );
         }
 
@@ -354,8 +349,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              Unknown
-            </span>
+              {t("components.activityFeed.unknown")}</span>
           );
         }
 
@@ -380,8 +374,7 @@ export function InboxIssueTrailingColumns({
 
           return (
             <span key={column} className="min-w-0 truncate text-xs text-muted-foreground">
-              No project
-            </span>
+              {t("components.dialogs.newIssue.noProject")}</span>
           );
         }
 
@@ -437,8 +430,7 @@ export function InboxIssueTrailingColumns({
                     </button>
                   </TooltipTrigger>
                   <TooltipContent side="top" sideOffset={6}>
-                    Filter by workspace
-                  </TooltipContent>
+                    {t("ui.components.issuecolumns.filter-workspace")}</TooltipContent>
                 </Tooltip>
               ) : (
                 workspaceName

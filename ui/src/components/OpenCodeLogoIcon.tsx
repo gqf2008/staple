@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { cn } from "../lib/utils";
 
 interface OpenCodeLogoIconProps {
@@ -9,12 +10,12 @@ export function OpenCodeLogoIcon({ className }: OpenCodeLogoIconProps) {
     <>
       <img
         src="/brands/opencode-logo-light-square.svg"
-        alt="OpenCode"
+        alt={t("ui.components.opencodelogoicon.opencode")}
         className={cn("dark:hidden", className)}
       />
       <img
         src="/brands/opencode-logo-dark-square.svg"
-        alt="OpenCode"
+        alt={t("ui.components.opencodelogoicon.opencode")}
         className={cn("hidden dark:block", className)}
       />
     </>

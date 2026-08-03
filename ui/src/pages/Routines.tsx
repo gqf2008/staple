@@ -809,16 +809,13 @@ export function Routines() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Routines
-          </h1>
+            {t("nav.routines")}</h1>
           <p className="text-sm text-muted-foreground">
-            Recurring work definitions that materialize into auditable execution tasks.
-          </p>
+            {t("ui.pages.routines.recurring-work-definitions-materialize")}</p>
         </div>
         <Button onClick={openCreateRoutine}>
           <Plus className="mr-2 h-4 w-4" />
-          Create routine
-        </Button>
+          {t("pages.routines2.createRoutine")}</Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={handleTabChange}>
@@ -912,8 +909,7 @@ export function Routines() {
               {routineViewState.groupBy === "folder" && !hasRoutineFolders ? (
                 <Button variant="outline" size="sm" onClick={() => openCreateFolder()}>
                   <Plus className="mr-2 h-3.5 w-3.5" />
-                  New folder
-                </Button>
+                  {t("components.folderControls.newFolder")}</Button>
               ) : null}
               {showFolderRail ? (
                 <Button variant="ghost" size="sm" className="text-xs" onClick={() => setSelectMode((current) => !current)}>
@@ -976,8 +972,7 @@ export function Routines() {
               }}
               disabled={createRoutine.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto">
@@ -1106,7 +1101,7 @@ export function Routines() {
                       );
                     }}
                   />
-                  <span>filed in</span>
+                  <span>{t("ui.pages.routines.filed")}</span>
                   <Select
                     value={draft.folderId ?? "__unfiled"}
                     onValueChange={(value) => setDraft((current) => ({
@@ -1200,8 +1195,7 @@ export function Routines() {
 
           <div className="shrink-0 flex flex-col gap-3 border-t border-border/60 px-5 py-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="text-sm text-muted-foreground">
-              After creation, Paperclip takes you straight to trigger setup. Draft routines stay paused until you add a default agent.
-            </div>
+              {t("ui.pages.routines.after-creation-paperclip-takes")}</div>
             <div className="flex flex-col gap-2 sm:items-end">
               <Button
                 onClick={() => createRoutine.mutate()}
@@ -1299,8 +1293,7 @@ export function Routines() {
                 <div className="mt-3 flex justify-center">
                   <Button size="sm" onClick={openCreateRoutine}>
                     <Plus className="mr-2 h-3.5 w-3.5" />
-                    New routine in this folder
-                  </Button>
+                    {t("ui.pages.routines.new-routine-folder")}</Button>
                 </div>
               ) : null}
             </div>

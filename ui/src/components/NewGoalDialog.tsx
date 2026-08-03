@@ -131,7 +131,7 @@ export function NewGoalDialog() {
                 {selectedCompany.name.slice(0, 3).toUpperCase()}
               </span>
             )}
-            <span className="text-muted-foreground/60">&rsaquo;</span>
+            <span className="text-muted-foreground/60">{t("ui.components.newgoaldialog.rsaquo")}</span>
             <span>{newGoalDefaults.parentId ? t("components.dialogs.newGoal.newSubGoal", { defaultValue: "New sub-goal" }) : t("components.dialogs.newGoal.newGoal", { defaultValue: "New goal" })}</span>
           </div>
           <div className="flex items-center gap-1">
@@ -149,7 +149,7 @@ export function NewGoalDialog() {
               className="text-muted-foreground"
               onClick={() => { reset(); closeNewGoal(); }}
             >
-              <span className="text-lg leading-none">&times;</span>
+              <span className="text-lg leading-none">{t("ui.components.newagentdialog.times")}</span>
             </Button>
           </div>
         </div>
@@ -252,8 +252,7 @@ export function NewGoalDialog() {
                 )}
                 onClick={() => { setParentId(""); setParentOpen(false); }}
               >
-                No parent
-              </button>
+                {t("components.issuesList.noParent")}</button>
               {(goals ?? []).map((g) => (
                 <button
                   key={g.id}

@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type { ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ShieldAlert } from "lucide-react";
@@ -21,7 +22,7 @@ export function ToolsAdminGate({ children }: { children: ReactNode }) {
   });
 
   if (boardAccess.isLoading) {
-    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">Loading…</div>;
+    return <div className="mx-auto max-w-xl py-10 text-sm text-muted-foreground">{t("components.secretBindingPicker.loading")}</div>;
   }
 
   const data = boardAccess.data;
@@ -37,14 +38,12 @@ export function ToolsAdminGate({ children }: { children: ReactNode }) {
         <div className="flex flex-col gap-3 rounded-lg border border-border bg-card p-6">
           <div className="flex items-center gap-2 text-foreground">
             <ShieldAlert className="h-5 w-5 text-muted-foreground" />
-            <h1 className="text-lg font-semibold">Access profiles are for administrators</h1>
+            <h1 className="text-lg font-semibold">{t("ui.pages.tools.profiles.toolsadmingate.access-profiles-administrators")}</h1>
           </div>
           <p className="text-sm text-muted-foreground">
-            Access profiles decide which tools your agents can use. Ask an administrator to set these up, or
-            head back to{" "}
+            {t("ui.pages.tools.profiles.toolsadmingate.access-profiles-decide-which")}{" "}
             <Link to="/apps" className="font-medium text-primary hover:underline">
-              your apps
-            </Link>
+              {t("ui.pages.tools.advancedtoolsroute.your-apps")}</Link>
             .
           </p>
         </div>

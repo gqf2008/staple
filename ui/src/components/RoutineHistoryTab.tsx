@@ -209,8 +209,7 @@ export function RoutineHistoryTab({
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={() => revisionsQuery.refetch()}>
-          Retry
-        </Button>
+          {t("components.issueProperties.retry")}</Button>
       </div>
     );
   }
@@ -245,9 +244,7 @@ export function RoutineHistoryTab({
               message={t("components.routineHistory.noEdits", { defaultValue: "No edits yet" })}
             />
             <p className="text-center text-xs text-muted-foreground">
-              Revision 1 is the only history this routine has. Saving an edit creates the first
-              additional revision.
-            </p>
+              {t("ui.components.routinehistorytab.revision-only-history-routine")}</p>
           </div>
         ) : (
           selectedRevision && (
@@ -338,21 +335,16 @@ function HistoricalPreviewBanner({
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-            Viewing revision {revisionNumber} (read-only)
-          </p>
+            {t("ui.components.issuedocumentssection.viewing-revision")}{revisionNumber} {t("ui.components.routinehistorytab.read-only")}</p>
           <p className="text-xs text-muted-foreground">
-            Restoring this revision creates a new revision {nextRevisionNumber} with the same content.
-            History stays append-only.
-          </p>
+            {t("ui.components.routinehistorytab.restoring-revision-creates-new")}{nextRevisionNumber} {t("ui.components.routinehistorytab.same-content-history-stays")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={onReturn} disabled={pending}>
-            Return to current
-          </Button>
+            {t("ui.components.routinehistorytab.return-current")}</Button>
           <Button size="sm" onClick={onRestore} disabled={pending}>
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-            Restore as new revision
-          </Button>
+            {t("ui.components.routinehistorytab.restore-new-revision")}</Button>
         </div>
       </div>
     </div>
@@ -378,17 +370,13 @@ function ConflictBanner({
         <div className="space-y-1">
           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{t("components.routineHistory.unsavedEdits", { defaultValue: "Unsaved routine edits" })}</p>
           <p className="text-xs text-muted-foreground">
-            You changed {fieldsText} but haven&apos;t saved yet. Save or discard before previewing or
-            restoring an older revision.
-          </p>
+            {t("ui.components.routinehistorytab.you-changed")}{fieldsText} {t("ui.components.routinehistorytab.but-haven-apos-saved")}</p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="sm" onClick={onDiscard}>
-            Discard changes
-          </Button>
+            {t("ui.components.routinehistorytab.discard-changes")}</Button>
           <Button size="sm" onClick={onSave}>
-            Save and continue
-          </Button>
+            {t("ui.components.routinehistorytab.save-continue")}</Button>
         </div>
       </div>
       {dirtyFields.length > 0 && (
@@ -430,8 +418,7 @@ function RevisionList({
     <aside className="space-y-1">
       <header className="flex items-center justify-between pb-2">
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Revisions
-        </p>
+          {t("ui.components.caserevisionrail.revisions")}</p>
         <span className="text-(length:--text-micro) text-muted-foreground">{totalRevisions} total</span>
       </header>
       {revisions.map((revision) => {
@@ -463,13 +450,11 @@ function RevisionList({
               <span>rev {revision.revisionNumber}</span>
               {isCurrent && (
                 <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                  Current
-                </Badge>
+                  {t("components.secretPicker.current")}</Badge>
               )}
               {revision.restoredFromRevisionId && (
                 <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
-                  Restored
-                </Badge>
+                  {t("ui.components.routinehistorytab.restored")}</Badge>
               )}
             </div>
             <div className="text-xs text-muted-foreground truncate">
@@ -481,8 +466,7 @@ function RevisionList({
       })}
       {totalRevisions > revisions.length && !showOlder && (
         <Button variant="ghost" size="sm" className="w-full" onClick={onShowOlder}>
-          Show {totalRevisions - revisions.length} older…
-        </Button>
+          {t("pages.agentDetail.show")}{totalRevisions - revisions.length} {t("ui.components.routinehistorytab.older")}</Button>
       )}
     </aside>
   );
@@ -579,15 +563,14 @@ function RevisionPreview({
           <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium">rev {revision.revisionNumber}</p>
             <p className="text-xs text-muted-foreground truncate">
-              Saved {relativeTime(revision.createdAt)} by {getActorLabel(revision)}
+              {t("components.inboxAgentPolicy.saved")}{relativeTime(revision.createdAt)} by {getActorLabel(revision)}
               {revision.changeSummary ? ` · ${revision.changeSummary}` : ""}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button variant="outline" size="sm" onClick={onCompare}>
               <Search className="mr-1.5 h-3.5 w-3.5" />
-              Compare with current
-            </Button>
+              {t("ui.components.routinehistorytab.compare-current")}</Button>
             <Button
               size="sm"
               onClick={onRestore}
@@ -604,8 +587,7 @@ function RevisionPreview({
 
       <div className={`${cardWrapper} p-3`}>
         <p className="pb-2 text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Structured fields
-        </p>
+          {t("ui.components.routinehistorytab.structured-fields")}</p>
         <div className="grid gap-3 md:grid-cols-2 divide-y md:divide-y-0 divide-border">
           {fieldRows.map((row) => (
             <div key={row.key} className="space-y-1 p-2">
@@ -614,8 +596,7 @@ function RevisionPreview({
                 {row.value || <span className="text-muted-foreground">—</span>}
                 {row.differs && (
                   <Badge variant="outline" className="ml-2 border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-800 dark:text-amber-200">
-                    differs from current
-                  </Badge>
+                    {t("ui.components.routinehistorytab.differs-from-current")}</Badge>
                 )}
               </p>
             </div>
@@ -625,8 +606,7 @@ function RevisionPreview({
 
       <div className={`${cardWrapper} p-3 space-y-2`}>
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Description
-        </p>
+          {t("components.fileTree.description")}</p>
         <div className="rounded-md bg-background/40 p-3 text-sm leading-7">
           {snapshot.description ? (
             <MarkdownBody>{snapshot.description}</MarkdownBody>
@@ -638,7 +618,7 @@ function RevisionPreview({
 
       <div className={`${cardWrapper} p-3 space-y-2`}>
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Triggers ({triggers.length})
+          {t("ui.components.routinehistorytab.triggers")}{triggers.length})
         </p>
         {triggers.length === 0 ? (
           <p className="text-sm text-muted-foreground">{t("components.routineHistory.noTriggers", { defaultValue: "No triggers in this revision." })}</p>
@@ -663,22 +643,20 @@ function RevisionPreview({
           </ul>
         )}
         <p className="text-xs text-muted-foreground">
-          Webhook secrets are not stored in revisions. If a restored webhook trigger needs re-creation,
-          Paperclip mints fresh secret material at restore time.
-        </p>
+          {t("ui.components.routinehistorytab.webhook-secrets-not-stored")}</p>
       </div>
 
       {snapshot.variables.length > 0 && (
         <div className={`${cardWrapper} p-3 space-y-2`}>
           <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-            Variables ({snapshot.variables.length})
+            {t("ui.components.routinehistorytab.variables")}{snapshot.variables.length})
           </p>
           <ul className="divide-y divide-border">
             {snapshot.variables.map((variable) => (
               <li key={variable.name} className="py-2 flex items-center justify-between text-sm">
                 <span className="font-mono text-xs">{variable.name}</span>
                 <span className="text-xs text-muted-foreground">
-                  default: {formatVariableDefault(variable)}
+                  {t("ui.components.routinehistorytab.default")}{formatVariableDefault(variable)}
                 </span>
               </li>
             ))}
@@ -717,40 +695,33 @@ function RestoreConfirmDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Restore revision {target.revisionNumber}?</DialogTitle>
+          <DialogTitle>{t("ui.components.routinehistorytab.restore-revision")}{target.revisionNumber}?</DialogTitle>
           <DialogDescription>
-            This creates a new revision {newRevisionNumber} with the same content as revision{" "}
-            {target.revisionNumber}. Revisions {target.revisionNumber}–{currentRevisionNumber} stay
-            in history and are not modified.
-          </DialogDescription>
+            {t("ui.components.routinehistorytab.creates-new-revision")}{newRevisionNumber} {t("ui.components.routinehistorytab.same-content-revision")}{" "}
+            {target.revisionNumber}{t("ui.components.routinehistorytab.revisions")}{target.revisionNumber}–{currentRevisionNumber} {t("ui.components.routinehistorytab.stay-history-not-modified")}</DialogDescription>
         </DialogHeader>
         <ul className="space-y-2 text-sm">
           <li className="flex items-start gap-2">
             <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Routine field values, variables, and schedule cron will revert.
-          </li>
+            {t("ui.components.routinehistorytab.routine-field-values-variables")}</li>
           {envDiffCounts.total > 0 && (
             <li className="flex items-start gap-2">
               <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-              Routine secrets will revert: {formatEnvDiffCounts(envDiffCounts)}.
+              {t("ui.components.routinehistorytab.routine-secrets-will-revert")}{formatEnvDiffCounts(envDiffCounts)}.
             </li>
           )}
           <li className="flex items-start gap-2">
             <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-emerald-400" />
-            Previous run history is preserved.
-          </li>
+            {t("ui.components.routinehistorytab.previous-run-history-preserved")}</li>
           {recreatedWebhookLabels.map((label) => (
             <li key={label} className="flex items-start gap-2 text-amber-800 dark:text-amber-200">
               <span className="mt-1 inline-block h-1.5 w-1.5 rounded-full bg-amber-400" />
-              The webhook trigger {label} will be recreated with a new URL and secret. Paperclip will
-              show the secret once after restore — copy it before closing.
-            </li>
+              {t("ui.components.routinehistorytab.webhook-trigger")}{label} {t("ui.components.routinehistorytab.will-recreated-new-url")}</li>
           ))}
         </ul>
         <div className="space-y-1.5">
           <Label htmlFor="restore-change-summary" className="text-xs">
-            Change summary (optional)
-          </Label>
+            {t("ui.components.routinehistorytab.change-summary-optional")}</Label>
           <Input
             id="restore-change-summary"
             value={changeSummary}
@@ -760,8 +731,7 @@ function RestoreConfirmDialog({
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button onClick={onConfirm} disabled={pending}>
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
             {pending ? t("components.routineHistory.restoring", { defaultValue: "Restoring…" }) : `Restore as revision ${newRevisionNumber}`}
@@ -843,8 +813,7 @@ function RoutineRevisionDiffModal({
         <div className="overflow-auto flex-1 space-y-4">
           <section className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Field changes
-            </p>
+              {t("ui.components.routinehistorytab.field-changes")}</p>
             {fieldChanges.length === 0 ? (
               <p className="text-sm text-muted-foreground">{t("components.routineHistory.noFieldChanges", { defaultValue: "No structural field changes." })}</p>
             ) : (
@@ -874,20 +843,17 @@ function RoutineRevisionDiffModal({
           </section>
           <section className="space-y-2">
             <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Description diff
-            </p>
+              {t("ui.components.routinehistorytab.description-diff")}</p>
             <DiffTable rows={descriptionDiff} />
           </section>
         </div>
         <DialogFooter className="justify-between sm:justify-between">
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Close
-          </Button>
+            {t("components.fileViewer.close")}</Button>
           {leftIsHistorical && left && (
             <Button onClick={() => onRestore(left)}>
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Restore rev {left.revisionNumber} as new revision
-            </Button>
+              {t("ui.components.routinehistorytab.restore-rev")}{left.revisionNumber} {t("ui.components.routinehistorytab.new-revision")}</Button>
           )}
         </DialogFooter>
       </DialogContent>

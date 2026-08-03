@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState, type MouseEvent } from "react";
 import type { Issue } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -83,18 +84,16 @@ export function RemovableIssueReferencePill({
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remove blocker?</DialogTitle>
+            <DialogTitle>{t("ui.components.issue-properties.relation-controls.remove-blocker")}</DialogTitle>
             <DialogDescription>
-              Remove {confirmLabel} as a blocker for this task.
-            </DialogDescription>
+              {t("components.agentsUsingSkillDialog.remove")}{confirmLabel} {t("ui.components.issue-properties.relation-controls.blocker-task")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancel</Button>
+              <Button type="button" variant="outline">{t("common.cancel")}</Button>
             </DialogClose>
             <Button type="button" variant="destructive" onClick={confirmRemove}>
-              Remove blocker
-            </Button>
+              {t("ui.components.issue-properties.relation-controls.remove-blocker-alt")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

@@ -1514,12 +1514,11 @@ export function Secrets() {
               else openUserDefinition(row.definition);
             }}
           >
-            <KeyRound className="h-4 w-4" /> View details
-          </DropdownMenuItem>
+            <KeyRound className="h-4 w-4" /> {t("common.viewDetails")}</DropdownMenuItem>
           {row.kind === "company" ? (
             <>
               <DropdownMenuItem onSelect={() => setUsageDialogSecretId(row.secret.id)}>
-                <Link2 className="h-4 w-4" /> View references ({row.secret.referenceCount ?? 0})
+                <Link2 className="h-4 w-4" /> {t("ui.pages.secrets.view-references")}{row.secret.referenceCount ?? 0})
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openRotateSecret(row.secret)}>
                 <RefreshCw className="h-4 w-4" />
@@ -1556,8 +1555,7 @@ export function Secrets() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={() => setDeleteConfirm(row.secret)}>
-                <Trash2 className="h-4 w-4" /> Delete secret
-              </DropdownMenuItem>
+                <Trash2 className="h-4 w-4" /> {t("pages.secrets.deleteSecret")}</DropdownMenuItem>
             </>
           ) : (
             <>
@@ -1578,8 +1576,7 @@ export function Secrets() {
                   : t("pages.secrets.setMyValue", { defaultValue: "Set my value" })}
               </DropdownMenuItem>
               <DropdownMenuItem onSelect={() => openEditDefinition(row.definition)}>
-                <Pencil className="h-4 w-4" /> Edit definition
-              </DropdownMenuItem>
+                <Pencil className="h-4 w-4" /> {t("ui.pages.secrets.edit-definition")}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem
                 disabled={definitionStatusMutation.isPending}
@@ -1615,8 +1612,7 @@ export function Secrets() {
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={() => setDefinitionDeleteConfirm(row.definition)}>
-                <Trash2 className="h-4 w-4" /> Delete definition
-              </DropdownMenuItem>
+                <Trash2 className="h-4 w-4" /> {t("ui.pages.secrets.delete-definition")}</DropdownMenuItem>
             </>
           )}
         </DropdownMenuContent>
@@ -1702,7 +1698,7 @@ export function Secrets() {
         )}
       >
         <CornerLeftUp className="h-4 w-4 shrink-0" />
-        <span className="truncate">Up to {parentLabel}</span>
+        <span className="truncate">{t("ui.pages.secrets.up")}{parentLabel}</span>
       </Link>
     );
   }
@@ -1768,8 +1764,7 @@ export function Secrets() {
             </>
           ) : (
             <span aria-current="page" className="truncate font-medium text-foreground">
-              All secrets
-            </span>
+              {t("components.secretPicker.allSecrets")}</span>
           )}
         </div>
       </nav>
@@ -1872,12 +1867,10 @@ export function Secrets() {
                   setNewFolderError(null);
                 }}
               >
-                <Folder className="mr-1 h-3.5 w-3.5" /> New folder
-              </Button>
+                <Folder className="mr-1 h-3.5 w-3.5" /> {t("components.folderControls.newFolder")}</Button>
             ) : null}
             <Button onClick={openCreateSecret} size="sm">
-              <Plus className="h-3.5 w-3.5 mr-1" /> New secret
-            </Button>
+              <Plus className="h-3.5 w-3.5 mr-1" /> {t("pages.secrets.newSecret")}</Button>
           </div>
           {newFolderOpen && showFolderView ? (
             <div className="flex flex-wrap items-start gap-2" role="group" aria-label={t("pages.secrets.createFolder", { defaultValue: "Create folder" })}>
@@ -1904,17 +1897,15 @@ export function Secrets() {
                 ) : null}
               </div>
               <Button type="button" size="sm" onClick={stageNewFolder}>
-                Create folder
-              </Button>
+                {t("components.folderControls.createFolder")}</Button>
               <Button type="button" variant="ghost" size="sm" onClick={closeNewFolder}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             </div>
           ) : null}
           <div className="min-h-0 flex-1 overflow-y-auto">
             {secretsQuery.isError || userDefinitionsQuery.isError ? (
               <div className="text-sm text-destructive flex items-center gap-2 py-4">
-                <AlertCircle className="h-4 w-4" /> Failed to load secrets:{" "}
+                <AlertCircle className="h-4 w-4" /> {t("ui.pages.secrets.failed-load-secrets")}{" "}
                 {((secretsQuery.error ?? userDefinitionsQuery.error) as Error).message}
                 <Button
                   variant="ghost"
@@ -1924,8 +1915,7 @@ export function Secrets() {
                     void userDefinitionsQuery.refetch();
                   }}
                 >
-                  Retry
-                </Button>
+                  {t("components.issueProperties.retry")}</Button>
               </div>
             ) : unifiedRows.length === 0 &&
               !secretsQuery.isPending &&
@@ -2051,8 +2041,7 @@ export function Secrets() {
                             <div className="mt-1">
                               {row.kind === "company" ? (
                                 <MetaChip>
-                                  <ShieldCheck className="h-3 w-3" /> Company
-                                </MetaChip>
+                                  <ShieldCheck className="h-3 w-3" /> {t("nav.sectionCompany")}</MetaChip>
                               ) : (
                                 <UserSecretChip label={t("pages.secrets.eachUser", { defaultValue: "Each user" })} />
                               )}
@@ -2116,8 +2105,7 @@ export function Secrets() {
                           {row.kind === "company" ? (
                             <>
                               <MetaChip>
-                                <ShieldCheck className="h-3 w-3" /> Company
-                              </MetaChip>
+                                <ShieldCheck className="h-3 w-3" /> {t("nav.sectionCompany")}</MetaChip>
                               <SecretProviderIndicator
                                 secret={row.secret}
                                 providers={providers}
@@ -2144,7 +2132,7 @@ export function Secrets() {
                               t("pages.secrets.memberOwned", { defaultValue: "Member-owned values" })
                             )}
                           </span>
-                          <span>Updated {formatRelative(row.kind === "company" ? row.secret.updatedAt : row.definition.updatedAt)}</span>
+                          <span>{t("components.issueProperties.updated")}{formatRelative(row.kind === "company" ? row.secret.updatedAt : row.definition.updatedAt)}</span>
                         </div>
                       </div>
                     );
@@ -2218,13 +2206,11 @@ export function Secrets() {
                     className="h-7 shrink-0 px-2 text-xs"
                     onClick={() => copySecretKey(selectedSecret.key)}
                   >
-                    <Copy className="mr-1 h-3.5 w-3.5" /> Copy
-                  </Button>
+                    <Copy className="mr-1 h-3.5 w-3.5" /> {t("components.commentThread.copy")}</Button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <MetaChip>
-                    <ShieldCheck className="h-3 w-3" /> Company
-                  </MetaChip>
+                    <ShieldCheck className="h-3 w-3" /> {t("nav.sectionCompany")}</MetaChip>
                   <MetaChip>{modeLabel(selectedSecret.managedMode)}</MetaChip>
                   <MetaChip>{providerLabel(providers, selectedSecret.provider)}</MetaChip>
                   <MetaChip>v{selectedSecret.latestVersion}</MetaChip>
@@ -2239,13 +2225,11 @@ export function Secrets() {
                   {rotateActionLabel(selectedSecret)}
                 </Button>
                 <Button variant="outline" size="sm" onClick={copyDetailLink}>
-                  <Link2 className="h-3.5 w-3.5 mr-1" /> Copy link
-                </Button>
+                  <Link2 className="h-3.5 w-3.5 mr-1" /> {t("components.fileViewer.copyLink")}</Button>
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" aria-label={`More actions for ${selectedSecret.name}`}>
-                      <MoreHorizontal className="mr-1 h-3.5 w-3.5" /> More
-                    </Button>
+                      <MoreHorizontal className="mr-1 h-3.5 w-3.5" /> {t("ui.components.ui.breadcrumb.more")}</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
                     <DropdownMenuItem
@@ -2282,8 +2266,7 @@ export function Secrets() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={() => setDeleteConfirm(selectedSecret)}>
-                      <Trash2 className="h-4 w-4" /> Delete secret
-                    </DropdownMenuItem>
+                      <Trash2 className="h-4 w-4" /> {t("pages.secrets.deleteSecret")}</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -2339,7 +2322,7 @@ export function Secrets() {
                   </span>
                 </SheetTitle>
                 <SheetDescription className="sr-only">
-                  Each user secret definition {selectedDefinition.key}
+                  {t("ui.pages.secrets.each-user-secret-definition")}{selectedDefinition.key}
                 </SheetDescription>
                 <div className="flex min-w-0 items-center gap-2 rounded-md border border-border bg-muted/20 px-2 py-1.5">
                   <code className="min-w-0 flex-1 truncate font-mono text-xs text-foreground">
@@ -2352,8 +2335,7 @@ export function Secrets() {
                     className="h-7 shrink-0 px-2 text-xs"
                     onClick={() => copySecretKey(selectedDefinition.key)}
                   >
-                    <Copy className="mr-1 h-3.5 w-3.5" /> Copy
-                  </Button>
+                    <Copy className="mr-1 h-3.5 w-3.5" /> {t("components.commentThread.copy")}</Button>
                 </div>
                 <div className="flex flex-wrap gap-1.5">
                   <UserSecretChip label={t("pages.secrets.eachUser", { defaultValue: "Each user" })} />
@@ -2378,13 +2360,11 @@ export function Secrets() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" aria-label={`More actions for ${selectedDefinition.name}`}>
-                      <MoreHorizontal className="mr-1 h-3.5 w-3.5" /> More
-                    </Button>
+                      <MoreHorizontal className="mr-1 h-3.5 w-3.5" /> {t("ui.components.ui.breadcrumb.more")}</Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-52">
                     <DropdownMenuItem onSelect={() => openEditDefinition(selectedDefinition)}>
-                      <Pencil className="h-4 w-4" /> Edit definition
-                    </DropdownMenuItem>
+                      <Pencil className="h-4 w-4" /> {t("ui.pages.secrets.edit-definition")}</DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       disabled={definitionStatusMutation.isPending}
@@ -2420,8 +2400,7 @@ export function Secrets() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem variant="destructive" onSelect={() => setDefinitionDeleteConfirm(selectedDefinition)}>
-                      <Trash2 className="h-4 w-4" /> Delete definition
-                    </DropdownMenuItem>
+                      <Trash2 className="h-4 w-4" /> {t("ui.pages.secrets.delete-definition")}</DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
@@ -2527,8 +2506,7 @@ export function Secrets() {
           <DialogHeader>
             <DialogTitle>{editingDefinition ? t("pages.secrets.editUserSecret", { defaultValue: "Edit user-provided secret" }) : t("pages.secrets.createSecret", { defaultValue: "Create secret" })}</DialogTitle>
             <DialogDescription>
-              Choose who provides the value. Shared fields keep their values when you switch modes.
-            </DialogDescription>
+              {t("ui.pages.secrets.choose-who-provides-value")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {!editingDefinition ? (
@@ -2556,8 +2534,7 @@ export function Secrets() {
                   </TabsList>
                 </Tabs>
                 <p className="text-(length:--text-micro) text-muted-foreground">
-                  Company stores one shared value. Each user lets every member supply their own value under My secrets.
-                </p>
+                  {t("ui.pages.secrets.company-stores-one-shared")}</p>
               </div>
             ) : null}
 
@@ -2630,8 +2607,7 @@ export function Secrets() {
               )}
               {createNamePrefix && !editingDefinition ? (
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Creating in {folderPath} — remove the chip to type a different path.
-                </p>
+                  {t("ui.pages.secrets.creating")}{folderPath} {t("ui.pages.secrets.remove-chip-type-different")}</p>
               ) : null}
             </div>
 
@@ -2659,24 +2635,20 @@ export function Secrets() {
                   onChange={(event) =>
                     setCreateForm((current) => ({ ...current, externalRef: event.target.value }))
                   }
-                  placeholder="arn:aws:secretsmanager:..."
+                  placeholder={t("ui.pages.secrets.arn-aws-secretsmanager")}
                   className="font-mono text-xs"
                 />
                 <p className="text-(length:--text-micro) text-muted-foreground mt-1">
-                  Existing provider secrets are resolve-only in Paperclip. Rotate the value in the provider,
-                  then update this reference only if the path, ARN, or version changes.
-                </p>
+                  {t("ui.pages.secrets.existing-provider-secrets-resolve")}</p>
               </div>
             ) : null}
             {secretValueProvider === "user" ? (
               <>
                 <div className="rounded-md border border-violet-500/30 bg-violet-500/5 p-2 text-(length:--text-micro) text-violet-800 dark:text-violet-200">
-                  Every member supplies their own value under My secrets. Agents resolve the responsible
-                  user&apos;s value at runtime.
-                </div>
+                  {t("ui.pages.secrets.every-member-supplies-their")}</div>
                 <div className="space-y-1">
                   <label className="text-xs font-medium text-foreground" htmlFor="new-secret-usage-guidance">
-                    Usage guidance <span className="text-muted-foreground/70">(optional)</span>
+                    {t("pages.secrets.usageGuidance")}<span className="text-muted-foreground/70">{t("ui.components.newissuedialog.optional")}</span>
                   </label>
                   <Textarea
                     id="new-secret-usage-guidance"
@@ -2702,8 +2674,7 @@ export function Secrets() {
                     className="h-5 px-1.5 text-(length:--text-micro) text-muted-foreground"
                     onClick={() => setCreateKeyEditable(true)}
                   >
-                    <Pencil className="mr-1 h-3 w-3" /> Edit
-                  </Button>
+                    <Pencil className="mr-1 h-3 w-3" /> {t("components.issueProperties.edit")}</Button>
                 ) : null}
               </div>
               <Input
@@ -2736,7 +2707,7 @@ export function Secrets() {
 
             <div>
               <label className="text-xs font-medium" htmlFor="new-secret-description">
-                Description <span className="text-muted-foreground/70">(optional)</span>
+                {t("components.fileTree.description")}<span className="text-muted-foreground/70">{t("ui.components.newissuedialog.optional")}</span>
               </label>
               <Input
                 id="new-secret-description"
@@ -2829,11 +2800,9 @@ export function Secrets() {
                 </div>
                 {createMode === "managed" ? (
                   <div className="rounded-md border border-emerald-500/30 bg-emerald-500/5 p-2 text-(length:--text-micro) text-emerald-700 dark:text-emerald-300">
-                    Paperclip-managed secrets are created in the selected provider and future rotations
-                    write a new provider version through Paperclip.
-                    {awsManagedPathPreview ? (
+                    {t("ui.pages.secrets.paperclip-managed-secrets-created")}{awsManagedPathPreview ? (
                       <div className="mt-1">
-                        AWS managed path:{" "}
+                        {t("ui.pages.secrets.aws-managed-path")}{" "}
                         <code className="break-all rounded bg-background/70 px-1 py-0.5">
                           {awsManagedPathPreview}
                         </code>
@@ -2853,8 +2822,7 @@ export function Secrets() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setCreateOpen(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               onClick={() => {
                 setCreateError(null);
@@ -2887,8 +2855,7 @@ export function Secrets() {
           <DialogHeader>
             <DialogTitle>{editingVault ? t("pages.secrets.editVault", { defaultValue: "Edit provider vault" }) : t("pages.secrets.createVault", { defaultValue: "Create provider vault" })}</DialogTitle>
             <DialogDescription>
-              Save only non-sensitive routing metadata. Credentials stay in the runtime environment or provider identity.
-            </DialogDescription>
+              {t("ui.pages.secrets.save-only-non-sensitive")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="grid gap-3 sm:grid-cols-2">
@@ -2941,11 +2908,9 @@ export function Secrets() {
                   }}
                 >
                   <option value="ready" disabled={vaultForm.provider === "gcp_secret_manager" || vaultForm.provider === "vault"}>
-                    Ready
-                  </option>
+                    {t("components.resourceStatusChip.ready")}</option>
                   <option value="warning" disabled={vaultForm.provider === "gcp_secret_manager" || vaultForm.provider === "vault"}>
-                    Warning
-                  </option>
+                    {t("components.budgetPolicy.warning")}</option>
                   <option value="coming_soon">{t("pages.secrets.comingSoon", { defaultValue: "Coming soon" })}</option>
                   <option value="disabled">{t("pages.secrets.disabled", { defaultValue: "Disabled" })}</option>
                 </select>
@@ -2960,7 +2925,7 @@ export function Secrets() {
                     setVaultForm((current) => ({ ...current, isDefault: event.target.checked }))
                   }
                 />
-                Default for {providerLabel(providers, vaultForm.provider)}
+                {t("ui.pages.secrets.default")}{providerLabel(providers, vaultForm.provider)}
               </label>
             </div>
 
@@ -2983,16 +2948,13 @@ export function Secrets() {
 
             {vaultForm.provider === "gcp_secret_manager" || vaultForm.provider === "vault" ? (
               <div className="rounded-md border border-sky-500/30 bg-sky-500/5 p-3 text-xs text-sky-700 dark:text-sky-300">
-                This provider can save draft routing metadata, but runtime writes and resolution stay disabled until
-                the provider module is implemented and reviewed.
-              </div>
+                {t("ui.pages.secrets.provider-can-save-draft")}</div>
             ) : null}
             {vaultError ? <p className="text-xs text-destructive">{vaultError}</p> : null}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setVaultDialogOpen(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               onClick={() => {
                 setVaultError(null);
@@ -3059,8 +3021,7 @@ export function Secrets() {
               <ProviderVaultInlineWarning config={selectedRotateProviderConfig} />
             ) : (
               <p className="mt-1 text-(length:--text-micro) text-muted-foreground">
-                Rotating with the deployment default preserves current fallback behavior.
-              </p>
+                {t("ui.pages.secrets.rotating-deployment-default-preserves")}</p>
             )}
           </div>
           {selectedSecret?.managedMode === "external_reference" && rotateMode === "reference" ? (
@@ -3074,8 +3035,7 @@ export function Secrets() {
                 className="font-mono text-xs"
               />
               <p className="mt-1 text-(length:--text-micro) text-muted-foreground">
-                Rotate the actual value in the provider before changing this Paperclip reference.
-              </p>
+                {t("ui.pages.secrets.rotate-actual-value-provider")}</p>
             </div>
           ) : (
             <div>
@@ -3090,16 +3050,14 @@ export function Secrets() {
               />
               {selectedSecret?.managedMode === "external_reference" ? (
                 <p className="mt-1 text-(length:--text-micro) text-muted-foreground">
-                  Written to <code className="font-mono">{selectedSecret.externalRef}</code> in the provider.
-                </p>
+                  {t("ui.pages.secrets.written")}<code className="font-mono">{selectedSecret.externalRef}</code> {t("ui.pages.secrets.provider")}</p>
               ) : null}
             </div>
           )}
           {rotateError ? <p className="text-xs text-destructive">{rotateError}</p> : null}
           <DialogFooter>
             <Button variant="outline" onClick={() => setRotateOpen(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               onClick={() => {
                 setRotateError(null);
@@ -3127,8 +3085,7 @@ export function Secrets() {
           <DialogHeader>
             <DialogTitle>{t("pages.secrets.deleteSecret", { defaultValue: "Delete secret" })}</DialogTitle>
             <DialogDescription>
-              Permanently removes <strong>{deleteConfirm?.name}</strong>. Active bindings will fail until you remap them.
-            </DialogDescription>
+              {t("ui.pages.secrets.permanently-removes")}<strong>{deleteConfirm?.name}</strong>{t("ui.pages.secrets.active-bindings-will-fail")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDeleteConfirm(null)}>{t("pages.secrets.cancel", { defaultValue: "Cancel" })}</Button>
@@ -3138,8 +3095,7 @@ export function Secrets() {
               disabled={deleteMutation.isPending}
             >
               {deleteMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
-              Delete
-            </Button>
+              {t("common.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3152,9 +3108,7 @@ export function Secrets() {
           <DialogHeader>
             <DialogTitle>{t("pages.secrets.deleteUserSecret", { defaultValue: "Delete user-provided secret" })}</DialogTitle>
             <DialogDescription>
-              Permanently removes <strong>{definitionDeleteConfirm?.name}</strong> for the whole company.
-              Existing member values become unreferenced and active bindings must be remapped.
-            </DialogDescription>
+              {t("ui.pages.secrets.permanently-removes")}<strong>{definitionDeleteConfirm?.name}</strong> {t("ui.pages.secrets.whole-company-existing-member")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDefinitionDeleteConfirm(null)}>{t("pages.secrets.cancel", { defaultValue: "Cancel" })}</Button>
@@ -3166,8 +3120,7 @@ export function Secrets() {
               disabled={deleteDefinitionMutation.isPending}
             >
               {deleteDefinitionMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
-              Delete
-            </Button>
+              {t("common.delete")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3187,12 +3140,11 @@ export function Secrets() {
           <DialogHeader>
             <DialogTitle>{t("pages.secrets.removeVault", { defaultValue: "Remove provider vault" })}</DialogTitle>
             <DialogDescription>
-              Removes <strong>{removeVaultConfirm?.displayName}</strong> from Paperclip only.{" "}
+              {t("ui.pages.secrets.removes")}<strong>{removeVaultConfirm?.displayName}</strong> {t("ui.pages.secrets.from-paperclip-only")}{" "}
               {removeVaultConfirm?.provider === "aws_secrets_manager"
                 ? t("pages.secrets.awsDeleteHint", { defaultValue: "This does not delete the remote AWS Secrets Manager vault, secrets, or any AWS data." })
                 : t("pages.secrets.remoteDeleteHint", { defaultValue: "This does not delete any remote provider data." })}{" "}
-              Secrets using this vault will lose the vault association until you assign another one.
-            </DialogDescription>
+              {t("ui.pages.secrets.secrets-using-vault-will")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveVaultConfirm(null)}>{t("pages.secrets.cancel", { defaultValue: "Cancel" })}</Button>
@@ -3202,8 +3154,7 @@ export function Secrets() {
               disabled={removeVaultMutation.isPending}
             >
               {removeVaultMutation.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : null}
-              Remove from Paperclip
-            </Button>
+              {t("ui.pages.secrets.remove-from-paperclip")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -3219,14 +3170,10 @@ function SecretsHowToUse() {
       <div className="space-y-1">
         <p className="font-medium text-foreground">{t("pages.secrets.bindingHint", { defaultValue: "Use secrets by binding them to runtime environment variables." })}</p>
         <p>
-          Create or link a secret here, then open an agent&apos;s Environment variables or a project&apos;s Env field.
-          Add the env key the process expects, for example <code className="font-mono">GH_TOKEN</code>, choose{" "}
-          <span className="font-medium text-foreground">{t("pages.secrets.secret", { defaultValue: "Secret" })}</span>, and select the stored secret version.
-        </p>
+          {t("ui.pages.secrets.create-link-secret-here")}<code className="font-mono">{t("ui.pages.secrets.gh-token")}</code>{t("ui.pages.secrets.choose")}{" "}
+          <span className="font-medium text-foreground">{t("pages.secrets.secret", { defaultValue: "Secret" })}</span>{t("ui.pages.secrets.select-stored-secret-version")}</p>
         <p>
-          Paperclip resolves the value server-side when the run starts and injects it as that env var. Project env
-          applies to every task in the project and overrides agent env on matching keys.
-        </p>
+          {t("ui.pages.secrets.paperclip-resolves-value-server")}</p>
       </div>
     </div>
   );
@@ -3295,8 +3242,7 @@ function SecretsFiltersPopover({
                 onClick={resetFilters}
               >
                 <X className="h-3 w-3" />
-                Clear
-              </button>
+                {t("components.issueProperties.clear")}</button>
             ) : null}
           </div>
 
@@ -3443,8 +3389,7 @@ function ImportFromVaultButton({
         className={cn("text-xs text-muted-foreground", className)}
         title={t("pages.secrets.awsConfigureHint", { defaultValue: "Configure an AWS provider vault to enable remote import" })}
       >
-        <Cloud className="h-3.5 w-3.5 mr-1" /> AWS vault disabled — manage
-      </Button>
+        <Cloud className="h-3.5 w-3.5 mr-1" /> {t("ui.pages.secrets.aws-vault-disabled-manage")}</Button>
     );
   }
 
@@ -3456,8 +3401,7 @@ function ImportFromVaultButton({
       className={className}
       data-testid="import-from-vault-button"
     >
-      <Cloud className="h-3.5 w-3.5 mr-1" /> Import from vault
-    </Button>
+      <Cloud className="h-3.5 w-3.5 mr-1" /> {t("ui.pages.secrets.import-from-vault")}</Button>
   );
 }
 
@@ -3494,18 +3438,16 @@ export function ProviderVaultsTab({
     return (
       <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
         <Loader2 className="h-4 w-4 animate-spin" />
-        Loading provider vaults
-      </div>
+        {t("ui.pages.secrets.loading-provider-vaults")}</div>
     );
   }
 
   if (error) {
     return (
       <div className="py-4 text-sm text-destructive flex items-center gap-2">
-        <AlertCircle className="h-4 w-4" /> Failed to load provider vaults: {(error as Error).message}
+        <AlertCircle className="h-4 w-4" /> {t("ui.pages.secrets.failed-load-provider-vaults")}{(error as Error).message}
         <Button variant="ghost" size="sm" onClick={onRetry}>
-          Retry
-        </Button>
+          {t("components.issueProperties.retry")}</Button>
       </div>
     );
   }
@@ -3547,8 +3489,7 @@ export function ProviderVaultsTab({
               ) : (
                 <Button variant="outline" size="sm" className="ml-auto" onClick={() => onCreate(id)}>
                   <Plus className="h-3.5 w-3.5 mr-1" />
-                  Add vault
-                </Button>
+                  {t("ui.pages.secrets.add-vault")}</Button>
               )}
             </div>
             {configs.length === 0 ? (
@@ -3611,8 +3552,7 @@ function ProviderVaultCard({
             {config.isDefault ? (
               <span className="inline-flex items-center gap-1 text-xs text-amber-600 dark:text-amber-400">
                 <Star className="h-3 w-3 fill-current" />
-                Default
-              </span>
+                {t("components.agentConfigForm.default")}</span>
             ) : null}
           </div>
           <div className="mt-1 flex flex-wrap items-center gap-2">
@@ -3621,7 +3561,7 @@ function ProviderVaultCard({
             </Badge>
             {config.healthStatus ? (
               <span className="text-xs text-muted-foreground">
-                Health {config.healthStatus.replace("_", " ")} · {formatRelative(config.healthCheckedAt)}
+                {t("pages.gatewayOverview.health")}{config.healthStatus.replace("_", " ")} · {formatRelative(config.healthCheckedAt)}
               </span>
             ) : (
               <span className="text-xs text-muted-foreground">{t("pages.secrets.healthNotChecked", { defaultValue: "Health not checked" })}</span>
@@ -3647,8 +3587,7 @@ function ProviderVaultCard({
       <div className="mt-3 flex flex-wrap gap-2">
         <Button variant="outline" size="sm" onClick={onHealthCheck} disabled={pending}>
           {pending ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> : <RefreshCw className="h-3.5 w-3.5 mr-1" />}
-          Check health
-        </Button>
+          {t("ui.pages.secrets.check-health")}</Button>
         {config.provider === "aws_secrets_manager" ? (
           <Button
             variant="outline"
@@ -3663,8 +3602,7 @@ function ProviderVaultCard({
             data-testid={`provider-vault-refresh-secrets-${config.id}`}
           >
             <Cloud className="h-3.5 w-3.5 mr-1" />
-            Refresh secrets
-          </Button>
+            {t("ui.pages.secrets.refresh-secrets")}</Button>
         ) : null}
         <Button
           variant="outline"
@@ -3673,8 +3611,7 @@ function ProviderVaultCard({
           disabled={pending || Boolean(blockReason) || config.isDefault}
         >
           <Star className="h-3.5 w-3.5 mr-1" />
-          Make default
-        </Button>
+          {t("ui.pages.secrets.make-default")}</Button>
         <Button
           variant="outline"
           size="sm"
@@ -3683,8 +3620,7 @@ function ProviderVaultCard({
           disabled={pending || config.status === "disabled"}
         >
           <Ban className="h-3.5 w-3.5 mr-1" />
-          Disable
-        </Button>
+          {t("pages.pluginManager.disable")}</Button>
         <Button
           variant="outline"
           size="sm"
@@ -3693,8 +3629,7 @@ function ProviderVaultCard({
           disabled={pending}
         >
           <Trash2 className="h-3.5 w-3.5 mr-1" />
-          Remove
-        </Button>
+          {t("components.agentsUsingSkillDialog.remove")}</Button>
       </div>
     </div>
   );
@@ -3721,8 +3656,7 @@ function ProviderVaultFields({
           onChange={(event) => setField("backupReminderAcknowledged", event.target.checked)}
         />
         <span>
-          I understand backup and restore require both the database metadata and the local encrypted master key file.
-        </span>
+          {t("ui.pages.secrets.understand-backup-restore-require")}</span>
       </label>
     );
   }
@@ -3733,7 +3667,7 @@ function ProviderVaultFields({
         <TextField label={t("pages.secrets.awsRegion", { defaultValue: "AWS region" })} value={form.region} onChange={(value) => setField("region", value)} placeholder="us-east-1" required />
         <TextField label={t("pages.secrets.namespace", { defaultValue: "Namespace" })} value={form.namespace} onChange={(value) => setField("namespace", value)} placeholder="production" />
         <TextField label={t("pages.secrets.secretPrefix", { defaultValue: "Secret name prefix" })} value={form.secretNamePrefix} onChange={(value) => setField("secretNamePrefix", value)} placeholder="paperclip" />
-        <TextField label={t("pages.secrets.kmsKey", { defaultValue: "KMS key id" })} value={form.kmsKeyId} onChange={(value) => setField("kmsKeyId", value)} placeholder="alias/paperclip-secrets" />
+        <TextField label={t("pages.secrets.kmsKey", { defaultValue: "KMS key id" })} value={form.kmsKeyId} onChange={(value) => setField("kmsKeyId", value)} placeholder={t("ui.pages.secrets.alias-paperclip-secrets")} />
         <TextField label={t("pages.secrets.ownerTag", { defaultValue: "Owner tag" })} value={form.ownerTag} onChange={(value) => setField("ownerTag", value)} placeholder="platform" />
         <TextField label={t("pages.secrets.envTag", { defaultValue: "Environment tag" })} value={form.environmentTag} onChange={(value) => setField("environmentTag", value)} placeholder="prod" />
       </div>
@@ -3756,7 +3690,7 @@ function ProviderVaultFields({
       <TextField label={t("pages.secrets.address", { defaultValue: "Address" })} value={form.address} onChange={(value) => setField("address", value)} placeholder="https://vault.example.com" />
       <TextField label={t("pages.secrets.namespace", { defaultValue: "Namespace" })} value={form.namespace} onChange={(value) => setField("namespace", value)} placeholder="admin" />
       <TextField label={t("pages.secrets.mountPath", { defaultValue: "Mount path" })} value={form.mountPath} onChange={(value) => setField("mountPath", value)} placeholder="secret" />
-      <TextField label={t("pages.secrets.secretPathPrefix", { defaultValue: "Secret path prefix" })} value={form.secretPathPrefix} onChange={(value) => setField("secretPathPrefix", value)} placeholder="paperclip/prod" />
+      <TextField label={t("pages.secrets.secretPathPrefix", { defaultValue: "Secret path prefix" })} value={form.secretPathPrefix} onChange={(value) => setField("secretPathPrefix", value)} placeholder={t("ui.pages.secrets.paperclip-prod")} />
     </div>
   );
 }
@@ -3785,8 +3719,7 @@ function AwsProviderVaultDiscoveryPanel({
         <div className="min-w-0 flex-1">
           <p className="text-sm font-medium">{t("pages.secrets.awsDiscovery", { defaultValue: "AWS discovery" })}</p>
           <p className="text-xs text-muted-foreground">
-            Uses the current draft routing fields to inspect AWS Secrets Manager metadata. Values are not read.
-          </p>
+            {t("ui.pages.secrets.uses-current-draft-routing")}</p>
         </div>
         <Button
           type="button"
@@ -3801,8 +3734,7 @@ function AwsProviderVaultDiscoveryPanel({
           ) : (
             <Search className="h-3.5 w-3.5 mr-1" />
           )}
-          Find existing AWS values
-        </Button>
+          {t("ui.pages.secrets.find-existing-aws-values")}</Button>
       </div>
 
       {!canDiscover ? (
@@ -3812,8 +3744,7 @@ function AwsProviderVaultDiscoveryPanel({
       {loading ? (
         <div className="flex items-center gap-2 rounded-md border border-border bg-muted/20 p-3 text-xs text-muted-foreground">
           <Loader2 className="h-3.5 w-3.5 animate-spin" />
-          Searching AWS Secrets Manager metadata
-        </div>
+          {t("ui.pages.secrets.searching-aws-secrets-manager")}</div>
       ) : null}
 
       {error ? (
@@ -3833,8 +3764,7 @@ function AwsProviderVaultDiscoveryPanel({
 
       {preview && preview.candidates.length === 0 && !loading ? (
         <div className="rounded-md border border-dashed border-border bg-muted/20 p-3 text-xs text-muted-foreground">
-          No AWS vault metadata candidates found. Manual entry is still available.
-        </div>
+          {t("ui.pages.secrets.no-aws-vault-metadata")}</div>
       ) : null}
 
       {preview && preview.candidates.length > 0 ? (
@@ -3843,7 +3773,7 @@ function AwsProviderVaultDiscoveryPanel({
             <Database className="h-3.5 w-3.5" />
             <span>
               {preview.candidates.length} candidate{preview.candidates.length === 1 ? "" : "s"} from{" "}
-              {preview.sampledSecretCount} sampled secret{preview.sampledSecretCount === 1 ? "" : "s"}
+              {preview.sampledSecretCount} {t("ui.pages.secrets.sampled-secret")}{preview.sampledSecretCount === 1 ? "" : "s"}
             </span>
           </div>
           <div className="space-y-2" data-testid="aws-vault-discovery-candidates">
@@ -3938,8 +3868,7 @@ function AwsProviderVaultDiscoveryError({
             <div className="mb-1 flex items-center justify-between gap-2">
               <span className="font-medium text-muted-foreground">{t("pages.secrets.safeDetails", { defaultValue: "Safe request/error details" })}</span>
               <Button type="button" variant="ghost" size="sm" onClick={copyDetails}>
-                Copy
-              </Button>
+                {t("components.commentThread.copy")}</Button>
             </div>
             <pre className="max-h-36 overflow-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro) leading-relaxed">
               {detailsText}
@@ -4038,8 +3967,7 @@ function SecretCreateError({
                 size="sm"
                 onClick={() => void navigator.clipboard?.writeText(detailsText)}
               >
-                Copy
-              </Button>
+                {t("components.commentThread.copy")}</Button>
             </div>
             <pre className="max-h-36 overflow-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro) leading-relaxed">
               {detailsText}
@@ -4084,8 +4012,7 @@ function AwsProviderVaultDiscoveryCandidateRow({
           ) : null}
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={onApply}>
-          Use values
-        </Button>
+          {t("ui.pages.secrets.use-values")}</Button>
       </div>
       {candidate.warnings.length > 0 ? (
         <div className="mt-2 space-y-1 text-xs text-amber-700 dark:text-amber-300">
@@ -4119,7 +4046,7 @@ function TextField({
     <div>
       <label className="text-xs font-medium" htmlFor={id}>
         {label}
-        {required ? null : <span className="text-muted-foreground/70"> (optional)</span>}
+        {required ? null : <span className="text-muted-foreground/70"> {t("ui.components.newissuedialog.optional")}</span>}
       </label>
       <Input id={id} value={value} onChange={(event) => onChange(event.target.value)} placeholder={placeholder} />
     </div>
@@ -4186,7 +4113,7 @@ function UserSecretDetailsTab({
           onClick={onViewCoverage}
         >
           <CoverageInline companyId={companyId} definitionId={definition.id} />
-          <span className="shrink-0 text-muted-foreground">· View in Coverage</span>
+          <span className="shrink-0 text-muted-foreground">{t("ui.pages.secrets.view-coverage")}</span>
         </button>
       </DetailRow>
       <DetailRow label={t("pages.secrets.created", { defaultValue: "Created" })}>{formatRelative(definition.createdAt)}</DetailRow>
@@ -4195,8 +4122,7 @@ function UserSecretDetailsTab({
         {definition.usageGuidance ?? <span className="text-muted-foreground">—</span>}
       </DetailRow>
       <div className="mt-3 rounded-md border border-violet-500/30 bg-violet-500/5 p-2 text-(length:--text-micro) text-violet-800 dark:text-violet-200">
-        No value is stored on this admin row. Each member manages their own value under My secrets.
-      </div>
+        {t("ui.pages.secrets.no-value-stored-admin")}</div>
     </dl>
   );
 }
@@ -4248,8 +4174,7 @@ function UserSecretCoverageTab({
         </div>
       </div>
       <p className="text-xs text-muted-foreground">
-        Coverage is counts only across {total} member{total === 1 ? "" : "s"}. Secret values are never shown here.
-      </p>
+        {t("ui.pages.secrets.coverage-counts-only-across")}{total} member{total === 1 ? "" : "s"}{t("ui.pages.secrets.secret-values-never-shown")}</p>
     </div>
   );
 }
@@ -4258,8 +4183,8 @@ function UserSecretUsageTab({ definition }: { definition: UserSecretDefinition }
   return (
     <div className="space-y-3 text-xs text-muted-foreground">
       <div className="rounded-md border border-border bg-muted/20 p-3">
-        Bind runtime environment variables to this user-provided secret by choosing{" "}
-        <span className="font-medium text-foreground">{t("pages.secrets.userSecret", { defaultValue: "User secret" })}</span> and selecting{" "}
+        {t("ui.pages.secrets.bind-runtime-environment-variables")}{" "}
+        <span className="font-medium text-foreground">{t("pages.secrets.userSecret", { defaultValue: "User secret" })}</span> {t("ui.pages.secrets.selecting")}{" "}
         <code className="font-mono">{definition.key}</code>.
       </div>
       {definition.usageGuidance ? (
@@ -4275,8 +4200,7 @@ function UserSecretUsageTab({ definition }: { definition: UserSecretDefinition }
 function UserSecretAccessEventsTab() {
   return (
     <div className="py-6 text-center text-xs text-muted-foreground">
-      Access events are recorded on each member&apos;s stored value when runtime resolution occurs.
-    </div>
+      {t("ui.pages.secrets.access-events-recorded-each")}</div>
   );
 }
 
@@ -4458,8 +4382,7 @@ function AgentAccessSection({
         <p className="mt-2 text-(length:--text-micro) text-muted-foreground">{t("pages.secrets.loadingAgents", { defaultValue: "Loading agents…" })}</p>
       ) : agentsQuery.isError ? (
         <p className="mt-2 text-(length:--text-micro) text-muted-foreground">
-          Agent list unavailable. Manage access from each agent&apos;s configuration instead.
-        </p>
+          {t("ui.pages.secrets.agent-list-unavailable-manage")}</p>
       ) : (
         <>
           {agentAccess.length > 0 ? (
@@ -4476,7 +4399,7 @@ function AgentAccessSection({
                         variant="outline"
                         className="h-5 px-1.5 text-(length:--text-nano) font-normal border-sky-500/30 bg-sky-500/10 text-sky-700 dark:text-sky-300"
                       >
-                        Env · {envKeys.join(", ")}
+                        {t("ui.pages.secrets.env")}{envKeys.join(", ")}
                       </Badge>
                     ) : null}
                     {apiAliases.length > 0 ? (
@@ -4484,7 +4407,7 @@ function AgentAccessSection({
                         variant="outline"
                         className="h-5 px-1.5 text-(length:--text-nano) font-normal border-violet-500/30 bg-violet-500/10 text-violet-700 dark:text-violet-300"
                       >
-                        API · {apiAliases.join(", ")}
+                        {t("ui.pages.secrets.api")}{apiAliases.join(", ")}
                       </Badge>
                     ) : null}
                   </span>
@@ -4511,8 +4434,7 @@ function AgentAccessSection({
                 className="text-(length:--text-micro) font-medium text-muted-foreground"
                 htmlFor="agent-access-agent"
               >
-                Agent
-              </label>
+                {t("components.dialogs.newGoal.levelAgent")}</label>
               <AgentSelect
                 id="agent-access-agent"
                 agents={grantableAgents}
@@ -4527,8 +4449,7 @@ function AgentAccessSection({
                 className="text-(length:--text-micro) font-medium text-muted-foreground"
                 htmlFor="agent-access-env-key"
               >
-                Env var
-              </label>
+                {t("ui.components.agentsecretaccesseditor.env-var")}</label>
               <Input
                 id="agent-access-env-key"
                 value={effectiveEnvKey}
@@ -4537,7 +4458,7 @@ function AgentAccessSection({
                   setEnvKey(event.target.value.toUpperCase());
                 }}
                 className="h-8 font-mono text-xs"
-                placeholder="MY_SECRET"
+                placeholder={t("ui.pages.secrets.my-secret")}
               />
             </div>
             <Button
@@ -4552,13 +4473,11 @@ function AgentAccessSection({
               ) : (
                 <Plus className="mr-1 h-3.5 w-3.5" />
               )}
-              Add
-            </Button>
+              {t("components.jsonSchemaForm.add")}</Button>
           </div>
           {effectiveEnvKey && !envKeyValid ? (
             <p className="mt-1 text-(length:--text-micro) text-destructive">
-              Env keys use letters, digits, and underscores, and cannot start with a digit.
-            </p>
+              {t("ui.pages.secrets.env-keys-use-letters")}</p>
           ) : null}
           {accessError ? (
             <p className="mt-1 text-(length:--text-micro) text-destructive">{accessError}</p>
@@ -4608,7 +4527,7 @@ function SecretDetailsTab({
           onClick={onViewUsage}
         >
           {bindingLabel}
-          <span className="text-muted-foreground">· View in Usage</span>
+          <span className="text-muted-foreground">{t("ui.pages.secrets.view-usage")}</span>
         </button>
       </DetailRow>
       <DetailRow label={t("pages.secrets.created", { defaultValue: "Created" })}>{formatRelative(secret.createdAt)}</DetailRow>
@@ -4623,8 +4542,7 @@ function SecretDetailsTab({
               providers.find((provider) => provider.id === secret.provider)?.supportsExternalValueWrites,
           ),
         )}{" "}
-        Paperclip never re-displays stored values.
-      </div>
+        {t("ui.pages.secrets.paperclip-never-re-displays")}</div>
     </dl>
   );
 }
@@ -4645,8 +4563,7 @@ export function SecretUsageTab({ loading, bindings }: { loading: boolean; bindin
   if (bindings.length === 0) {
     return (
       <div className="py-6 text-center text-xs text-muted-foreground">
-        No active bindings. Add this secret in agent, project, environment, or plugin config to start using it.
-      </div>
+        {t("ui.pages.secrets.no-active-bindings-add")}</div>
     );
   }
   return (
@@ -4696,7 +4613,7 @@ export function SecretUsageTab({ loading, bindings }: { loading: boolean; bindin
             </div>
             <div className="text-(length:--text-micro) text-muted-foreground">
               {deliveryMode === "api" ? (
-                <>API alias <span className="font-mono">{aliasFromConfigPath(binding.configPath)}</span></>
+                <>{t("pages.secrets.apiAlias")}<span className="font-mono">{aliasFromConfigPath(binding.configPath)}</span></>
               ) : (
                 <span className="font-mono">{binding.configPath}</span>
               )}{" "}
@@ -4743,8 +4660,7 @@ export function SecretEventsTab({
   if (events.length === 0) {
     return (
       <div className="py-6 text-center text-xs text-muted-foreground">
-        No access events recorded yet. Each runtime resolution writes a redacted entry here.
-      </div>
+        {t("ui.pages.secrets.no-access-events-recorded")}</div>
     );
   }
   return (
@@ -4760,8 +4676,7 @@ export function SecretEventsTab({
                   variant="outline"
                   className="border-violet-500/30 bg-violet-500/10 text-(length:--text-nano) text-violet-700 dark:text-violet-300"
                 >
-                  User secret
-                </Badge>
+                  {t("components.agentConfigForm.userSecret")}</Badge>
               ) : null}
             </span>
             <span className="text-(length:--text-micro) text-muted-foreground">{formatRelative(event.createdAt)}</span>
@@ -4771,13 +4686,13 @@ export function SecretEventsTab({
           </div>
           {event.responsibleUserId ? (
             <div className="text-(length:--text-micro) text-muted-foreground">
-              Responsible user: <span className="text-foreground">{userLabel(event.responsibleUserId)}</span>
+              {t("ui.pages.secrets.responsible-user")}<span className="text-foreground">{userLabel(event.responsibleUserId)}</span>
             </div>
           ) : null}
           {event.credentialOwnerUserId &&
           event.credentialOwnerUserId !== event.responsibleUserId ? (
             <div className="text-(length:--text-micro) text-muted-foreground">
-              Credential owner: <span className="text-foreground">{userLabel(event.credentialOwnerUserId)}</span>
+              {t("ui.pages.secrets.credential-owner")}<span className="text-foreground">{userLabel(event.credentialOwnerUserId)}</span>
             </div>
           ) : null}
           {event.errorCode ? (

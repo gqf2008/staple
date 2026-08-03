@@ -108,8 +108,7 @@ export function InstanceAccess() {
           <h1 className="text-lg font-semibold">{t("pages.instanceAccess.title", { defaultValue: "Instance Access" })}</h1>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Search users, manage instance-admin status, and control which companies they can access.
-        </p>
+          {t("ui.pages.instanceaccess.search-users-manage-instance")}</p>
       </div>
 
       <div className="grid gap-6 lg:grid-cols-(--gtc-34)">
@@ -145,8 +144,7 @@ export function InstanceAccess() {
                   ) : null}
                 </div>
                 <div className="mt-2 text-xs text-muted-foreground">
-                  {user.activeCompanyMembershipCount} active company memberships
-                </div>
+                  {user.activeCompanyMembershipCount} {t("ui.pages.instanceaccess.active-company-memberships")}</div>
               </button>
             ))}
           </div>
@@ -185,8 +183,7 @@ export function InstanceAccess() {
                 <div>
                   <h2 className="text-sm font-semibold">{t("pages.instanceAccess.companyAccess", { defaultValue: "Company access" })}</h2>
                   <p className="text-sm text-muted-foreground">
-                    Toggle company membership for this user. New access defaults to an active operator membership.
-                  </p>
+                    {t("ui.pages.instanceaccess.toggle-company-membership-user")}</p>
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
                   {companies.map((company) => (

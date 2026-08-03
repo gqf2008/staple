@@ -146,7 +146,7 @@ function UrlSegment({ entry, compact }: { entry: WorkspaceServiceControlEntry; c
   const live = entry.state === "running" && Boolean(entry.url);
 
   if (!displayUrl) {
-    return <span className="font-mono text-xs text-muted-foreground/70">no url</span>;
+    return <span className="font-mono text-xs text-muted-foreground/70">{t("components.projectProperties.noUrl")}</span>;
   }
   return (
     <>
@@ -213,8 +213,7 @@ function ActionSlots({
         title={t("components.workspaceServiceControlBar.start", { defaultValue: "Start" })}
       >
         <Play className="size-3" />
-        Start
-      </Button>
+        {t("components.workspaceRuntimeControls.start")}</Button>
     );
   }
 
@@ -293,8 +292,7 @@ function FailureDetail({
             onClick={onViewLogs}
             className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80"
           >
-            View logs
-          </button>
+            {t("ui.components.workspaceservicecontrolbar.view-logs")}</button>
         </>
       ) : null}
     </div>
@@ -444,7 +442,7 @@ function MultiServiceBar({
             </PopoverTrigger>
             <PopoverContent align="end" className="w-96 p-0" onOpenAutoFocus={(event) => event.preventDefault()}>
               <div className="px-4 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Services · {services.length}
+                {t("ui.components.workspaceservicecontrolbar.services")}{services.length}
               </div>
               <div className="divide-y divide-border px-4">
                 {services.map((entry) => (
@@ -462,8 +460,7 @@ function MultiServiceBar({
                     className="ml-auto text-muted-foreground"
                     onClick={onManageServices}
                   >
-                    Manage in Services tab →
-                  </Button>
+                    {t("ui.components.workspaceservicecontrolbar.manage-services-tab")}</Button>
                 ) : null}
               </div>
             </PopoverContent>
@@ -476,7 +473,7 @@ function MultiServiceBar({
                 <UrlSegment entry={primary} />
               </>
             ) : (
-              <span className="font-mono text-xs text-muted-foreground/70">no url</span>
+              <span className="font-mono text-xs text-muted-foreground/70">{t("components.projectProperties.noUrl")}</span>
             )}
           </div>
           <div className="mx-3 hidden h-5 w-px bg-border sm:block" />

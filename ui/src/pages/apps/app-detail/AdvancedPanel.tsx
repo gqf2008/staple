@@ -50,14 +50,12 @@ function KeySection({
           <div>
             <h2 className="text-sm font-bold text-foreground">{t("pages.appAdvanced.key", { defaultValue: "Key" })}</h2>
             <p className="mt-0.5 text-sm text-muted-foreground">
-              Your key is stored securely. Replace it if it stopped working or you rotated it.
-            </p>
+              {t("ui.pages.apps.app-detail.advancedpanel.your-key-stored-securely")}</p>
           </div>
         </div>
         {!open && (
           <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-            Replace key
-          </Button>
+            {t("ui.pages.apps.app-detail.advancedpanel.replace-key")}</Button>
         )}
       </div>
       {open && (
@@ -181,7 +179,7 @@ function ReconnectForm({
                 rel="noreferrer"
                 className="mt-1 inline-flex items-center gap-1 text-xs font-semibold text-foreground underline underline-offset-2"
               >
-                Where do I find this? <ArrowUpRight className="h-3 w-3" />
+                {t("ui.pages.apps.appsconnect.where-do-find")}<ArrowUpRight className="h-3 w-3" />
               </a>
             )}
           </div>
@@ -203,8 +201,7 @@ function ReconnectForm({
         </Button>
         {onCancel && (
           <Button size="sm" variant="ghost" onClick={onCancel} disabled={reconnect.isPending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
         )}
       </div>
     </div>
@@ -238,29 +235,24 @@ export function DangerZone({
   return (
     <section className="rounded-xl border border-destructive/40 bg-card">
       <div className="border-b border-destructive/40 px-5 py-3 text-sm font-bold text-destructive">
-        Danger zone
-      </div>
+        {t("pages.companySkills2.dangerZone")}</div>
       <div className="flex flex-wrap items-center justify-between gap-3 px-5 py-4">
         <div>
           <p className="text-sm font-medium text-foreground">{t("pages.appAdvanced.removeApp", { defaultValue: "Remove this app" })}</p>
           <p className="text-xs text-muted-foreground">
-            Agents lose access to {appName} right away. You can connect it again later.
-          </p>
+            {t("ui.pages.apps.app-detail.advancedpanel.agents-lose-access")}{appName} {t("ui.pages.apps.app-detail.advancedpanel.right-away-you-can")}</p>
         </div>
         {confirming ? (
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => setConfirming(false)} disabled={removing}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button variant="destructive" size="sm" onClick={onRemove} disabled={removing}>
               {removing && <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />}
-              Yes, remove it
-            </Button>
+              {t("ui.pages.apps.app-detail.advancedpanel.yes-remove")}</Button>
           </div>
         ) : (
           <Button variant="destructive" size="sm" onClick={() => setConfirming(true)}>
-            Remove app
-          </Button>
+            {t("ui.pages.apps.app-detail.advancedpanel.remove-app")}</Button>
         )}
       </div>
     </section>

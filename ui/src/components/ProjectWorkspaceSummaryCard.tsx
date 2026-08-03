@@ -65,7 +65,7 @@ export function ProjectWorkspaceSummaryCard({
                 {workspaceKindLabel(summary.kind)}
               </Badge>
               <Badge variant="outline" className="border-border/70 bg-background px-2.5 py-1 text-muted-foreground">
-                Updated {timeAgo(summary.lastUpdatedAt)}
+                {t("components.issueProperties.updated")}{timeAgo(summary.lastUpdatedAt)}
               </Badge>
               {summary.serviceCount > 0 ? (
                 <Badge variant="outline"
@@ -229,8 +229,7 @@ export function ProjectWorkspaceSummaryCard({
         {summary.issues.length > 0 ? (
           <div className="space-y-2">
             <div className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-              Linked tasks
-            </div>
+              {t("pages.approvalDetail.linkedTasks")}</div>
             <div className="flex flex-wrap gap-2">
               {visibleIssues.map((issue) => (
                 <IssuePill key={issue.id} issue={issue} />

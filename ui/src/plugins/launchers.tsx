@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   Component,
   createContext,
@@ -417,8 +418,7 @@ class LauncherErrorBoundary extends Component<LauncherErrorBoundaryProps, Launch
     if (this.state.hasError) {
       return (
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {this.props.launcher.pluginDisplayName}: failed to render
-        </div>
+          {this.props.launcher.pluginDisplayName}{t("ui.plugins.launchers.failed-render")}</div>
       );
     }
     return this.props.children;
@@ -456,7 +456,7 @@ function LauncherRenderContent({
 
     return (
       <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-        {instance.launcher.pluginDisplayName}: could not resolve launcher target "{instance.launcher.action.target}".
+        {instance.launcher.pluginDisplayName}{t("ui.plugins.launchers.could-not-resolve-launcher")}{instance.launcher.action.target}".
       </div>
     );
   }
@@ -596,8 +596,7 @@ function LauncherModalShell({
             className="ml-auto"
             onClick={() => void closeLauncher(instance.key, { reason: "programmatic" })}
           >
-            Close
-          </Button>
+            {t("components.fileViewer.close")}</Button>
         </div>
         <div
           className={cn(
@@ -802,7 +801,7 @@ export function PluginLauncherOutlet({
   if (errorMessage) {
     return (
       <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", errorClassName)}>
-        Plugin launchers unavailable: {errorMessage}
+        {t("ui.plugins.launchers.plugin-launchers-unavailable")}{errorMessage}
       </div>
     );
   }

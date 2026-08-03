@@ -267,7 +267,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
       <div className="flex flex-wrap items-start justify-between gap-3">
         <ToolsPageHeader
           title={t("pages.tools.gateways.namedGateways", { defaultValue: "Named MCP gateways" })}
-          description="Stable endpoints for external clients that use the same profiles, rules, and audit trail as agent tool access."
+          description={t("ui.pages.tools.gatewaystab.stable-endpoints-external-clients")}
         />
         <Button
           type="button"
@@ -279,8 +279,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
           disabled={profileLoading}
         >
           <Plus className="mr-1.5 h-3.5 w-3.5" />
-          Create gateway
-        </Button>
+          {t("pages.newGatewayDialog.createGateway")}</Button>
       </div>
 
       {creating ? (
@@ -330,8 +329,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
           ) : null}
           <div className="flex flex-wrap justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setCreating(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button type="submit" size="sm" disabled={createDisabled || !createDraft.name.trim() || !createDraft.profileId}>
               {createGatewayMutation.isPending ? t("pages.tools.gateways.creating", { defaultValue: "Creating..." }) : t("pages.tools.gateways.createGateway", { defaultValue: "Create gateway" })}
             </Button>
@@ -341,8 +339,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
 
       {gateways.length === 0 ? (
         <div className="rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-          No named gateways yet. Create one here, then issue a token for the client that will connect to it.
-        </div>
+          {t("ui.pages.tools.gatewaystab.no-named-gateways-yet")}</div>
       ) : (
         <div className="divide-y divide-border rounded-md border border-border">
           {gateways.map((gateway) => {
@@ -368,12 +365,10 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   <div className="flex flex-wrap gap-2">
                     <Button type="button" variant="outline" size="sm" onClick={() => void copyText(endpoint, t("pages.tools.gateways.gatewayEndpoint", { defaultValue: "Gateway endpoint" }))}>
                       <Copy className="mr-1.5 h-3.5 w-3.5" />
-                      Copy endpoint
-                    </Button>
+                      {t("ui.pages.tools.gatewaystab.copy-endpoint")}</Button>
                     <Button type="button" variant="outline" size="sm" onClick={() => startIssuing(gateway.id)}>
                       <KeyRound className="mr-1.5 h-3.5 w-3.5" />
-                      Issue token
-                    </Button>
+                      {t("pages.tools.gateways.issueToken")}</Button>
                   </div>
                 </div>
 
@@ -489,8 +484,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                     </div>
                     <div className="flex flex-wrap justify-end gap-2">
                       <Button type="button" variant="ghost" size="sm" onClick={() => setIssuingGatewayId(null)}>
-                        Cancel
-                      </Button>
+                        {t("common.cancel")}</Button>
                       <Button
                         type="submit"
                         size="sm"
@@ -511,11 +505,10 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                 {createdToken ? (
                   <div className="space-y-2 rounded-md border border-border bg-muted/40 p-3 text-sm">
                     <div className="flex flex-wrap items-center justify-between gap-2">
-                      <div className="font-medium text-foreground">New token for {createdToken.name}</div>
+                      <div className="font-medium text-foreground">{t("ui.pages.tools.gatewaystab.new-token")}{createdToken.name}</div>
                       <Button type="button" variant="outline" size="sm" onClick={() => void copyText(createdToken.token, t("pages.tools.gateways.bearerToken", { defaultValue: "Gateway bearer token" }))}>
                         <Copy className="mr-1.5 h-3.5 w-3.5" />
-                        Copy token
-                      </Button>
+                        {t("ui.pages.tools.gatewaystab.copy-token")}</Button>
                     </div>
                     <div className="break-all rounded bg-background px-3 py-2 font-mono text-xs text-muted-foreground">
                       {createdToken.token}
@@ -527,8 +520,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                   <div>
                     <div className="mb-1.5 flex items-center gap-1.5 text-xs font-medium text-muted-foreground">
                       <KeyRound className="h-3.5 w-3.5" />
-                      Tokens
-                    </div>
+                      {t("pages.connectClientDialog.tokens")}</div>
                     <div className="space-y-1 text-sm">
                       {gateway.tokens.length === 0 ? (
                         <p className="text-muted-foreground">{t("pages.tools.gateways.noTokens", { defaultValue: "No tokens issued." })}</p>
@@ -569,8 +561,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                       aria-label={`Revoke ${token.name}`}
                                     >
                                       <RotateCcw className="mr-1 h-3.5 w-3.5" />
-                                      Revoke
-                                    </Button>
+                                      {t("ui.pages.agentdetail.revoke")}</Button>
                                   ) : null}
                                 </div>
                               </div>
@@ -585,8 +576,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                     onClick={() => setConfirmingRevokeTokenId(null)}
                                   >
                                     <X className="mr-1 h-3.5 w-3.5" />
-                                    Cancel
-                                  </Button>
+                                    {t("common.cancel")}</Button>
                                   <Button
                                     type="button"
                                     variant="destructive"
@@ -596,8 +586,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                     disabled={revokeTokenMutation.isPending}
                                   >
                                     <Check className="mr-1 h-3.5 w-3.5" />
-                                    Confirm
-                                  </Button>
+                                    {t("components.issueThreadInteraction.confirm")}</Button>
                                 </div>
                               ) : null}
                             </div>
@@ -631,8 +620,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                 }}
                               >
                                 <Copy className="mr-1 h-3.5 w-3.5" />
-                                Copy
-                              </Button>
+                                {t("components.commentThread.copy")}</Button>
                             </summary>
                             <pre className="mt-2 max-h-56 overflow-auto whitespace-pre-wrap break-words rounded bg-background p-3 text-xs text-muted-foreground">
                               {formatSnippetConfig(snippet.config)}

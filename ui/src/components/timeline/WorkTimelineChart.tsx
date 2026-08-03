@@ -8,6 +8,7 @@
  * in-progress fade to "now", a hover tooltip, and a full-window mini-map with a
  * draggable brush.
  */
+import { t } from "../../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "@/lib/router";
 import type { WorkTimelineActor, WorkTimelineResult } from "@paperclipai/shared";
@@ -805,7 +806,7 @@ function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
       </div>
       {bar.kickoff && (
         <div className="text-muted-foreground">
-          kicked off by: {(bar.kickoff as WorkTimelineActor).name}
+          {t("ui.components.timeline.worktimelinechart.kicked-off")}{(bar.kickoff as WorkTimelineActor).name}
           {bar.span.retryOfRunId ? " · retry" : ""}
         </div>
       )}
@@ -954,7 +955,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-left-handle"
-          label="Drag left edge to resize visible range"
+          label={t("ui.components.timeline.worktimelinechart.drag-left-edge-resize")}
           onMouseDown={(e) => startRangeDrag("left", e)}
         />
         <MiniMapHandle
@@ -963,7 +964,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-right-handle"
-          label="Drag right edge to resize visible range"
+          label={t("ui.components.timeline.worktimelinechart.drag-right-edge-resize")}
           onMouseDown={(e) => startRangeDrag("right", e)}
         />
       </svg>

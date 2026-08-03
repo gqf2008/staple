@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect } from "react";
 import { Settings2, Wrench } from "lucide-react";
 import { Link, Navigate, useParams } from "@/lib/router";
@@ -65,7 +66,7 @@ export function ToolsAccess() {
   }, [setBreadcrumbs, selectedCompany?.name, advanced, tabLabel]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to open advanced setup.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("ui.pages.tools.toolsaccess.select-company-open-advanced")}</div>;
   }
 
   // Retired developer tabs (PAP-10915/PAP-10928) — keep old links working.
@@ -85,17 +86,14 @@ export function ToolsAccess() {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <div className="flex items-center gap-2.5">
-            <h1 className="text-xl font-bold text-foreground">Advanced setup</h1>
+            <h1 className="text-xl font-bold text-foreground">{t("app.advancedSetup")}</h1>
             <span className="inline-flex items-center rounded-full bg-foreground px-2.5 py-0.5 text-(length:--text-micro) font-bold text-background">
-              Advanced
-            </span>
+              {t("components.issueRunLedger.advanced")}</span>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            For tools that aren't in the gallery. You'll need details from the tool's documentation.
-            Most people never need this — if the app you want is in the gallery,{" "}
+            {t("ui.pages.tools.toolsaccess.tools-aren-gallery-you")}{" "}
             <Link to="/apps" className="font-medium text-primary hover:underline">
-              connect it there instead
-            </Link>
+              {t("ui.pages.tools.toolsaccess.connect-there-instead")}</Link>
             .
           </p>
         </header>
@@ -121,10 +119,9 @@ export function ToolsAccess() {
 
         <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <Wrench className="h-3.5 w-3.5" />
-          Looking for the developer surface?{" "}
+          {t("ui.pages.tools.toolsaccess.looking-developer-surface")}{" "}
           <Link to={advancedTabHref("profiles")} className="font-medium text-primary hover:underline">
-            Open developer tools
-          </Link>
+            {t("ui.pages.tools.toolsaccess.open-developer-tools")}</Link>
         </p>
       </div>
     );
@@ -135,12 +132,10 @@ export function ToolsAccess() {
       <div>
         <div className="flex items-center gap-2">
           <Settings2 className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-xl font-bold text-foreground">Developer tools</h1>
+          <h1 className="text-xl font-bold text-foreground">{t("ui.pages.tools.toolsaccess.developer-tools")}</h1>
         </div>
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          Apps is the simple way to connect tools. This Developer area is for wiring your own
-          servers, tokens, and rules by hand — most teams never need it.
-        </p>
+          {t("ui.pages.tools.toolsaccess.apps-simple-way-connect")}</p>
       </div>
 
       <div className="min-h-(--sz-300px)">{renderTab(activeTab, selectedCompanyId)}</div>

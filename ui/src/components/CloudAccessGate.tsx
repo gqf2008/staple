@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Navigate, Outlet, useLocation } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accessApi } from "@/api/access";
@@ -13,14 +14,11 @@ function NoBoardAccessPage() {
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">
-        <h1 className="text-xl font-semibold">No company access</h1>
+        <h1 className="text-xl font-semibold">{t("ui.components.cloudaccessgate.no-company-access")}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          This account is signed in, but it does not have an active company membership or instance-admin access on
-          this Paperclip instance.
-        </p>
+          {t("ui.components.cloudaccessgate.account-signed-but-does")}</p>
         <p className="mt-2 text-sm text-muted-foreground">
-          Use a company invite or sign in with an account that already belongs to this org.
-        </p>
+          {t("ui.components.cloudaccessgate.use-company-invite-sign")}</p>
       </Card>
     </div>
   );

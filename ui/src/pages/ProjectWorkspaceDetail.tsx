@@ -440,16 +440,14 @@ export function ProjectWorkspaceDetail() {
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/projects/${canonicalProjectRef}/workspaces`}>
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to workspaces
-          </Link>
+            {t("ui.pages.projectworkspacedetail.back-workspaces")}</Link>
         </Button>
       </div>
 
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-            Project workspace
-          </div>
+            {t("components.projectWorkspaceSummary.projectWorkspace")}</div>
           <h1 className="truncate text-xl font-semibold sm:text-2xl">{workspace.name}</h1>
         </div>
         {!workspace.isPrimary ? (
@@ -462,13 +460,11 @@ export function ProjectWorkspaceDetail() {
             {setPrimaryWorkspace.isPending
               ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               : <Check className="mr-2 h-4 w-4" />}
-            Make primary
-          </Button>
+            {t("ui.pages.projectworkspacedetail.make-primary")}</Button>
         ) : (
           <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300 sm:max-w-sm">
             <Sparkles className="h-4 w-4" />
-            This is the project’s primary codebase workspace.
-          </div>
+            {t("ui.pages.projectworkspacedetail.project-primary-codebase-workspace")}</div>
         )}
       </div>
 
@@ -486,10 +482,7 @@ export function ProjectWorkspaceDetail() {
         <div className="space-y-6">
           <Card className="block p-5">
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Configure the concrete workspace Paperclip attaches to this project. These values drive per-workspace
-              checkout behavior, default runtime services for child execution workspaces, and let you override setup
-              or cleanup commands when one workspace needs special handling.
-            </p>
+              {t("ui.pages.projectworkspacedetail.configure-concrete-workspace-paperclip")}</p>
 
             <Separator className="my-5" />
 
@@ -610,7 +603,7 @@ export function ProjectWorkspaceDetail() {
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.setupCommand}
                     onChange={(event) => setForm((current) => current ? { ...current, setupCommand: event.target.value } : current)}
-                    placeholder="pnpm install && pnpm dev"
+                    placeholder={t("ui.pages.projectworkspacedetail.pnpm-install-pnpm-dev")}
                   />
                 </Field>
                 <Field label={t("pages.projectWorkspaceDetail.cleanupCommand", { defaultValue: "Cleanup command" })} hint={t("pages.projectWorkspaceDetail.cleanupHint", { defaultValue: "Runs before project-level execution workspace teardown" })}>
@@ -618,7 +611,7 @@ export function ProjectWorkspaceDetail() {
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.cleanupCommand}
                     onChange={(event) => setForm((current) => current ? { ...current, cleanupCommand: event.target.value } : current)}
-                    placeholder="pkill -f vite || true"
+                    placeholder={t("ui.pages.executionworkspacedetail.pkill-vite-true")}
                   />
                 </Field>
               </div>
@@ -626,10 +619,9 @@ export function ProjectWorkspaceDetail() {
               <details className="rounded-xl border border-dashed border-border/70 bg-background px-3 py-3">
                 <summary className="cursor-pointer text-sm font-medium">{t("pages.projectWorkspaceDetail.advancedJson", { defaultValue: "Advanced runtime JSON" })}</summary>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Paperclip derives Services and Jobs from this JSON. Prefer editing named commands first; use raw JSON for advanced lifecycle, port, readiness, or environment settings.
-                </p>
+                  {t("ui.pages.projectworkspacedetail.paperclip-derives-services-jobs")}</p>
                 <div className="mt-3">
-                  <Field label={t("pages.projectWorkspaceDetail.commandsJson", { defaultValue: "Workspace commands JSON" })} hint="Execution workspaces inherit this config unless they override it. Legacy `services` arrays still work, but `commands` supports both services and jobs.">
+                  <Field label={t("pages.projectWorkspaceDetail.commandsJson", { defaultValue: "Workspace commands JSON" })} hint={t("ui.pages.projectworkspacedetail.execution-workspaces-inherit-config")}>
                     <textarea
                       className="min-h-96 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.runtimeConfig}
@@ -644,8 +636,7 @@ export function ProjectWorkspaceDetail() {
             <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
                 {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Save changes
-              </Button>
+                {t("pages.companySettings.saveChanges")}</Button>
               <Button
                 variant="outline"
                 className="w-full sm:w-auto"
@@ -655,8 +646,7 @@ export function ProjectWorkspaceDetail() {
                   setErrorMessage(null);
                 }}
               >
-                Reset
-              </Button>
+                {t("components.builtInBundle.reset")}</Button>
               {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
               {!errorMessage && runtimeActionMessage ? <p className="text-sm text-muted-foreground">{runtimeActionMessage}</p> : null}
               {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">{t("pages.projectWorkspaceDetail.noUnsaved", { defaultValue: "No unsaved changes." })}</p> : null}
@@ -700,8 +690,7 @@ export function ProjectWorkspaceDetail() {
                 <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pages.projectWorkspaceDetail.workspaceCommands", { defaultValue: "Workspace commands" })}</div>
                 <h2 className="text-lg font-semibold">{t("pages.projectWorkspaceDetail.servicesAndJobs", { defaultValue: "Services and jobs" })}</h2>
                 <p className="text-sm text-muted-foreground">
-                  Long-running services stay supervised here, while one-shot jobs run on demand against this workspace. Execution workspaces inherit this config unless they override it.
-                </p>
+                  {t("ui.pages.projectworkspacedetail.long-running-services-stay")}</p>
               </div>
             </div>
             <WorkspaceRuntimeControls

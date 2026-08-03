@@ -90,15 +90,13 @@ export function CompanySettingsSidebar() {
         <div className="flex items-center gap-2 px-2 py-1">
           <Settings className="h-4 w-4 text-muted-foreground shrink-0" />
           <span className="flex-1 truncate text-sm font-bold text-foreground">
-            Company Settings
-          </span>
+            {t("components.sidebarCompanyMenu.companySettings")}</span>
         </div>
       </div>
 
       <nav className="flex-1 min-h-0 overflow-y-auto scrollbar-auto-hide px-3 py-2">
         <div className="px-3 pb-1 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-          Company settings
-        </div>
+          {t("components.sidebarCompanyMenu.companySettings")}</div>
         <div className="flex flex-col gap-0.5">
           <SidebarNavItem to="/company/settings" label={t("components.companySettingsSidebar.general", { defaultValue: "General" })} icon={SlidersHorizontal} end />
           <SidebarNavItem to="/company/export" label={t("components.companySettingsSidebar.export", { defaultValue: "Export" })} icon={Download} />
@@ -125,8 +123,7 @@ export function CompanySettingsSidebar() {
           <SidebarNavItem to="/company/settings/secrets" label={t("components.companySettingsSidebar.secrets", { defaultValue: "Secrets" })} icon={KeyRound} end />
         </div>
         <div className="mt-5 px-3 pb-1 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-          Instance settings
-        </div>
+          {t("pages.adapterManager.instanceSettings")}</div>
         <div className="flex flex-col gap-0.5">
           <SidebarNavItem
             to={`${INSTANCE_SETTINGS_PATH_PREFIX}/profile`}

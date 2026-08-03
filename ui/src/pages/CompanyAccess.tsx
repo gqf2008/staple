@@ -242,17 +242,14 @@ export function CompanyAccess() {
           <h1 className="text-lg font-semibold">{t("pages.companyAccess.title", { defaultValue: "Company Members" })}</h1>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Manage the people who can work in {selectedCompany?.name}. Members can collaborate across the company by default.
-        </p>
+          {t("ui.pages.companyaccess.manage-people-who-can")}{selectedCompany?.name}{t("ui.pages.companyaccess.members-can-collaborate-across")}</p>
         <div className="rounded-lg border border-border bg-muted/30 px-4 py-3 text-sm text-muted-foreground">
-          Core keeps this page focused on membership, invite approvals, and safe member removal.
-        </div>
+          {t("ui.pages.companyaccess.core-keeps-page-focused")}</div>
       </div>
 
       {access && !access.currentUserRole && (
         <div className="rounded-xl border border-amber-500/40 px-4 py-3 text-sm text-amber-800 dark:text-amber-200">
-          This account can manage access here through instance-admin privileges, but it does not currently hold an active company membership.
-        </div>
+          {t("ui.pages.companyaccess.account-can-manage-access")}</div>
       )}
 
       <section className="space-y-4">
@@ -262,8 +259,7 @@ export function CompanyAccess() {
             <h2 className="text-base font-semibold">{t("pages.companyAccess.humans", { defaultValue: "Humans" })}</h2>
           </div>
           <p className="max-w-3xl text-sm text-muted-foreground">
-            Manage human company memberships and status here.
-          </p>
+            {t("ui.pages.companyaccess.manage-human-company-memberships")}</p>
         </div>
 
         {access?.canApproveJoinRequests && pendingHumanJoinRequests.length > 0 ? (
@@ -272,8 +268,7 @@ export function CompanyAccess() {
               <div>
                 <h3 className="text-sm font-semibold">{t("pages.companyAccess.pendingJoins", { defaultValue: "Pending human joins" })}</h3>
                 <p className="text-sm text-muted-foreground">
-                  Review pending join requests before they become active company members.
-                </p>
+                  {t("ui.pages.companyaccess.review-pending-join-requests")}</p>
               </div>
               <Badge variant="outline">{pendingHumanJoinRequests.length} pending</Badge>
             </div>
@@ -345,8 +340,7 @@ export function CompanyAccess() {
                   <div className="space-y-1 text-right">
                     <div className="flex justify-end gap-2">
                       <Button size="sm" variant="outline" onClick={() => setEditingMemberId(member.id)}>
-                        Edit
-                      </Button>
+                        {t("components.issueProperties.edit")}</Button>
                       <Button
                         size="sm"
                         variant="outline"
@@ -355,8 +349,7 @@ export function CompanyAccess() {
                         title={removalReason ?? undefined}
                       >
                         <Trash2 className="mr-1 h-3.5 w-3.5" />
-                        Remove
-                      </Button>
+                        {t("components.agentsUsingSkillDialog.remove")}</Button>
                     </div>
                     {removalReason ? (
                       <div className="text-xs text-muted-foreground">{removalReason}</div>
@@ -374,7 +367,7 @@ export function CompanyAccess() {
           <DialogHeader>
             <DialogTitle>{t("pages.companyAccess.editMember", { defaultValue: "Edit member" })}</DialogTitle>
             <DialogDescription>
-              Update company role and membership status for {editingMember?.user?.name || editingMember?.user?.email || editingMember?.principalId}.
+              {t("ui.pages.companyaccess.update-company-role-membership")}{editingMember?.user?.name || editingMember?.user?.email || editingMember?.principalId}.
             </DialogDescription>
           </DialogHeader>
           {editingMember && (
@@ -416,8 +409,7 @@ export function CompanyAccess() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setEditingMemberId(null)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               onClick={() => {
                 if (!editingMember) return;
@@ -440,8 +432,7 @@ export function CompanyAccess() {
           <DialogHeader>
             <DialogTitle>{t("pages.companyAccess.removeMember", { defaultValue: "Remove member" })}</DialogTitle>
             <DialogDescription>
-              Archive {memberDisplayName(removingMember)} and move active assignments before hiding this user from assignment fields.
-            </DialogDescription>
+              {t("components.projectProperties.archive")}{memberDisplayName(removingMember)} {t("ui.pages.companyaccess.move-active-assignments-before")}</DialogDescription>
           </DialogHeader>
           {removingMember && (
             <div className="space-y-5">
@@ -492,7 +483,7 @@ export function CompanyAccess() {
                     ))}
                     {assignedIssues.length > 6 ? (
                       <div className="px-3 py-2 text-sm text-muted-foreground">
-                        {assignedIssues.length - 6} more task{assignedIssues.length - 6 === 1 ? "" : "s"}
+                        {assignedIssues.length - 6} {t("ui.pages.companyaccess.more-task")}{assignedIssues.length - 6 === 1 ? "" : "s"}
                       </div>
                     ) : null}
                   </div>
@@ -502,8 +493,7 @@ export function CompanyAccess() {
           )}
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemovingMemberId(null)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               variant="destructive"
               onClick={() => {
@@ -557,18 +547,16 @@ export function CompanyAccessLegacyRoute() {
           <h1 className="text-lg font-semibold">{t("pages.companyAccess.advancedPermissions", { defaultValue: "Advanced Permissions" })}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Advanced access, scoped assignment, and explicit grant controls are provided by installed company settings extensions.
-        </p>
+          {t("ui.pages.companyaccess.advanced-access-scoped-assignment")}</p>
       </div>
 
       <div className="space-y-4 rounded-xl border border-border px-5 py-5">
         <div className="space-y-2">
           <h2 className="text-sm font-semibold">{t("pages.companyAccess.permissionsUnavailable", { defaultValue: "Advanced permissions unavailable" })}</h2>
           <p className="text-sm text-muted-foreground">
-            Core Paperclip keeps enforcing company boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.
-          </p>
+            {t("ui.pages.companyaccess.core-paperclip-keeps-enforcing")}</p>
           {errorMessage ? (
-            <p className="text-sm text-destructive">Plugin extensions unavailable: {errorMessage}</p>
+            <p className="text-sm text-destructive">{t("ui.pages.companyaccess.plugin-extensions-unavailable")}{errorMessage}</p>
           ) : null}
         </div>
         <div className="flex flex-wrap gap-2">

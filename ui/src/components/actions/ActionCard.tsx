@@ -151,7 +151,7 @@ function bindingRows(binding: ActionCardBinding, isStale: boolean): BindingRow[]
       value: (
         <span>
           {binding.application}
-          <span className="ml-1.5 text-xs text-muted-foreground">manifest v{binding.manifestVersion}</span>
+          <span className="ml-1.5 text-xs text-muted-foreground">{t("ui.components.actions.actioncard.manifest")}{binding.manifestVersion}</span>
         </span>
       ),
     },
@@ -204,19 +204,16 @@ export function ActionCard({
       className={mobile ? "w-full" : undefined}
       title={isStale ? t("components.actionCard.hashChanged", { defaultValue: "Re-issue the request before approving — the catalog hash changed." }) : undefined}
     >
-      Approve
-    </Button>
+      {t("common.approve")}</Button>
   );
   const denyButton = (
     <Button size="sm" variant="outline" onClick={onDeny} className={mobile ? "w-full" : undefined}>
-      Deny
-    </Button>
+      {t("components.claudeConfig.deny")}</Button>
   );
   const editButton = (
     <Button size="sm" variant="outline" onClick={onEditResign} className={mobile ? "w-full" : undefined}>
       <Pencil className="mr-1 h-3.5 w-3.5" />
-      Edit &amp; re-sign
-    </Button>
+      {t("ui.components.actions.actioncard.edit-amp-re-sign")}</Button>
   );
 
   return (
@@ -237,8 +234,7 @@ export function ActionCard({
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="text-sm text-foreground">
-              <span className="font-medium">{agentName}</span> requested approval to call
-            </p>
+              <span className="font-medium">{agentName}</span> {t("ui.components.actions.actioncard.requested-approval-call")}</p>
             <p className="mt-0.5 font-mono text-xs text-muted-foreground break-all">{toolName}</p>
           </div>
           <div className="shrink-0">
@@ -275,14 +271,13 @@ export function ActionCard({
 
         {/* Why I'm asking */}
         <div className="space-y-1">
-          <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">Why I&apos;m asking</p>
+          <p className="text-xs font-medium uppercase tracking-normal text-muted-foreground">{t("ui.components.actions.actioncard.why-apos-asking")}</p>
           <p className="text-sm text-muted-foreground">
             {reason}
             {policyNumber != null ? (
               <>
                 {" "}
-                <span className="font-medium text-foreground">Policy #{policyNumber}</span> requires approval here.
-              </>
+                <span className="font-medium text-foreground">{t("ui.components.actions.actioncard.policy")}{policyNumber}</span> {t("ui.components.actions.actioncard.requires-approval-here")}</>
             ) : null}
           </p>
         </div>

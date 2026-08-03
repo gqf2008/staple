@@ -283,8 +283,7 @@ export function ScheduleEditor({
             className="font-mono text-sm"
           />
           <p className="text-xs text-muted-foreground">
-            Five fields: minute hour day-of-month month day-of-week
-          </p>
+            {t("ui.components.scheduleeditor.five-fields-minute-hour")}</p>
           <p
             className={customValidation.valid ? "text-xs text-muted-foreground" : "text-xs text-destructive"}
             aria-live="polite"
@@ -342,7 +341,7 @@ export function ScheduleEditor({
 
           {preset === "every_hour" && (
             <>
-              <span className="text-sm text-muted-foreground">at minute</span>
+              <span className="text-sm text-muted-foreground">{t("ui.components.scheduleeditor.minute")}</span>
               <Select
                 value={minute}
                 onValueChange={(m) => {
@@ -390,7 +389,7 @@ export function ScheduleEditor({
 
           {preset === "monthly" && (
             <>
-              <span className="text-sm text-muted-foreground">on day</span>
+              <span className="text-sm text-muted-foreground">{t("ui.components.scheduleeditor.day")}</span>
               <Select
                 value={dayOfMonth}
                 onValueChange={(dom) => {

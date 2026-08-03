@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -100,7 +101,7 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
           actions={
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to={agentUrl(state.agent)}>View agent</Link>
+                <Link to={agentUrl(state.agent)}>{t("components.liveUpdates.viewAgent")}</Link>
               </Button>
               <Button
                 size="sm"
@@ -112,9 +113,8 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
             </>
           }
         >
-          Its built-in agent was paused{pausedAt ? ` ${pausedAt}` : ""}, so new{" "}
-          {label.toLowerCase()} isn't being generated.
-        </InlineBanner>
+          {t("ui.components.builtinagentgate.built-agent-was-paused")}{pausedAt ? ` ${pausedAt}` : ""}{t("ui.components.builtinagentgate.so-new")}{" "}
+          {label.toLowerCase()} {t("ui.components.builtinagentgate.isn-being-generated")}</InlineBanner>
         {/* Paused ≠ hidden: keep existing content readable, marked stale. */}
         <div className="opacity-70">{children}</div>
       </div>

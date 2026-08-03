@@ -91,12 +91,11 @@ function AdapterRow({
             )}
             {adapter.overriddenBuiltin && (
               <Badge variant="secondary" className="text-blue-600 border-blue-400">
-                Overrides built-in
-              </Badge>
+                {t("ui.pages.adaptermanager.overrides-built")}</Badge>
             )}
             {overriddenBy && (
               <Badge variant="secondary" className="text-blue-600 border-blue-400">
-                Overridden by {overriddenBy}
+                {t("ui.pages.adaptermanager.overridden")}{overriddenBy}
               </Badge>
             )}
             {adapter.disabled && (
@@ -207,11 +206,8 @@ function ReinstallDialog({
         <DialogHeader>
           <DialogTitle>{t("pages.adapterManager.reinstallTitle", { defaultValue: "Reinstall Adapter" })}</DialogTitle>
           <DialogDescription>
-            This will pull the latest version of{" "}
-            <strong>{adapter?.packageName}</strong> from npm and hot-swap
-            the running adapter module. Existing agents will use the new
-            version on their next run.
-          </DialogDescription>
+            {t("ui.pages.adaptermanager.will-pull-latest-version")}{" "}
+            <strong>{adapter?.packageName}</strong> {t("ui.pages.adaptermanager.from-npm-hot-swap")}</DialogDescription>
         </DialogHeader>
 
         <div className="rounded-md border bg-muted/50 px-4 py-3 text-sm space-y-1">
@@ -237,15 +233,13 @@ function ReinstallDialog({
           </div>
           {isUpToDate && (
             <p className="text-xs text-muted-foreground pt-1">
-              Already on the latest version.
-            </p>
+              {t("ui.pages.adaptermanager.already-latest-version")}</p>
           )}
         </div>
 
         <DialogFooter>
           <Button variant="outline" onClick={onCancel} disabled={isReinstalling}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button disabled={isReinstalling} onClick={onConfirm}>
             {isReinstalling ? t("pages.adapterManager.reinstalling", { defaultValue: "Reinstalling..." }) : t("pages.adapterManager.reinstall", { defaultValue: "Reinstall" })}
           </Button>
@@ -405,22 +399,20 @@ export function AdapterManager() {
           <Cpu className="h-6 w-6 text-muted-foreground" />
           <h1 className="text-xl font-semibold">{t("pages.adapterManager.adapters", { defaultValue: "Adapters" })}</h1>
           <Badge variant="outline" className="text-amber-600 border-amber-400">
-            Alpha
-          </Badge>
+            {t("ui.pages.adaptermanager.alpha")}</Badge>
         </div>
 
         <Dialog open={installDialogOpen} onOpenChange={setInstallDialogOpen}>
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              Install Adapter
-            </Button>
+              {t("ui.pages.adaptermanager.install-adapter")}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("pages.adapterManager.installTitle", { defaultValue: "Install External Adapter" })}</DialogTitle>
               <DialogDescription>
-                Add an adapter from npm or a local path. The adapter package must export <code className="text-xs bg-muted px-1 py-0.5 rounded">createServerAdapter()</code>.
+                {t("ui.pages.adaptermanager.add-adapter-from-npm")}<code className="text-xs bg-muted px-1 py-0.5 rounded">{t("ui.pages.adaptermanager.createserveradapter")}</code>.
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
@@ -437,8 +429,7 @@ export function AdapterManager() {
                   onClick={() => setIsLocalPath(false)}
                 >
                   <Package className="h-3.5 w-3.5" />
-                  npm package
-                </button>
+                  {t("pages.pluginSettings.npmPackage")}</button>
                 <button
                   type="button"
                   className={cn(
@@ -450,8 +441,7 @@ export function AdapterManager() {
                   onClick={() => setIsLocalPath(true)}
                 >
                   <FolderOpen className="h-3.5 w-3.5" />
-                  Local path
-                </button>
+                  {t("pages.projectWorkspaceDetail.localPath")}</button>
               </div>
 
               {isLocalPath ? (
@@ -469,8 +459,7 @@ export function AdapterManager() {
                     <ChoosePathButton />
                   </div>
                   <p className="text-xs text-muted-foreground">
-                    Accepts Linux, WSL, and Windows paths. Windows paths are auto-converted.
-                  </p>
+                    {t("ui.pages.adaptermanager.accepts-linux-wsl-windows")}</p>
                 </div>
               ) : (
                 /* npm package input */
@@ -522,9 +511,7 @@ export function AdapterManager() {
           <div className="space-y-1 text-sm">
             <p className="font-medium text-foreground">{t("pages.adapterManager.alphaWarning", { defaultValue: "External adapters are alpha." })}</p>
             <p className="text-muted-foreground">
-              The adapter plugin system is under active development. APIs and storage format may change.
-              Use the power icon to hide adapters from agent menus without removing them.
-            </p>
+              {t("ui.pages.adaptermanager.adapter-plugin-system-under")}</p>
           </div>
         </div>
       </div>
@@ -542,8 +529,7 @@ export function AdapterManager() {
               <Cpu className="h-10 w-10 text-muted-foreground mb-4" />
               <p className="text-sm font-medium">{t("pages.adapterManager.noExternal", { defaultValue: "No external adapters installed" })}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Install an adapter package to extend model support.
-              </p>
+                {t("ui.pages.adaptermanager.install-adapter-package-extend")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -648,13 +634,10 @@ export function AdapterManager() {
           <DialogHeader>
             <DialogTitle>{t("pages.adapterManager.removeTitle", { defaultValue: "Remove Adapter" })}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to remove the <strong>{removeType}</strong> adapter?
-              It will be unregistered and removed from the adapter store.
-              {removeType && adapters?.find((a) => a.type === removeType)?.packageName && (
-                <> npm packages will be cleaned up from disk.</>
+              {t("ui.pages.adaptermanager.you-sure-you-want")}<strong>{removeType}</strong> {t("ui.pages.adaptermanager.adapter-will-unregistered-removed")}{removeType && adapters?.find((a) => a.type === removeType)?.packageName && (
+                <> {t("ui.pages.adaptermanager.npm-packages-will-cleaned")}</>
               )}
-              {" "}This action cannot be undone.
-            </DialogDescription>
+              {" "}{t("ui.pages.adaptermanager.action-cannot-undone")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveType(null)}>{t("pages.adapterManager.cancel", { defaultValue: "Cancel" })}</Button>

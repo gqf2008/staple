@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import { ReviewQueueCard } from "../ReviewQueueCard";
 import { QuarantinePill } from "./SetupPanel";
 import type { AppDetailSectionProps } from "./types";
@@ -25,7 +26,7 @@ export function ReviewPanel({
       ) : null}
       <ReviewQueueCard
         connectionId={connectionId}
-        heading="Waiting for your OK"
+        heading={t("pages.reviewQueueCard.waitingForOk")}
         emptyState={showsQuarantinedActions ? "hidden" : "reassure"}
       />
     </div>

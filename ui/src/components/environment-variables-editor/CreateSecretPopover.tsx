@@ -77,9 +77,8 @@ export function SecretPopoverForm({
         <PopoverTitle className="text-sm font-medium">{heading}</PopoverTitle>
         {mode === "store" ? (
           <PopoverDescription className="text-(length:--text-micro) text-muted-foreground">
-            Moves the typed value into an encrypted company secret and binds{" "}
-            <span className="font-mono">{initialName || "this variable"}</span> to it.
-          </PopoverDescription>
+            {t("ui.components.environment-variables-editor.createsecretpopover.moves-typed-value-into")}{" "}
+            <span className="font-mono">{initialName || "this variable"}</span> {t("ui.components.environment-variables-editor.createsecretpopover.text")}</PopoverDescription>
         ) : null}
       </div>
 
@@ -135,8 +134,7 @@ export function SecretPopoverForm({
 
       <div className="flex items-center justify-end gap-2 pt-0.5">
         <Button type="button" variant="ghost" size="sm" onClick={onCancel} disabled={submitting}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
         <Button type="button" size="sm" onClick={() => void handleSubmit()} disabled={!canSubmit}>
           {submitting ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : null}
           {ctaLabel}

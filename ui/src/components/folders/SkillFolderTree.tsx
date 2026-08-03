@@ -255,8 +255,7 @@ export function SkillFolderRail({
       >
       <div className="mb-2 flex items-center justify-between gap-2 pt-0.5">
         <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-          Folders
-        </div>
+          {t("components.folderControls.folders")}</div>
         <Button variant="ghost" size="icon-sm" title={t("components.skillFolderTree.newFolder", { defaultValue: "New folder" })} onClick={() => onCreateFolder(null)}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
@@ -398,8 +397,7 @@ export function SkillFolderRail({
           ) : null}
 
           <div className="px-2 pb-1 pt-3 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-            System
-          </div>
+            {t("components.activityFeed.system")}</div>
           <VirtualRow
             active={selection === "unfiled"}
             label={t("components.skillFolderTree.unfiled", { defaultValue: "Unfiled" })}
@@ -415,8 +413,7 @@ export function SkillFolderRail({
         <div className="mt-4 border-t border-border pt-3">
           <div className="mb-1.5 flex items-center gap-1.5 px-2 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
             <Hash className="h-3 w-3" />
-            Tags
-          </div>
+            {t("components.issueColumns.tags")}</div>
           <div className="flex flex-wrap gap-1.5 px-1">
             {activeTag ? (
               <button
@@ -641,8 +638,7 @@ function TreeBranch({
               {canNest ? (
                 <DropdownMenuItem onSelect={() => onCreateFolder(folder.id)}>
                   <FolderPlus className="h-3.5 w-3.5" />
-                  New subfolder
-                </DropdownMenuItem>
+                  {t("ui.components.folders.skillfoldertree.new-subfolder")}</DropdownMenuItem>
               ) : null}
               {editable ? (
                 <>
@@ -650,13 +646,12 @@ function TreeBranch({
                   <DropdownMenuItem onSelect={() => onEditFolder(folder)}>{t("components.skillFolderTree.editColor", { defaultValue: "Edit color" })}</DropdownMenuItem>
                   <DropdownMenuItem onSelect={() => onMoveFolder(folder, isInMySkills ? "company" : "my")}>
                     <MoveRight className="h-3.5 w-3.5" />
-                    Move to {isInMySkills ? t("components.skillFolderTree.company", { defaultValue: "Company" }) : t("components.skillFolderTree.mySkills", { defaultValue: "My Skills" })}
+                    {t("pages.pipelineSettings.moveTo")}{isInMySkills ? t("components.skillFolderTree.company", { defaultValue: "Company" }) : t("components.skillFolderTree.mySkills", { defaultValue: "My Skills" })}
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
                   <DropdownMenuItem variant="destructive" onSelect={() => onDeleteFolder(folder)}>
                     <Trash2 className="h-3.5 w-3.5" />
-                    Delete
-                  </DropdownMenuItem>
+                    {t("common.delete")}</DropdownMenuItem>
                 </>
               ) : null}
             </DropdownMenuContent>
@@ -723,8 +718,7 @@ export function FolderBreadcrumb({
         )}
       >
         <Home className="h-3.5 w-3.5" />
-        All skills
-      </button>
+        {t("components.skillFolderTree.allSkills")}</button>
       {selection === "unfiled" ? (
         <>
           <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/60" />
@@ -780,8 +774,7 @@ export function FolderTiles({
   return (
     <div className="mb-4">
       <div className="mb-2 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-        Folders
-      </div>
+        {t("components.folderControls.folders")}</div>
       <div className="grid gap-2 [grid-template-columns:repeat(auto-fill,minmax(11rem,1fr))]">
         {children.map((node) => (
           <button
@@ -990,8 +983,7 @@ export function MoveToFolderDialog({
                 className="flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/40 hover:text-foreground"
               >
                 <Plus className="h-3.5 w-3.5" />
-                New top-level folder…
-              </button>
+                {t("ui.components.folders.skillfoldertree.new-top-level-folder")}</button>
             )}
           </div>
         </div>
@@ -999,7 +991,7 @@ export function MoveToFolderDialog({
         <div className="min-h-5 text-xs text-muted-foreground">
           {previewPath ? (
             <span>
-              Moving to <span className="font-mono text-foreground">{previewPath}</span>
+              {t("ui.components.folders.skillfoldertree.moving")}<span className="font-mono text-foreground">{previewPath}</span>
             </span>
           ) : (
             <span>{t("components.skillFolderTree.pickDestination", { defaultValue: "Pick a destination folder." })}</span>
@@ -1008,8 +1000,7 @@ export function MoveToFolderDialog({
 
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             disabled={pending || chosen === undefined || chosen === currentFolderId}
             onClick={() => chosen !== undefined && onMove(chosen)}
@@ -1057,11 +1048,9 @@ function InlineNewFolder({
         }}
       />
       <Button size="sm" variant="ghost" onClick={onCancel} disabled={pending}>
-        Cancel
-      </Button>
+        {t("common.cancel")}</Button>
       <Button size="sm" onClick={onSubmit} disabled={pending || !value.trim()}>
-        Add
-      </Button>
+        {t("components.jsonSchemaForm.add")}</Button>
     </div>
   );
 }

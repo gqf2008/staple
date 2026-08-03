@@ -119,8 +119,7 @@ function AccessSection({
         </div>
         {!editing && (
           <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-            Change
-          </Button>
+            {t("ui.pages.apps.app-detail.permissionspanel.change")}</Button>
         )}
       </div>
 
@@ -169,11 +168,9 @@ function AccessSection({
                 setEditing(false);
               }}
             >
-              Save
-            </Button>
+              {t("components.agentConfigForm.save")}</Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={disabled}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
         </div>
       )}
@@ -212,8 +209,7 @@ function InstalledSection({
         <div>
           <h2 className="text-sm font-bold text-foreground">{t("pages.appPermissionsPanel.installedOnAgents", { defaultValue: "Installed on agents" })}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Whose harness carries {appName}'s tools on every run.
-          </p>
+            {t("ui.pages.apps.app-detail.permissionspanel.whose-harness-carries")}{appName}{t("ui.pages.apps.app-detail.permissionspanel.tools-every-run")}</p>
         </div>
         <div className="flex items-center gap-2">
           {disabled && <span className="text-xs text-muted-foreground">{t("pages.appPermissionsPanel.saving", { defaultValue: "Saving…" })}</span>}
@@ -223,8 +219,7 @@ function InstalledSection({
             <InstalledBadge label={`${installedCount} installed`} />
           ) : (
             <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              Permitted only — not installed on any agent
-            </span>
+              {t("ui.pages.apps.app-detail.permissionspanel.permitted-only-not-installed")}</span>
           )}
         </div>
       </div>
@@ -248,8 +243,7 @@ function InstalledSection({
             renderNameSuffix={(agent) =>
               !hasAccess(agent.id) && install.agentIds.has(agent.id) ? (
                 <span className={cn("rounded border px-1 py-0 text-xs font-medium", brandChipBadge.amber)}>
-                  will grant access
-                </span>
+                  {t("ui.pages.apps.app-detail.permissionspanel.will-grant-access")}</span>
               ) : null
             }
             onChange={(agentIds) => onSave({ onAll: false, agentIds })}
@@ -287,8 +281,7 @@ function InstalledSection({
                   : `${extendingAgents.length} agents`,
               )}{" "}
               <span className="font-medium">
-                Review the {extendingAgents.length} access change
-                {extendingAgents.length === 1 ? "" : "s"}
+                {t("ui.pages.apps.app-detail.permissionspanel.review")}{extendingAgents.length} {t("ui.pages.apps.app-detail.permissionspanel.access-change")}{extendingAgents.length === 1 ? "" : "s"}
               </span>
             </span>
           </InlineBanner>
@@ -338,8 +331,7 @@ function ActionsSection({
         <div>
           <h2 className="text-sm font-bold text-foreground">{t("pages.appPermissionsPanel.actionPermissions", { defaultValue: "Action permissions" })}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Choose what agents can do and what needs a human first.
-          </p>
+            {t("ui.pages.apps.app-detail.permissionspanel.choose-what-agents-can")}</p>
         </div>
         <div className="flex items-center gap-2">
           {disabled && <span className="text-xs text-muted-foreground">{t("pages.appPermissionsPanel.saving2", { defaultValue: "Saving..." })}</span>}
@@ -354,8 +346,7 @@ function ActionsSection({
             ) : (
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             )}
-            Refresh actions
-          </Button>
+            {t("ui.pages.apps.app-detail.permissionspanel.refresh-actions")}</Button>
         </div>
       </div>
 

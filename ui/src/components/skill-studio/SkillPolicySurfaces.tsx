@@ -8,6 +8,7 @@
  * (State C) actually denied an action.
  */
 
+import { t } from "../../i18n";
 import { AlertTriangle, ShieldCheck } from "lucide-react";
 import { useCallback, useState } from "react";
 
@@ -73,8 +74,7 @@ export function SkillPolicyDenialNotice({
 }) {
   const actions = onDismiss ? (
     <Button variant="ghost" size="sm" onClick={onDismiss}>
-      Dismiss
-    </Button>
+      {t("pages.inbox.dismiss")}</Button>
   ) : undefined;
 
   return (

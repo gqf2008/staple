@@ -333,8 +333,7 @@ export function Artifacts() {
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            All stacks
-          </Link>
+            {t("ui.pages.artifacts.all-stacks")}</Link>
           {selectedGroup ? (
             <span className="truncate text-muted-foreground">
               <span className="text-foreground/80">{selectedGroup.issue.identifier}</span>{" "}

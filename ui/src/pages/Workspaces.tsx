@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo } from "react";
 import { Link, Navigate } from "@/lib/router";
 import { useInfiniteQuery, useQuery } from "@tanstack/react-query";
@@ -118,18 +119,18 @@ export function Workspaces() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-bold">Workspaces</h2>
+        <h2 className="text-xl font-bold">{t("nav.workspaces")}</h2>
       </div>
 
       <SummarySlotCard
         companyId={selectedCompanyId}
         scopeKind="workspaces_overview"
-        title="Workspace summary"
-        description="Summarizer tracks workspace activity, live services, and follow-up needs across projects."
+        title={t("pages.executionWorkspaceDetail.workspaceSummary")}
+        description={t("ui.pages.workspaces.summarizer-tracks-workspace-activity")}
       />
 
       {groups.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No workspace activity yet.</p>
+        <p className="text-sm text-muted-foreground">{t("ui.pages.workspaces.no-workspace-activity-yet")}</p>
       ) : (
         <div className="space-y-8">
           {groups.map((group) => (
@@ -158,7 +159,7 @@ export function Workspaces() {
           {overviewQuery.hasNextPage ? (
             <div className="flex flex-wrap items-center justify-between gap-3 border-t border-border pt-4">
               <p className="text-sm text-muted-foreground">
-                Showing {overviewItems.length} of {totalWorkspaceCount} workspaces.
+                {t("ui.components.kanbanboard.showing")}{overviewItems.length} of {totalWorkspaceCount} workspaces.
               </p>
               <Button
                 type="button"

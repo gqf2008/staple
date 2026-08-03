@@ -288,7 +288,7 @@ function CollapsedFeedGroup({
         }
         <span className="flex-1 min-w-0 truncate">
           <span data-fc="actor" className="font-medium text-(--hex-959596) group-hover:text-white">{actorName}</span>
-          <span data-fc="verb" className="ml-1 text-(--hex-959596)">made {group.events.length} updates to</span>
+          <span data-fc="verb" className="ml-1 text-(--hex-959596)">made {group.events.length} {t("ui.components.activityfeed.updates")}</span>
           <span data-fc="title" className="ml-1 text-(--hex-959596) group-hover:text-white">{entityName ?? group.entityId}</span>
         </span>
         <span data-fc="time" className="text-muted-foreground shrink-0">
@@ -487,8 +487,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
           <div className="flex items-center gap-2 px-4 py-1.5" key={`sep-${index}`}>
             <div className="h-px flex-1 bg-border" />
             <span className="text-(length:--text-nano) font-medium text-muted-foreground uppercase tracking-wider">
-              Earlier
-            </span>
+              {t("components.routineOperate.earlier")}</span>
             <div className="h-px flex-1 bg-border" />
           </div>
         );
@@ -624,8 +623,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
         <div className="min-w-0 flex-1">
           <h3 className="text-sm font-semibold">{t("components.activityFeed.agentFeed", { defaultValue: "Agent Feed" })}</h3>
           <p className="text-xs text-muted-foreground">
-            Live activity from your agents
-          </p>
+            {t("ui.components.activityfeed.live-activity-from-your")}</p>
         </div>
         <div className="flex items-center gap-1">
           {/* Group toggle */}
@@ -636,7 +634,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                 variant={groupMode === "by-task" ? "secondary" : "ghost"}
                 size="icon-sm"
                 className="shrink-0 text-muted-foreground"
-                aria-label="group by task"
+                aria-label={t("components.activityFeed.groupByTask")}
                 onClick={() => setGroupMode((m) => (m === "flat" ? "by-task" : "flat"))}
               >
                 <Layers className="h-3.5 w-3.5" />
@@ -657,7 +655,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                     variant={filter !== "all" || showAllActivity ? "secondary" : "ghost"}
                     size="icon-sm"
                     className="shrink-0 text-muted-foreground"
-                    aria-label="filter by"
+                    aria-label={t("components.activityFeed.filterBy")}
                   >
                     <ListFilter className="h-3.5 w-3.5" />
                   </Button>
@@ -681,8 +679,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                 checked={showAllActivity}
                 onCheckedChange={(v) => setShowAllActivity(!!v)}
               >
-                Show all activity
-              </DropdownMenuCheckboxItem>
+                {t("ui.components.activityfeed.show-all-activity")}</DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

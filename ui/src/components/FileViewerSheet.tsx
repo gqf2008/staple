@@ -238,7 +238,7 @@ export function FileViewerMetadataRow({
             <>
               <span aria-hidden="true" className="opacity-50">·</span>
               <span>
-                Line {state.line}
+                {t("ui.components.fileviewersheet.line")}{state.line}
                 {state.column ? `, Col ${state.column}` : ""}
               </span>
             </>
@@ -478,8 +478,7 @@ function LoadingView({ elapsedMs }: { elapsedMs: number }) {
     >
       <div className="flex items-center gap-2 text-muted-foreground">
         <Loader2 aria-hidden="true" className="h-4 w-4 animate-spin" />
-        Loading file preview...
-      </div>
+        {t("ui.components.fileviewersheet.loading-file-preview")}</div>
     </div>
   );
 }
@@ -785,8 +784,7 @@ export function FileViewerSheet({
                   aria-label={t("components.fileViewer.backToFiles", { defaultValue: "Back to files" })}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
-                  Back to files
-                </Button>
+                  {t("components.fileViewer.backToFiles")}</Button>
               ) : null}
               {state ? (
                 downloadUrl ? (
@@ -981,12 +979,10 @@ function FileViewerBody({
             <>
               {onFallbackToProject ? (
                 <Button type="button" variant="secondary" size="sm" onClick={onFallbackToProject}>
-                  Try project workspace
-                </Button>
+                  {t("ui.components.fileviewersheet.try-project-workspace")}</Button>
               ) : null}
               <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-                <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
-              </Button>
+                <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {t("components.issueProperties.retry")}</Button>
             </>
           }
         />
@@ -1009,8 +1005,7 @@ function FileViewerBody({
         body={denial.body}
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
-          </Button>
+            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {t("components.issueProperties.retry")}</Button>
         }
       />
     );
@@ -1048,8 +1043,7 @@ function FileViewerBody({
         body={denial.body}
         actions={
           <Button type="button" variant="ghost" size="sm" onClick={onRetry}>
-            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> Retry
-          </Button>
+            <RefreshCcw aria-hidden="true" className="mr-1 h-3 w-3" /> {t("components.issueProperties.retry")}</Button>
         }
       />
     );

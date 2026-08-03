@@ -157,26 +157,21 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
       <div className="flex items-start gap-2 rounded-md border border-violet-500/30 bg-violet-500/5 px-4 py-3 text-xs text-violet-800 dark:text-violet-200">
         <UserRound className="h-4 w-4 mt-0.5 shrink-0" />
         <p>
-          Define credentials that <span className="font-medium">each member supplies for
-          themselves</span>. You set the shape here; every user enters their own value under My
-          secrets. Coverage shows how many members have set a value — never the values themselves.
-        </p>
+          {t("ui.pages.secrets.usersecretdefinitionstab.define-credentials")}<span className="font-medium">{t("ui.pages.secrets.usersecretdefinitionstab.each-member-supplies-themselves")}</span>{t("ui.pages.secrets.usersecretdefinitionstab.you-set-shape-here")}</p>
       </div>
 
       <div className="flex items-center justify-end">
         <Button size="sm" onClick={openCreate}>
-          <Plus className="mr-1 h-3.5 w-3.5" /> New user secret
-        </Button>
+          <Plus className="mr-1 h-3.5 w-3.5" /> {t("pages.secrets.userSecretDefinitions.newUserSecret")}</Button>
       </div>
 
       <div className="min-h-0 flex-1 overflow-y-auto">
         {definitionsQuery.isError ? (
           <div className="flex items-center gap-2 py-4 text-sm text-destructive">
-            <AlertCircle className="h-4 w-4" /> Failed to load definitions:{" "}
+            <AlertCircle className="h-4 w-4" /> {t("ui.pages.secrets.usersecretdefinitionstab.failed-load-definitions")}{" "}
             {(definitionsQuery.error as Error).message}
             <Button variant="ghost" size="sm" onClick={() => definitionsQuery.refetch()}>
-              Retry
-            </Button>
+              {t("components.issueProperties.retry")}</Button>
           </div>
         ) : definitions.length === 0 && !definitionsQuery.isPending ? (
           <EmptyState
@@ -239,8 +234,7 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
               <UserSecretChip />
             </DialogTitle>
             <DialogDescription>
-              Members supply their own value for this credential. No value is entered here.
-            </DialogDescription>
+              {t("ui.pages.secrets.usersecretdefinitionstab.members-supply-their-own")}</DialogDescription>
           </DialogHeader>
 
           <div className="space-y-3">
@@ -268,12 +262,12 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
                   setKeyDirty(true);
                   setForm((current) => ({ ...current, key: event.target.value }));
                 }}
-                placeholder="PERSONAL_GH_TOKEN"
+                placeholder={t("ui.pages.secrets.usersecretdefinitionstab.personal-gh-token")}
                 className="font-mono text-sm"
                 disabled={Boolean(editing)}
               />
               <p className="text-(length:--text-micro) text-muted-foreground">
-                Stable identifier referenced by env bindings. {editing ? t("pages.secrets.userSecretDefinitions.cannotChange", { defaultValue: "Cannot be changed." }) : ""}
+                {t("ui.pages.secrets.usersecretdefinitionstab.stable-identifier-referenced-env")}{editing ? t("pages.secrets.userSecretDefinitions.cannotChange", { defaultValue: "Cannot be changed." }) : ""}
               </p>
             </div>
             <div className="space-y-1">
@@ -288,7 +282,7 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
             </div>
             <div className="space-y-1">
               <label className="text-xs font-medium text-foreground">
-                Usage guidance <span className="text-muted-foreground">(optional)</span>
+                {t("pages.secrets.usageGuidance")}<span className="text-muted-foreground">{t("ui.components.newissuedialog.optional")}</span>
               </label>
               <Textarea
                 value={form.usageGuidance}
@@ -324,8 +318,7 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
 
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDialogOpen(false)} disabled={save.isPending}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button onClick={() => save.mutate()} disabled={!canSave || save.isPending}>
               {save.isPending ? t("pages.secrets.userSecretDefinitions.saving", { defaultValue: "Saving…" }) : editing ? t("pages.secrets.userSecretDefinitions.saveChanges", { defaultValue: "Save changes" }) : t("pages.secrets.userSecretDefinitions.create", { defaultValue: "Create" })}
             </Button>
@@ -339,14 +332,11 @@ export function UserSecretDefinitionsTab({ companyId }: { companyId: string }) {
           <DialogHeader>
             <DialogTitle>{t("pages.secrets.userSecretDefinitions.removeConfirm", { defaultValue: "Remove user secret?" })}</DialogTitle>
             <DialogDescription>
-              This removes the definition <span className="font-mono">{deleteTarget?.key}</span> for
-              the whole company. Existing member values become unreferenced. This cannot be undone.
-            </DialogDescription>
+              {t("ui.pages.secrets.usersecretdefinitionstab.removes-definition")}<span className="font-mono">{deleteTarget?.key}</span> {t("ui.pages.secrets.usersecretdefinitionstab.whole-company-existing-member")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" onClick={() => setDeleteTarget(null)} disabled={remove.isPending}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               variant="destructive"
               onClick={() => deleteTarget && remove.mutate(deleteTarget)}
@@ -378,9 +368,9 @@ function CoverageBadge({
   return (
     <p className="mt-1 inline-flex items-center gap-1 text-(length:--text-micro) text-muted-foreground">
       <Users className="h-3 w-3" />
-      Coverage: {coverageSummaryLabel(summary)}
+      {t("ui.pages.secrets.usersecretdefinitionstab.coverage")}{coverageSummaryLabel(summary)}
       {summary && missing > 0 ? (
-        <span className="text-amber-600 dark:text-amber-400">· {missing} not set</span>
+        <span className="text-amber-600 dark:text-amber-400">· {missing} {t("components.executionWorkspaceCloseDialog.notSet")}</span>
       ) : null}
     </p>
   );

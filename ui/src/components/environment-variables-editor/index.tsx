@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import {
   forwardRef,
   useCallback,
@@ -439,16 +440,15 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
       {attentionCount > 1 ? (
         <p className="inline-flex items-center gap-1.5 text-(length:--text-micro) font-medium text-amber-700 dark:text-amber-400">
           <AlertCircle className="size-3.5" />
-          {attentionCount} bindings need attention
-        </p>
+          {attentionCount} {t("ui.components.environment-variables-editor.index.bindings-need-attention")}</p>
       ) : null}
 
       {hasRows ? (
         <>
           {/* Header (desktop only) */}
           <div className="hidden gap-x-1.5 @[40rem]/env:grid @[40rem]/env:grid-cols-(--gtc-14)">
-            <span className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">Name</span>
-            <span className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">Value</span>
+            <span className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">{t("components.agentConfigForm.name")}</span>
+            <span className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">{t("components.createSecretPopover.value")}</span>
             <span />
           </div>
 
@@ -481,7 +481,7 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
           })}
         </>
       ) : (
-        <p className="text-sm text-muted-foreground">No environment variables</p>
+        <p className="text-sm text-muted-foreground">{t("ui.components.environment-variables-editor.index.no-environment-variables")}</p>
       )}
 
       {/* Footer bar */}
@@ -493,15 +493,13 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
           className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
         >
           <Plus className="size-3.5" />
-          Add variable
-        </button>
+          {t("ui.components.environment-variables-editor.index.add-variable")}</button>
 
         {quickBind.length > 0 && !disabled ? (
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="inline-flex items-center gap-1 text-(length:--text-micro) text-muted-foreground/70">
               <KeyRound className="size-3" />
-              Recently used:
-            </span>
+              {t("ui.components.environment-variables-editor.index.recently-used")}</span>
             {quickBind.map((secret) => (
               <button
                 key={secret.id}
@@ -526,7 +524,7 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
           <div className="flex min-w-0 flex-col gap-0.5">
             <div className="flex items-center gap-2 text-sm font-medium">
               <span className="size-2 rounded-full bg-amber-500 shadow-(--shadow-extract-13)" />
-              <span>Unsaved changes</span>
+              <span>{t("components.agentConfigForm.unsavedChanges")}</span>
             </div>
             {changeSummaryText ? (
               <p className="min-w-0 truncate pl-4 text-xs text-amber-950/80 dark:text-amber-100/80" title={changeSummaryText}>
@@ -541,16 +539,14 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
               className="inline-flex h-9 items-center gap-1.5 rounded-md border border-amber-500/30 bg-background px-3 text-sm font-medium text-foreground transition-colors hover:bg-amber-500/10 dark:bg-background/80"
             >
               <RotateCcw className="size-4" />
-              Revert
-            </button>
+              {t("ui.components.environment-variables-editor.index.revert")}</button>
             <button
               type="button"
               onClick={saveDraft}
               className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
             >
               <Save className="size-4" />
-              Save
-            </button>
+              {t("components.agentConfigForm.save")}</button>
           </div>
         </div>
       ) : null}
@@ -560,9 +556,7 @@ export const EnvironmentVariablesEditor = forwardRef<EnvironmentVariablesEditorH
         <p className="inline-flex items-start gap-1 text-(length:--text-micro) text-muted-foreground/70">
           <UserRound className="mt-0.5 size-3 shrink-0" />
           <span>
-            User secrets resolve from the user responsible for the run. Required bindings fail until that user
-            sets their value under Secrets → My secrets.
-          </span>
+            {t("ui.components.environment-variables-editor.index.user-secrets-resolve-from")}</span>
         </p>
       ) : null}
       </div>

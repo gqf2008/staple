@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import { useEffect } from "react";
 import { useParams } from "@/lib/router";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
@@ -22,7 +23,7 @@ export function ProfileDetailRoute() {
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   if (!selectedCompanyId || !params.profileId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company and profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("ui.pages.tools.profiles.profiledetailroute.select-company-profile")}</div>;
   }
 
   return (

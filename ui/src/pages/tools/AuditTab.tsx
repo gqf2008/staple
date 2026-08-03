@@ -183,10 +183,9 @@ function ActivityRow({
         <span className="min-w-0 flex-1">
           {isRuntimeMcpDeliveryDiagnostic ? (
             <span className="block text-foreground">
-              <span className="font-medium">{who}</span>'s run received 0 MCP servers —{" "}
+              <span className="font-medium">{who}</span>{t("ui.pages.tools.audittab.run-received-mcp-servers")}{" "}
               <span className="font-medium">{permittedNotInstalledCount ?? permittedNotInstalledConnections.length}</span>{" "}
-              permitted {(permittedNotInstalledCount ?? permittedNotInstalledConnections.length) === 1 ? "connection" : "connections"} not installed
-            </span>
+              permitted {(permittedNotInstalledCount ?? permittedNotInstalledConnections.length) === 1 ? "connection" : "connections"} {t("pages.pluginManager.notInstalled")}</span>
           ) : (
             <span className="block text-foreground">
               <span className="font-medium">{who}</span> used <span className="font-medium">{action}</span>
@@ -224,13 +223,11 @@ function ActivityRow({
           <div className="flex flex-wrap gap-3 text-xs">
             {issueId ? (
               <Link to={`/issues/${issueId}`} className="text-primary hover:underline">
-                View task
-              </Link>
+                {t("components.issueProperties.viewTask")}</Link>
             ) : null}
             {runId && agentId ? (
               <Link to={`/agents/${agentId}/runs/${runId}`} className="text-primary hover:underline">
-                View run
-              </Link>
+                {t("components.liveUpdates.viewRun")}</Link>
             ) : null}
           </div>
 
@@ -241,8 +238,7 @@ function ActivityRow({
               className="flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground"
             >
               {detailsOpen ? <ChevronDown className="h-3.5 w-3.5" /> : <ChevronRight className="h-3.5 w-3.5" />}
-              Details
-            </button>
+              {t("components.systemNotice.details")}</button>
             {detailsOpen ? (
               <div className="mt-2 space-y-1.5 text-xs">
                 {rawTool ? <DetailFact label={t("pages.tools.audit.actionName", { defaultValue: "Action name" })} value={rawTool} mono /> : null}
@@ -250,11 +246,11 @@ function ActivityRow({
                 <DetailFact label={t("pages.tools.audit.actorType", { defaultValue: "Actor type" })} value={event.actorType ?? "—"} />
                 {runId ? <DetailFact label={t("pages.tools.audit.runId", { defaultValue: "Run ID" })} value={runId} mono /> : null}
                 {transport ? <DetailFact label={t("pages.tools.audit.transport", { defaultValue: "Transport" })} value={transport} mono /> : null}
-                {requestMethod && endpoint ? <DetailFact label="HTTP request" value={`${requestMethod} ${endpoint}`} mono /> : null}
+                {requestMethod && endpoint ? <DetailFact label={t("ui.pages.tools.audittab.http-request")} value={`${requestMethod} ${endpoint}`} mono /> : null}
                 {mcpMethod ? <DetailFact label={t("pages.tools.audit.mcpMethod", { defaultValue: "MCP method" })} value={mcpMethod} mono /> : null}
                 {requestId ? <DetailFact label={t("pages.tools.audit.requestId", { defaultValue: "Request ID" })} value={requestId} mono /> : null}
                 {request ? <DetailFact label={t("pages.tools.audit.dispatched", { defaultValue: "Dispatched" })} value={request.dispatched === true ? t("pages.tools.audit.yes", { defaultValue: "Yes" }) : "No"} /> : null}
-                {httpStatus !== undefined ? <DetailFact label="HTTP status" value={String(httpStatus)} mono /> : null}
+                {httpStatus !== undefined ? <DetailFact label={t("ui.pages.tools.audittab.http-status")} value={String(httpStatus)} mono /> : null}
                 {contentType ? <DetailFact label={t("pages.tools.audit.contentType", { defaultValue: "Content type" })} value={contentType} mono /> : null}
                 {responseBytes !== undefined ? <DetailFact label={t("pages.tools.audit.responseSize", { defaultValue: "Response size" })} value={`${responseBytes} bytes`} /> : null}
                 {upstreamRequestId ? <DetailFact label={t("pages.tools.audit.upstreamId", { defaultValue: "Upstream ID" })} value={upstreamRequestId} mono /> : null}
@@ -366,7 +362,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
     <div className="space-y-4">
       <ToolsPageHeader
         title={t("pages.tools.audit.activity", { defaultValue: "Activity" })}
-        description="What your agents actually did with your apps, newest first. Each line is one decision — allowed, blocked, asked first, waiting, or failed."
+        description={t("ui.pages.tools.audittab.what-your-agents-actually")}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -428,8 +424,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
         />
         {hasActiveFilters ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear filters
-          </Button>
+            {t("components.routineOperate.clearFilters")}</Button>
         ) : null}
       </div>
 
@@ -445,12 +440,10 @@ export function AuditTab({ companyId }: { companyId: string }) {
               <div>
                 <p className="text-sm font-medium text-foreground">{t("pages.tools.audit.noMatch", { defaultValue: "No activity matches these filters" })}</p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  Try a wider time window or different filters.
-                </p>
+                  {t("ui.pages.tools.audittab.try-wider-time-window")}</p>
               </div>
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
+                {t("components.routineOperate.clearFilters")}</Button>
             </CardContent>
           </Card>
         ) : (
@@ -460,8 +453,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
               <div>
                 <p className="text-sm font-medium text-foreground">{t("pages.tools.audit.nothingYet", { defaultValue: "Nothing here yet" })}</p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  As soon as your agents start using connected apps, what they do shows up here.
-                </p>
+                  {t("ui.pages.tools.audittab.soon-your-agents-start")}</p>
               </div>
             </CardContent>
           </Card>
@@ -492,8 +484,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
-      </p>
+        {t("ui.pages.audit.auditfeed.recorded-paperclip-entries-can")}</p>
     </div>
   );
 }

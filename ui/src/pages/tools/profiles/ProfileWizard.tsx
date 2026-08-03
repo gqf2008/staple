@@ -287,7 +287,7 @@ export function ProfileWizard({
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {step >= 2 ? (
               <span>
-                Allows <span className="font-medium text-foreground">{live.allowed}</span> of {live.total}{" "}
+                {t("pages.tools.profilesIndex.allows")}<span className="font-medium text-foreground">{live.allowed}</span> of {live.total}{" "}
                 tools
               </span>
             ) : null}
@@ -298,20 +298,17 @@ export function ProfileWizard({
                 disabled={busy}
                 className="font-medium text-primary hover:underline disabled:opacity-50"
               >
-                Save &amp; finish later
-              </button>
+                {t("ui.pages.tools.profiles.profilewizard.save-amp-finish-later")}</button>
             ) : null}
           </div>
 
           <div className="flex items-center gap-2">
             {step > 1 ? (
               <Button variant="outline" disabled={busy} onClick={() => setStep((s) => (s - 1) as WizardStep)}>
-                Back
-              </Button>
+                {t("pages.teamCatalog.back")}</Button>
             ) : (
               <Button variant="ghost" disabled={busy} onClick={() => navigate("/apps/advanced/profiles")}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             )}
 
             {step === 1 ? (
@@ -322,8 +319,7 @@ export function ProfileWizard({
                 }
               >
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Continue
-              </Button>
+                {t("pages.appsConnect.continue")}</Button>
             ) : null}
 
             {step === 2 ? (
@@ -332,15 +328,13 @@ export function ProfileWizard({
                 onClick={() => saveDraft.mutate({ goToStep: 3, completedStep: 2 })}
               >
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Continue
-              </Button>
+                {t("pages.appsConnect.continue")}</Button>
             ) : null}
 
             {step === 3 ? (
               <Button disabled={busy} onClick={() => finish.mutate()}>
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Save profile
-              </Button>
+                {t("pages.profileSettings.saveProfile")}</Button>
             ) : null}
           </div>
         </div>
@@ -511,7 +505,7 @@ export function StepName({
             id="profile-name"
             value={name}
             onChange={(e) => onName(e.target.value)}
-            placeholder="e.g. Everyday work"
+            placeholder={t("ui.pages.tools.profiles.profilewizard.everyday-work")}
           />
         </div>
         <div className="space-y-1.5">
@@ -529,8 +523,7 @@ export function StepName({
       <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
         <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ChevronDown className={cn("h-4 w-4 transition-transform", advancedOpen && "rotate-180")} />
-          Advanced
-        </CollapsibleTrigger>
+          {t("components.issueRunLedger.advanced")}</CollapsibleTrigger>
         <CollapsibleContent className="pt-2">
           <div className="space-y-1.5">
             <Label htmlFor="profile-key">{t("pages.tools.profileWizard.identifier", { defaultValue: "Identifier" })}</Label>
@@ -541,8 +534,7 @@ export function StepName({
               className="font-mono text-xs"
             />
             <p className="text-xs text-muted-foreground">
-              Used in exports and the API. Auto-filled from the name.
-            </p>
+              {t("ui.pages.tools.profiles.profilewizard.used-exports-api-auto")}</p>
           </div>
         </CollapsibleContent>
       </Collapsible>
@@ -612,8 +604,7 @@ export function StepAssign({
         <span className="flex flex-col gap-0.5">
           <span className="text-sm font-medium text-foreground">{t("pages.tools.profileWizard.companyDefault", { defaultValue: "Make this the company default" })}</span>
           <span className="text-xs text-muted-foreground">
-            Every agent without its own profile uses this one.
-            {defaultProfileName ? ` Replaces “${defaultProfileName}”.` : ""}
+            {t("ui.pages.tools.profiles.profilewizard.every-agent-without-own")}{defaultProfileName ? ` Replaces “${defaultProfileName}”.` : ""}
           </span>
         </span>
       </label>
@@ -636,8 +627,7 @@ export function StepAssign({
           }}
         />
         <p className="text-xs text-muted-foreground">
-          If an agent has several profiles, it can use anything any of them allows.
-        </p>
+          {t("ui.pages.tools.profiles.profilewizard.if-agent-has-several")}</p>
       </div>
 
       {(projects.length > 0 || routines.length > 0) && onToggleProject && onToggleRoutine ? (
@@ -648,9 +638,7 @@ export function StepAssign({
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-4 border-t border-border px-4 py-3">
             <p className="text-xs text-muted-foreground">
-              Assign this profile to a whole project or a scheduled routine instead of (or as well as)
-              individual agents.
-            </p>
+              {t("ui.pages.tools.profiles.profilewizard.assign-profile-whole-project")}</p>
             <TargetChecklist
               label={t("pages.tools.profileWizard.projects", { defaultValue: "Projects" })}
               options={projects}

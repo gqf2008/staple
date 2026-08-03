@@ -531,7 +531,7 @@ function WorkspaceRoutineRow({
         </div>
         <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
           <span>{routine.assigneeAgentId ? t("pages.executionWorkspaceDetail.defaultAgentSet", { defaultValue: "Default agent set" }) : t("pages.executionWorkspaceDetail.chooseAgent", { defaultValue: "Choose agent when running" })}</span>
-          <span>Last run {formatOptionalDateTime(routine.lastRun?.triggeredAt ?? routine.lastTriggeredAt)}</span>
+          <span>{t("components.routineSections.lastRun")}{formatOptionalDateTime(routine.lastRun?.triggeredAt ?? routine.lastTriggeredAt)}</span>
           <span className="flex flex-wrap gap-1">
             {variableNames.map((name) => (
               <span key={name} className="rounded-sm bg-muted px-1.5 py-0.5 font-mono text-(length:--text-micro) text-muted-foreground">
@@ -630,8 +630,7 @@ function ExecutionWorkspaceRoutinesList({
         <CardHeader>
           <CardTitle>{t("pages.executionWorkspaceDetail.workspaceRoutines", { defaultValue: "Workspace routines" })}</CardTitle>
           <CardDescription>
-            Routines that use workspace-specific variables can be run against this execution workspace.
-          </CardDescription>
+            {t("ui.pages.executionworkspacedetail.routines-use-workspace-specific")}</CardDescription>
         </CardHeader>
         <CardContent>
           {isLoading ? (
@@ -644,8 +643,7 @@ function ExecutionWorkspaceRoutinesList({
             <div className="flex flex-col items-center gap-2 py-10 text-center">
               <Repeat className="h-5 w-5 text-muted-foreground" />
               <p className="text-sm text-muted-foreground">
-                No routines use workspace-specific variables yet.
-              </p>
+                {t("ui.pages.executionworkspacedetail.no-routines-use-workspace")}</p>
             </div>
           ) : (
             <div className="rounded-lg border border-border">
@@ -951,8 +949,7 @@ export function ExecutionWorkspaceDetail() {
         <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
           <div className="min-w-0 space-y-2">
             <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-              Execution workspace
-            </div>
+              {t("components.dialogs.newIssue.executionWorkspace")}</div>
             <h1 className="truncate text-xl font-semibold sm:text-2xl">{workspace.name}</h1>
           </div>
           <WorkspaceServiceControlBar
@@ -1011,8 +1008,7 @@ export function ExecutionWorkspaceDetail() {
               <CardHeader>
                 <CardTitle>{t("pages.executionWorkspaceDetail.workspaceSettings", { defaultValue: "Workspace settings" })}</CardTitle>
                 <CardDescription>
-                  Edit the concrete path, repo, branch, provisioning, teardown, and runtime overrides attached to this execution workspace. Saved changes affect future runs; Paperclip may refresh or replace a reused workspace when config changes.
-                </CardDescription>
+                  {t("ui.pages.executionworkspacedetail.edit-concrete-path-repo")}</CardDescription>
                 <CardAction>
                   <Button
                     variant="destructive"
@@ -1050,7 +1046,7 @@ export function ExecutionWorkspaceDetail() {
                         className="font-mono"
                         value={form.branchName}
                         onChange={(event) => setForm((current) => current ? { ...current, branchName: event.target.value } : current)}
-                        placeholder="PAP-946-workspace"
+                        placeholder={t("ui.pages.executionworkspacedetail.pap-946-workspace")}
                       />
                     </Field>
 
@@ -1105,7 +1101,7 @@ export function ExecutionWorkspaceDetail() {
                       className="min-h-20 font-mono"
                       value={form.provisionCommand}
                       onChange={(event) => setForm((current) => current ? { ...current, provisionCommand: event.target.value } : current)}
-                      placeholder="bash ./scripts/provision-worktree.sh"
+                      placeholder={t("ui.components.projectproperties.bash-scripts-provision-worktree")}
                     />
                   </Field>
 
@@ -1114,7 +1110,7 @@ export function ExecutionWorkspaceDetail() {
                       className="min-h-20 font-mono"
                       value={form.teardownCommand}
                       onChange={(event) => setForm((current) => current ? { ...current, teardownCommand: event.target.value } : current)}
-                      placeholder="bash ./scripts/teardown-worktree.sh"
+                      placeholder={t("ui.components.projectproperties.bash-scripts-teardown-worktree")}
                     />
                   </Field>
 
@@ -1123,7 +1119,7 @@ export function ExecutionWorkspaceDetail() {
                       className="min-h-16 font-mono"
                       value={form.cleanupCommand}
                       onChange={(event) => setForm((current) => current ? { ...current, cleanupCommand: event.target.value } : current)}
-                      placeholder="pkill -f vite || true"
+                      placeholder={t("ui.pages.executionworkspacedetail.pkill-vite-true")}
                     />
                   </Field>
                 </div>
@@ -1136,8 +1132,7 @@ export function ExecutionWorkspaceDetail() {
                     <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
                       <div className="space-y-1">
                         <div className="text-sm font-medium text-foreground">
-                          Runtime config source
-                        </div>
+                          {t("ui.pages.executionworkspacedetail.runtime-config-source")}</div>
                         <p className="text-sm text-muted-foreground">
                           {runtimeConfigSource === "execution_workspace"
                             ? t("pages.executionWorkspaceDetail.overridesRuntime", { defaultValue: "This execution workspace currently overrides the project workspace runtime config." })
@@ -1159,18 +1154,16 @@ export function ExecutionWorkspaceDetail() {
                           } : current)
                         }
                       >
-                        Reset to inherit
-                      </Button>
+                        {t("ui.pages.executionworkspacedetail.reset-inherit")}</Button>
                     </div>
                   </div>
 
                   <details className="rounded-md border border-dashed border-border/70 bg-background px-4 py-3">
                     <summary className="cursor-pointer text-sm font-medium">{t("pages.executionWorkspaceDetail.advancedJson", { defaultValue: "Advanced runtime JSON" })}</summary>
                     <p className="mt-2 text-sm text-muted-foreground">
-                      Override the inherited workspace command model only when this execution workspace truly needs different service or job behavior.
-                    </p>
+                      {t("ui.pages.executionworkspacedetail.override-inherited-workspace-command")}</p>
                     <div className="mt-3">
-                      <Field label={t("pages.executionWorkspaceDetail.commandsJson", { defaultValue: "Workspace commands JSON" })} hint="Legacy `services` arrays still work, but `commands` supports both services and jobs.">
+                      <Field label={t("pages.executionWorkspaceDetail.commandsJson", { defaultValue: "Workspace commands JSON" })} hint={t("ui.pages.executionworkspacedetail.legacy-services-arrays-still")}>
                         <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                           <input
                             id="inherit-runtime-config"
@@ -1206,8 +1199,7 @@ export function ExecutionWorkspaceDetail() {
                       <div>
                         <div className="text-sm font-medium">{t("pages.executionWorkspaceDetail.servicePorts", { defaultValue: "Service ports" })}</div>
                         <p className="mt-1 text-sm text-muted-foreground">
-                          Set a fixed port for a service or leave it blank to use its configured automatic behavior. Editing an inherited service creates an execution-workspace runtime override.
-                        </p>
+                          {t("ui.pages.executionworkspacedetail.set-fixed-port-service")}</p>
                       </div>
                       <div className="grid gap-3 sm:grid-cols-2">
                         {configuredRuntimeServicePorts.map((service) => (
@@ -1246,8 +1238,7 @@ export function ExecutionWorkspaceDetail() {
                         </div>
                       ) : null}
                       <p className="text-sm text-muted-foreground">
-                        Paperclip checks fixed ports again when a service starts and rejects cross-workspace conflicts.
-                      </p>
+                        {t("ui.pages.executionworkspacedetail.paperclip-checks-fixed-ports")}</p>
                     </div>
                   ) : null}
                 </div>
@@ -1256,8 +1247,7 @@ export function ExecutionWorkspaceDetail() {
               <div className="mt-6 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
                 <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
                   {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                  Save changes
-                </Button>
+                  {t("pages.companySettings.saveChanges")}</Button>
                 <Button
                   variant="outline"
                   className="w-full sm:w-auto"
@@ -1269,8 +1259,7 @@ export function ExecutionWorkspaceDetail() {
                     setRuntimeActionMessage(null);
                   }}
                 >
-                  Reset
-                </Button>
+                  {t("components.builtInBundle.reset")}</Button>
                 {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
                 {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">{t("pages.executionWorkspaceDetail.noUnsaved", { defaultValue: "No unsaved changes." })}</p> : null}
               </div>

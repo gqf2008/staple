@@ -87,13 +87,12 @@ export function OverviewPanel({
           <div>
             <h3 className="text-sm font-semibold text-foreground">{t("pages.gatewayOverview.whoCanUse", { defaultValue: "Who can use it" })}</h3>
             <p className="mt-1 text-sm text-muted-foreground">
-              Anyone holding an active token below, restricted by the rules in the bound profile.
-            </p>
+              {t("ui.pages.apps.gateways.panels.overviewpanel.anyone-holding-active-token")}</p>
           </div>
         </div>
         <div className="mt-3 flex flex-wrap gap-2">
-          <Chip>Scope · {formatScope(gateway, projectNames, agentNames)}</Chip>
-          <Chip>Profile · {profile?.name ?? t("pages.gatewayOverview.unavailable", { defaultValue: "Unavailable" })}</Chip>
+          <Chip>{t("ui.pages.apps.gateways.panels.overviewpanel.scope")}{formatScope(gateway, projectNames, agentNames)}</Chip>
+          <Chip>{t("ui.pages.apps.gateways.panels.overviewpanel.profile")}{profile?.name ?? t("pages.gatewayOverview.unavailable", { defaultValue: "Unavailable" })}</Chip>
           <Chip>{active} active {active === 1 ? "token" : "tokens"}</Chip>
         </div>
       </section>
@@ -102,8 +101,7 @@ export function OverviewPanel({
         <h3 className="text-sm font-semibold text-foreground">{t("pages.gatewayOverview.appsInGateway", { defaultValue: "Apps in this gateway" })}</h3>
         {apps.length === 0 ? (
           <p className="mt-2 text-sm text-muted-foreground">
-            This gateway’s profile doesn’t include any apps yet.
-          </p>
+            {t("ui.pages.apps.gateways.panels.overviewpanel.gateway-profile-doesn-include")}</p>
         ) : (
           <ul className="mt-3 divide-y divide-border">
             {apps.map((app) => (
@@ -118,8 +116,7 @@ export function OverviewPanel({
           <h3 className="text-sm font-semibold text-foreground">{t("pages.gatewayOverview.howClientsConnect", { defaultValue: "How clients connect" })}</h3>
           <Button variant="outline" size="sm" onClick={() => void copy(snippet, t("pages.gatewayOverview.clientConfig", { defaultValue: "Client config" }))}>
             <Copy className="mr-1 h-3.5 w-3.5" />
-            Copy
-          </Button>
+            {t("components.commentThread.copy")}</Button>
         </div>
         <pre className="mt-3 overflow-auto whitespace-pre-wrap break-words rounded bg-background p-3 font-mono text-xs text-muted-foreground">
           {snippet}

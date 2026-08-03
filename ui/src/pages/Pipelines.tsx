@@ -787,13 +787,11 @@ export function PipelinesIndexTable({
                         {attentionCount > 0 ? (
                           <span className="inline-flex items-center gap-1.5 font-semibold text-red-700 dark:text-red-400">
                             <span className="h-2 w-2 rounded-full bg-red-600" aria-hidden="true" />
-                            {formatNumber(attentionCount)} to review
-                          </span>
+                            {formatNumber(attentionCount)} {t("ui.pages.pipelines.review")}</span>
                         ) : null}
                         {inMotionCount > 0 ? (
                           <span className="text-muted-foreground">
-                            {formatNumber(inMotionCount)} in motion
-                          </span>
+                            {formatNumber(inMotionCount)} {t("ui.pages.pipelines.motion")}</span>
                         ) : null}
                         {liveDownstreamCount > 0 ? (
                           <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
@@ -812,7 +810,7 @@ export function PipelinesIndexTable({
             </tbody>
           </table>
           <p className="mt-4 text-sm text-muted-foreground">
-            Showing {formatNumber(rows.length)} of {formatNumber(filteredPipelines.length)}.
+            {t("ui.components.kanbanboard.showing")}{formatNumber(rows.length)} of {formatNumber(filteredPipelines.length)}.
           </p>
         </div>
       )}
@@ -875,8 +873,7 @@ function NewPipelineDialog({
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button type="submit" disabled={pending || !name.trim()}>
               {pending ? t("pages.pipelines.creating", { defaultValue: "Creating..." }) : t("pages.pipelines.createPipeline", { defaultValue: "Create pipeline" })}
             </Button>
@@ -956,13 +953,11 @@ function PipelinesIndex() {
           <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pages.pipelines.work", { defaultValue: "Work" })}</p>
           <h1 className="text-2xl font-semibold text-foreground">{t("pages.pipelines.title", { defaultValue: "Pipelines" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            {formatNumber(pipelines.length)} pipeline{pipelines.length === 1 ? "" : "s"}. Connected ones are grouped from upstream work into downstream work.
-          </p>
+            {formatNumber(pipelines.length)} pipeline{pipelines.length === 1 ? "" : "s"}{t("ui.pages.pipelines.connected-ones-grouped-from")}</p>
         </div>
         <Button onClick={() => setNewPipelineOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          New pipeline
-        </Button>
+          {t("pages.pipelines.newPipeline")}</Button>
       </div>
 
       {pipelinesQuery.error ? (
@@ -1260,18 +1255,15 @@ function PipelineCaseCard({
           {isWorking ? (
             <Badge variant="outline" className="relative border-emerald-400/40 bg-emerald-50 text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-900/30 dark:text-emerald-300">
               <span className="absolute -left-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-emerald-500"></span>
-              Working
-            </Badge>
+              {t("components.issueChatThread.working")}</Badge>
           ) : null}
           {hasNeedsAttention ? (
             <Badge variant="outline" className="border-amber-400/40 bg-amber-50 text-(length:--text-nano) text-amber-700 dark:border-amber-300/30 dark:bg-amber-900/25 dark:text-amber-300">
-              Needs attention
-            </Badge>
+              {t("components.appsSidebar.needsAttention")}</Badge>
           ) : null}
           {hasChangedNotice ? (
             <Badge variant="outline" className="border-indigo-400/40 bg-indigo-50 text-(length:--text-nano) text-indigo-700 dark:border-indigo-300/30 dark:bg-indigo-900/25 dark:text-indigo-300">
-              This changed
-            </Badge>
+              {t("ui.pages.pipelines.changed")}</Badge>
           ) : null}
           {liveDownstreamCount > 0 ? (
             <Badge variant="outline" className="border-emerald-400/35 bg-emerald-50 text-(length:--text-nano) text-emerald-700 dark:border-emerald-300/30 dark:bg-emerald-900/25 dark:text-emerald-300">
@@ -1282,7 +1274,7 @@ function PipelineCaseCard({
         </div>
         {childrenSummary != null ? (
           <p className="mt-1.5 text-xs text-muted-foreground">
-            Built from {formatNumber(childrenSummary)} {childrenSummary === 1 ? "item" : "items"}
+            {t("ui.pages.pipelines.built-from")}{formatNumber(childrenSummary)} {childrenSummary === 1 ? "item" : "items"}
           </p>
         ) : null}
       </Link>
@@ -1377,7 +1369,7 @@ function PipelineBoardColumn({
               title={`Breaks into ${breakdownTarget.name}`}
             >
               <span className="shrink-0">→</span>
-              <span className="truncate">Breaks into {breakdownTarget.name}</span>
+              <span className="truncate">{t("ui.pages.pipelines.breaks-into")}{breakdownTarget.name}</span>
             </Link>
           ) : null}
         </div>
@@ -1391,8 +1383,7 @@ function PipelineBoardColumn({
       >
         {isBlockedDropTarget ? (
           <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-(length:--text-micro) text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-            This move skips the normal flow
-          </p>
+            {t("ui.pages.pipelines.move-skips-normal-flow")}</p>
         ) : null}
         <SortableContext items={sortableCaseIds} strategy={verticalListSortingStrategy}>
           {cases.length > 0 ? (
@@ -1735,7 +1726,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
           <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pages.pipelines.pipeline", { defaultValue: "Pipeline" })}</p>
           <h1 className="text-2xl font-semibold text-foreground">{pipeline.name}</h1>
           {pipeline.description ? <p className="mt-1 text-sm text-muted-foreground">{pipeline.description}</p> : null}
-          <p className="mt-1 text-xs text-muted-foreground">{cases.length} total item{cases.length === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-xs text-muted-foreground">{cases.length} {t("ui.pages.pipelines.total-item")}{cases.length === 1 ? "" : "s"}</p>
           {fedByPipelines.length > 0 ? (
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
               {fedByPipelines.map((source) => (
@@ -1746,7 +1737,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                   title={`Fed by ${source.name}`}
                 >
                   <span className="shrink-0">←</span>
-                  <span className="truncate">Fed by {source.name}</span>
+                  <span className="truncate">{t("ui.pages.pipelines.fed")}{source.name}</span>
                 </Link>
               ))}
             </div>
@@ -1766,8 +1757,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
           <Button asChild>
             <Link to={`/pipelines/${pipelineId}/add`}>
               <Plus className="mr-2 h-4 w-4" />
-              Add items
-            </Link>
+              {t("pages.pipelines.addItems")}</Link>
           </Button>
           <Button variant="outline" size="icon" asChild>
             <Link to={`/pipelines/${pipelineId}/settings`} aria-label={t("pages.pipelines.pipelineSettings", { defaultValue: "Pipeline settings" })} title={t("pages.pipelines.pipelineSettings", { defaultValue: "Pipeline settings" })}>
@@ -1884,8 +1874,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                 setOverrideReason("");
               }}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             {pendingMove?.allowed ? (
               <Button
                 type="button"
@@ -1898,8 +1887,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                   })
                 }
               >
-                Move it
-              </Button>
+                {t("ui.pages.pipelines.move")}</Button>
             ) : pendingMove ? (
               <Button
                 type="button"
@@ -1915,8 +1903,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                   })
                 }
               >
-                Override and move
-              </Button>
+                {t("ui.pages.pipelines.override-move")}</Button>
             ) : null}
           </DialogFooter>
         </DialogContent>
@@ -2764,8 +2751,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
         <Button asChild>
           <Link to={conversationIssuePath!} state={conversationIssueState} issuePrefetch={conversationIssueDetail.data ?? null}>
             <MessageSquare className="mr-2 h-4 w-4" />
-            Open conversation
-          </Link>
+            {t("ui.pages.pipelines.open-conversation")}</Link>
         </Button>
       )
     : (
@@ -2802,12 +2788,12 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
               {statusLabel}
             </span>
             <div className="flex items-center gap-1 text-sm text-muted-foreground">
-              Stage: <span className="font-medium text-foreground">{detail.stage.name}</span>
+              {t("ui.pages.pipelines.stage")}<span className="font-medium text-foreground">{detail.stage.name}</span>
             </div>
           </div>
           {detail.parentCase ? (
             <p className="mt-2 text-sm text-muted-foreground">
-              Built for{" "}
+              {t("pages.pipelines.builtFor")}{" "}
               <Link
                 to={`/pipelines/${detail.parentCase.case.pipelineId}/items/${detail.parentCase.case.id}`}
                 className="font-medium text-foreground hover:underline"
@@ -2818,7 +2804,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           ) : null}
           {detail.builtFromAutomation ? (
             <p className="mt-1 text-sm text-muted-foreground">
-              Built from{" "}
+              {t("ui.pages.pipelines.built-from")}{" "}
               <Link
                 to={detail.builtFromAutomation.stage
                   ? pipelineStageAutomationSettingsHref(
@@ -2859,8 +2845,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                   ) : (
                     <CircleDot className="h-4 w-4" />
                   )}
-                  Re-run this step
-                </DropdownMenuItem>
+                  {t("pages.pipelines.rerunStep")}</DropdownMenuItem>
                 {previousRetryPlan?.allowed ? (
                   <DropdownMenuItem
                     disabled={retryStageAutomation.isPending}
@@ -2875,8 +2860,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                     ) : (
                       <ArrowUpDown className="h-4 w-4" />
                     )}
-                    Retry previous step...
-                  </DropdownMenuItem>
+                    {t("ui.pages.pipelines.retry-previous-step")}</DropdownMenuItem>
                 ) : null}
                 <DropdownMenuItem
                   disabled={moveStageOptions.length === 0 || moveItemToStage.isPending}
@@ -2887,8 +2871,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                   }}
                 >
                   <ArrowUpDown className="h-4 w-4" />
-                  Move to stage...
-                </DropdownMenuItem>
+                  {t("ui.pages.pipelines.move-stage")}</DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
                   disabled={!removeStage || removeItem.isPending}
@@ -2898,8 +2881,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Remove item
-                </DropdownMenuItem>
+                  {t("components.jsonSchemaForm.removeItem")}</DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
@@ -2911,18 +2893,14 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           <DialogHeader>
             <DialogTitle>{t("pages.pipelines.moveToStage", { defaultValue: "Move to stage" })}</DialogTitle>
             <DialogDescription>
-              Manual moves can bypass the normal agent handoff for this item. Let automation move work when possible;
-              use this override only when the board needs to correct the item state.
-            </DialogDescription>
+              {t("ui.pages.pipelines.manual-moves-can-bypass")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="rounded-sm border border-amber-300 bg-amber-50 p-3 text-sm text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100">
               <div className="flex gap-2">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
                 <p>
-                  Moving this item may skip stage automation, review expectations, and configured transition paths.
-                  Paperclip will still enforce blockers and other hard safety checks.
-                </p>
+                  {t("ui.pages.pipelines.moving-item-may-skip")}</p>
               </div>
             </div>
             <label className="block space-y-2">
@@ -2948,8 +2926,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
               onClick={() => setMoveDialogOpen(false)}
               disabled={moveItemToStage.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="button"
               onClick={() => moveItemToStage.mutate()}
@@ -2971,14 +2948,12 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           <DialogHeader>
             <DialogTitle>{retryDialogScope === "previous_stage" ? t("pages.pipelines.retryPrevious", { defaultValue: "Retry previous step" }) : t("pages.pipelines.rerunStep", { defaultValue: "Re-run this step" })}</DialogTitle>
             <DialogDescription>
-              Review the automation preflight before Paperclip dispatches a fresh run.
-            </DialogDescription>
+              {t("ui.pages.pipelines.review-automation-preflight-before")}</DialogDescription>
           </DialogHeader>
           {retryPlan.isLoading ? (
             <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Checking retry safety...
-            </div>
+              {t("ui.pages.pipelines.checking-retry-safety")}</div>
           ) : retryPlan.error ? (
             <div className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
               {retryPlan.error instanceof ApiError && retryPlan.error.message
@@ -3025,7 +3000,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                         >
                           {retryPlan.data.routine.title}
                         </Link>
-                        <span className="text-muted-foreground">assigned to</span>
+                        <span className="text-muted-foreground">{t("pages.tools.profilesIndex.assignedTo")}</span>
                         {retryPlan.data.routine.assigneeAgent ? (
                           <Link
                             to={`/agents/${retryPlan.data.routine.assigneeAgent.id}`}
@@ -3048,15 +3023,14 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 {retryPreflightRefreshing ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-sm bg-background/70 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Checking retry safety...
-                  </div>
+                    {t("ui.pages.pipelines.checking-retry-safety")}</div>
                 ) : null}
                 <div className={cn("space-y-4", retryPreflightRefreshing && "opacity-50")}>
                   <div className="grid gap-2 text-sm sm:grid-cols-4">
                     <RetryMetric label="children" value={retryPlan.data.effectCounts.directChildren} />
                     <RetryMetric label="descendants" value={retryPlan.data.effectCounts.descendants} />
-                    <RetryMetric label="linked tasks" value={retryPlan.data.effectCounts.linkedAutomationIssues} />
-                    <RetryMetric label="active work" value={retryPlan.data.effectCounts.activeDescendants} tone={retryPlan.data.effectCounts.activeDescendants > 0 ? "warning" : "default"} />
+                    <RetryMetric label={t("pages.approvalDetail.linkedTasks")} value={retryPlan.data.effectCounts.linkedAutomationIssues} />
+                    <RetryMetric label={t("ui.pages.pipelines.active-work")} value={retryPlan.data.effectCounts.activeDescendants} tone={retryPlan.data.effectCounts.activeDescendants > 0 ? "warning" : "default"} />
                   </div>
 
                   {retryPlan.data.blockers.length > 0 ? (
@@ -3078,8 +3052,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
 
                   {retryIsNonImmediateTarget ? (
                     <p className="text-xs text-muted-foreground">
-                      Re-running from an earlier step affects more downstream items.
-                    </p>
+                      {t("ui.pages.pipelines.re-running-from-earlier")}</p>
                   ) : null}
 
                   <div className="space-y-2">
@@ -3132,8 +3105,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
               onClick={() => setRetryDialogScope(null)}
               disabled={rerunCurrentStageAutomation.isPending || retryStageAutomation.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="button"
               disabled={
@@ -3170,7 +3142,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
       {banner.visible ? (
         <section className="mb-5 flex flex-col gap-3 border-y border-border bg-muted/20 py-4 md:flex-row md:items-center md:justify-between">
           <div>
-            <h2 className="text-sm font-semibold text-foreground">Ready to move to {banner.stageName}?</h2>
+            <h2 className="text-sm font-semibold text-foreground">{t("ui.pages.pipelines.ready-move")}{banner.stageName}?</h2>
             {banner.rationale ? <p className="mt-1 text-sm text-muted-foreground">{banner.rationale}</p> : null}
           </div>
           {banner.suggestionId ? (
@@ -3181,8 +3153,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 disabled={resolveSuggestion.isPending}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Approve
-              </Button>
+                {t("common.approve")}</Button>
               <Button
                 size="sm"
                 variant="outline"
@@ -3190,8 +3161,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 disabled={resolveSuggestion.isPending}
               >
                 <X className="mr-2 h-4 w-4" />
-                Not yet
-              </Button>
+                {t("pages.appsConnect.notYet")}</Button>
             </div>
           ) : null}
         </section>
@@ -3212,8 +3182,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             onClick={() => acknowledgeChange.mutate()}
             disabled={acknowledgeChange.isPending}
           >
-            Acknowledge
-          </Button>
+            {t("ui.pages.pipelines.acknowledge")}</Button>
         </section>
       ) : null}
 
@@ -3256,8 +3225,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             <details className="group rounded-md border border-border">
               <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 text-sm font-semibold text-foreground [&::-webkit-details-marker]:hidden">
                 <ChevronRight className="h-3.5 w-3.5 text-muted-foreground transition-transform group-open:rotate-90" />
-                More details
-                <span className="text-(length:--text-micro) font-normal text-muted-foreground">
+                {t("ui.pages.pipelines.more-details")}<span className="text-(length:--text-micro) font-normal text-muted-foreground">
                   {mainPaneFields.length} {mainPaneFields.length === 1 ? "field" : "fields"}
                 </span>
               </summary>
@@ -3371,7 +3339,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             ) : null}
             {breakdown && pieceCountTotal === 0 ? (
               <p className="py-2 text-sm text-muted-foreground">
-                Nothing was worth splitting — this case moved straight ahead without creating any {pieceNounPluralLabel}.
+                {t("ui.pages.pipelines.nothing-was-worth-splitting")}{pieceNounPluralLabel}.
               </p>
             ) : (
               <BuiltFromTree rows={childRows} />
@@ -3381,7 +3349,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 to={`/pipelines/${breakdown.targetPipelineId}`}
                 className="mt-2 inline-block text-sm font-medium text-foreground hover:underline"
               >
-                Open all {pieceNounPluralLabel} →
+                {t("ui.pages.pipelines.open-all")}{pieceNounPluralLabel} →
               </Link>
             ) : null}
           </DetailSection>
@@ -3425,8 +3393,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           <DialogHeader>
             <DialogTitle>{t("pages.pipelines.removeItem", { defaultValue: "Remove item" })}</DialogTitle>
             <DialogDescription>
-              This moves the item out of active work. It stays visible in the pipeline history.
-            </DialogDescription>
+              {t("ui.pages.pipelines.moves-item-active-work")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveDialogOpen(false)}>{t("pages.pipelines.keepItem", { defaultValue: "Keep item" })}</Button>
@@ -3463,7 +3430,7 @@ function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActi
             <Link to={issuePath} className="font-medium underline-offset-2 hover:underline">
               {issueLabel}
             </Link>{" "}
-            is active with {activeWork.agentName}
+            {t("ui.pages.pipelines.active")}{activeWork.agentName}
             {startedLabel ? ` · ${startedLabel}` : ""}.
           </p>
         </div>
@@ -3476,8 +3443,7 @@ function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActi
       >
         <Link to={issuePath}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          Open task
-        </Link>
+          {t("ui.pages.pipelines.open-task")}</Link>
       </Button>
     </section>
   );
@@ -3523,7 +3489,7 @@ function WaitingChildRow({
               {row.activeWork ? (
                 <span className="inline-flex items-center gap-1.5 text-emerald-700 dark:text-emerald-300">
                   <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-emerald-500" aria-hidden="true" />
-                  Live with {row.activeWork.agentName}
+                  {t("ui.pages.pipelines.live")}{row.activeWork.agentName}
                 </span>
               ) : null}
               {liveDownstreamCount > 0 ? (
@@ -3656,8 +3622,7 @@ function ReviewDecisionPanel({
             <div>
               <p className="text-2xl font-semibold leading-tight">{t("pages.pipelines.inReview", { defaultValue: "In review" })}</p>
               <p className="mt-1 text-sm opacity-80">
-                Decide where this item goes next.
-              </p>
+                {t("ui.pages.pipelines.decide-where-item-goes")}</p>
             </div>
           </div>
 
@@ -3696,7 +3661,7 @@ function ReviewDecisionPanel({
                   <span className="min-w-0 flex-1">
                     <span className="block">{action.label}</span>
                     <span className="block truncate text-xs font-normal opacity-75">
-                      Move to {action.targetStageName}
+                      {t("pages.pipelineSettings.moveTo")}{action.targetStageName}
                     </span>
                   </span>
                 </Button>
@@ -3706,7 +3671,7 @@ function ReviewDecisionPanel({
 
           {nextItemTitle ? (
             <p className="text-xs opacity-75">
-              Next in this review queue: <span className="font-medium">{nextItemTitle}</span>
+              {t("ui.pages.pipelines.next-review-queue")}<span className="font-medium">{nextItemTitle}</span>
             </p>
           ) : (
             <p className="text-xs opacity-75">{t("pages.pipelines.noWaitingItems", { defaultValue: "No other item is waiting in this pipeline review queue." })}</p>
@@ -3732,7 +3697,7 @@ function PipelineEventText({
     const issue = event.automation.issue;
     return (
       <>
-        Automation completed — ran <span className="font-medium">{routineName}</span>
+        {t("ui.pages.pipelines.automation-completed-ran")}<span className="font-medium">{routineName}</span>
         {issue ? (
           <>
             {" -> "}
@@ -3757,8 +3722,7 @@ function PipelineEventText({
           <>
             {" "}
             <Link to={pipelineStageAutomationSettingsHref(pipelineId, stageId)} className="font-medium text-foreground hover:underline">
-              Fix stage settings
-            </Link>
+              {t("ui.pages.pipelines.fix-stage-settings")}</Link>
           </>
         ) : null}
       </>
@@ -3869,8 +3833,7 @@ function OutputDeliverableTag({ label }: { label: string }) {
 function OutputUnverifiedTag() {
   return (
     <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) font-semibold uppercase text-muted-foreground">
-      Unverified
-    </Badge>
+      {t("ui.pages.pipelines.unverified")}</Badge>
   );
 }
 
@@ -4102,8 +4065,7 @@ function ItemOutputsSection({
             onClick={onRetry}
             className="ml-auto rounded-sm border border-border px-2 py-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
           >
-            Retry
-          </button>
+            {t("components.issueProperties.retry")}</button>
         </div>
       ) : (
         <div>
@@ -4232,18 +4194,18 @@ function PipelineAddItems({ pipelineId }: { pipelineId: string }) {
     <div className="mx-auto max-w-6xl px-6 py-8">
       <div className="mb-6">
         <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-          Add to {pipeline.data.name}
+          {t("ui.pages.pipelines.add")}{pipeline.data.name}
         </p>
         <h1 className="text-2xl font-semibold text-foreground">{t("pages.pipelines.buildListHint", { defaultValue: "Build your list, then submit it all at once" })}</h1>
         <p className="text-sm text-muted-foreground">
-          Items will be added to the first stage ({firstStageName}).
+          {t("ui.pages.pipelines.items-will-added-first")}{firstStageName}).
         </p>
       </div>
 
       <div className="mb-5 flex items-center gap-2 border border-border bg-muted/20 px-3 py-2 text-sm text-muted-foreground">
         <Info className="h-4 w-4 shrink-0" />
         <span>
-          These fields come from <span className="font-medium text-foreground">Pipeline settings -&gt; {firstStageName} stage</span>.
+          {t("ui.pages.pipelines.these-fields-come-from")}<span className="font-medium text-foreground">{t("ui.pages.pipelines.pipeline-settings-gt")}{firstStageName} stage</span>.
         </span>
       </div>
 
@@ -4278,14 +4240,12 @@ function PipelineAddItems({ pipelineId }: { pipelineId: string }) {
           onClick={() => setRows((current) => [...current, newDraftRow(false)])}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add another item
-        </button>
+          {t("ui.pages.pipelines.add-another-item")}</button>
       </div>
 
       <div className="mt-10 flex items-center justify-between border-t border-border pt-5">
         <Button variant="outline" onClick={() => navigate(`/pipelines/${pipelineId}`)}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
             {rows.length === 0 ? t("pages.pipelines.atLeastOne", { defaultValue: "Add at least one item." }) : t("pages.pipelines.countLive", { defaultValue: "Count updates live." })}
@@ -4330,7 +4290,7 @@ function DraftItemRow({
     <section className={cn("border border-border bg-background", row.expanded && "border-primary")}>
       <div className="grid grid-cols-(--gtc-17) items-center gap-3 px-4 py-3">
         <button type="button" className="min-w-0 text-left" onClick={onToggle}>
-          <span className="block text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Item {index + 1}</span>
+          <span className="block text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pages.pipelines.item")}{index + 1}</span>
           <span className="block truncate text-sm font-semibold text-foreground">{title}</span>
           {!row.expanded && preview ? <span className="block truncate text-xs text-muted-foreground">{preview}</span> : null}
           {!row.expanded && row.serverError ? <span className="block text-xs text-destructive">{row.serverError}</span> : null}
@@ -4568,8 +4528,7 @@ function ReviewQueueStatusChip({ failed }: { failed: boolean }) {
   return (
     <Badge variant="outline" className="border-amber-200 bg-amber-50 font-semibold text-amber-800 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-300">
       <AlertTriangle className="h-3 w-3" />
-      Needs attention
-    </Badge>
+      {t("components.appsSidebar.needsAttention")}</Badge>
   );
 }
 
@@ -4635,8 +4594,7 @@ function ReviewQueueDetailDialog({
               </div>
             ) : (
               <p className="rounded-md border border-border px-3 py-3 text-sm text-muted-foreground">
-                No preview details yet.
-              </p>
+                {t("ui.pages.pipelines.no-preview-details-yet")}</p>
             )}
           </section>
 
@@ -4646,8 +4604,7 @@ function ReviewQueueDetailDialog({
               className="inline-block text-sm font-medium text-primary hover:underline"
               onClick={() => onOpenChange(false)}
             >
-              Open the full item
-            </Link>
+              {t("ui.pages.pipelines.open-full-item")}</Link>
           ) : null}
 
           {canDecide ? (
@@ -4665,8 +4622,7 @@ function ReviewQueueDetailDialog({
 
         <DialogFooter className="gap-2 sm:gap-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           {canDecide ? (
             <>
               <Button
@@ -4679,8 +4635,7 @@ function ReviewQueueDetailDialog({
               </Button>
               <Button type="button" onClick={() => onApprove(trimmedNote)} disabled={pending}>
                 {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-                Approve
-              </Button>
+                {t("common.approve")}</Button>
             </>
           ) : null}
         </DialogFooter>
@@ -4790,14 +4745,12 @@ function ReviewQueueSection({
                       event.stopPropagation();
                       onApprove(row);
                     }}>
-                      Approve
-                    </Button>
+                      {t("common.approve")}</Button>
                     <Button type="button" size="sm" variant="outline" disabled={pending} onClick={(event) => {
                       event.stopPropagation();
                       onDecline(row);
                     }}>
-                      Not yet
-                    </Button>
+                      {t("pages.appsConnect.notYet")}</Button>
                   </>
                 ) : row.kind === "review" ? (
                   <>
@@ -4805,14 +4758,12 @@ function ReviewQueueSection({
                       event.stopPropagation();
                       onApprove(row);
                     }}>
-                      Approve
-                    </Button>
+                      {t("common.approve")}</Button>
                     <Button type="button" size="sm" variant="outline" disabled={pending} onClick={(event) => {
                       event.stopPropagation();
                       onRequestChanges(row);
                     }}>
-                      Request changes
-                    </Button>
+                      {t("components.issueThreadInteraction.requestChanges")}</Button>
                   </>
                 ) : null}
               </div>
@@ -5064,7 +5015,7 @@ export function ReviewQueue() {
         <div>
           <h1 className="text-2xl font-semibold tracking-normal text-foreground">{t("pages.pipelines.reviewQueue", { defaultValue: "Review queue" })}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Needs your attention ({formatNumber(visibleRows.length)})
+            {t("ui.pages.pipelines.needs-your-attention")}{formatNumber(visibleRows.length)})
           </p>
         </div>
         <Button
@@ -5073,7 +5024,7 @@ export function ReviewQueue() {
           onClick={() => bulkApprove.mutate(selectedRows)}
         >
           {bulkApprove.isPending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
-          Approve {formatNumber(selectedCount)} item{selectedCount === 1 ? "" : "s"}
+          {t("common.approve")}{formatNumber(selectedCount)} item{selectedCount === 1 ? "" : "s"}
         </Button>
       </div>
 
@@ -5114,7 +5065,7 @@ export function ReviewQueue() {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Shortcuts: <span className="font-semibold">j</span>/<span className="font-semibold">k</span> or arrow keys move, <span className="font-semibold">Enter</span> opens item, <span className="font-semibold">a</span> approves.
+        {t("ui.pages.pipelines.shortcuts")}<span className="font-semibold">j</span>/<span className="font-semibold">k</span> {t("ui.pages.pipelines.arrow-keys-move")}<span className="font-semibold">{t("ui.pages.pipelines.enter")}</span> {t("ui.pages.pipelines.opens-item")}<span className="font-semibold">a</span> approves.
       </p>
 
       <ReviewQueueDetailDialog
@@ -5193,8 +5144,7 @@ export function Learnings() {
       <div className="border-b border-border pb-5">
         <h1 className="text-2xl font-semibold tracking-normal text-foreground">{t("pages.pipelines.learnings", { defaultValue: "Learnings" })}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Patterns from review decisions and hand moves, in plain words.
-        </p>
+          {t("ui.pages.pipelines.patterns-from-review-decisions")}</p>
       </div>
 
       <div className="flex items-center justify-end">
@@ -5258,8 +5208,7 @@ export function Learnings() {
           disabled={!canGoPrevious}
           onClick={() => setOffset((current) => Math.max(0, current - LEARNINGS_PAGE_SIZE))}
         >
-          Previous
-        </Button>
+          {t("ui.components.imagegallerymodal.previous")}</Button>
         <span className="text-sm text-muted-foreground">
           {events.length > 0 ? `${formatNumber(firstVisible)}-${formatNumber(lastVisible)}` : t("pages.pipelines.noRows", { defaultValue: "No rows" })}
         </span>
@@ -5269,8 +5218,7 @@ export function Learnings() {
           disabled={!canGoNext}
           onClick={() => setOffset((current) => pagination?.nextOffset ?? current + LEARNINGS_PAGE_SIZE)}
         >
-          Next
-        </Button>
+          {t("ui.components.imagegallerymodal.next")}</Button>
       </div>
     </div>
   );

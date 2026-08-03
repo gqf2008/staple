@@ -118,10 +118,7 @@ export function IssueChatLongThreadPerf() {
           </div>
           <h1 className="mt-3 text-2xl font-semibold tracking-tight">{fixture.issue.title}</h1>
           <p className="mt-2 max-w-3xl text-sm leading-6 text-muted-foreground">
-            Deterministic local fixture for measuring the current direct-render issue chat path with
-            hundreds of merged thread rows, markdown-heavy assistant bodies, linked runs, documents,
-            sub-issues, and sidebar context.
-          </p>
+            {t("ui.pages.issuechatlongthreadperf.deterministic-local-fixture-measuring")}</p>
         </div>
         <div className="grid min-w-(--sz-280px) grid-cols-2 gap-2">
           <MetricTile label={t("pages.issueChatLongThreadPerf.fixtureRows", { defaultValue: "Fixture rows" })} value={String(rowTarget)} testId="perf-fixture-row-target" />

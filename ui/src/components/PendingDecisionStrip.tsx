@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Scale } from "lucide-react";
 import { Link } from "@/lib/router";
@@ -32,7 +33,7 @@ export function PendingDecisionStrip({ companyId, issueId }: { companyId: string
       <span className="font-medium">
         {count === 1 ? "1 pending decision affects this issue" : `${count} pending decisions affect this issue`}
       </span>
-      <span className="text-xs text-muted-foreground">Review in Decisions →</span>
+      <span className="text-xs text-muted-foreground">{t("ui.components.pendingdecisionstrip.review-decisions")}</span>
     </Link>
   );
 }

@@ -119,7 +119,7 @@ export function AppNotConnected() {
   if (!application) {
     return (
       <div className="max-w-3xl space-y-3 p-6 text-sm text-muted-foreground">
-        <p>This app doesn’t exist anymore.</p>
+        <p>{t("ui.pages.apps.appnotconnected.app-doesn-exist-anymore")}</p>
         <Button variant="outline" size="sm" onClick={() => navigate("/apps")}>{t("pages.appNotConnected.backToApps", { defaultValue: "Back to apps" })}</Button>
       </div>
     );
@@ -228,8 +228,7 @@ function ApplicationHeader({
         <div className="flex items-center gap-2">
           <h1 className="truncate text-2xl font-bold tracking-tight">{applicationName}</h1>
           <span className="inline-flex items-center rounded-full border border-border bg-background px-2 py-0.5 text-xs font-medium text-muted-foreground">
-            Not connected
-          </span>
+            {t("pages.connections.notConnected")}</span>
         </div>
         {description && (
           <p className="mt-1 text-sm text-muted-foreground">{description}</p>
@@ -287,7 +286,7 @@ function PreviousSetup({
       <h2 className="text-sm font-bold text-foreground">{t("pages.appNotConnected.previousSetup", { defaultValue: "Previous setup" })}</h2>
       {connection.healthMessage && (
         <p className="mt-2 rounded-lg border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-700 dark:text-amber-300">
-          Last error: {connection.healthMessage}
+          {t("ui.pages.apps.appnotconnected.last-error")}{connection.healthMessage}
         </p>
       )}
       <dl className="mt-3 grid gap-2 text-xs sm:grid-cols-(--gtc-59)">
@@ -309,12 +308,10 @@ function PermissionsTab({ previousConnection }: { previousConnection: ToolConnec
     <section className="rounded-xl border border-border bg-card px-5 py-4">
       <h2 className="text-sm font-bold text-foreground">{t("pages.appNotConnected.permissionsPaused", { defaultValue: "Permissions paused" })}</h2>
       <p className="mt-1 text-sm text-muted-foreground">
-        Reconnect this app to edit who can use it and which actions need a human first.
-      </p>
+        {t("ui.pages.apps.appnotconnected.reconnect-app-edit-who")}</p>
       {previousConnection && (
         <p className="mt-3 text-xs text-muted-foreground">
-          Previous setup is retained for reconnect, but access controls stay read-only until the app is online.
-        </p>
+          {t("ui.pages.apps.appnotconnected.previous-setup-retained-reconnect")}</p>
       )}
     </section>
   );

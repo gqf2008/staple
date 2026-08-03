@@ -149,8 +149,7 @@ export function ProfileSettings() {
           <h1 className="text-lg font-semibold">{t("pages.profileSettings.profile", { defaultValue: "Profile" })}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Control how your account appears in the sidebar and other board surfaces.
-        </p>
+          {t("ui.pages.profilesettings.control-how-your-account")}</p>
       </div>
 
       {actionError ? (
@@ -211,8 +210,7 @@ export function ProfileSettings() {
                       disabled={isSavingProfile}
                     >
                       {removeAvatarMutation.isPending ? <LoaderCircle className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-                      Remove
-                    </Button>
+                      {t("components.agentsUsingSkillDialog.remove")}</Button>
                   ) : null}
                 </div>
               </div>
@@ -223,7 +221,7 @@ export function ProfileSettings() {
                   <p className="truncate text-sm text-muted-foreground">{sessionQuery.data.user.email ?? t("pages.profileSettings.noEmail", { defaultValue: "No email" })}</p>
                 </div>
                 <p className="max-w-2xl text-sm leading-6 text-muted-foreground">
-                  Click the avatar to upload a new image. {uploadHint}
+                  {t("ui.pages.profilesettings.click-avatar-upload-new")}{uploadHint}
                 </p>
               </div>
             </div>
@@ -247,8 +245,7 @@ export function ProfileSettings() {
               placeholder={t("pages.profileSettings.board", { defaultValue: "Board" })}
             />
             <p className="text-xs text-muted-foreground">
-              Shown in the sidebar account footer and comment author surfaces.
-            </p>
+              {t("ui.pages.profilesettings.shown-sidebar-account-footer")}</p>
           </div>
 
           <div className="space-y-2">
@@ -260,8 +257,7 @@ export function ProfileSettings() {
               disabled
             />
             <p className="text-xs text-muted-foreground">
-              Email is managed by your auth session and is read-only here.
-            </p>
+              {t("ui.pages.profilesettings.email-managed-your-auth")}</p>
           </div>
 
           <div className="md:col-span-2 flex justify-end">

@@ -152,8 +152,7 @@ function RowResultBadge({ status }: { status: RemoteSecretImportRowResult["statu
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-emerald-600 border-emerald-500/40 dark:text-emerald-400"
         >
-          <CheckCircle2 className="h-3 w-3" /> Created
-        </Badge>
+          <CheckCircle2 className="h-3 w-3" /> {t("components.agentProperties.created")}</Badge>
       );
     case "skipped":
       return (
@@ -161,8 +160,7 @@ function RowResultBadge({ status }: { status: RemoteSecretImportRowResult["statu
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-muted-foreground border-border/60"
         >
-          <Link2 className="h-3 w-3" /> Skipped
-        </Badge>
+          <Link2 className="h-3 w-3" /> {t("pages.secrets.importVault.skipped")}</Badge>
       );
     case "error":
     default:
@@ -171,8 +169,7 @@ function RowResultBadge({ status }: { status: RemoteSecretImportRowResult["statu
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-destructive border-destructive/40"
         >
-          <XCircle className="h-3 w-3" /> Failed
-        </Badge>
+          <XCircle className="h-3 w-3" /> {t("status.failed")}</Badge>
       );
   }
 }
@@ -656,11 +653,9 @@ export function ImportFromVaultDialog({
         <header className="flex items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
           <div className="flex flex-col gap-1">
             <DialogTitle className="text-base font-semibold">
-              Import from AWS Secrets Manager
-            </DialogTitle>
+              {t("ui.pages.secrets.importfromvaultdialog.import-from-aws-secrets")}</DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Bring AWS-managed secrets into Paperclip as external references.
-            </DialogDescription>
+              {t("ui.pages.secrets.importfromvaultdialog.bring-aws-managed-secrets")}</DialogDescription>
             <Stepper step={step} />
           </div>
           <button
@@ -731,8 +726,7 @@ export function ImportFromVaultDialog({
           <div className="flex items-center gap-2">
             {step !== "result" && (
               <Button variant="ghost" size="sm" onClick={() => handleClose()}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             )}
             {step === "review" && (
               <Button
@@ -741,8 +735,7 @@ export function ImportFromVaultDialog({
                 onClick={() => setStep("select")}
                 disabled={importMutation.isPending}
               >
-                Back
-              </Button>
+                {t("pages.teamCatalog.back")}</Button>
             )}
             {step === "select" && (
               <Button
@@ -750,8 +743,7 @@ export function ImportFromVaultDialog({
                 onClick={() => setStep("review")}
                 disabled={totalSelected === 0}
               >
-                Continue → Review
-              </Button>
+                {t("ui.pages.secrets.importfromvaultdialog.continue-review")}</Button>
             )}
             {step === "review" && (
               <Button
@@ -765,8 +757,7 @@ export function ImportFromVaultDialog({
               >
                 {importMutation.isPending ? (
                   <>
-                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Importing…
-                  </>
+                    <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> {t("ui.pages.secrets.importfromvaultdialog.importing")}</>
                 ) : (
                   `Import ${draftList.length}`
                 )}
@@ -774,8 +765,7 @@ export function ImportFromVaultDialog({
             )}
             {step === "result" && (
               <Button size="sm" onClick={() => handleClose(true)}>
-                Done
-              </Button>
+                {t("common.done")}</Button>
             )}
           </div>
         </footer>
@@ -971,8 +961,7 @@ function SelectStep(props: SelectStepProps) {
       {selectedNotVisible > 0 && (
         <div className="flex items-center justify-between border-b border-border/60 bg-muted/20 px-5 py-1.5 text-xs text-muted-foreground">
           <span>
-            {selection.size} selected · {selectedNotVisible} not visible with current search
-          </span>
+            {selection.size} {t("ui.pages.secrets.importfromvaultdialog.selected")}{selectedNotVisible} {t("ui.pages.secrets.importfromvaultdialog.not-visible-current-search")}</span>
           <Button
             variant="ghost"
             size="sm"
@@ -1063,8 +1052,7 @@ function SelectStep(props: SelectStepProps) {
                         {candidate.status === "duplicate" &&
                           candidate.conflicts.find((c) => c.type === "exact_reference")?.existingSecretId && (
                             <span className="text-(length:--text-micro) text-muted-foreground">
-                              Already imported
-                            </span>
+                              {t("ui.pages.secrets.importfromvaultdialog.already-imported")}</span>
                           )}
                       </div>
                       {candidate.status === "conflict" && candidate.conflicts.length > 0 && (
@@ -1104,8 +1092,7 @@ function SelectStep(props: SelectStepProps) {
             >
               {pageLoading ? (
                 <>
-                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Loading…
-                </>
+                  <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> {t("components.secretBindingPicker.loading")}</>
               ) : (
                 `Load ${PAGE_SIZE} more`
               )}
@@ -1143,8 +1130,7 @@ function PreviewErrorBanner({ error, onRetry }: { error: unknown; onRetry: () =>
         </div>
         <div className="mt-2 flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={onRetry}>
-            <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> Retry
-          </Button>
+            <RefreshCw className="mr-1.5 h-3.5 w-3.5" /> {t("components.issueProperties.retry")}</Button>
           {isPermission && (
             <a
               href="https://docs.aws.amazon.com/service-authorization/latest/reference/list_awssecretsmanager.html"
@@ -1152,7 +1138,7 @@ function PreviewErrorBanner({ error, onRetry }: { error: unknown; onRetry: () =>
               rel="noreferrer"
               className="inline-flex items-center gap-1 text-xs font-medium underline"
             >
-              IAM reference <ExternalLink className="h-3 w-3" />
+              {t("ui.pages.secrets.importfromvaultdialog.iam-reference")}<ExternalLink className="h-3 w-3" />
             </a>
           )}
         </div>
@@ -1214,11 +1200,10 @@ function ReviewStep({ drafts, reviewErrors, updateDraft, removeDraft, importing 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex flex-wrap items-center gap-3 border-b border-border/60 bg-muted/20 px-5 py-3 text-xs">
-        <span className="font-medium">{ready} secrets ready to import</span>
+        <span className="font-medium">{ready} {t("ui.pages.secrets.importfromvaultdialog.secrets-ready-import")}</span>
         {blocked > 0 && (
           <span className="text-amber-600 dark:text-amber-400">
-            {blocked} need attention before import
-          </span>
+            {blocked} {t("ui.pages.secrets.importfromvaultdialog.need-attention-before-import")}</span>
         )}
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto" data-testid="review-list">

@@ -730,8 +730,7 @@ const SecretField = React.memo(({
                   }}
                   disabled={disabled}
                 >
-                  Hide raw value input
-                </button>
+                  {t("ui.components.jsonschemaform.hide-raw-value-input")}</button>
               ) : null}
             </div>
           ) : (
@@ -741,8 +740,7 @@ const SecretField = React.memo(({
               onClick={() => setShowRawInput(true)}
               disabled={disabled}
             >
-              Or paste a raw value
-            </button>
+              {t("ui.components.jsonschemaform.paste-raw-value")}</button>
           )
         ) : null}
       </div>
@@ -948,7 +946,7 @@ const ArrayField = React.memo(({
           >
             <div className="flex-1">
               <div className="mb-2 text-xs font-medium text-muted-foreground">
-                Item {index + 1}
+                {t("pages.pipelines.item")}{index + 1}
               </div>
               <FormField
                 propSchema={itemSchema}
@@ -987,8 +985,7 @@ const ArrayField = React.memo(({
         ))}
         {items.length === 0 && (
           <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            No items added yet.
-          </div>
+            {t("ui.components.jsonschemaform.no-items-added-yet")}</div>
         )}
       </div>
       {error && (
@@ -1320,8 +1317,7 @@ export function JsonSchemaForm({
           className,
         )}
       >
-        No configuration options available.
-      </div>
+        {t("ui.components.jsonschemaform.no-configuration-options-available")}</div>
     );
   }
 

@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { FolderGit2, GitFork } from "lucide-react";
 import type { CompanySkillDetail } from "@paperclipai/shared";
@@ -41,7 +42,7 @@ export function SkillLineageChip({
     >
       <GitFork className="h-3 w-3 shrink-0" />
       <span className="truncate">
-        Forked from <span className="font-medium text-foreground">{label}</span>
+        {t("ui.components.skill-studio.skillprovenance.forked-from")}<span className="font-medium text-foreground">{label}</span>
       </span>
     </Link>
   );
@@ -67,9 +68,7 @@ export function ProjectScanNotice({
       <FolderGit2 className="mt-0.5 h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <div className="min-w-0 flex-1">
         <span>
-          This skill lives in <span className="font-mono text-foreground">{location}</span>.
-          Saves write to the project working tree and are not committed.
-        </span>{" "}
+          {t("ui.components.skill-studio.skillprovenance.skill-lives")}<span className="font-mono text-foreground">{location}</span>{t("ui.components.skill-studio.skillprovenance.saves-write-project-working")}</span>{" "}
         <Button
           type="button"
           variant="link"
@@ -77,8 +76,7 @@ export function ProjectScanNotice({
           className="h-auto p-0 text-xs"
           onClick={onEditACopy}
         >
-          Edit a copy instead
-        </Button>
+          {t("ui.components.skill-studio.skillprovenance.edit-copy-instead")}</Button>
       </div>
     </div>
   );

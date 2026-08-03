@@ -661,8 +661,7 @@ export function BoardChat() {
         <div className="text-center max-w-sm">
           <h2 className="text-lg font-semibold">{t("pages.boardChat.noCompany", { defaultValue: "No company selected" })}</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Select a company to start chatting with your board concierge.
-          </p>
+            {t("ui.pages.boardchat.select-company-start-chatting")}</p>
         </div>
       </div>
     );
@@ -704,12 +703,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="chat history"
+                    aria-label={t("ui.pages.boardchat.chat-history")}
                   >
                     <History className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">chat history</TooltipContent>
+                <TooltipContent side="bottom">{t("ui.pages.boardchat.chat-history")}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -718,12 +717,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="new chat"
+                    aria-label={t("ui.pages.boardchat.new-chat")}
                   >
                     <MessageSquarePlus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">new chat</TooltipContent>
+                <TooltipContent side="bottom">{t("ui.pages.boardchat.new-chat")}</TooltipContent>
               </Tooltip>
             </div>
           </div>

@@ -83,8 +83,7 @@ export function JoinRequestQueue() {
           <h1 className="text-lg font-semibold">{t("pages.joinRequestQueue.queueTitle", { defaultValue: "Join Request Queue" })}</h1>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Review human and agent join requests outside the mixed inbox feed. This queue uses the same approval mutations as the inline inbox cards.
-        </p>
+          {t("ui.pages.joinrequestqueue.review-human-agent-join")}</p>
       </div>
 
       <Card className="flex-row flex-wrap gap-3 p-4">
@@ -121,8 +120,7 @@ export function JoinRequestQueue() {
       <div className="space-y-4">
         {(requestsQuery.data ?? []).length === 0 ? (
           <div className="rounded-xl border border-dashed border-border px-4 py-8 text-sm text-muted-foreground">
-            No join requests match the current filters.
-          </div>
+            {t("ui.pages.joinrequestqueue.no-join-requests-match")}</div>
         ) : (
           requestsQuery.data!.map((request) => (
             <Card key={request.id} className="block p-4">
@@ -156,14 +154,12 @@ export function JoinRequestQueue() {
                       onClick={() => rejectMutation.mutate(request.id)}
                       disabled={rejectMutation.isPending}
                     >
-                      Reject
-                    </Button>
+                      {t("common.reject")}</Button>
                     <Button
                       onClick={() => approveMutation.mutate(request.id)}
                       disabled={approveMutation.isPending}
                     >
-                      Approve
-                    </Button>
+                      {t("common.approve")}</Button>
                   </div>
                 ) : null}
               </div>
@@ -182,8 +178,8 @@ export function JoinRequestQueue() {
                 </div>
                 <div className="rounded-lg border border-border bg-background px-3 py-2">
                   <div className="text-xs font-medium uppercase tracking-wide">{t("pages.joinRequestQueue.requestDetails", { defaultValue: "Request details" })}</div>
-                  <div className="mt-2">Submitted {new Date(request.createdAt).toLocaleString()}</div>
-                  <div>Source IP {request.requestIp}</div>
+                  <div className="mt-2">{t("ui.pages.joinrequestqueue.submitted")}{new Date(request.createdAt).toLocaleString()}</div>
+                  <div>{t("ui.pages.joinrequestqueue.source-ip")}{request.requestIp}</div>
                   {request.requestType === "agent" && request.capabilities ? <div>{request.capabilities}</div> : null}
                 </div>
               </div>

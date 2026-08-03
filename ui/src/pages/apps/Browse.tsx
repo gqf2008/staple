@@ -83,8 +83,7 @@ export function Browse() {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">{t("pages.appsBrowse.browse", { defaultValue: "Browse" })}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Connect Zapier or your own MCP server. More integrations are coming soon.
-        </p>
+          {t("ui.pages.apps.browse.connect-zapier-your-own")}</p>
       </header>
 
       <div className="relative max-w-md">
@@ -110,8 +109,7 @@ export function Browse() {
           {!trimmed && popular.length > 0 && (
             <section className="space-y-3">
               <div className="text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                Popular
-              </div>
+                {t("ui.pages.apps.browse.popular")}</div>
               <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
                 {popular.map((entry) => (
                   <AppTile
@@ -132,7 +130,7 @@ export function Browse() {
             {filtered.length === 0 ? (
               <p className="flex items-center gap-1.5 rounded-xl border border-dashed border-border bg-card px-4 py-6 text-sm text-muted-foreground">
                 <Link2 className="h-4 w-4" />
-                No planned apps match “{query.trim()}”.
+                {t("ui.pages.apps.browse.no-planned-apps-match")}{query.trim()}”.
               </p>
             ) : (
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
@@ -151,8 +149,7 @@ export function Browse() {
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Zapier connects with the MCP URL it gives you. Other listed integrations are previews.
-            </p>
+              {t("ui.pages.apps.browse.zapier-connects-mcp-url")}</p>
             <AdvancedToolsLink />
           </div>
         </>

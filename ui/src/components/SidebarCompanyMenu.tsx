@@ -247,8 +247,7 @@ export function SidebarCompanyMenu({ open: controlledOpen, onOpenChange }: Sideb
       <DropdownMenuContent align="start" sideOffset={8} className="w-64 p-1">
         <div className="flex items-center justify-between gap-2 px-2 py-1.5">
           <DropdownMenuLabel className="p-0 text-(length:--text-micro) font-semibold uppercase text-muted-foreground">
-            Switch company
-          </DropdownMenuLabel>
+            {t("ui.components.sidebarcompanymenu.switch-company")}</DropdownMenuLabel>
           <button
             type="button"
             onClick={(event) => {

@@ -186,8 +186,7 @@ export function TrustPresetSection({
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs text-muted-foreground">
-                      CE saves one containment boundary at a time. Saved policies include this company id.
-                    </p>
+                      {t("ui.components.trustpresetsection.ce-saves-one-containment")}</p>
                     {boundaryTarget ? (
                       <Button
                         type="button"
@@ -197,8 +196,7 @@ export function TrustPresetSection({
                         onClick={handleClearBoundary}
                         disabled={disabled}
                       >
-                        Clear boundary
-                      </Button>
+                        {t("ui.components.trustpresetsection.clear-boundary")}</Button>
                     ) : null}
                   </div>
                 </div>
@@ -206,20 +204,18 @@ export function TrustPresetSection({
                 <div className="rounded-md border border-border/70 bg-background/70 p-3 text-foreground">
                   <p className="text-sm font-medium">{t("components.trustPreset.managedByEe", { defaultValue: "Managed by EE/API" })}</p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    This policy has {summarizeLowTrustBoundaryTarget(boundary).toLowerCase()} and cannot be edited by the CE single-boundary editor.
-                  </p>
+                    {t("ui.components.trustpresetsection.policy-has")}{summarizeLowTrustBoundaryTarget(boundary).toLowerCase()} {t("ui.components.trustpresetsection.cannot-edited-ce-single")}</p>
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Want to set more than one containment boundary?{" "}
+                {t("ui.components.trustpresetsection.want-set-more-than")}{" "}
                 <a
                   className="underline underline-offset-2 hover:text-foreground"
                   href="https://paperclip.ing/ee"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Get Paperclip EE.
-                </a>
+                  {t("ui.components.trustpresetsection.get-paperclip-ee")}</a>
               </p>
               <CollapsibleSection
                 title={t("components.trustPreset.viewPolicy", { defaultValue: "View policy" })}
@@ -250,8 +246,7 @@ export function TrustPresetSection({
 
         {managedPermissions.authorizationPolicy?.reviewPreset ? null : (
           <p className="text-xs text-muted-foreground">
-            Advanced permissions remain editable through the EE permissions extension when installed.
-          </p>
+            {t("ui.components.trustpresetsection.advanced-permissions-remain-editable")}</p>
         )}
       </div>
     </div>

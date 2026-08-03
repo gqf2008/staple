@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { Download, ExternalLink, Maximize2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -72,14 +73,12 @@ export function OutputPrimaryCard({ item, creatorName, onMediaClick }: OutputPri
           <p className="break-words text-sm font-semibold text-foreground">{filename}</p>
           {item.degraded ? (
             <p className="mt-0.5 text-(length:--text-micro) text-destructive">
-              Output metadata is unavailable — this file can’t be played or downloaded here.
-            </p>
+              {t("ui.components.issue-output.outputprimarycard.output-metadata-unavailable-file")}</p>
           ) : (
             <div className="mt-0.5 flex flex-wrap items-center gap-x-1.5 gap-y-0.5 text-(length:--text-micro) text-muted-foreground">
               {item.isPrimary && (
                 <Badge variant="secondary" className="px-1.5 py-0 text-(length:--text-nano)">
-                  Primary
-                </Badge>
+                  {t("components.issueProperties.primary")}</Badge>
               )}
               {meta && <span>{meta.contentType}</span>}
               {meta && <span aria-hidden="true">·</span>}
@@ -102,22 +101,19 @@ export function OutputPrimaryCard({ item, creatorName, onMediaClick }: OutputPri
                 onClick={() => onMediaClick(item)}
               >
                 <Maximize2 className="h-4 w-4" />
-                Browse
-              </Button>
+                {t("components.appsSidebar.browse")}</Button>
             ) : null}
             {!isMedia || !onMediaClick || isVideo ? (
               <Button asChild variant="outline" size="sm" className="max-md:flex-1">
                 <a href={meta.openPath} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" />
-                  Open
-                </a>
+                  {t("status.open")}</a>
               </Button>
             ) : null}
             <Button asChild size="sm" className="max-md:flex-1">
               <a href={meta.downloadPath} aria-label={`Download ${filename}`}>
                 <Download className="h-4 w-4" />
-                Download
-              </a>
+                {t("pages.pipelines.download")}</a>
             </Button>
           </div>
         ) : null}

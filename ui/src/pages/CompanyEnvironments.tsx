@@ -682,8 +682,7 @@ function EnvironmentCustomImageBrowserTerminal({
         <div className="flex items-center gap-2">
           {terminalInteractive ? (
             <Button size="sm" variant="ghost" onClick={disconnectTerminal}>
-              Disconnect
-            </Button>
+              {t("ui.pages.companyenvironments.disconnect")}</Button>
           ) : (
             <Button
               size="sm"
@@ -947,8 +946,7 @@ function EnvironmentImageTemplatePanel({
   if (overviewQuery.isLoading) {
     return (
       <div className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-        Loading template setup...
-      </div>
+        {t("ui.pages.companyenvironments.loading-template-setup")}</div>
     );
   }
 
@@ -1007,8 +1005,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating || session.status !== "waiting_for_user"}
             >
               <Check className="mr-1.5 h-3.5 w-3.5" />
-              Finished
-            </Button>
+              {t("ui.pages.companyenvironments.finished")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1016,14 +1013,12 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <X className="mr-1.5 h-3.5 w-3.5" />
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
         </div>
         {isCapturing ? (
           <div className="mt-2 text-xs text-muted-foreground">
-            Capture is in progress. If this state remains after a refresh or interrupted request, cancel it to return to the active template controls.
-          </div>
+            {t("ui.pages.companyenvironments.capture-progress-if-state")}</div>
         ) : null}
         {session.status === "waiting_for_user" && connectionPayload?.type === "ssh" ? (
           <EnvironmentCustomImageBrowserTerminal autoConnect sessionId={session.id} />
@@ -1031,8 +1026,7 @@ function EnvironmentImageTemplatePanel({
         {session.status === "waiting_for_user" && connectionCommand ? (
           <details className="mt-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
             <summary className="cursor-pointer select-none font-medium text-foreground">
-              SSH command fallback
-            </summary>
+              {t("ui.pages.companyenvironments.ssh-command-fallback")}</summary>
             <code className="mt-2 block overflow-x-auto whitespace-nowrap text-(length:--text-micro) leading-5">
               {connectionCommand}
             </code>
@@ -1077,10 +1071,7 @@ function EnvironmentImageTemplatePanel({
                 className="text-xs text-destructive"
                 data-testid={`custom-image-template-out-of-sync-${environment.id}`}
               >
-                Not in use — the environment configuration changed since this image was
-                captured. Runs fall back to the base configuration until you capture a new
-                image.
-              </div>
+                {t("ui.pages.companyenvironments.not-use-environment-configuration")}</div>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1091,8 +1082,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Refresh
-            </Button>
+              {t("components.standaloneBrowser.refresh")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1100,8 +1090,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Rollback
-            </Button>
+              {t("ui.pages.companyenvironments.rollback")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1109,8 +1098,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Disable
-            </Button>
+              {t("pages.pluginManager.disable")}</Button>
           </div>
         </div>
       </div>
@@ -1138,8 +1126,7 @@ function EnvironmentImageTemplatePanel({
           disabled={isMutating}
         >
           <Play className="mr-1.5 h-3.5 w-3.5" />
-          Configure image
-        </Button>
+          {t("ui.pages.companyenvironments.configure-image")}</Button>
       </div>
     </div>
   );
@@ -1604,8 +1591,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     return (
       <div className="max-w-3xl space-y-4">
         <div className="rounded-md border border-border px-4 py-4 text-sm text-muted-foreground">
-          Enable Environments in instance experimental settings to manage shared execution targets.
-        </div>
+          {t("ui.pages.companyenvironments.enable-environments-instance-experimental")}</div>
       </div>
     );
   }
@@ -1724,8 +1710,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
       {isEnvironmentFormPage && mode === "edit" && environments === undefined ? (
         <div className="rounded-md border border-border px-4 py-4 text-sm text-muted-foreground">
-          Loading environment...
-        </div>
+          {t("ui.pages.companyenvironments.loading-environment")}</div>
       ) : null}
 
       {isEnvironmentFormPage && mode === "edit" && environments !== undefined && !editingEnvironment ? (
@@ -1746,14 +1731,12 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               <Button size="sm" variant="ghost" asChild>
                 <Link to={ENVIRONMENTS_PATH}>
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-                  Environments
-                </Link>
+                  {t("components.companySettingsSidebar.environments")}</Link>
               </Button>
             </div>
             <h1 className="text-lg font-semibold">{editingEnvironmentId ? t("pages.companyEnvironments.editEnvironment", { defaultValue: "Edit environment" }) : t("pages.companyEnvironments.addEnvironment", { defaultValue: "Add environment" })}</h1>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              Configure a reusable execution target for your agents. Saved changes affect future runs; Paperclip may start fresh sessions or sandbox leases after environment config changes.
-            </p>
+              {t("ui.pages.companyenvironments.configure-reusable-execution-target")}</p>
           </div>
 
           <div className="px-6 py-4">
@@ -1774,7 +1757,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   onChange={(e) => setEnvironmentForm((current) => ({ ...current, description: e.target.value }))}
                 />
               </Field>
-              <Field label={t("pages.companyEnvironments.driver", { defaultValue: "Driver" })} hint="Sandbox stores plugin-backed provider config on the shared environment seam. SSH stores a remote machine target.">
+              <Field label={t("pages.companyEnvironments.driver", { defaultValue: "Driver" })} hint={t("ui.pages.companyenvironments.sandbox-stores-plugin-backed")}>
                 <select
                   className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                   value={environmentForm.driver}
@@ -1846,7 +1829,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         setEnvironmentForm((current) => ({ ...current, sshRemoteWorkspacePath: e.target.value }))}
                     />
                   </Field>
-                  <Field label={t("pages.companyEnvironments.privateKey", { defaultValue: "Private key" })} hint="Optional PEM private key. Leave blank to rely on the server's SSH agent or default keychain.">
+                  <Field label={t("pages.companyEnvironments.privateKey", { defaultValue: "Private key" })} hint={t("ui.pages.companyenvironments.optional-pem-private-key")}>
                     <div className="space-y-2">
                       <select
                         className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
@@ -1933,12 +1916,11 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     />
                   ) : (
                     <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                      This provider does not declare additional configuration fields.
-                    </div>
+                      {t("ui.pages.companyenvironments.provider-does-not-declare")}</div>
                   )}
                   <ToggleField
                     label={t("pages.companyEnvironments.streamRunLogs", { defaultValue: "Stream run logs" })}
-                    hint="Stream the agent CLI's output live while sandbox runs execute (recommended). Turn off to deliver output only when the run finishes."
+                    hint={t("ui.pages.companyenvironments.stream-agent-cli-output")}
                     checked={environmentForm.sandboxConfig.streamRunLogs !== false}
                     onChange={(checked) =>
                       setEnvironmentForm((current) => ({
@@ -1956,9 +1938,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                 <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 px-3 py-3">
                   <div className="text-sm font-medium">{t("pages.companyEnvironments.customImage", { defaultValue: "Custom image" })}</div>
                   <div className="text-xs text-muted-foreground">
-                    Start a setup sandbox, SSH in to customize the instance, then capture the
-                    running machine as a reusable image for future runs.
-                  </div>
+                    {t("ui.pages.companyenvironments.start-setup-sandbox-ssh")}</div>
                   <EnvironmentImageTemplatePanel
                     environment={editingEnvironment}
                     companyId={selectedCompanyId}
@@ -1970,7 +1950,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
               <Field
                 label={t("pages.companyEnvironments.envVars", { defaultValue: "Environment variables" })}
-                hint="Injected into runs that resolve through this environment. Use plain values or company secrets."
+                hint={t("ui.pages.companyenvironments.injected-into-runs-resolve")}
               >
                 <EnvironmentVariablesEditor
                   ref={environmentVariablesEditorRef}
@@ -2004,8 +1984,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               onClick={closeEnvironmentForm}
               disabled={environmentMutation.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             {environmentForm.driver !== "local" ? (
               <Button
                 variant="outline"

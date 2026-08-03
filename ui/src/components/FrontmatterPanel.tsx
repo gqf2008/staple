@@ -357,8 +357,7 @@ export function FrontmatterPanel({
               <TabsList variant="line" className="h-7">
                 {canUseFields ? (
                   <TabsTrigger value="fields" className="px-2 py-0.5 text-xs">
-                    Fields
-                  </TabsTrigger>
+                    {t("pages.caseDetail.fields")}</TabsTrigger>
                 ) : (
                   <Tooltip>
                     <TooltipTrigger asChild>
@@ -369,27 +368,21 @@ export function FrontmatterPanel({
                           aria-disabled="true"
                           className="px-2 py-0.5 text-xs opacity-50"
                         >
-                          Fields
-                        </TabsTrigger>
+                          {t("pages.caseDetail.fields")}</TabsTrigger>
                       </span>
                     </TooltipTrigger>
                     <TooltipContent className="max-w-60">
-                      Switch to YAML to edit. This frontmatter uses YAML features the form can't safely
-                      round-trip (e.g. comments, anchors, or custom ordering). Editing here keeps it
-                      byte-for-byte.
-                    </TooltipContent>
+                      {t("ui.components.frontmatterpanel.switch-yaml-edit-frontmatter")}</TooltipContent>
                   </Tooltip>
                 )}
                 <TabsTrigger value="yaml" className="px-2 py-0.5 text-xs">
-                  YAML
-                </TabsTrigger>
+                  {t("components.markdownEditor.yaml")}</TabsTrigger>
               </TabsList>
             </Tabs>
           ) : !readOnly ? (
             <Button variant="ghost" size="sm" onClick={addFrontmatter} data-testid="add-frontmatter">
               <Plus className="mr-1 h-3.5 w-3.5" />
-              Add frontmatter
-            </Button>
+              {t("ui.components.frontmatterpanel.add-frontmatter")}</Button>
           ) : null}
 
           {present && effectiveMode === "fields" && warningCount > 0 ? (
@@ -422,8 +415,7 @@ export function FrontmatterPanel({
             </div>
           ) : (
             <div className="px-3 pb-2 text-xs text-muted-foreground">
-              This file has no frontmatter.
-            </div>
+              {t("ui.components.frontmatterpanel.file-has-no-frontmatter")}</div>
           )}
         </CollapsibleContent>
       </Collapsible>
@@ -629,8 +621,7 @@ function MetadataRows({
       {!readOnly ? (
         <Button variant="ghost" size="sm" onClick={add} className="text-xs">
           <Plus className="mr-1 h-3.5 w-3.5" />
-          add field
-        </Button>
+          {t("ui.components.frontmatterpanel.add-field")}</Button>
       ) : null}
     </div>
   );
@@ -726,8 +717,7 @@ function YamlEditor({
         aria-label={t("components.frontmatterPanel.frontmatterYaml", { defaultValue: "Frontmatter YAML" })}
       />
       <p className="mt-1 text-xs text-muted-foreground">
-        Raw YAML is the source of truth in this mode.
-      </p>
+        {t("ui.components.frontmatterpanel.raw-yaml-source-truth")}</p>
     </div>
   );
 }

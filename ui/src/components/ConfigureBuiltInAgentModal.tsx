@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
@@ -151,18 +152,16 @@ export function ConfigureBuiltInAgentModal({
     <Dialog open={open} onOpenChange={(next) => (provision.isPending ? undefined : onOpenChange(next))}>
       <DialogContent className="sm:max-w-lg">
         <DialogHeader>
-          <DialogTitle>Set up the {definition.displayName}</DialogTitle>
+          <DialogTitle>{t("ui.components.configurebuiltinagentmodal.set-up")}{definition.displayName}</DialogTitle>
           <DialogDescription>{definition.shortPurpose}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4">
           <InlineBanner tone="info" compact>
-            Creates <strong>{definition.displayName}</strong> in your roster, badged{" "}
-            <strong>Built-in</strong>. Companies that require hire approval will queue this for the
-            board.
-          </InlineBanner>
+            {t("ui.components.configurebuiltinagentmodal.creates")}<strong>{definition.displayName}</strong> {t("ui.components.configurebuiltinagentmodal.your-roster-badged")}{" "}
+            <strong>{t("pages.adapterManager.builtIn")}</strong>{t("ui.components.configurebuiltinagentmodal.companies-require-hire-approval")}</InlineBanner>
 
-          <Field label="Adapter type">
+          <Field label={t("components.agentConfigForm.adapterType")}>
             <AdapterTypeDropdown
               value={adapterType}
               onChange={(next) => {
@@ -196,12 +195,10 @@ export function ConfigureBuiltInAgentModal({
 
           {!setupSupportedInModal && (
             <InlineBanner tone="warning" compact>
-              This adapter needs command or endpoint fields before it can run. Provision the
-              built-in row now, then finish those fields from the full agent configuration.
-            </InlineBanner>
+              {t("ui.components.configurebuiltinagentmodal.adapter-needs-command-endpoint")}</InlineBanner>
           )}
 
-          <Field label="Monthly budget (optional)" hint="Leave blank for no cap.">
+          <Field label={t("ui.components.configurebuiltinagentmodal.monthly-budget-optional")} hint={t("ui.components.configurebuiltinagentmodal.leave-blank-no-cap")}>
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">$</span>
               <Input
@@ -231,8 +228,7 @@ export function ConfigureBuiltInAgentModal({
             onClick={() => onOpenChange(false)}
             disabled={provision.isPending}
           >
-            Not now
-          </Button>
+            {t("ui.components.configurebuiltinagentmodal.not-now")}</Button>
           <Button
             onClick={() => {
               setError(null);

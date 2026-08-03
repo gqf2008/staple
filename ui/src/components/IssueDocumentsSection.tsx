@@ -957,8 +957,7 @@ export function IssueDocumentsSection({
           <div className="flex items-center justify-end gap-2">
             <Button variant="outline" size="sm" onClick={cancelDraft}>
               <X className="mr-1.5 h-3.5 w-3.5" />
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               size="sm"
               onClick={() => void commitDraft(draft, { clearAfterSave: false, trackAutosave: false })}
@@ -981,8 +980,7 @@ export function IssueDocumentsSection({
           <div className="mb-2 flex items-center gap-2">
             <FileText className="h-4 w-4 text-amber-600" />
             <Badge variant="outline" className="border-amber-500/30 font-mono text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-amber-700 dark:text-amber-300">
-              PLAN
-            </Badge>
+              {t("components.agentConfigForm.plan")}</Badge>
           </div>
           <div className={documentBodyPaddingClassName}>
             {renderFoldableBody(documentSubject.legacyPlanDocument.body, documentBodyContentClassName, externalReferences)}
@@ -1110,21 +1108,18 @@ export function IssueDocumentsSection({
                         {!isHistoricalPreview && !isLocked ? (
                           <DropdownMenuItem onClick={() => beginEdit(doc.key)}>
                             <FilePenLine className="h-3.5 w-3.5" />
-                            Edit document
-                          </DropdownMenuItem>
+                            {t("ui.components.issuedocumentssection.edit-document")}</DropdownMenuItem>
                         ) : null}
                         {!isHistoricalPreview && !isLocked ? <DropdownMenuSeparator /> : null}
                         <DropdownMenuItem
                           onClick={() => downloadDocumentFile(doc.key, displayedBody)}
                         >
                           <Download className="h-3.5 w-3.5" />
-                          Download document
-                        </DropdownMenuItem>
+                          {t("ui.components.issuedocumentssection.download-document")}</DropdownMenuItem>
                         {doc.latestRevisionNumber > 1 ? (
                           <DropdownMenuItem onClick={() => setDiffViewKey(doc.key)}>
                             <Diff className="h-3.5 w-3.5" />
-                            View diff
-                          </DropdownMenuItem>
+                            {t("ui.components.issuedocumentssection.view-diff")}</DropdownMenuItem>
                         ) : null}
                         {canDeleteDocuments && !isLocked ? <DropdownMenuSeparator /> : null}
                         {canDeleteDocuments && !isLocked ? (
@@ -1133,8 +1128,7 @@ export function IssueDocumentsSection({
                             onClick={() => setConfirmDeleteKey(doc.key)}
                           >
                             <Trash2 className="h-3.5 w-3.5" />
-                            Delete document
-                          </DropdownMenuItem>
+                            {t("ui.components.issuedocumentssection.delete-document")}</DropdownMenuItem>
                         ) : null}
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -1165,11 +1159,10 @@ export function IssueDocumentsSection({
                       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                         <div className="space-y-1">
                           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                            Viewing revision {selectedHistoricalRevision.revisionNumber}
+                            {t("ui.components.issuedocumentssection.viewing-revision")}{selectedHistoricalRevision.revisionNumber}
                           </p>
                           <p className="text-xs text-muted-foreground">
-                            This is a historical preview. Restoring it creates a new latest revision and keeps history append-only.
-                          </p>
+                            {t("ui.components.issuedocumentssection.historical-preview-restoring-creates")}</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <Button
@@ -1177,8 +1170,7 @@ export function IssueDocumentsSection({
                             size="sm"
                             onClick={() => returnToLatestRevision(doc.key)}
                           >
-                            Return to latest
-                          </Button>
+                            {t("ui.components.issuedocumentssection.return-latest")}</Button>
                           {!isLocked ? (
                             <Button
                               size="sm"
@@ -1203,8 +1195,7 @@ export function IssueDocumentsSection({
                         <div className="space-y-1">
                           <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{t("components.issueDocuments.outOfDate", { defaultValue: "Out of date" })}</p>
                           <p className="text-xs text-muted-foreground">
-                            This document changed while you were editing. Your local draft is preserved and autosave is paused.
-                          </p>
+                            {t("ui.components.issuedocumentssection.document-changed-while-you")}</p>
                         </div>
                         <div className="flex flex-wrap items-center gap-2">
                           <Button
@@ -1225,15 +1216,13 @@ export function IssueDocumentsSection({
                             size="sm"
                             onClick={() => keepConflictedDraft(doc.key)}
                           >
-                            Keep my draft
-                          </Button>
+                            {t("ui.components.issuedocumentssection.keep-my-draft")}</Button>
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => reloadDocumentFromServer(doc.key)}
                           >
-                            Reload remote
-                          </Button>
+                            {t("ui.components.issuedocumentssection.reload-remote")}</Button>
                           <Button
                             size="sm"
                             onClick={() => void overwriteDocumentFromDraft(doc.key)}
@@ -1246,7 +1235,7 @@ export function IssueDocumentsSection({
                       {activeConflict.showRemote && (
                         <div className="mt-3 rounded-md border border-border/70 bg-background/60 p-3">
                           <div className="mb-2 flex items-center gap-2 text-(length:--text-micro) text-muted-foreground">
-                            <span>Remote revision {activeConflict.serverDocument.latestRevisionNumber}</span>
+                            <span>{t("ui.components.issuedocumentssection.remote-revision")}{activeConflict.serverDocument.latestRevisionNumber}</span>
                             <span>•</span>
                             <span>updated {relativeTime(activeConflict.serverDocument.updatedAt)}</span>
                           </div>
@@ -1369,8 +1358,7 @@ export function IssueDocumentsSection({
               {confirmDeleteKey === doc.key && (
                 <div className="mt-3 flex items-center justify-between gap-3 rounded-md border border-destructive/20 bg-destructive/5 px-4 py-3">
                   <p className="text-sm text-destructive font-medium">
-                    Delete this document? This cannot be undone.
-                  </p>
+                    {t("ui.components.issuedocumentssection.delete-document-cannot-undone")}</p>
                   <div className="flex items-center gap-2 shrink-0">
                     <Button
                       variant="ghost"
@@ -1378,8 +1366,7 @@ export function IssueDocumentsSection({
                       onClick={() => setConfirmDeleteKey(null)}
                       disabled={deleteDocument.isPending}
                     >
-                      Cancel
-                    </Button>
+                      {t("common.cancel")}</Button>
                     <Button
                       variant="destructive"
                       size="sm"

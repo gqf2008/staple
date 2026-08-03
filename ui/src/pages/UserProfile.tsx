@@ -102,7 +102,7 @@ function UsageChart({ points }: { points: UserProfileDailyPoint[] }) {
         <h2 className="text-sm font-semibold">{t("pages.userProfile.last14Days", { defaultValue: "Last 14 days" })}</h2>
         <div className="flex items-baseline gap-4 text-xs text-muted-foreground">
           <span className="tabular-nums text-foreground">{formatTokens(totalTokensSum)}</span>
-          <span>tokens total</span>
+          <span>{t("ui.pages.userprofile.tokens-total")}</span>
         </div>
       </div>
       <div className="mt-6 grid grid-cols-(--gtc-57) items-end gap-1.5 sm:gap-2">
@@ -138,8 +138,7 @@ function UsageChart({ points }: { points: UserProfileDailyPoint[] }) {
       </div>
       <div className="mt-4 flex flex-wrap items-center gap-4 text-(length:--text-nano) uppercase tracking-wide text-muted-foreground">
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-2 w-2 bg-foreground/80" /> tokens / day
-        </span>
+          <span className="h-2 w-2 bg-foreground/80" /> {t("ui.pages.userprofile.tokens-day")}</span>
         <span className="inline-flex items-center gap-1.5">
           <span className="h-(--sz-3px) w-4 rounded-full bg-emerald-500/80" /> completions
         </span>
@@ -287,7 +286,7 @@ export function UserProfile() {
           <HeroStat label={t("pages.userProfile.allTimeTokens", { defaultValue: "All-time tokens" })} value={formatTokens(allTimeTokens)} hint={formatCents(allTime?.costCents ?? 0) + " spent"} />
           <HeroStat label={t("pages.userProfile.completed", { defaultValue: "Completed" })} value={formatNumber(allTime?.completedIssues ?? 0)} hint={allTime ? `${completionRate(allTime)} rate` : undefined} />
           <HeroStat label={t("pages.userProfile.openAssigned", { defaultValue: "Open assigned" })} value={formatNumber(allTime?.assignedOpenIssues ?? 0)} hint={`${formatNumber(allTime?.createdIssues ?? 0)} created`} />
-          <HeroStat label="7-day actions" value={formatNumber(last7?.activityCount ?? 0)} hint={`${formatNumber(last7?.commentCount ?? 0)} comments`} />
+          <HeroStat label={t("ui.pages.userprofile.day-actions")} value={formatNumber(last7?.activityCount ?? 0)} hint={`${formatNumber(last7?.commentCount ?? 0)} comments`} />
         </div>
       </section>
 

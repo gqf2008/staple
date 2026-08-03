@@ -148,22 +148,17 @@ export function ForkSkillDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <GitFork className="h-4 w-4" />
-            Edit a copy of {skill.name}
+            {t("ui.components.skill-studio.forkskilldialog.edit-copy")}{skill.name}
           </DialogTitle>
           <DialogDescription>
-            {skill.name} is read-only because it comes from an external source.
-            Creating a fully editable copy in your workspace leaves the original
-            untouched and still updatable.
-          </DialogDescription>
+            {skill.name} {t("ui.components.skill-studio.forkskilldialog.read-only-because-comes")}</DialogDescription>
         </DialogHeader>
 
         {reusableFork ? (
           <div className="rounded-md border border-primary/40 bg-primary/5 p-3 text-sm">
             <p className="font-medium text-foreground">{t("components.forkSkillDialog.alreadyHaveCopy", { defaultValue: "You already have a copy" })}</p>
             <p className="mt-0.5 text-muted-foreground">
-              An unedited copy of this skill already exists. Open it instead of
-              making another.
-            </p>
+              {t("ui.components.skill-studio.forkskilldialog.unedited-copy-skill-already")}</p>
             <Button
               type="button"
               size="sm"
@@ -171,8 +166,7 @@ export function ForkSkillDialog({
               onClick={openExisting}
               disabled={busy}
             >
-              Open your existing copy
-            </Button>
+              {t("ui.components.skill-studio.forkskilldialog.open-your-existing-copy")}</Button>
           </div>
         ) : null}
 
@@ -203,8 +197,7 @@ export function ForkSkillDialog({
               <label className="mt-3 flex items-start justify-between gap-3">
                 <span className="text-sm">
                   <span className="font-medium text-foreground">
-                    Switch these agents to the copy
-                  </span>
+                    {t("components.forkSkillDialog.switchToCopy")}</span>
                   <span className="mt-0.5 block text-xs text-muted-foreground">
                     {reassign
                       ? t("components.forkSkillDialog.agentsRunCopy", { defaultValue: "These agents will run your copy instead of the original." })
@@ -221,9 +214,7 @@ export function ForkSkillDialog({
             </>
           ) : (
             <p className="mt-1 text-xs text-muted-foreground">
-              Nothing is assigned to it, so your copy won't change any agent's
-              behaviour.
-            </p>
+              {t("ui.components.skill-studio.forkskilldialog.nothing-assigned-so-your")}</p>
           )}
         </div>
 
@@ -234,8 +225,7 @@ export function ForkSkillDialog({
             onClick={() => onOpenChange(false)}
             disabled={busy}
           >
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             type="button"
             variant={reusableFork ? "outline" : "default"}

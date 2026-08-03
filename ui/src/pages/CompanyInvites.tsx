@@ -215,16 +215,14 @@ export function CompanyInvites() {
           <h1 className="text-lg font-semibold">{t("pages.companyInvites.title", { defaultValue: "Company Invites" })}</h1>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
-          Invite people to request access to this company. New invite links are copied to your clipboard when they are generated.
-        </p>
+          {t("ui.pages.companyinvites.invite-people-request-access")}</p>
       </div>
 
       <section className="space-y-4 rounded-xl border border-border p-5">
         <div className="space-y-1">
           <h2 className="text-sm font-semibold">{t("pages.companyInvites.invitePerson", { defaultValue: "Invite a person" })}</h2>
           <p className="text-sm text-muted-foreground">
-            Generate a human invite link and choose the default access it should request.
-          </p>
+            {t("ui.pages.companyinvites.generate-human-invite-link")}</p>
         </div>
 
         <fieldset className="space-y-3">
@@ -250,8 +248,7 @@ export function CompanyInvites() {
                       <span className="text-sm font-medium">{option.label}</span>
                       {option.value === "operator" ? (
                         <Badge variant="outline" className="border-border text-muted-foreground">
-                          Default
-                        </Badge>
+                          {t("components.agentConfigForm.default")}</Badge>
                       ) : null}
                     </span>
                     <span className="block max-w-2xl text-sm text-muted-foreground">{option.description}</span>
@@ -264,8 +261,7 @@ export function CompanyInvites() {
         </fieldset>
 
         <div className="rounded-lg border border-border px-4 py-3 text-sm text-muted-foreground">
-          Each invite link is single-use. Human invitees get the selected role immediately after sign-in; agent invites still create a join request for approval.
-        </div>
+          {t("ui.pages.companyinvites.each-invite-link-single")}</div>
 
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => createInviteMutation.mutate()} disabled={createInviteMutation.isPending}>
@@ -282,13 +278,11 @@ export function CompanyInvites() {
                 {latestInviteCopied ? (
                   <div className="inline-flex items-center gap-1 text-xs font-medium text-foreground">
                     <Check className="h-3.5 w-3.5" />
-                    Copied
-                  </div>
+                    {t("components.commentThread.copied")}</div>
                 ) : null}
               </div>
               <div className="text-sm text-muted-foreground">
-                This URL includes the current Paperclip domain returned by the server.
-              </div>
+                {t("ui.pages.companyinvites.url-includes-current-paperclip")}</div>
             </div>
             <label className="block space-y-1">
               <span className="sr-only">{t("pages.companyInvites.latestInviteUrl", { defaultValue: "Latest invite URL" })}</span>
@@ -313,13 +307,11 @@ export function CompanyInvites() {
                 }}
               >
                 <Copy className="h-4 w-4" />
-                Copy link
-              </Button>
+                {t("components.fileViewer.copyLink")}</Button>
               <Button size="sm" variant="outline" asChild>
                 <a href={latestInviteUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" />
-                  Open invite
-                </a>
+                  {t("ui.pages.companyinvites.open-invite")}</a>
               </Button>
             </div>
           </div>
@@ -331,18 +323,15 @@ export function CompanyInvites() {
           <div className="space-y-1">
             <h2 className="text-sm font-semibold">{t("pages.companyInvites.inviteHistory", { defaultValue: "Invite history" })}</h2>
             <p className="text-sm text-muted-foreground">
-              Review invite status, audience, inviter, and any linked join request.
-            </p>
+              {t("ui.pages.companyinvites.review-invite-status-audience")}</p>
           </div>
           <Link to="/inbox/requests" className="text-sm underline underline-offset-4">
-            Open join request queue
-          </Link>
+            {t("ui.pages.companyinvites.open-join-request-queue")}</Link>
         </div>
 
         {inviteHistory.length === 0 ? (
           <div className="border-t border-border px-5 py-8 text-sm text-muted-foreground">
-            No invites have been created for this company yet.
-          </div>
+            {t("ui.pages.companyinvites.no-invites-have-been")}</div>
         ) : (
           <div className="border-t border-border">
             <div className="overflow-x-auto">
@@ -378,8 +367,7 @@ export function CompanyInvites() {
                       <td className="px-5 py-3 align-top">
                         {invite.relatedJoinRequestId ? (
                           <Link to="/inbox/requests" className="underline underline-offset-4">
-                            Review request
-                          </Link>
+                            {t("ui.pages.companyinvites.review-request")}</Link>
                         ) : (
                           <span className="text-muted-foreground">—</span>
                         )}
@@ -392,8 +380,7 @@ export function CompanyInvites() {
                             onClick={() => revokeMutation.mutate(invite.id)}
                             disabled={revokeMutation.isPending}
                           >
-                            Revoke
-                          </Button>
+                            {t("ui.pages.agentdetail.revoke")}</Button>
                         ) : (
                           <span className="text-xs text-muted-foreground">{t("pages.companyInvites.inactive", { defaultValue: "Inactive" })}</span>
                         )}

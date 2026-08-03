@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronDown, ChevronRight, History, RotateCcw } from "lucide-react";
@@ -78,8 +79,8 @@ export function PipelineStageHistoryPanel({
         <div className="flex items-center gap-2">
           <History className="h-4 w-4 text-muted-foreground" />
           <div>
-            <p className="text-sm font-medium">History</p>
-            <p className="text-xs text-muted-foreground">Past versions of these instructions.</p>
+            <p className="text-sm font-medium">{t("components.routineSubSidebar.history")}</p>
+            <p className="text-xs text-muted-foreground">{t("ui.components.pipelinestagehistorypanel.past-versions-these-instructions")}</p>
           </div>
         </div>
         {open ? (
@@ -91,16 +92,15 @@ export function PipelineStageHistoryPanel({
       <CollapsibleContent className="border-t border-border/70">
         {!hasDocument ? (
           <p className="px-4 py-3 text-xs text-muted-foreground">
-            No history yet. Save the instructions to create the first revision.
-          </p>
+            {t("ui.components.pipelinestagehistorypanel.no-history-yet-save")}</p>
         ) : revisionsQuery.isLoading ? (
-          <p className="px-4 py-3 text-xs text-muted-foreground">Loading revisions…</p>
+          <p className="px-4 py-3 text-xs text-muted-foreground">{t("ui.components.caserevisionrail.loading-revisions")}</p>
         ) : revisionsQuery.error ? (
           <p className="px-4 py-3 text-xs text-destructive">
             {revisionsQuery.error instanceof Error ? revisionsQuery.error.message : "Could not load revisions."}
           </p>
         ) : revisions.length === 0 ? (
-          <p className="px-4 py-3 text-xs text-muted-foreground">No revisions recorded yet.</p>
+          <p className="px-4 py-3 text-xs text-muted-foreground">{t("ui.components.pipelinestagehistorypanel.no-revisions-recorded-yet")}</p>
         ) : (
           <ul className="divide-y divide-border/70">
             {revisions.map((revision) => {
@@ -112,11 +112,10 @@ export function PipelineStageHistoryPanel({
                 >
                   <div className="min-w-0">
                     <p className="text-sm font-medium">
-                      Revision {revision.revisionNumber}
+                      {t("ui.components.pipelinestagehistorypanel.revision")}{revision.revisionNumber}
                       {isCurrent ? (
                         <Badge variant="ghost" className="ml-2 bg-muted text-(length:--text-micro) text-muted-foreground">
-                          Current
-                        </Badge>
+                          {t("components.secretPicker.current")}</Badge>
                       ) : null}
                     </p>
                     <p className="text-xs text-muted-foreground">
@@ -133,8 +132,7 @@ export function PipelineStageHistoryPanel({
                       onClick={() => restore.mutate(revision.id)}
                     >
                       <RotateCcw className="h-3.5 w-3.5" />
-                      Restore
-                    </Button>
+                      {t("components.routineList.restore")}</Button>
                   )}
                 </li>
               );

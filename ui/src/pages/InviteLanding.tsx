@@ -173,33 +173,30 @@ function AwaitingJoinApprovalPanel({
             companyBrandColor={companyBrandColor}
             className="h-12 w-12 border border-zinc-800 rounded-none"
           />
-          <h1 className="text-lg font-semibold">Request to join {companyDisplayName}</h1>
+          <h1 className="text-lg font-semibold">{t("ui.pages.invitelanding.request-join")}{companyDisplayName}</h1>
         </div>
         <div className="mt-4 space-y-3">
           <p className="text-sm text-zinc-400">
-            Your request is still awaiting approval. {approverLabel} must approve your request to join.
-          </p>
+            {t("ui.pages.invitelanding.your-request-still-awaiting")}{approverLabel} {t("ui.pages.invitelanding.must-approve-your-request")}</p>
           <div className="border border-zinc-800 p-3">
             <p className="text-xs text-zinc-500 mb-1">{t("pages.inviteLanding.approvalPage", { defaultValue: "Approval page" })}</p>
             <p className="text-sm text-zinc-200">{t("pages.inviteLanding.membersLink", { defaultValue: "Company Settings → Members" })}</p>
           </div>
           <p className="text-sm text-zinc-400">
-            Ask them to visit <span className="text-zinc-200">{t("pages.inviteLanding.membersLink", { defaultValue: "Company Settings → Members" })}</span> to approve your request.
-          </p>
+            {t("ui.pages.invitelanding.ask-them-visit")}<span className="text-zinc-200">{t("pages.inviteLanding.membersLink", { defaultValue: "Company Settings → Members" })}</span> {t("ui.pages.invitelanding.approve-your-request")}</p>
           <p className="text-xs text-zinc-500">
-            Refresh this page after you've been approved — you'll be redirected automatically.
-          </p>
+            {t("ui.pages.invitelanding.refresh-page-after-you")}</p>
         </div>
         {claimSecret && claimApiKeyPath ? (
           <div className="mt-4 space-y-1 border border-zinc-800 p-3 text-xs text-zinc-400">
             <div className="text-zinc-200">{t("pages.inviteLanding.claimSecret", { defaultValue: "Claim secret" })}</div>
             <div className="font-mono break-all">{claimSecret}</div>
-            <div className="font-mono break-all">POST {claimApiKeyPath}</div>
+            <div className="font-mono break-all">{t("ui.pages.invitelanding.post")}{claimApiKeyPath}</div>
           </div>
         ) : null}
         {onboardingTextUrl ? (
           <div className="mt-4 text-xs text-zinc-400">
-            Onboarding: <span className="font-mono break-all">{onboardingTextUrl}</span>
+            {t("ui.pages.invitelanding.onboarding")}<span className="font-mono break-all">{onboardingTextUrl}</span>
           </div>
         ) : null}
       </div>
@@ -429,8 +426,7 @@ export function InviteLandingPage() {
         <div className="border border-border bg-card p-6" data-testid="invite-error">
           <h1 className="text-lg font-semibold">{t("pages.inviteLanding.inviteUnavailable", { defaultValue: "Invite not available" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            This invite may be expired, revoked, or already used.
-          </p>
+            {t("ui.pages.invitelanding.invite-may-expired-revoked")}</p>
         </div>
       </div>
     );
@@ -544,8 +540,7 @@ export function InviteLandingPage() {
               />
               <div className="min-w-0">
                 <p className="text-xs uppercase tracking-(--tracking-caps) text-zinc-500">
-                  You&apos;ve been invited to join Paperclip
-                </p>
+                  {t("ui.pages.invitelanding.you-apos-ve-been")}</p>
                 <h1 className="mt-2 text-2xl font-semibold">
                   {invite.inviteType === "bootstrap_ceo" ? t("pages.inviteLanding.setupPaperclip", { defaultValue: "Set up Paperclip" }) : `Join ${companyDisplayName}`}
                 </h1>
@@ -589,7 +584,7 @@ export function InviteLandingPage() {
 
             {sessionQuery.data ? (
               <div className="border border-emerald-500/40 bg-emerald-500/10 p-4 text-sm text-emerald-50">
-                Signed in as <span className="font-medium">{sessionLabel}</span>.
+                {t("ui.components.bootstrappendingpage.signed")}<span className="font-medium">{sessionLabel}</span>.
               </div>
             ) : null}
           </section>
@@ -600,7 +595,7 @@ export function InviteLandingPage() {
                 <div>
                   <h2 className="text-lg font-semibold">{t("pages.inviteLanding.submitAgentDetails", { defaultValue: "Submit agent details" })}</h2>
                   <p className="mt-1 text-sm text-zinc-400">
-                    This invite will create an approval request for a new agent in {companyDisplayName}.
+                    {t("ui.pages.invitelanding.invite-will-create-approval")}{companyDisplayName}.
                   </p>
                 </div>
                 <label className="block text-sm">
@@ -669,8 +664,7 @@ export function InviteLandingPage() {
                       setAuthMode("sign_up");
                     }}
                   >
-                    Create account
-                  </button>
+                    {t("pages.auth.createAccount")}</button>
                   <button
                     type="button"
                     className={`${modeButtonBaseClassName} ${
@@ -683,8 +677,7 @@ export function InviteLandingPage() {
                       setAuthMode("sign_in");
                     }}
                   >
-                    I already have an account
-                  </button>
+                    {t("ui.pages.invitelanding.already-have-account")}</button>
                 </div>
 
                 <form

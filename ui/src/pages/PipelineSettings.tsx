@@ -1094,8 +1094,7 @@ function CarriedFieldTokenHelper({
     <div className="rounded-md border border-dashed border-border bg-muted/25 px-3 py-2">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase text-muted-foreground">
-          Already available on child items
-        </span>
+          {t("ui.pages.pipelinesettings.already-available-child-items")}</span>
       </div>
       <div className="space-y-2">
         {groups.map((group) => (
@@ -2309,8 +2308,7 @@ export function PipelineSettings() {
         <div className="space-y-1">
           <h3 className="text-sm font-semibold text-foreground">{t("pages.pipelineSettings.breakSmaller", { defaultValue: "Break into smaller pieces" })}</h3>
           <p className="max-w-md text-sm text-muted-foreground">
-            The agent decides what the pieces are. Paperclip creates and tracks them.
-          </p>
+            {t("ui.pages.pipelinesettings.agent-decides-what-pieces")}</p>
         </div>
         <ToggleSwitch
           aria-label={t("pages.pipelineSettings.breakSmaller", { defaultValue: "Break into smaller pieces" })}
@@ -2354,11 +2352,11 @@ export function PipelineSettings() {
                 ) : null}
               </div>
               {!breakdownTargetPipelineId ? (
-                <p className="text-xs text-muted-foreground">A pipeline in this workspace</p>
+                <p className="text-xs text-muted-foreground">{t("ui.pages.pipelinesettings.pipeline-workspace")}</p>
               ) : null}
             </div>
           </FieldRow>
-          <FieldRow label="starting at">
+          <FieldRow label={t("ui.pages.pipelinesettings.starting")}>
             <div className="space-y-1">
               <select
                 aria-label={t("pages.pipelineSettings.startingStage", { defaultValue: "Starting stage for each piece" })}
@@ -2385,16 +2383,14 @@ export function PipelineSettings() {
                 className="h-10 w-full max-w-sm"
               />
               <p className="text-xs text-muted-foreground">
-                Drives copy on this case (e.g. “3 of 5 {breakdownPieceNounPlural} finished”)
-              </p>
+                {t("ui.pages.pipelinesettings.drives-copy-case")}{breakdownPieceNounPlural} {t("ui.pages.pipelinesettings.finished")}</p>
             </div>
           </FieldRow>
           <FieldRow label={t("pages.pipelineSettings.carryOver", { defaultValue: "Carry over" })}>
             <div className="space-y-2">
               <div className="space-y-1 rounded-md border border-dashed border-border bg-muted/30 px-3 py-2 text-xs">
                 <p className="text-muted-foreground">
-                  Values are copied from this item and its ancestors. New eligible fields stay on unless you uncheck them.
-                </p>
+                  {t("ui.pages.pipelinesettings.values-copied-from-item")}</p>
                 {breakdownTargetPipelineId ? (
                   <div className="flex flex-wrap items-center gap-1 text-muted-foreground">
                     <span>{t("pages.pipelineSettings.destinationValidation", { defaultValue: "Destination validation:" })}</span>
@@ -2414,15 +2410,13 @@ export function PipelineSettings() {
                     to={breakdownIntakeSettingsHref}
                     className="inline-flex items-center gap-1 font-medium text-primary hover:underline"
                   >
-                    Review destination fields
-                    <ArrowUpRight className="h-3 w-3" />
+                    {t("ui.pages.pipelinesettings.review-destination-fields")}<ArrowUpRight className="h-3 w-3" />
                   </Link>
                 ) : null}
                 {breakdownTargetArchived ? (
                   <p className="flex items-center gap-1 text-amber-700 dark:text-amber-300">
                     <Archive className="h-3 w-3 shrink-0" />
-                    This destination pipeline is archived, so its validation fields can't be edited until it's restored.
-                  </p>
+                    {t("ui.pages.pipelinesettings.destination-pipeline-archived-so")}</p>
                 ) : null}
               </div>
               {breakdownCarryOverFieldGroups.length > 0 ? (
@@ -2461,11 +2455,11 @@ export function PipelineSettings() {
                               <span className="flex-1">{field.label}</span>
                               {targetField?.required ? (
                                 <span className="text-xs text-muted-foreground">
-                                  Required by {breakdownTargetPipeline?.name ?? "destination"}
+                                  {t("ui.pages.pipelinesettings.required")}{breakdownTargetPipeline?.name ?? "destination"}
                                 </span>
                               ) : targetField ? (
                                 <span className="text-xs text-muted-foreground">
-                                  Validated by {breakdownTargetPipeline?.name ?? "destination"}
+                                  {t("ui.pages.pipelinesettings.validated")}{breakdownTargetPipeline?.name ?? "destination"}
                                 </span>
                               ) : null}
                             </label>
@@ -2478,11 +2472,10 @@ export function PipelineSettings() {
               ) : null}
               {breakdownCarryOverFieldGroups.length === 0 ? (
                 <p className="text-sm text-muted-foreground">
-                  This pipeline and its ancestors do not define any fields that can be carried over yet.
-                </p>
+                  {t("ui.pages.pipelinesettings.pipeline-ancestors-do-not")}</p>
               ) : null}
               <p className="text-xs text-muted-foreground">
-                Name and title fields are kept unique for each new {breakdownPieceNoun.trim() || "piece"}.
+                {t("ui.pages.pipelinesettings.name-title-fields-kept")}{breakdownPieceNoun.trim() || "piece"}.
               </p>
             </div>
           </FieldRow>
@@ -2518,8 +2511,7 @@ export function PipelineSettings() {
                   }}
                 />
                 <span className="font-medium text-foreground">
-                  Wait until all {breakdownPieceNounPlural} are finished, then move it to
-                </span>
+                  {t("ui.pages.pipelinesettings.wait-until-all")}{breakdownPieceNounPlural} {t("ui.pages.pipelinesettings.finished-then-move")}</span>
               </label>
               <select
                 aria-label={t("pages.pipelineSettings.moveWhenFinished", { defaultValue: "Move this case when all pieces finish" })}
@@ -2535,7 +2527,7 @@ export function PipelineSettings() {
               </select>
               {breakdownAdvanceTo ? (
                 <p className="text-xs text-muted-foreground">
-                  If nothing is worth splitting, this case still moves to {breakdownCopyNames.advanceToName}.
+                  {t("ui.pages.pipelinesettings.if-nothing-worth-splitting")}{breakdownCopyNames.advanceToName}.
                 </p>
               ) : null}
             </div>
@@ -2563,8 +2555,7 @@ export function PipelineSettings() {
       >
         <div className="mb-3 flex items-start justify-between gap-3">
           <Link to={`/pipelines/${pipeline.id}`} className="text-sm text-muted-foreground hover:text-foreground">
-            Back to board
-          </Link>
+            {t("ui.pages.pipelinesettings.back-board")}</Link>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button type="button" variant="outline" size="icon" className="h-8 w-8" title={t("pages.pipelineSettings.pipelineActions", { defaultValue: "Pipeline actions" })}>
@@ -2575,13 +2566,11 @@ export function PipelineSettings() {
               {isArchived ? (
                 <DropdownMenuItem onSelect={() => archivePipeline.mutate(false)}>
                   <Archive className="h-4 w-4" />
-                  Restore pipeline
-                </DropdownMenuItem>
+                  {t("ui.pages.pipelinesettings.restore-pipeline")}</DropdownMenuItem>
               ) : (
                 <DropdownMenuItem variant="destructive" onSelect={() => setArchiveDialogOpen(true)}>
                   <Archive className="h-4 w-4" />
-                  Archive pipeline
-                </DropdownMenuItem>
+                  {t("pages.pipelineSettings.archivePipeline")}</DropdownMenuItem>
               )}
             </DropdownMenuContent>
           </DropdownMenu>
@@ -2665,20 +2654,18 @@ export function PipelineSettings() {
                               </span>
                             ) : null}
                           </span>
-                          <span className="mt-1 block text-xs text-muted-foreground">Step {index + 1}</span>
+                          <span className="mt-1 block text-xs text-muted-foreground">{t("ui.pages.pipelinesettings.step")}{index + 1}</span>
                           {stageNewEntriesDisabled(stage) ? (
                             <span className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-amber-700 dark:text-amber-300">
                               <AlertTriangle className="h-3 w-3" />
-                              New entries paused
-                            </span>
+                              {t("ui.pages.pipelinesettings.new-entries-paused")}</span>
                           ) : null}
                         </button>
                         <Link
                           to={`/pipelines/${pipelineId}`}
                           className="inline-flex items-center gap-1 text-xs font-medium text-muted-foreground hover:text-foreground hover:underline"
                         >
-                          View queue
-                          <ArrowUpRight className="h-3 w-3" aria-hidden="true" />
+                          {t("ui.pages.pipelinesettings.view-queue")}<ArrowUpRight className="h-3 w-3" aria-hidden="true" />
                         </Link>
                       </div>
                       {canInsertAfter ? (
@@ -2886,8 +2873,7 @@ export function PipelineSettings() {
                             </div>
                             {reviewTargetsMissing ? (
                               <p className="mt-2 text-sm text-muted-foreground">
-                                Pick where approved and declined items should go before saving.
-                              </p>
+                                {t("ui.pages.pipelinesettings.pick-where-approved-declined")}</p>
                             ) : null}
                           </FieldRow>
                         ) : null}
@@ -2934,7 +2920,7 @@ export function PipelineSettings() {
                               );
                             }}
                           />
-                          <span>runs these instructions, then moves the item to the next step.</span>
+                          <span>{t("ui.pages.pipelinesettings.runs-these-instructions-then")}</span>
                         </div>
                       </div>
 
@@ -2995,14 +2981,12 @@ export function PipelineSettings() {
                                   </select>
                                 ) : (
                                   <div className="flex h-10 items-center rounded-md border border-dashed border-border px-3 text-sm text-muted-foreground">
-                                    Project workspace
-                                  </div>
+                                    {t("components.projectWorkspaceSummary.projectWorkspace")}</div>
                                 )}
                               </div>
                               {selectedAutomationProject && !selectedAutomationProjectWorkspace ? (
                                 <p className="mt-2 text-xs text-muted-foreground">
-                                  This project has no saved workspace default. Paperclip will use the project fallback when automation runs.
-                                </p>
+                                  {t("ui.pages.pipelinesettings.project-has-no-saved")}</p>
                               ) : null}
                             </FieldRow>
 
@@ -3045,20 +3029,19 @@ export function PipelineSettings() {
                                 </div>
                                 {stageExecutionWorkspacePreference === "reuse_existing" && selectedReusableExecutionWorkspace ? (
                                   <p className="mt-2 text-xs text-muted-foreground">
-                                    Reusing {selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? "existing workspace"}.
+                                    {t("ui.components.newissuedialog.reusing")}{selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? "existing workspace"}.
                                   </p>
                                 ) : null}
                                 {!canSaveAutomationWorkspace ? (
                                   <p className="mt-2 text-xs text-amber-700 dark:text-amber-300">
-                                    Choose an existing workspace before saving reuse mode.
-                                  </p>
+                                    {t("ui.pages.pipelinesettings.choose-existing-workspace-before")}</p>
                                 ) : null}
                               </FieldRow>
                             ) : null}
                           </div>
                           <div className="flex items-center gap-2 text-sm text-muted-foreground">
                             <AgentIcon icon={selectedAutomationAgent.icon} className="h-4 w-4 shrink-0" />
-                            <span>{selectedAutomationAgent.name} runs this step automatically.</span>
+                            <span>{selectedAutomationAgent.name} {t("ui.pages.pipelinesettings.runs-step-automatically")}</span>
                           </div>
                           <FieldRow label={t("pages.pipelineSettings.issueTitle", { defaultValue: "Issue title" })}>
                             <Input
@@ -3079,8 +3062,7 @@ export function PipelineSettings() {
                             <div className="space-y-1">
                               <h3 className="text-sm font-semibold text-foreground">{t("pages.pipelineSettings.agentDecisionHint", { defaultValue: "What should the agent decide?" })}</h3>
                               <p className="text-sm text-muted-foreground">
-                                The mechanics are handled below. Write only the judgment.
-                              </p>
+                                {t("ui.pages.pipelinesettings.mechanics-handled-below-write")}</p>
                             </div>
                           ) : null}
                           <div data-testid="stage-instructions-editor">
@@ -3178,8 +3160,7 @@ export function PipelineSettings() {
                                 }}
                               />
                               <span className="text-sm font-medium text-foreground">
-                                Strictly enforce transitions
-                              </span>
+                                {t("pages.pipelineSettings.strictTransitions")}</span>
                             </div>
                             <p className="max-w-2xl text-sm text-muted-foreground">
                               {strictTransitionsEnabled
@@ -3200,7 +3181,7 @@ export function PipelineSettings() {
                           <div className="py-3">
                             <h3 className="text-sm font-semibold text-foreground">{t("pages.pipelineSettings.children", { defaultValue: "Children" })}</h3>
                           </div>
-                          <FieldRow label="Block children">
+                          <FieldRow label={t("ui.pages.pipelinesettings.block-children")}>
                             <div className="space-y-1.5">
                               <div className="flex items-center gap-3">
                                 <ToggleSwitch
@@ -3208,12 +3189,10 @@ export function PipelineSettings() {
                                   onCheckedChange={setRequireChildrenTerminal}
                                 />
                                 <span className="text-sm font-medium text-foreground">
-                                  Block until all child items are done or cancelled
-                                </span>
+                                  {t("ui.pages.pipelinesettings.block-until-all-child")}</span>
                               </div>
                               <p className="max-w-2xl text-sm text-muted-foreground">
-                                When on, this step can't move forward while any child item is still open. When off, items can move through even with open children.
-                              </p>
+                                {t("ui.pages.pipelinesettings.when-step-can-move")}</p>
                             </div>
                           </FieldRow>
                           <FieldRow label={t("pages.pipelineSettings.advanceChildren", { defaultValue: "Advance children" })}>
@@ -3226,8 +3205,7 @@ export function PipelineSettings() {
                                   }}
                                 />
                                 <span className="text-sm font-medium text-foreground">
-                                  Advance when the last child is done
-                                </span>
+                                  {t("ui.pages.pipelinesettings.advance-when-last-child")}</span>
                               </div>
                               <div className="grid grid-cols-1 items-center gap-2 sm:grid-cols-(--gtc-44)">
                                 <span className="text-sm font-medium text-muted-foreground">{t("pages.pipelineSettings.moveTo", { defaultValue: "Move to" })}</span>
@@ -3245,8 +3223,7 @@ export function PipelineSettings() {
                                 </select>
                               </div>
                               <p className="max-w-2xl text-sm text-muted-foreground">
-                                When on and every child is done, this step moves the item forward automatically. When off, someone has to move it.
-                              </p>
+                                {t("ui.pages.pipelinesettings.when-every-child-done")}</p>
                             </div>
                           </FieldRow>
                         </div>
@@ -3314,8 +3291,7 @@ export function PipelineSettings() {
           <DialogHeader>
             <DialogTitle>{t("pages.pipelineSettings.deleteStage", { defaultValue: "Delete stage" })}</DialogTitle>
             <DialogDescription>
-              Delete {selectedStage?.name ?? "this stage"} from this pipeline. Connected stage transitions are removed.
-            </DialogDescription>
+              {t("common.delete")}{selectedStage?.name ?? "this stage"} {t("ui.pages.pipelinesettings.from-pipeline-connected-stage")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             {stages.length > 1 ? (
@@ -3336,8 +3312,7 @@ export function PipelineSettings() {
               </label>
             ) : (
               <p className="text-sm text-muted-foreground">
-                This is the only stage. Deletion succeeds only if it has no items.
-              </p>
+                {t("ui.pages.pipelinesettings.only-stage-deletion-succeeds")}</p>
             )}
             {deleteStage.error ? (
               <p className="text-sm text-destructive">{deleteStage.error.message}</p>
@@ -3350,8 +3325,7 @@ export function PipelineSettings() {
               onClick={() => setDeleteStageDialogOpen(false)}
               disabled={deleteStage.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="button"
               variant="destructive"
@@ -3376,12 +3350,11 @@ export function PipelineSettings() {
           <DialogHeader>
             <DialogTitle>{t("pages.pipelineSettings.archivePipeline", { defaultValue: "Archive pipeline" })}</DialogTitle>
             <DialogDescription>
-              Archiving hides this pipeline from everyday views. Its stages and items are kept and can be restored later.
-            </DialogDescription>
+              {t("ui.pages.pipelinesettings.archiving-hides-pipeline-from")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <label className="block space-y-1.5 text-sm font-medium">
-              <span>Type {pipeline.name} to confirm</span>
+              <span>{t("pages.caseDetail.type")}{pipeline.name} {t("ui.pages.pipelinesettings.confirm")}</span>
               <Input
                 aria-label={t("pages.pipelineSettings.archiveConfirm", { defaultValue: "Archive confirmation" })}
                 value={archiveConfirmation}
@@ -3400,8 +3373,7 @@ export function PipelineSettings() {
               onClick={() => setArchiveDialogOpen(false)}
               disabled={archivePipeline.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button
               type="button"
               variant="destructive"

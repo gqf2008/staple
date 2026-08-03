@@ -283,8 +283,7 @@ export function StatusCardDetailDrawer({
                       </SelectTrigger>
                       <SelectContent align="end" position="popper">
                         <SelectItem value="__latest__" className="text-xs">
-                          Revision {latestRevisionNumber} · latest
-                        </SelectItem>
+                          {t("ui.components.pipelinestagehistorypanel.revision")}{latestRevisionNumber} {t("ui.pages.statuscards.statuscarddetaildrawer.latest")}</SelectItem>
                         <SelectSeparator />
                         {summaryRevisions.slice(0, 30).map((update) => (
                           <SelectItem
@@ -293,13 +292,13 @@ export function StatusCardDetailDrawer({
                             className="text-xs"
                             title={formatDateTime(update.startedAt)}
                           >
-                            Rev {revisionNumberOf(update)} · {updateKindLabel(update.kind)} · {relativeTime(update.startedAt)}
+                            {t("ui.pages.statuscards.statuscarddetaildrawer.rev")}{revisionNumberOf(update)} · {updateKindLabel(update.kind)} · {relativeTime(update.startedAt)}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
                   ) : latestRevisionNumber > 0 ? (
-                    <span className="text-xs text-muted-foreground">Revision {latestRevisionNumber} · latest</span>
+                    <span className="text-xs text-muted-foreground">{t("ui.components.pipelinestagehistorypanel.revision")}{latestRevisionNumber} {t("ui.pages.statuscards.statuscarddetaildrawer.latest")}</span>
                   ) : null}
                 </div>
               ) : null}
@@ -309,7 +308,7 @@ export function StatusCardDetailDrawer({
               ) : selectedRevision ? (
                 <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
                   <p className="text-xs text-muted-foreground" title={formatDateTime(selectedRevision.startedAt)}>
-                    Revision {revisionNumberOf(selectedRevision)} · {updateKindLabel(selectedRevision.kind)} ·{" "}
+                    {t("ui.components.pipelinestagehistorypanel.revision")}{revisionNumberOf(selectedRevision)} · {updateKindLabel(selectedRevision.kind)} ·{" "}
                     {relativeTime(selectedRevision.startedAt)}
                   </p>
                   {selectedRevisionBody ? (
@@ -318,14 +317,11 @@ export function StatusCardDetailDrawer({
                     <>
                       <MarkdownBody className="text-sm leading-7">{selectedRevision.changeSummary}</MarkdownBody>
                       <p className="text-xs text-muted-foreground/70">
-                        The full summary text for this revision is unavailable — showing its change summary. The
-                        integrated changes below are the live ledger for this revision.
-                      </p>
+                        {t("ui.pages.statuscards.statuscarddetaildrawer.full-summary-text-revision")}</p>
                     </>
                   ) : (
                     <p className="text-sm text-muted-foreground">
-                      No change summary was recorded for this revision.
-                    </p>
+                      {t("ui.pages.statuscards.statuscarddetaildrawer.no-change-summary-was")}</p>
                   )}
                 </div>
               ) : hasSummary ? (
@@ -348,14 +344,12 @@ export function StatusCardDetailDrawer({
                       className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground underline-offset-2 hover:underline"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
-                      View setup task
-                    </Link>
+                      {t("ui.pages.statuscards.statuscarddetaildrawer.view-setup-task")}</Link>
                   ) : null}
                 </div>
               ) : (
                 <p className="text-sm text-muted-foreground">
-                  No summary yet — the first one is generated automatically once this card finishes setting up.
-                </p>
+                  {t("ui.pages.statuscards.statuscarddetaildrawer.no-summary-yet-first")}</p>
               )}
 
               {displayedChanges.length > 0 ? (
@@ -378,14 +372,13 @@ export function StatusCardDetailDrawer({
                   every recorded update (each update is one summary revision). */}
               {updatesQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Loading history…
-                </div>
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t("ui.pages.statuscards.statuscarddetaildrawer.loading-history")}</div>
               ) : updates.length === 0 ? (
                 <p className="text-sm text-muted-foreground">{t("pages.statusCardDetail.noUpdates", { defaultValue: "No updates recorded yet." })}</p>
               ) : (
                 <>
                   <div className="text-xs text-muted-foreground">
-                    Today: {todayRollup.updateCount}{" "}
+                    {t("ui.pages.statuscards.statuscarddetaildrawer.today")}{todayRollup.updateCount}{" "}
                     {todayRollup.updateCount === 1 ? "update" : "updates"} ·{" "}
                     {formatTokens(todayRollup.totalTokens)} · {formatCents(todayRollup.totalCostCents)}
                     {card.refreshPolicy.dailyTokenCap ? ` · daily cap ${formatTokens(card.refreshPolicy.dailyTokenCap)}` : ""}
@@ -420,12 +413,10 @@ export function StatusCardDetailDrawer({
             <TabsContent value="watched" className="mt-0 space-y-3">
               {card.queries.length === 0 && (card.mentionedIssueIds?.length ?? 0) === 0 ? (
                 <div className="rounded-md border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
-                  This card is still setting up — the issues it watches appear here once it's ready.
-                </div>
+                  {t("ui.pages.statuscards.statuscarddetaildrawer.card-still-setting-up")}</div>
               ) : dryRunQuery.isLoading ? (
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" /> Matching issues…
-                </div>
+                  <Loader2 className="h-4 w-4 animate-spin" /> {t("ui.pages.statuscards.statuscarddetaildrawer.matching-issues")}</div>
               ) : dryRunQuery.isError ? (
                 <InlineBanner tone="danger" title={t("pages.statusCardDetail.issuesLoadFailed", { defaultValue: "Could not load matched issues" })}>
                   {dryRunQuery.error instanceof Error ? dryRunQuery.error.message : t("pages.statusCardDetail.tryAgain", { defaultValue: "Try again." })}
@@ -460,9 +451,7 @@ export function StatusCardDetailDrawer({
                   aria-label={t("pages.statusCardDetail.cardPurpose", { defaultValue: "What this card watches & reports" })}
                 />
                 <p className="text-xs text-muted-foreground">
-                  This one message drives the whole card: the agent compiles the watch query from it
-                  and follows it as the instructions for every update. Editing it rebuilds the card.
-                </p>
+                  {t("ui.pages.statuscards.statuscarddetaildrawer.one-message-drives-whole")}</p>
               </section>
 
               <section className="space-y-2">
@@ -482,8 +471,7 @@ export function StatusCardDetailDrawer({
               <div className="flex justify-end border-t border-border pt-4">
                 <Button onClick={() => saveSettingsMutation.mutate()} disabled={saveSettingsMutation.isPending}>
                   {saveSettingsMutation.isPending ? <Loader2 className="animate-spin" /> : null}
-                  Save
-                </Button>
+                  {t("components.agentConfigForm.save")}</Button>
               </div>
             </TabsContent>
           </div>
@@ -505,8 +493,7 @@ function QueryDebugSection({ card }: { card: StatusCardView }) {
     <Collapsible className="rounded-md border border-border">
       <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2 px-3 py-2.5 text-sm font-semibold">
         <span className="flex items-center gap-2">
-          Query debug
-          <Badge variant="secondary">v{card.queryVersion}</Badge>
+          {t("pages.statusCardDetail.queryDebug")}<Badge variant="secondary">v{card.queryVersion}</Badge>
         </span>
         <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
       </CollapsibleTrigger>
@@ -544,8 +531,7 @@ function MatchedIssueList({ queries, mentioned }: { queries: StatusCardDryRun["q
   if (matched.length === 0 && mentionedOnly.length === 0) {
     return (
       <div className="rounded-md border border-dashed border-border px-3 py-4 text-sm text-muted-foreground">
-        The compiled query matches no issues right now.
-      </div>
+        {t("ui.pages.statuscards.statuscarddetaildrawer.compiled-query-matches-no")}</div>
     );
   }
   return (

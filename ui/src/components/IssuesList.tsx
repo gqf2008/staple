@@ -596,8 +596,7 @@ function SubIssueProgressSummaryStrip({
               {summary.doneCount}/{summary.totalCount} done
             </span>
             <span className="text-muted-foreground">
-              {summary.inProgressCount} in progress
-            </span>
+              {summary.inProgressCount} {t("status.in_progress")}</span>
             <span className="text-muted-foreground">
               {summary.blockedCount} blocked
             </span>
@@ -1897,8 +1896,7 @@ export function IssuesList({
       {error && <p className="text-sm text-destructive">{error.message}</p>}
       {!searchWithinLoadedIssues && normalizedIssueSearch.length > 0 && searchedIssues.length === ISSUE_SEARCH_RESULT_LIMIT && (
         <p className="text-xs text-muted-foreground">
-          Showing up to {ISSUE_SEARCH_RESULT_LIMIT} matches. Refine the search to narrow further.
-        </p>
+          {t("ui.components.issueslist.showing-up")}{ISSUE_SEARCH_RESULT_LIMIT} {t("ui.components.issueslist.matches-refine-search-narrow")}</p>
       )}
       {boardColumnLimitReached && (
         <p className="text-xs text-muted-foreground">
@@ -2257,8 +2255,7 @@ export function IssuesList({
                                           assignIssue(issue.id, null, null);
                                         }}
                                       >
-                                        No responsible
-                                      </button>
+                                        {t("components.commentThread.noResponsible")}</button>
                                       {currentUserId && (
                                         <button
                                           className={cn(
@@ -2272,7 +2269,7 @@ export function IssuesList({
                                           }}
                                         >
                                           <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                          <span>Me</span>
+                                          <span>{t("components.issuesList.me")}</span>
                                         </button>
                                       )}
                                       {(agents ?? [])

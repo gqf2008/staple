@@ -151,8 +151,7 @@ export function CompanySettings() {
   if (!selectedCompany) {
     return (
       <div className="text-sm text-muted-foreground">
-        No company selected. Select a company from the switcher above.
-      </div>
+        {t("ui.pages.companysettings.no-company-selected-select")}</div>
     );
   }
 
@@ -175,8 +174,7 @@ export function CompanySettings() {
       {/* General */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          General
-        </div>
+          {t("components.companySettingsNav.general")}</div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
           <Field label={t("pages.companySettings.companyName", { defaultValue: "Company name" })} hint={t("pages.companySettings.companyNameHint", { defaultValue: "The display name for your company." })}>
             <input
@@ -204,8 +202,7 @@ export function CompanySettings() {
       {/* Appearance */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Appearance
-        </div>
+          {t("ui.pages.companysettings.appearance")}</div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
           <div className="flex items-start gap-4">
             <div className="shrink-0">
@@ -289,8 +286,7 @@ export function CompanySettings() {
                       onClick={() => setBrandColor("")}
                       className="text-xs text-muted-foreground"
                     >
-                      Clear
-                    </Button>
+                      {t("components.issueProperties.clear")}</Button>
                   )}
                 </div>
               </Field>
@@ -313,7 +309,7 @@ export function CompanySettings() {
                   </div>
                   {!attachmentMaxValid && (
                     <span className="text-xs text-destructive">
-                      Enter a whole number from 1 to {MAX_COMPANY_ATTACHMENT_MAX_MIB}.
+                      {t("ui.pages.companysettings.enter-whole-number-from")}{MAX_COMPANY_ATTACHMENT_MAX_MIB}.
                     </span>
                   )}
                 </div>
@@ -349,8 +345,7 @@ export function CompanySettings() {
       {/* Hiring */}
       <div className="space-y-4" data-testid="company-settings-team-section">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Hiring
-        </div>
+          {t("ui.pages.companysettings.hiring")}</div>
         <div className="rounded-md border border-border px-4 py-3">
           <ToggleField
             label={t("pages.companySettings.requireApproval", { defaultValue: "Require board approval for new hires" })}
@@ -365,21 +360,18 @@ export function CompanySettings() {
       {/* Import / Export */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          Company Packages
-        </div>
+          {t("ui.pages.companysettings.company-packages")}</div>
         <div className="rounded-md border border-border px-4 py-4">
           <div className="flex flex-wrap items-center gap-2">
             <Button size="sm" variant="outline" asChild>
               <Link to="/company/export">
                 <Download className="mr-1.5 h-3.5 w-3.5" />
-                Export
-              </Link>
+                {t("components.companySettingsNav.export")}</Link>
             </Button>
             <Button size="sm" variant="outline" asChild>
               <Link to="/company/import">
                 <Upload className="mr-1.5 h-3.5 w-3.5" />
-                Import
-              </Link>
+                {t("components.companySettingsNav.import")}</Link>
             </Button>
           </div>
         </div>
@@ -388,13 +380,10 @@ export function CompanySettings() {
       {/* Danger Zone */}
       <div className="space-y-4">
         <div className="text-xs font-medium text-destructive uppercase tracking-wide">
-          Danger Zone
-        </div>
+          {t("pages.companySkills2.dangerZone")}</div>
         <div className="space-y-3 rounded-md border border-destructive/40 bg-destructive/5 px-4 py-4">
           <p className="text-sm text-muted-foreground">
-            Archive this company to hide it from the sidebar. This persists in
-            the database.
-          </p>
+            {t("ui.pages.companysettings.archive-company-hide-from")}</p>
           <div className="flex items-center gap-2">
             <Button
               size="sm"

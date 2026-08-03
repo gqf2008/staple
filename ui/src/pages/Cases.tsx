@@ -289,7 +289,7 @@ function CaseTrailingColumns({
             <CaseCopyableToken
               key={column}
               value={row.identifier}
-              label="case ID"
+              label={t("ui.components.casechildrentree.case-id")}
               className="font-mono text-xs text-muted-foreground"
               containerClassName="shrink-0"
               stopPropagation
@@ -301,7 +301,7 @@ function CaseTrailingColumns({
             <CaseCopyableToken
               key={column}
               value={row.key}
-              label="case key"
+              label={t("ui.components.caseidentifierkey.case-key")}
               className="font-mono text-xs text-muted-foreground"
               stopPropagation
             />
@@ -440,7 +440,7 @@ function CaseListRow({
           {visibleColumnSet.has("id") ? (
             <CaseCopyableToken
               value={row.identifier}
-              label="case ID"
+              label={t("ui.components.casechildrentree.case-id")}
               className="font-mono text-xs text-muted-foreground"
               containerClassName="shrink-0"
               stopPropagation
@@ -449,7 +449,7 @@ function CaseListRow({
           {visibleColumnSet.has("key") && row.key ? (
             <CaseCopyableToken
               value={row.key}
-              label="case key"
+              label={t("ui.components.caseidentifierkey.case-key")}
               className="shrink-0 font-mono text-xs text-muted-foreground"
               stopPropagation
             />
@@ -642,8 +642,7 @@ function CaseColumnPicker({
       <PopoverContent align="end" className="w-(--sz-300px) p-1.5">
         <div className="px-2 pb-1 pt-1.5">
           <div className="text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-            Desktop case rows
-          </div>
+            {t("ui.pages.cases.desktop-case-rows")}</div>
           <div className="text-sm font-medium text-foreground">{t("pages.cases.chooseColumns", { defaultValue: "Choose visible columns" })}</div>
         </div>
         <div className="space-y-0.5">
@@ -665,8 +664,7 @@ function CaseColumnPicker({
             className="flex w-full items-center justify-between rounded px-2 py-1.5 text-sm text-muted-foreground hover:bg-accent/50"
             onClick={onReset}
           >
-            Reset defaults
-          </button>
+            {t("ui.components.issuecolumns.reset-defaults")}</button>
         </div>
       </PopoverContent>
     </CaseToolbarButton>
@@ -719,9 +717,7 @@ function CasesEmptyHero() {
       <Layers className="h-10 w-10 text-muted-foreground" />
       <h2 className="text-lg font-semibold">{t("pages.cases.noCases", { defaultValue: "No cases yet" })}</h2>
       <p className="text-sm text-muted-foreground">
-        Cases are durable work products — blog posts, tweet storms, docs pages — that tasks create and
-        iterate on. In v1 they&apos;re created by agents, not from the UI.
-      </p>
+        {t("ui.pages.cases.cases-durable-work-products")}</p>
       <div className="w-full space-y-2 rounded-lg border border-border bg-muted/50 p-4 text-left">
         <p className="text-sm font-medium">{t("pages.cases.addToSkill", { defaultValue: "To start creating cases, add this to a skill:" })}</p>
         <pre className="overflow-x-auto rounded bg-background/60 p-3 font-mono text-xs text-muted-foreground">
@@ -729,13 +725,10 @@ function CasesEmptyHero() {
 {slug, target_audience, publish_url} and key <release>/<slug>."`}
         </pre>
         <p className="text-xs text-muted-foreground">
-          See the paperclip skill → <code className="font-mono">references/cases.md</code> for the API.
-        </p>
+          {t("ui.pages.cases.see-paperclip-skill")}<code className="font-mono">{t("ui.pages.cases.references-cases-md")}</code> {t("ui.pages.cases.api")}</p>
       </div>
       <p className="text-xs text-muted-foreground">
-        Feature is gated by the <code className="font-mono">enableCases</code> experimental flag
-        (Settings → Experimental).
-      </p>
+        {t("ui.pages.cases.feature-gated")}<code className="font-mono">{t("ui.pages.cases.enablecases")}</code> {t("ui.pages.cases.experimental-flag-settings-experimental")}</p>
     </div>
   );
 }
@@ -1303,8 +1296,7 @@ export function Cases() {
                       </div>
                     </FilterField>
                     <Button type="button" variant="ghost" size="sm" onClick={clearFilters} disabled={!hasActiveFilters}>
-                      Clear filters
-                    </Button>
+                      {t("components.routineOperate.clearFilters")}</Button>
                   </div>
                 </PopoverContent>
               </CaseToolbarButton>

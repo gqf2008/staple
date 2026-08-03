@@ -971,7 +971,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 onCommit={(v) => mark("identity", "title", v || null)}
                 immediate
                 className={inputClass}
-                placeholder="e.g. VP of Engineering"
+                placeholder={t("ui.components.agentconfigform.vp-engineering")}
               />
             </Field>
             <Field label={t("components.agentConfigForm.reportsTo", { defaultValue: "Reports to" })} hint={help.reportsTo}>
@@ -1018,8 +1018,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                   />
                 </Field>
                 <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-900 dark:text-amber-100">
-                  Prompt template is replayed on every heartbeat. Keep it compact and dynamic to avoid recurring token cost and cache churn.
-                </div>
+                  {t("ui.components.agentconfigform.prompt-template-replayed-every")}</div>
               </>
             )}
           </div>
@@ -1043,14 +1042,10 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
             >
               {kubernetesEnvironment ? (
                 <div className={cn(inputClass, "flex items-center text-muted-foreground")}>
-                  {kubernetesEnvironment.name} · Kubernetes sandbox
-                </div>
+                  {kubernetesEnvironment.name} {t("ui.components.agentconfigform.kubernetes-sandbox")}</div>
               ) : (
                 <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-                  This instance requires the Kubernetes sandbox, but no managed Kubernetes
-                  environment is available for this company yet. Configure one before creating
-                  agents; execution will not fall back to local.
-                </div>
+                  {t("ui.components.agentconfigform.instance-requires-kubernetes-sandbox")}</div>
               )}
             </Field>
           </div>
@@ -1076,7 +1071,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                     mark("identity", "defaultEnvironmentId", nextValue || null);
                   }}
                 >
-                  <option value="">Default: {inheritedEnvironmentLabel}</option>
+                  <option value="">{t("ui.components.agentconfigform.default")}{inheritedEnvironmentLabel}</option>
                   {environmentOptions.map((environment) => (
                     <option key={environment.id} value={environment.id}>
                       {environment.name} · {environment.driver}
@@ -1214,8 +1209,8 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       {isLocal && (
         <div className={cn(!cards && "border-b border-border")}>
           {cards
-            ? <h3 className="text-sm font-medium mb-3">Permissions &amp; Configuration</h3>
-            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground">Permissions &amp; Configuration</div>
+            ? <h3 className="text-sm font-medium mb-3">{t("ui.components.agentconfigform.permissions-amp-configuration")}</h3>
+            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground">{t("ui.components.agentconfigform.permissions-amp-configuration")}</div>
           }
           <div className={cn(cards ? "border border-border rounded-lg p-4 space-y-3" : "px-4 pb-3 space-y-3")}>
               <Field label={t("components.agentConfigForm.command", { defaultValue: "Command" })} hint={help.localCommand}>
@@ -1297,7 +1292,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                 && currentDefaultEnvironment
                 && currentDefaultEnvironment.driver !== "local" && (
                 <p className="text-xs text-muted-foreground">
-                  Live OpenCode model discovery only runs for Local environments. Using the curated list and manual entry for {currentDefaultEnvironment.name}.
+                  {t("ui.components.agentconfigform.live-opencode-model-discovery")}{currentDefaultEnvironment.name}.
                 </p>
               )}
 
@@ -1332,8 +1327,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                     codexSearchEnabled &&
                     currentThinkingEffort === "minimal" && (
                       <p className="text-xs text-amber-400">
-                        Codex may reject `minimal` thinking when search is enabled.
-                      </p>
+                        {t("ui.components.agentconfigform.codex-may-reject-minimal")}</p>
                     )}
                 </>
               )}
@@ -1359,8 +1353,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                     />
                   </Field>
                   <div className="rounded-md border border-amber-500/25 bg-amber-500/10 px-3 py-2 text-xs text-amber-800 dark:text-amber-200">
-                    Bootstrap prompt is legacy and will be removed in a future release. Consider moving this content into the agent&apos;s prompt template or instructions file instead.
-                  </div>
+                    {t("ui.components.agentconfigform.bootstrap-prompt-legacy-will")}</div>
                 </>
               )}
               {adapterType === "claude_local" && (
@@ -1381,7 +1374,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
                       : mark("adapterConfig", "extraArgs", v?.trim() ? parseCommaArgs(v) : null)
                   }
                   className={inputClass}
-                  placeholder="e.g. --verbose, --foo=bar"
+                  placeholder={t("ui.components.agentconfigform.verbose-foo-bar")}
                 />
               </Field>
 
@@ -1455,8 +1448,8 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       {isCreate && showCreateRunPolicySection ? (
         <div className={cn(!cards && "border-b border-border")}>
           {cards
-            ? <h3 className="text-sm font-medium flex items-center gap-2 mb-3"><Heart className="h-3 w-3" /> Run Policy</h3>
-            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2"><Heart className="h-3 w-3" /> Run Policy</div>
+            ? <h3 className="text-sm font-medium flex items-center gap-2 mb-3"><Heart className="h-3 w-3" /> {t("ui.components.agentconfigform.run-policy")}</h3>
+            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2"><Heart className="h-3 w-3" /> {t("ui.components.agentconfigform.run-policy")}</div>
           }
           <div className={cn(cards ? "border border-border rounded-lg p-4 space-y-3" : "px-4 pb-3 space-y-3")}>
             <ToggleWithNumber
@@ -1476,8 +1469,8 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
       ) : !isCreate ? (
         <div className={cn(!cards && "border-b border-border")}>
           {cards
-            ? <h3 className="text-sm font-medium flex items-center gap-2 mb-3"><Heart className="h-3 w-3" /> Run Policy</h3>
-            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2"><Heart className="h-3 w-3" /> Run Policy</div>
+            ? <h3 className="text-sm font-medium flex items-center gap-2 mb-3"><Heart className="h-3 w-3" /> {t("ui.components.agentconfigform.run-policy")}</h3>
+            : <div className="px-4 py-2 text-xs font-medium text-muted-foreground flex items-center gap-2"><Heart className="h-3 w-3" /> {t("ui.components.agentconfigform.run-policy")}</div>
           }
           <div className={cn(cards ? "border border-border rounded-lg overflow-hidden" : "")}>
             <div className={cn(cards ? "p-4 space-y-3" : "px-4 pb-3 space-y-3")}>
@@ -1606,7 +1599,7 @@ export function AdapterEnvironmentResult({ result }: { result: AdapterEnvironmen
             <span className="mx-1 opacity-60">·</span>
             <span>{check.message}</span>
             {check.detail && <span className="block opacity-75 break-all">({check.detail})</span>}
-            {check.hint && <span className="block opacity-90 break-words">Hint: {check.hint}</span>}
+            {check.hint && <span className="block opacity-90 break-words">{t("ui.components.agentconfigform.hint")}{check.hint}</span>}
           </div>
         ))}
       </div>
@@ -1684,8 +1677,7 @@ export function AdapterTypeDropdown({
 function ExperimentalBadge() {
   return (
     <span className="shrink-0 rounded border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium leading-none text-amber-700 dark:text-amber-200">
-      Experimental
-    </span>
+      {t("components.companySettingsSidebar.experimental")}</span>
   );
 }
 
@@ -1948,8 +1940,7 @@ export function ModelDropdown({
                   onOpenChange(false);
                 }}
               >
-                Default
-              </button>
+                {t("components.agentConfigForm.default")}</button>
             )}
             {canCreateManualModel && (
               <button
@@ -2038,8 +2029,7 @@ function CheapModelSection({
         <div className="min-w-0">
           <div className="text-(length:--text-micro) uppercase tracking-wide text-muted-foreground">{t("components.agentConfigForm.cheapModel", { defaultValue: "Cheap model" })}</div>
           <p className="text-xs text-muted-foreground">
-            Used when a run requests the cheap profile (e.g. routine summaries). The primary model stays unchanged.
-          </p>
+            {t("ui.components.agentconfigform.used-when-run-requests")}</p>
         </div>
         <ToggleSwitch checked={enabled} onCheckedChange={onEnabledChange} />
       </div>
@@ -2062,13 +2052,12 @@ function CheapModelSection({
       ) : null}
       {enabled && !model && adapterDefaultModel ? (
         <p className="text-(length:--text-micro) text-muted-foreground">
-          No explicit cheap model selected — runtime falls back to <code>{adapterDefaultModel}</code>.
+          {t("ui.components.agentconfigform.no-explicit-cheap-model")}<code>{adapterDefaultModel}</code>.
         </p>
       ) : null}
       {enabled && !model && !adapterDefaultModel ? (
         <p className="text-(length:--text-micro) text-amber-500">
-          No cheap model selected and the adapter has no default. Cheap-lane runs will continue on the primary model with a fallback note.
-        </p>
+          {t("ui.components.agentconfigform.no-cheap-model-selected")}</p>
       ) : null}
     </div>
   );

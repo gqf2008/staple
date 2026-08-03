@@ -459,7 +459,7 @@ export function TaskChatComposer({
           type="button"
           onClick={() => void submit()}
           disabled={disabled || submitting || body.trim().length === 0}
-          title="Send (⌘+Enter)"
+          title={t("ui.components.task-chat.taskchatcomposer.send-enter")}
           aria-label={t("components.taskChatComposer.send", { defaultValue: "Send" })}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-transform hover:scale-105 disabled:scale-100 disabled:bg-muted disabled:text-muted-foreground"
           data-testid="task-chat-composer-send"

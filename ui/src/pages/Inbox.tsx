@@ -376,7 +376,7 @@ export function FailedRunInboxRow({
                   {issue.title}
                 </>
               ) : (
-                <>Failed run{linkedAgentName ? ` — ${linkedAgentName}` : ""}</>
+                <>{t("ui.pages.inbox.failed-run")}{linkedAgentName ? ` — ${linkedAgentName}` : ""}</>
               )}
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
@@ -528,7 +528,7 @@ function ApprovalInboxRow({
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <span className="capitalize">{approvalStatusLabel(approval.status)}</span>
-              {requesterName ? <span>requested by {requesterName}</span> : null}
+              {requesterName ? <span>{t("common.requestedBy")}{requesterName}</span> : null}
               <span>updated {timeAgo(approval.updatedAt)}</span>
             </span>
           </span>
@@ -541,8 +541,7 @@ function ApprovalInboxRow({
               onClick={onApprove}
               disabled={isPending}
             >
-              Approve
-            </Button>
+              {t("common.approve")}</Button>
             <Button
               variant="destructive"
               size="sm"
@@ -550,8 +549,7 @@ function ApprovalInboxRow({
               onClick={onReject}
               disabled={isPending}
             >
-              Reject
-            </Button>
+              {t("common.reject")}</Button>
           </div>
         ) : null}
       </div>
@@ -563,8 +561,7 @@ function ApprovalInboxRow({
             onClick={onApprove}
             disabled={isPending}
           >
-            Approve
-          </Button>
+            {t("common.approve")}</Button>
           <Button
             variant="destructive"
             size="sm"
@@ -572,8 +569,7 @@ function ApprovalInboxRow({
             onClick={onReject}
             disabled={isPending}
           >
-            Reject
-          </Button>
+            {t("common.reject")}</Button>
         </div>
       ) : null}
     </div>
@@ -657,8 +653,8 @@ function JoinRequestInboxRow({
               {label}
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-              <span>requested {timeAgo(joinRequest.createdAt)} from IP {joinRequest.requestIp}</span>
-              {joinRequest.adapterType && <span>adapter: {joinRequest.adapterType}</span>}
+              <span>requested {timeAgo(joinRequest.createdAt)} {t("ui.pages.inbox.from-ip")}{joinRequest.requestIp}</span>
+              {joinRequest.adapterType && <span>{t("pages.agentDetail.adapterLabel")}{joinRequest.adapterType}</span>}
             </span>
           </span>
         </div>
@@ -669,8 +665,7 @@ function JoinRequestInboxRow({
             onClick={onApprove}
             disabled={isPending}
           >
-            Approve
-          </Button>
+            {t("common.approve")}</Button>
           <Button
             variant="destructive"
             size="sm"
@@ -678,8 +673,7 @@ function JoinRequestInboxRow({
             onClick={onReject}
             disabled={isPending}
           >
-            Reject
-          </Button>
+            {t("common.reject")}</Button>
         </div>
       </div>
       <div className="mt-3 flex gap-2 sm:hidden">
@@ -689,8 +683,7 @@ function JoinRequestInboxRow({
           onClick={onApprove}
           disabled={isPending}
         >
-          Approve
-        </Button>
+          {t("common.approve")}</Button>
         <Button
           variant="destructive"
           size="sm"
@@ -698,8 +691,7 @@ function JoinRequestInboxRow({
           onClick={onReject}
           disabled={isPending}
         >
-          Reject
-        </Button>
+          {t("common.reject")}</Button>
       </div>
     </div>
   );
@@ -2520,21 +2512,18 @@ export function Inbox() {
                       <DialogHeader>
                         <DialogTitle>{t("pages.inbox.markAllConfirm", { defaultValue: "Mark all as read?" })}</DialogTitle>
                         <DialogDescription>
-                          This will mark {unreadIssueIds.length} unread {unreadIssueIds.length === 1 ? "item" : "items"} as read.
-                        </DialogDescription>
+                          {t("ui.pages.inbox.will-mark")}{unreadIssueIds.length} unread {unreadIssueIds.length === 1 ? "item" : "items"} {t("ui.pages.inbox.read")}</DialogDescription>
                       </DialogHeader>
                       <DialogFooter>
                         <Button variant="outline" onClick={() => setShowMarkAllReadConfirm(false)}>
-                          Cancel
-                        </Button>
+                          {t("common.cancel")}</Button>
                         <Button
                           onClick={() => {
                             setShowMarkAllReadConfirm(false);
                             markAllReadMutation.mutate(unreadIssueIds);
                           }}
                         >
-                          Mark all as read
-                        </Button>
+                          {t("pages.inbox.markAllRead")}</Button>
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
@@ -2888,8 +2877,7 @@ export function Inbox() {
                         <div key={`today-divider-${group.key}-${index}`} className="my-2 flex items-center gap-3 px-4">
                           <div className="flex-1 border-t border-zinc-600" />
                           <span className="shrink-0 text-(length:--text-micro) font-medium uppercase tracking-wider text-zinc-500">
-                            Earlier
-                          </span>
+                            {t("components.routineOperate.earlier")}</span>
                         </div>,
                       );
                     }
@@ -3103,8 +3091,7 @@ export function Inbox() {
           {showSeparatorBefore("alerts") && <Separator />}
           <div>
             <h3 className="mb-3 text-sm font-semibold uppercase tracking-wide text-muted-foreground">
-              Alerts
-            </h3>
+              {t("pages.inbox.alerts")}</h3>
             <div className="divide-y divide-border border border-border">
               {showAggregateAgentError && (
                 <div className="group/alert relative flex items-center gap-3 px-4 py-3 transition-colors hover:bg-accent/50">
@@ -3136,10 +3123,9 @@ export function Inbox() {
                   >
                     <AlertTriangle className="h-4 w-4 shrink-0 text-yellow-400" />
                     <span className="text-sm">
-                      Budget at{" "}
+                      {t("ui.pages.inbox.budget")}{" "}
                       <span className="font-medium">{dashboard!.costs.monthUtilizationPercent}%</span>{" "}
-                      utilization this month
-                    </span>
+                      {t("ui.pages.inbox.utilization-month")}</span>
                   </Link>
                   <button
                     type="button"

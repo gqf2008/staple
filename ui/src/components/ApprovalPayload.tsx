@@ -147,7 +147,7 @@ export function BudgetOverridePayload({ payload }: { payload: Record<string, unk
       <PayloadField label={t("components.approvalPayload.metric", { defaultValue: "Metric" })} value={payload.metric} />
       {(budgetAmount !== null || observedAmount !== null) ? (
         <div className="rounded-md bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-          Limit {budgetAmount !== null ? formatCents(budgetAmount) : "—"} · Observed {observedAmount !== null ? formatCents(observedAmount) : "—"}
+          {t("pages.tools.policies.limit")}{budgetAmount !== null ? formatCents(budgetAmount) : "—"} {t("ui.components.approvalpayload.observed")}{observedAmount !== null ? formatCents(observedAmount) : "—"}
         </div>
       ) : null}
       {!!payload.guidance && (
@@ -200,8 +200,7 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
       {recommendedAction && (
         <div className="rounded-lg border border-amber-500/20 bg-amber-500/10 px-3.5 py-3">
           <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-amber-700 dark:text-amber-300">
-            Recommended action
-          </p>
+            {t("ui.components.approvalpayload.recommended-action")}</p>
           <p className="mt-1 leading-6 text-foreground">{recommendedAction}</p>
         </div>
       )}
@@ -227,8 +226,7 @@ function BoardApprovalPayloadContent({ payload }: { payload: Record<string, unkn
       {proposedComment && (
         <div className="space-y-1.5">
           <p className="text-(length:--text-micro) font-medium uppercase tracking-(--tracking-label) text-muted-foreground">
-            Proposed comment
-          </p>
+            {t("ui.components.approvalpayload.proposed-comment")}</p>
           <pre className="max-h-48 overflow-auto rounded-lg border border-border/60 bg-muted/50 px-3.5 py-3 font-mono text-xs leading-5 text-muted-foreground whitespace-pre-wrap">
             {proposedComment}
           </pre>

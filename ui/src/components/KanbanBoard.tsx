@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import { Link } from "@/lib/router";
 import {
@@ -252,12 +253,12 @@ function KanbanColumn({
             className="mt-1 flex w-full items-center justify-center rounded-md border border-dashed border-border bg-background/70 px-2 py-2 text-xs font-medium text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
             onClick={onShowMore}
           >
-            Show {nextRevealCount} more
+            {t("pages.agentDetail.show")}{nextRevealCount} more
           </button>
         ) : null}
         {issues.length > 0 && (hiddenCount > 0 || issues.length >= visibleCount) ? (
           <p className="px-1 pt-1 text-(length:--text-micro) text-muted-foreground">
-            Showing {visibleIssues.length} of {issues.length}
+            {t("ui.components.kanbanboard.showing")}{visibleIssues.length} of {issues.length}
           </p>
         ) : null}
       </div>
@@ -333,12 +334,11 @@ function KanbanCard({
           {isSuccessfulRunHandoffRequired(issue) ? (
             <Badge variant="outline"
               className="border-amber-400/45 bg-amber-50/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
-              title="This task needs a next step"
-              aria-label="Needs next step"
+              title={t("components.issuesList.thisTaskNeedsNextStep")}
+              aria-label={t("components.issuesList.needsNextStep")}
             >
               <AlertTriangle className="h-3 w-3" />
-              Next step
-            </Badge>
+              {t("ui.components.kanbanboard.next-step")}</Badge>
           ) : null}
           {isLive && (
             <span className="inline-flex shrink-0 items-center gap-1 text-(length:--text-nano) font-medium text-blue-600 dark:text-blue-400">
@@ -355,8 +355,7 @@ function KanbanCard({
               title={`${subtreeLiveCount} sub-task${subtreeLiveCount === 1 ? "" : "s"} running below`}
             >
               <span className="h-2 w-2 shrink-0 rounded-full border border-muted-foreground/60" aria-hidden="true" />
-              {subtreeLiveCount} live below
-            </Badge>
+              {subtreeLiveCount} {t("ui.components.issuecolumns.live-below")}</Badge>
           )}
         </div>
         <p className={`${compact ? "mb-1.5 text-xs" : "mb-2 text-sm"} leading-snug line-clamp-2`}>{issue.title}</p>

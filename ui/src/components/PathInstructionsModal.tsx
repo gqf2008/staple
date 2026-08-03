@@ -72,10 +72,9 @@ export function PathInstructionsModal({
         <DialogHeader>
           <DialogTitle className="text-base">{t("components.pathInstructions.title", { defaultValue: "How to get a full path" })}</DialogTitle>
           <DialogDescription>
-            Paste the absolute path (e.g.{" "}
+            {t("ui.components.pathinstructionsmodal.paste-absolute-path")}{" "}
             <code className="text-xs bg-muted px-1 py-0.5 rounded">/Users/you/project</code>
-            ) into the input field.
-          </DialogDescription>
+            {t("ui.components.pathinstructionsmodal.into-input-field")}</DialogDescription>
         </DialogHeader>
 
         {/* Platform tabs */}
@@ -136,8 +135,7 @@ export function ChoosePathButton({ className }: { className?: string }) {
         )}
         onClick={() => setOpen(true)}
       >
-        Choose
-      </button>
+        {t("components.agentConfigPrimitives.choose")}</button>
       <PathInstructionsModal open={open} onOpenChange={setOpen} />
     </>
   );

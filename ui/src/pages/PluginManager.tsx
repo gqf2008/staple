@@ -64,8 +64,7 @@ function ExperimentalBadge() {
       variant="outline"
       className="border-amber-500/30 bg-amber-500/10 text-amber-700 hover:bg-amber-500/10 dark:text-amber-200"
     >
-      Experimental
-    </Badge>
+      {t("components.companySettingsSidebar.experimental")}</Badge>
   );
 }
 
@@ -202,19 +201,17 @@ export function PluginManager() {
           <DialogTrigger asChild>
             <Button size="sm" className="gap-2">
               <Plus className="h-4 w-4" />
-              Install Plugin
-            </Button>
+              {t("pages.pluginManager.installTitle")}</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>{t("pages.pluginManager.installTitle", { defaultValue: "Install Plugin" })}</DialogTitle>
               <DialogDescription>
-                Enter the npm package name of the plugin you wish to install.
-              </DialogDescription>
+                {t("ui.pages.pluginmanager.enter-npm-package-name")}</DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid gap-2">
-                <Label htmlFor="packageName">npm Package Name</Label>
+                <Label htmlFor="packageName">{t("ui.pages.pluginmanager.npm-package-name")}</Label>
                 <Input
                   id="packageName"
                   placeholder="@paperclipai/plugin-example"
@@ -242,8 +239,7 @@ export function PluginManager() {
           <div className="space-y-1 text-sm">
             <p className="font-medium text-foreground">{t("pages.pluginManager.alphaWarning", { defaultValue: "Plugins are alpha." })}</p>
             <p className="text-muted-foreground">
-              The plugin runtime and API surface are still changing. Expect breaking changes while this feature settles.
-            </p>
+              {t("ui.pages.pluginmanager.plugin-runtime-api-surface")}</p>
           </div>
         </div>
       </div>
@@ -267,8 +263,7 @@ export function PluginManager() {
           <div className="text-sm text-destructive">{t("pages.pluginManager.bundledLoadFailed", { defaultValue: "Failed to load bundled plugins." })}</div>
         ) : bundledPlugins.length === 0 ? (
           <div className="rounded-md border border-dashed px-4 py-3 text-sm text-muted-foreground">
-            No bundled plugins were found in this checkout.
-          </div>
+            {t("ui.pages.pluginmanager.no-bundled-plugins-were")}</div>
         ) : (
           <Card className="block py-0">
           <ul className="divide-y">
@@ -320,8 +315,7 @@ export function PluginManager() {
                               disabled={enableMutation.isPending}
                               onClick={() => enableMutation.mutate(installedPlugin.id)}
                             >
-                              Enable
-                            </Button>
+                              {t("components.routineList.enable")}</Button>
                           )}
                           <Button variant="outline" size="sm" asChild>
                             <Link to={`/company/settings/instance/plugins/${installedPlugin.id}`}>
@@ -365,8 +359,7 @@ export function PluginManager() {
               <Puzzle className="h-10 w-10 text-muted-foreground mb-4" />
               <p className="text-sm font-medium">{t("pages.pluginManager.noPlugins", { defaultValue: "No plugins installed" })}</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Install a plugin to extend functionality.
-              </p>
+                {t("ui.pages.pluginmanager.install-plugin-extend-functionality")}</p>
             </CardContent>
           </Card>
         ) : (
@@ -427,8 +420,7 @@ export function PluginManager() {
                             className="border-red-500/30 bg-background/60 text-red-700 hover:bg-red-500/10 hover:text-red-800 dark:text-red-200 dark:hover:text-red-100"
                             onClick={() => setErrorDetailsPlugin(plugin)}
                           >
-                            View full error
-                          </Button>
+                            {t("ui.pages.pluginmanager.view-full-error")}</Button>
                         </div>
                       </div>
                     )}
@@ -484,8 +476,7 @@ export function PluginManager() {
                       <Button variant="outline" size="sm" className="mt-2 h-8" asChild>
                         <Link to={`/company/settings/instance/plugins/${plugin.id}`}>
                           <Settings className="h-4 w-4" />
-                          Configure
-                        </Link>
+                          {t("ui.components.builtinbundlepanel.configure")}</Link>
                       </Button>
                     </div>
                   </div>
@@ -505,8 +496,7 @@ export function PluginManager() {
           <DialogHeader>
             <DialogTitle>{t("pages.pluginManager.uninstallTitle", { defaultValue: "Uninstall Plugin" })}</DialogTitle>
             <DialogDescription>
-              Are you sure you want to uninstall <strong>{uninstallPluginName}</strong>? This action cannot be undone.
-            </DialogDescription>
+              {t("ui.pages.pluginmanager.you-sure-you-want")}<strong>{uninstallPluginName}</strong>{t("ui.pages.pluginmanager.action-cannot-undone")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setUninstallPluginId(null)}>{t("pages.pluginManager.cancel", { defaultValue: "Cancel" })}</Button>
@@ -535,8 +525,7 @@ export function PluginManager() {
           <DialogHeader>
             <DialogTitle>{t("pages.pluginManager.errorDetails", { defaultValue: "Error Details" })}</DialogTitle>
             <DialogDescription>
-              {errorDetailsPlugin?.manifestJson.displayName ?? errorDetailsPlugin?.packageName ?? t("pages.pluginManager.plugin", { defaultValue: "Plugin" })} hit an error state.
-            </DialogDescription>
+              {errorDetailsPlugin?.manifestJson.displayName ?? errorDetailsPlugin?.packageName ?? t("pages.pluginManager.plugin", { defaultValue: "Plugin" })} {t("ui.pages.pluginmanager.hit-error-state")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             <div className="rounded-md border border-red-500/25 bg-red-500/[0.06] px-4 py-3">
@@ -544,8 +533,7 @@ export function PluginManager() {
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-red-300" />
                 <div className="space-y-1 text-sm">
                   <p className="font-medium text-red-700 dark:text-red-300">
-                    What errored
-                  </p>
+                    {t("ui.pages.pluginmanager.what-errored")}</p>
                   <p className="text-red-700/90 dark:text-red-200/90 break-words">
                     {errorDetailsPlugin ? getPluginErrorSummary(errorDetailsPlugin) : t("pages.pluginManager.noErrorSummary", { defaultValue: "No error summary available." })}
                   </p>
@@ -561,8 +549,7 @@ export function PluginManager() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setErrorDetailsPlugin(null)}>
-              Close
-            </Button>
+              {t("components.fileViewer.close")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

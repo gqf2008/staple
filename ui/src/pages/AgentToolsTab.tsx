@@ -97,21 +97,18 @@ function InstalledAppsSection({
         <div>
           <h3 className="text-sm font-semibold text-foreground">{t("pages.agentToolsTab.installedApps", { defaultValue: "Installed apps" })}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Installed apps load tools into {agentName}'s context on every run. Permitted-only apps do not add context cost.
-          </p>
+            {t("ui.pages.agenttoolstab.installed-apps-load-tools")}{agentName}{t("ui.pages.agenttoolstab.context-every-run-permitted")}</p>
         </div>
         <InstallSaveStatusChip pending={saving} unsaved={unsaved} error={error} />
       </div>
 
       <div className="space-y-3 p-3">
         <InlineBanner tone="info" compact>
-          Has access means the app is permitted. Installed means its tools are added to this agent's runtime context.
-        </InlineBanner>
+          {t("ui.pages.agenttoolstab.has-access-means-app")}</InlineBanner>
 
         {connections.length === 0 ? (
           <p className="rounded-md border border-border bg-muted/30 px-3 py-4 text-sm text-muted-foreground">
-            No permitted apps yet. Bind an access profile to make apps available here.
-          </p>
+            {t("ui.pages.agenttoolstab.no-permitted-apps-yet")}</p>
         ) : (
           <div className="divide-y divide-border rounded-md border border-border">
             {connections.map((connection) => {
@@ -154,12 +151,10 @@ function InstalledAppsSection({
                           to={`/apps/${connection.id}/permissions`}
                           className="text-xs font-medium text-primary hover:underline"
                         >
-                          Open permissions
-                        </Link>
+                          {t("ui.pages.agenttoolstab.open-permissions")}</Link>
                       )}
                     >
-                      Permitted but not installed — tools will not appear in runs.
-                    </InlineBanner>
+                      {t("ui.pages.agenttoolstab.permitted-but-not-installed")}</InlineBanner>
                   ) : null}
                 </div>
               );
@@ -433,12 +428,9 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
         title={t("pages.agentToolsTab.effectiveAccess", { defaultValue: "Effective access" })}
         body={
           <>
-            This is exactly the tool set Paperclip will accept for{" "}
-            <span className="font-medium">{agent.name}</span>. Profile and policy edits are
-            reflected within ~5 seconds. The agent's prompt can narrow this list but{" "}
-            <span className="font-medium">cannot expand it</span> — everything else is blocked by
-            default.
-          </>
+            {t("ui.pages.agenttoolstab.exactly-tool-set-paperclip")}{" "}
+            <span className="font-medium">{agent.name}</span>{t("ui.pages.agenttoolstab.profile-policy-edits-reflected")}{" "}
+            <span className="font-medium">{t("ui.pages.agenttoolstab.cannot-expand")}</span> {t("ui.pages.agenttoolstab.everything-else-blocked-default")}</>
         }
       />
 
@@ -470,8 +462,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
             </div>
             {allowedTools.length === 0 ? (
               <p className="px-3 py-6 text-sm text-muted-foreground">
-                No tools are allowed for this agent. Bind a tool profile to grant access.
-              </p>
+                {t("ui.pages.agenttoolstab.no-tools-allowed-agent")}</p>
             ) : (
               <table className="w-full text-sm">
                 <thead>
@@ -517,26 +508,22 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
           <div className="rounded-lg border border-border bg-background/60 p-3">
             <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
               <HelpCircle className="h-3.5 w-3.5 text-muted-foreground" />
-              Why these tools?
-            </h3>
+              {t("ui.pages.agenttoolstab.why-these-tools")}</h3>
 
             {/* Access profiles */}
             <div className="mt-3 space-y-1.5">
               <div className="flex items-center justify-between gap-2">
                 <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                  Access profiles
-                </div>
+                  {t("pages.tools.profiles.title")}</div>
                 <Link
                   to={`${profilesHref}?check=1`}
                   className="text-(length:--text-micro) font-medium text-primary hover:underline"
                 >
-                  Check access
-                </Link>
+                  {t("ui.pages.agenttoolstab.check-access")}</Link>
               </div>
               {profiles.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No active profile applies to this agent, so it has no allowed tools.
-                </p>
+                  {t("ui.pages.agenttoolstab.no-active-profile-applies")}</p>
               ) : (
                 profiles.map((profile) => {
                   return (
@@ -550,8 +537,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
                       {profile.summary.isCompanyDefault ? (
                         <div className="mt-1">
                           <span className="rounded border border-border px-1.5 py-0.5 text-(length:--text-nano) uppercase text-muted-foreground">
-                            Company default
-                          </span>
+                            {t("pages.tools.profileDetail.companyDefault")}</span>
                         </div>
                       ) : null}
                     </div>
@@ -563,14 +549,12 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
             {/* Policies mutating the allow list */}
             <div className="mt-3 space-y-1.5">
               <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                Active policies
-              </div>
+                {t("ui.pages.agenttoolstab.active-policies")}</div>
               {policiesQuery.isLoading ? (
                 <p className="text-xs text-muted-foreground">{t("pages.agentToolsTab.loadingPolicies", { defaultValue: "Loading policies…" })}</p>
               ) : governingPolicies.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  No enabled policy currently mutates this agent's allow list.
-                </p>
+                  {t("ui.pages.agenttoolstab.no-enabled-policy-currently")}</p>
               ) : (
                 governingPolicies.map(({ policy, order }) => (
                   <div key={policy.id} className="rounded-md border border-border/70 px-2.5 py-2">
@@ -599,19 +583,16 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
             {/* Unavailable tools */}
             <div className="mt-3 space-y-1.5">
               <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                Unavailable tools
-              </div>
+                {t("ui.pages.agenttoolstab.unavailable-tools")}</div>
               {catalogLoading ? (
                 <p className="text-xs text-muted-foreground">{t("pages.agentToolsTab.checkingTools", { defaultValue: "Checking tools…" })}</p>
               ) : deniedTools.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
-                  Every known tool this agent could name is allowed.
-                </p>
+                  {t("ui.pages.agenttoolstab.every-known-tool-agent")}</p>
               ) : (
                 <>
                   <p className="text-(length:--text-micro) text-muted-foreground">
-                    Tools the agent could name but Paperclip would block:
-                  </p>
+                    {t("ui.pages.agenttoolstab.tools-agent-could-name")}</p>
                   <div className="flex flex-wrap gap-1">
                     {deniedTools.slice(0, DENIED_TOOLS_DISPLAY_LIMIT).map((tool) => (
                       <span

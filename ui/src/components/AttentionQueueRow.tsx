@@ -201,8 +201,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
           {showOpen && (
             <Button asChild variant="default" size="xs" className={ACTION_BTN}>
               <Link to={href!}>
-                Open
-                <ExternalLink className="h-3 w-3" />
+                {t("status.open")}<ExternalLink className="h-3 w-3" />
               </Link>
             </Button>
           )}
@@ -210,8 +209,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
           {showRestore && (
             <Button type="button" variant="outline" size="xs" className={ACTION_BTN} onClick={() => onRestore(item)}>
               <RotateCcw className="h-3 w-3" />
-              Restore
-            </Button>
+              {t("components.routineList.restore")}</Button>
           )}
         </div>
       </div>
@@ -268,8 +266,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
               data-testid="attention-trained-badge"
             >
               <GraduationCap className="h-3 w-3 fill-primary/25" />
-              Trained ✓
-            </button>
+              {t("ui.components.attentionqueuerow.trained")}</button>
           )}
         </div>
 
@@ -279,7 +276,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
               className="text-(length:--text-nano) text-muted-foreground"
               title={`Reappears ${new Date(snoozedUntil).toLocaleString()}`}
             >
-              Reappears {reappearLabel(snoozedUntil)}
+              {t("ui.components.attentionqueuerow.reappears")}{reappearLabel(snoozedUntil)}
             </span>
           ) : (
             <span className="text-(length:--text-nano) text-muted-foreground">{relativeTime(item.activityAt)}</span>
@@ -313,8 +310,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
                 {onSnooze && <SnoozeSubmenu onSnooze={(iso) => onSnooze(item, iso)} />}
                 <DropdownMenuItem onClick={() => onDismiss(item)}>
                   <X className="h-4 w-4" />
-                  Dismiss
-                </DropdownMenuItem>
+                  {t("pages.inbox.dismiss")}</DropdownMenuItem>
                 {href && (
                   <>
                     <DropdownMenuSeparator />
@@ -645,8 +641,7 @@ function ExpandedImages({ images, issueHref }: { images: AttentionDetailImage[];
         >
           <span className="text-base font-semibold">{extra} more</span>
           <span className="mt-0.5 inline-flex items-center gap-1 text-(length:--text-nano)">
-            View issue
-            <ExternalLink className="h-3 w-3" />
+            {t("ui.components.attentionqueuerow.view-issue")}<ExternalLink className="h-3 w-3" />
           </span>
         </Link>
       ) : (
@@ -671,8 +666,7 @@ function SnoozeSubmenu({ onSnooze }: { onSnooze: (snoozedUntil: string) => void 
     <DropdownMenuSub>
       <DropdownMenuSubTrigger>
         <AlarmClock className="h-4 w-4" />
-        Snooze
-      </DropdownMenuSubTrigger>
+        {t("ui.components.attentionqueuerow.snooze")}</DropdownMenuSubTrigger>
       <DropdownMenuSubContent>
         {SNOOZE_PRESETS.map((preset) => (
           <DropdownMenuItem key={preset.label} onClick={() => onSnooze(preset.resolve())}>
@@ -688,8 +682,7 @@ function SnoozeSubmenu({ onSnooze }: { onSnooze: (snoozedUntil: string) => void 
           onClick={(e) => e.stopPropagation()}
         >
           <span className="text-(length:--text-nano) font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-            Custom
-          </span>
+            {t("components.dialogs.newIssue.custom")}</span>
           <input
             type="datetime-local"
             value={customValue}
@@ -697,8 +690,7 @@ function SnoozeSubmenu({ onSnooze }: { onSnooze: (snoozedUntil: string) => void 
             className="w-full rounded-sm border border-border bg-background px-2 py-1 text-xs"
           />
           <Button type="button" size="xs" disabled={!customValue} onClick={applyCustom}>
-            Snooze until…
-          </Button>
+            {t("ui.components.attentionqueuerow.snooze-until")}</Button>
         </div>
       </DropdownMenuSubContent>
     </DropdownMenuSub>
@@ -824,16 +816,13 @@ function ApprovalResolver({ item, companyId, toggle }: { item: AttentionItem; co
       <ResolverFooter toggle={toggle}>
         <Button size="sm" variant="outline" onClick={() => revise.mutate()} disabled={pending}>
           {revise.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Request revision
-        </Button>
+          {t("ui.components.attentionqueuerow.request-revision")}</Button>
         <Button size="sm" variant="destructive" onClick={() => reject.mutate()} disabled={pending}>
           {reject.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Reject
-        </Button>
+          {t("common.reject")}</Button>
         <Button size="sm" onClick={() => approve.mutate()} disabled={pending}>
           {approve.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-          Approve
-        </Button>
+          {t("common.approve")}</Button>
       </ResolverFooter>
     </>
   );
@@ -859,12 +848,10 @@ function JoinRequestResolver({ item, companyId, toggle }: { item: AttentionItem;
     <ResolverFooter toggle={toggle}>
       <Button size="sm" variant="destructive" onClick={() => reject.mutate()} disabled={pending}>
         {reject.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-        Reject
-      </Button>
+        {t("common.reject")}</Button>
       <Button size="sm" onClick={() => approve.mutate()} disabled={pending}>
         {approve.isPending && <Loader2 className="h-3.5 w-3.5 animate-spin" />}
-        Approve
-      </Button>
+        {t("common.approve")}</Button>
     </ResolverFooter>
   );
 }

@@ -561,8 +561,7 @@ export function IssueRunLedgerContent({
             to={`/agents/${latestRun.agentId}/runs/${latestRun.runId}`}
             className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:text-foreground"
           >
-            Latest run
-          </Link>
+            {t("pages.agentDetail.latestRun")}</Link>
         ) : null}
       </div>
 
@@ -614,20 +613,19 @@ export function IssueRunLedgerContent({
               : t("components.issueRunLedger.silenceWatchdog", { defaultValue: "Output silence watchdog warning" })}
           </p>
           <p className="mt-1">
-            Latest active run has been silent for{" "}
+            {t("ui.components.issuerunledger.latest-active-run-has")}{" "}
             {formatSilenceAge(latestSilentRun.outputSilence.silenceAgeMs) ?? "an extended period"}.
             {latestSilentRun.outputSilence.evaluationIssueIdentifier ? (
               <>
                 {" "}
-                Review{" "}
+                {t("components.appsSidebar.review")}{" "}
                 <Link
                   to={`/issues/${latestSilentRun.outputSilence.evaluationIssueIdentifier}`}
                   className="font-medium underline underline-offset-2"
                 >
                   {latestSilentRun.outputSilence.evaluationIssueIdentifier}
                 </Link>
-                {" "}for recovery context.
-              </>
+                {" "}{t("ui.components.issuerunledger.recovery-context")}</>
             ) : null}
           </p>
           {onWatchdogDecision && canRecordWatchdogDecisions ? (
@@ -643,8 +641,7 @@ export function IssueRunLedgerContent({
                   })}
                 disabled={pendingWatchdogDecision != null}
               >
-                Continue monitoring
-              </button>
+                {t("ui.components.issuerunledger.continue-monitoring")}</button>
               <button
                 type="button"
                 className="rounded-md border border-border bg-background/80 px-2 py-1 text-(length:--text-micro) text-foreground hover:bg-background"
@@ -658,8 +655,7 @@ export function IssueRunLedgerContent({
                   })}
                 disabled={pendingWatchdogDecision != null}
               >
-                Snooze 1h
-              </button>
+                {t("ui.components.issuerunledger.snooze-1h")}</button>
               <button
                 type="button"
                 className="rounded-md border border-border bg-background/80 px-2 py-1 text-(length:--text-micro) text-foreground hover:bg-background"
@@ -672,8 +668,7 @@ export function IssueRunLedgerContent({
                   })}
                 disabled={pendingWatchdogDecision != null}
               >
-                Mark false positive
-              </button>
+                {t("ui.components.issuerunledger.mark-false-positive")}</button>
             </div>
           ) : null}
           {watchdogDecisionError ? (
@@ -729,7 +724,7 @@ export function IssueRunLedgerContent({
                       className="min-w-0 max-w-full truncate text-muted-foreground"
                       title={`Acting on behalf of ${onBehalfOfLabel}`}
                     >
-                      on behalf of <span className="text-foreground">{onBehalfOfLabel}</span>
+                      {t("ui.components.issuerunledger.behalf")}<span className="text-foreground">{onBehalfOfLabel}</span>
                     </span>
                   ) : null}
                   <span className="rounded-md border border-border px-1.5 py-0.5 text-(length:--text-micro) capitalize text-muted-foreground">
@@ -752,8 +747,7 @@ export function IssueRunLedgerContent({
                   </span>
                   {exhausted ? (
                     <span className="rounded-md border border-red-500/30 bg-red-500/10 px-1.5 py-0.5 text-(length:--text-micro) font-medium text-red-700 dark:text-red-300">
-                      Exhausted
-                    </span>
+                      {t("ui.components.issuerunledger.exhausted")}</span>
                   ) : null}
                   {continuation ? (
                     <span className="text-(length:--text-micro) text-muted-foreground">{continuation}</span>
@@ -823,7 +817,7 @@ export function IssueRunLedgerContent({
                     {retryState.secondary ? <p>{retryState.secondary}</p> : null}
                     {retryState.retryOfRunId ? (
                       <p>
-                        Retry of{" "}
+                        {t("ui.components.issuerunledger.retry")}{" "}
                         <Link
                           to={`/agents/${run.agentId}/runs/${retryState.retryOfRunId}`}
                           className="font-mono text-foreground hover:underline"
@@ -864,7 +858,7 @@ export function IssueRunLedgerContent({
 
                 {run.nextAction ? (
                   <div className="min-w-0 rounded-md bg-accent/40 px-2 py-1.5 text-xs leading-5">
-                    <span className="font-medium text-foreground">Next action: </span>
+                    <span className="font-medium text-foreground">{t("components.issueRunLedger.nextAction")}</span>
                     <span className="break-words text-muted-foreground">{run.nextAction}</span>
                   </div>
                 ) : null}
@@ -873,8 +867,7 @@ export function IssueRunLedgerContent({
           })}
           {feedItems.length > 20 ? (
             <div className="px-3 py-2 text-xs text-muted-foreground">
-              {feedItems.length - 20} older items not shown
-            </div>
+              {feedItems.length - 20} {t("ui.components.issuerunledger.older-items-not-shown")}</div>
           ) : null}
         </div>
       )}

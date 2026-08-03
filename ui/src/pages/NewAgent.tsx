@@ -213,8 +213,7 @@ export function NewAgent() {
       <div>
         <h1 className="text-lg font-semibold">{t("pages.newAgent.newAgent", { defaultValue: "New Agent" })}</h1>
         <p className="text-sm text-muted-foreground mt-1">
-          Advanced agent configuration
-        </p>
+          {t("ui.pages.newagent.advanced-agent-configuration")}</p>
       </div>
 
       <div className="border border-border">
@@ -311,13 +310,11 @@ export function NewAgent() {
             <div>
               <h2 className="text-sm font-medium">{t("pages.newAgent.companySkills", { defaultValue: "Company skills" })}</h2>
               <p className="mt-1 text-xs text-muted-foreground">
-                Optional skills from the company library. Built-in Paperclip runtime skills are added automatically.
-              </p>
+                {t("ui.pages.newagent.optional-skills-from-company")}</p>
             </div>
             {availableSkills.length === 0 ? (
               <p className="text-xs text-muted-foreground">
-                No optional company skills installed yet.
-              </p>
+                {t("ui.pages.newagent.no-optional-company-skills")}</p>
             ) : (
               <div className="space-y-3">
                 {availableSkills.map((skill) => {
@@ -362,8 +359,7 @@ export function NewAgent() {
             )}
             <div className="flex items-center justify-between gap-2">
               <Button variant="outline" size="sm" onClick={() => navigate("/agents")}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
               <div className="flex items-center gap-2">
                 <Button
                   type="button"

@@ -78,7 +78,7 @@ export function CatalogDialog({ connection, onClose }: { connection: ToolConnect
     <Dialog open onOpenChange={(o) => !o && onClose()}>
       <DialogContent className="max-w-2xl">
         <DialogHeader>
-          <DialogTitle>Tool catalog — {connection.name}</DialogTitle>
+          <DialogTitle>{t("ui.pages.tools.connection-dialogs.tool-catalog")}{connection.name}</DialogTitle>
         </DialogHeader>
         {catalog.isLoading ? (
           <LoadingState />
@@ -86,8 +86,7 @@ export function CatalogDialog({ connection, onClose }: { connection: ToolConnect
           <ErrorState error={catalog.error} onRetry={() => catalog.refetch()} />
         ) : (catalog.data?.catalog ?? []).length === 0 ? (
           <p className="py-6 text-sm text-muted-foreground">
-            No tools discovered yet. Use “Refresh catalog” to discover tools from this connection.
-          </p>
+            {t("ui.pages.tools.connection-dialogs.no-tools-discovered-yet")}</p>
         ) : (
           <ul className="max-h-(--sz-60vh) divide-y divide-border overflow-y-auto">
             {(catalog.data?.catalog ?? []).map((entry) => (
@@ -282,16 +281,14 @@ export function AddConnectionDialog({
         <DialogHeader>
           <DialogTitle>{t("pages.tools.connectionDialogs.addApplication", { defaultValue: "Add application" })}</DialogTitle>
           <DialogDescription>
-            Choose an existing application or create one as part of the same connection flow. Credentials stay as
-            vault references and the connection is probed before activation.
-          </DialogDescription>
+            {t("ui.pages.tools.connection-dialogs.choose-existing-application-create")}</DialogDescription>
         </DialogHeader>
 
         <div className="space-y-3">
           <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className={step === 1 ? "font-medium text-foreground" : ""}>1 Application</span>
+            <span className={step === 1 ? "font-medium text-foreground" : ""}>{t("ui.pages.tools.connection-dialogs.application")}</span>
             <span>/</span>
-            <span className={step === 2 ? "font-medium text-foreground" : ""}>2 Connection</span>
+            <span className={step === 2 ? "font-medium text-foreground" : ""}>{t("ui.pages.tools.connection-dialogs.connection")}</span>
           </div>
 
           {step === 1 && !locked ? (
@@ -332,11 +329,10 @@ export function AddConnectionDialog({
                     id="app-name"
                     value={applicationName}
                     onChange={(e) => setApplicationName(e.target.value)}
-                    placeholder="e.g. GitHub Triage"
+                    placeholder={t("ui.pages.tools.connection-dialogs.github-triage")}
                   />
                   <p className="text-xs text-muted-foreground">
-                    Application type is inferred from the transport you choose next.
-                  </p>
+                    {t("ui.pages.tools.connection-dialogs.application-type-inferred-from")}</p>
                 </div>
               )}
             </>
@@ -346,7 +342,7 @@ export function AddConnectionDialog({
             <>
               {applicationMode === "new" ? (
                 <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                  <span className="font-medium text-foreground">{applicationName.trim()}</span> will be created as{" "}
+                  <span className="font-medium text-foreground">{applicationName.trim()}</span> {t("ui.pages.tools.connection-dialogs.will-created")}{" "}
                   {inferredType}.
                 </div>
               ) : null}
@@ -357,7 +353,7 @@ export function AddConnectionDialog({
                   id="conn-name"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
-                  placeholder="e.g. Production GitHub"
+                  placeholder={t("ui.pages.tools.connection-dialogs.production-github")}
                   disabled={locked}
                 />
               </div>
@@ -406,8 +402,7 @@ export function AddConnectionDialog({
                     </SelectContent>
                   </Select>
                   <p className="text-xs text-muted-foreground">
-                    Only board-approved command templates can run. Arbitrary commands are never accepted.
-                  </p>
+                    {t("ui.pages.tools.connection-dialogs.only-board-approved-command")}</p>
                 </div>
               )}
 
@@ -465,8 +460,7 @@ export function AddConnectionDialog({
                         aria-label={t("pages.tools.connectionDialogs.headerName", { defaultValue: "Header name" })}
                       />
                       <Button type="button" size="sm" variant="outline" onClick={addCred} disabled={!pendingSecretId}>
-                        Add
-                      </Button>
+                        {t("components.jsonSchemaForm.add")}</Button>
                     </div>
                     {pendingSecretId ? (
                       <p className="flex items-center gap-1.5 font-mono text-xs text-muted-foreground">
@@ -475,9 +469,7 @@ export function AddConnectionDialog({
                       </p>
                     ) : null}
                     <p className="text-xs text-muted-foreground">
-                      Free-text secrets are not accepted — pick a vault entry; Paperclip stores only the
-                      <span className="font-mono"> vault://</span> reference and resolves it at gateway use time.
-                    </p>
+                      {t("ui.pages.tools.connection-dialogs.free-text-secrets-not")}<span className="font-mono"> {t("ui.pages.tools.connection-dialogs.vault")}</span> {t("ui.pages.tools.connection-dialogs.reference-resolves-gateway-use")}</p>
                   </>
                 ) : null}
               </div>
@@ -503,13 +495,13 @@ export function AddConnectionDialog({
                     <p className="text-lg font-semibold tabular-nums text-foreground">
                       {probeResult.toolCount ?? "—"}
                     </p>
-                    <p className="text-xs text-muted-foreground">tools discovered</p>
+                    <p className="text-xs text-muted-foreground">{t("ui.pages.tools.connection-dialogs.tools-discovered")}</p>
                   </div>
                   <div>
                     <p className="text-lg font-semibold tabular-nums text-foreground">
                       {probeResult.latencyMs != null ? `${probeResult.latencyMs}ms` : "—"}
                     </p>
-                    <p className="text-xs text-muted-foreground">probe latency</p>
+                    <p className="text-xs text-muted-foreground">{t("ui.pages.tools.connection-dialogs.probe-latency")}</p>
                   </div>
                   <div>
                     <p className="text-lg font-semibold tabular-nums text-foreground">
@@ -525,9 +517,7 @@ export function AddConnectionDialog({
                   <p className="mt-1 text-xs text-destructive">{probeResult.connection.lastError}</p>
                 ) : null}
                 <p className="mt-2 text-(length:--text-micro) text-muted-foreground">
-                  Probe latency is a single round-trip sample. Aggregate p95 latency across traffic is tracked on
-                  the Runtime tab once the connection is live.
-                </p>
+                  {t("ui.pages.tools.connection-dialogs.probe-latency-single-round")}</p>
               </div>
             ) : null
           ) : null}
@@ -535,17 +525,14 @@ export function AddConnectionDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={onClose}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           {step === 1 && !locked ? (
             <Button disabled={!appChoiceValid} onClick={() => setStep(2)}>
-              Continue
-            </Button>
+              {t("pages.appsConnect.continue")}</Button>
           ) : !locked ? (
             <>
               <Button variant="outline" onClick={() => setStep(1)}>
-                Back
-              </Button>
+                {t("pages.teamCatalog.back")}</Button>
               <Button disabled={!canCreate} onClick={() => create.mutate()}>
                 {create.isPending ? t("pages.tools.connectionDialogs.creatingDraft", { defaultValue: "Creating draft…" }) : t("pages.tools.connectionDialogs.createAndProbe", { defaultValue: "Create & probe" })}
               </Button>

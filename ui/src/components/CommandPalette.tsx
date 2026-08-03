@@ -242,10 +242,9 @@ export function CommandPalette() {
         <CommandEmpty>
           {showSearchAll ? (
             <span>
-              No quick task matches. Press{" "}
+              {t("ui.components.commandpalette.no-quick-task-matches")}{" "}
               <kbd className="rounded border border-border bg-muted px-1 py-0.5 text-(length:--text-nano)">↵</kbd>{" "}
-              to <span className="font-medium">search all</span> or keep typing to refine.
-            </span>
+              to <span className="font-medium">{t("ui.components.commandpalette.search-all")}</span> {t("ui.components.commandpalette.keep-typing-refine")}</span>
           ) : (
             t("components.commandPalette.noResults", { defaultValue: "No results found." })
           )}
@@ -261,10 +260,10 @@ export function CommandPalette() {
             >
               <Search className="mr-2 h-4 w-4" />
               <span className="flex-1 truncate">
-                Search all for <span className="font-semibold">&ldquo;{searchQuery}&rdquo;</span>
+                {t("ui.components.commandpalette.search-all-alt")}<span className="font-semibold">{t("ui.components.commandpalette.ldquo")}{searchQuery}{t("ui.components.commandpalette.rdquo")}</span>
               </span>
               <span className="ml-auto inline-flex items-center gap-1 text-xs text-muted-foreground">
-                <span>open full search</span>
+                <span>{t("ui.components.commandpalette.open-full-search")}</span>
                 <kbd className="rounded border border-border bg-background px-1 py-0.5 text-(length:--text-nano)">↵</kbd>
               </span>
             </CommandItem>
@@ -321,8 +320,7 @@ export function CommandPalette() {
             }}
           >
             <SquarePen className="mr-2 h-4 w-4" />
-            Create new task
-            <span className="ml-auto text-xs text-muted-foreground">C</span>
+            {t("ui.components.commandpalette.create-new-task")}<span className="ml-auto text-xs text-muted-foreground">C</span>
           </CommandItem>
           {onIssueDetail && fileViewerEnabled && (
             <CommandItem
@@ -332,8 +330,7 @@ export function CommandPalette() {
               }}
             >
               <FileCode2 className="mr-2 h-4 w-4" />
-              Open file in this issue...
-              <span className="ml-auto text-xs text-muted-foreground">g f</span>
+              {t("ui.components.commandpalette.open-file-issue")}<span className="ml-auto text-xs text-muted-foreground">{t("ui.components.commandpalette.text")}</span>
             </CommandItem>
           )}
           <CommandItem
@@ -343,12 +340,10 @@ export function CommandPalette() {
             }}
           >
             <Plus className="mr-2 h-4 w-4" />
-            Create new agent
-          </CommandItem>
+            {t("ui.components.commandpalette.create-new-agent")}</CommandItem>
           <CommandItem onSelect={() => go("/projects")}>
             <Plus className="mr-2 h-4 w-4" />
-            Create new project
-          </CommandItem>
+            {t("ui.components.commandpalette.create-new-project")}</CommandItem>
         </CommandGroup>
 
         <CommandSeparator />
@@ -356,36 +351,28 @@ export function CommandPalette() {
         <CommandGroup heading={t("components.commandPalette.pages", { defaultValue: "Pages" })}>
           <CommandItem onSelect={() => go("/dashboard")}>
             <LayoutDashboard className="mr-2 h-4 w-4" />
-            Dashboard
-          </CommandItem>
+            {t("nav.dashboard")}</CommandItem>
           <CommandItem onSelect={() => go("/inbox")}>
             <Inbox className="mr-2 h-4 w-4" />
-            Inbox
-          </CommandItem>
+            {t("nav.inbox")}</CommandItem>
           <CommandItem onSelect={() => go("/issues")}>
             <CircleDot className="mr-2 h-4 w-4" />
-            Tasks
-          </CommandItem>
+            {t("nav.tasks")}</CommandItem>
           <CommandItem onSelect={() => go("/projects")}>
             <Hexagon className="mr-2 h-4 w-4" />
-            Projects
-          </CommandItem>
+            {t("nav.projects")}</CommandItem>
           <CommandItem onSelect={() => go("/goals")}>
             <Target className="mr-2 h-4 w-4" />
-            Goals
-          </CommandItem>
+            {t("nav.goals")}</CommandItem>
           <CommandItem onSelect={() => go("/agents")}>
             <Bot className="mr-2 h-4 w-4" />
-            Agents
-          </CommandItem>
+            {t("common.agents")}</CommandItem>
           <CommandItem onSelect={() => go("/costs")}>
             <DollarSign className="mr-2 h-4 w-4" />
-            Costs
-          </CommandItem>
+            {t("nav.costs")}</CommandItem>
           <CommandItem onSelect={() => go("/activity")}>
             <History className="mr-2 h-4 w-4" />
-            Activity
-          </CommandItem>
+            {t("nav.activity")}</CommandItem>
         </CommandGroup>
 
         {visibleIssues.length > 0 && (

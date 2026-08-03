@@ -291,8 +291,7 @@ export function EnvironmentVariableRow({
                   <DropdownMenuItem className="flex-col items-start gap-0.5" onSelect={() => switchSource("user_secret")}>
                     <span className="text-sm">{t("components.envVarRow.userSecret2", { defaultValue: "User secret" })}</span>
                     <span className="text-(length:--text-micro) text-muted-foreground">
-                      Resolve the responsible user&apos;s own value at run start.
-                    </span>
+                      {t("ui.components.environment-variables-editor.row.resolve-responsible-user-apos")}</span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -393,7 +392,7 @@ export function EnvironmentVariableRow({
                             row.version === "latest" && "font-medium",
                           )}
                         >
-                          latest <span className="text-(length:--text-micro) text-muted-foreground">(recommended)</span>
+                          latest <span className="text-(length:--text-micro) text-muted-foreground">{t("ui.components.environment-variables-editor.row.recommended")}</span>
                         </button>
                         {Array.from({ length: versions }, (_, idx) => versions - idx)
                           .filter((v) => v > 0)
@@ -438,7 +437,7 @@ export function EnvironmentVariableRow({
                     >
                       <option value="">{t("components.envVarRow.selectUserSecret", { defaultValue: "Select user secret..." })}</option>
                       {row.userSecretKey && !userSecretDefinitions?.some((definition) => definition.key === row.userSecretKey) ? (
-                        <option value={row.userSecretKey}>Unknown ({row.userSecretKey})</option>
+                        <option value={row.userSecretKey}>{t("ui.components.environment-variables-editor.row.unknown")}{row.userSecretKey})</option>
                       ) : null}
                       {(userSecretDefinitions ?? []).map((definition) => (
                         <option key={definition.id} value={definition.key}>
@@ -450,7 +449,7 @@ export function EnvironmentVariableRow({
                   ) : (
                     <input
                       className={valueTextInputClass}
-                      placeholder="user-secret key"
+                      placeholder={t("ui.components.environment-variables-editor.row.user-secret-key")}
                       value={row.userSecretKey}
                       spellCheck={false}
                       disabled={disabled}
@@ -534,7 +533,7 @@ export function EnvironmentVariableRow({
         {/* 5s undo after Secret→Text */}
         {undoPrev ? (
           <p className="mt-0.5 inline-flex items-center gap-2 text-(length:--text-micro) text-muted-foreground">
-            Reverted to text —{" "}
+            {t("ui.components.environment-variables-editor.row.reverted-text")}{" "}
             <button
               type="button"
               className="font-medium text-foreground underline underline-offset-2 hover:text-primary"
@@ -543,8 +542,7 @@ export function EnvironmentVariableRow({
                 setUndoPrev(null);
               }}
             >
-              Undo
-            </button>
+              {t("common.undo")}</button>
           </p>
         ) : null}
       </div>
@@ -587,8 +585,7 @@ export function EnvironmentVariableRow({
                   window.setTimeout(openStoreAsSecret, 0);
                 }}
               >
-                Store as secret…
-              </DropdownMenuItem>
+                {t("ui.components.environment-variables-editor.row.store-secret")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         ) : null}

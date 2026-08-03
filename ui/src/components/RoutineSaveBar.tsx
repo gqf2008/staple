@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 import { AlertTriangle, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -81,7 +82,7 @@ export function RoutineSaveBar({
         {saveConflict ? (
           <div className="flex items-center gap-2 text-sm text-amber-800 dark:text-amber-200">
             <AlertTriangle className="h-4 w-4" />
-            <span>Routine changed elsewhere. Reload to merge.</span>
+            <span>{t("ui.components.routinesavebar.routine-changed-elsewhere-reload")}</span>
           </div>
         ) : (
           <Popover>
@@ -98,8 +99,7 @@ export function RoutineSaveBar({
             </PopoverTrigger>
             <PopoverContent align="start" className="w-64">
               <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Pending changes
-              </p>
+                {t("ui.components.routinesavebar.pending-changes")}</p>
               <ul className="space-y-1 text-sm">
                 {dirtyFields.map((field) => (
                   <li key={field.key} className="flex items-center gap-2">
@@ -116,8 +116,7 @@ export function RoutineSaveBar({
           {saveConflict ? (
             <>
               <Button variant="outline" size="sm" onClick={onReload}>
-                Reload latest
-              </Button>
+                {t("ui.components.routinesavebar.reload-latest")}</Button>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -128,12 +127,10 @@ export function RoutineSaveBar({
                       onClick={onSave}
                     >
                       {isSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                      Overwrite anyway
-                    </Button>
+                      {t("ui.components.routinesavebar.overwrite-anyway")}</Button>
                   </TooltipTrigger>
                   <TooltipContent>
-                    Replaces the newer revision with your local edits.
-                  </TooltipContent>
+                    {t("ui.components.routinesavebar.replaces-newer-revision-your")}</TooltipContent>
                 </Tooltip>
               </TooltipProvider>
             </>
@@ -145,16 +142,14 @@ export function RoutineSaveBar({
                 disabled={isSaving || disabled}
                 onClick={() => setConfirmDiscardOpen(true)}
               >
-                Discard
-              </Button>
+                {t("ui.components.routinesavebar.discard")}</Button>
               <Button
                 size="sm"
                 disabled={isSaving || disabled}
                 onClick={onSave}
               >
                 {isSaving ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-                Save changes
-                <kbd className="ml-2 hidden rounded bg-foreground/10 px-1 text-(length:--text-nano) font-medium sm:inline">
+                {t("pages.companySettings.saveChanges")}<kbd className="ml-2 hidden rounded bg-foreground/10 px-1 text-(length:--text-nano) font-medium sm:inline">
                   ⌘S
                 </kbd>
               </Button>
@@ -166,16 +161,14 @@ export function RoutineSaveBar({
       <Dialog open={confirmDiscardOpen} onOpenChange={setConfirmDiscardOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Discard changes?</DialogTitle>
+            <DialogTitle>{t("ui.components.routinesavebar.discard-changes")}</DialogTitle>
             <DialogDescription>
-              This will revert {dirtyCount} unsaved{" "}
-              {dirtyCount === 1 ? "change" : "changes"} in this section.
-            </DialogDescription>
+              {t("ui.components.routinesavebar.will-revert")}{dirtyCount} unsaved{" "}
+              {dirtyCount === 1 ? "change" : "changes"} {t("ui.components.routinesavebar.section")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="ghost" size="sm" onClick={() => setConfirmDiscardOpen(false)}>
-              Keep editing
-            </Button>
+              {t("ui.components.routinesavebar.keep-editing")}</Button>
             <Button
               variant="destructive"
               size="sm"
@@ -184,8 +177,7 @@ export function RoutineSaveBar({
                 setConfirmDiscardOpen(false);
               }}
             >
-              Discard changes
-            </Button>
+              {t("ui.components.routinehistorytab.discard-changes")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -197,7 +189,6 @@ export function RoutineSaveBar({
 export function RoutineReadOnlyStrip() {
   return (
     <div className="-mx-8 mt-6 border-t border-border bg-muted/20 px-8 py-3 text-xs text-muted-foreground">
-      Read-only — you don't own this routine.
-    </div>
+      {t("ui.components.routinesavebar.read-only-you-don")}</div>
   );
 }

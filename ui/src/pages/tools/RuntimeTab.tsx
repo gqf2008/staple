@@ -232,8 +232,7 @@ function LivePill() {
       <TooltipTrigger asChild>
         <span className="inline-flex cursor-help items-center gap-1.5 rounded-full border border-border px-2.5 py-1 text-xs font-medium text-foreground">
           <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-          Live
-        </span>
+          {t("components.issueChatThread.live")}</span>
       </TooltipTrigger>
       <TooltipContent>{t("pages.tools.runtime.autoUpdateHint", { defaultValue: "Updates automatically every 15 seconds." })}</TooltipContent>
     </Tooltip>
@@ -400,7 +399,7 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
                 {action === "restart" && localAttentionRow ? (
                   <Button size="sm" onClick={() => beginRestart(localAttentionRow)}>
                     <RotateCw className="mr-1.5 h-3.5 w-3.5" />
-                    Restart {localAttentionRow.name}
+                    {t("components.workspaceRuntimeControls.restart")}{localAttentionRow.name}
                   </Button>
                 ) : action === "reviewApps" ? (
                   <Button size="sm" asChild>
@@ -439,7 +438,7 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
         <EmptyState
           icon={Server}
           message={t("pages.tools.runtime.noAppsRunning", { defaultValue: "No apps running right now" })}
-          description="Apps that run on this machine start automatically the first time an agent needs them. Apps that connect over the internet don't use a local process."
+          description={t("ui.pages.tools.runtimetab.apps-run-machine-start")}
         />
       ) : (
         <Card className="py-0">
@@ -482,9 +481,7 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
       )}
 
       <p className="text-xs text-muted-foreground">
-        Apps that "connect over the internet" hide Stop and Restart — those run on the provider's side, so there's
-        no local process to control here.
-      </p>
+        {t("ui.pages.tools.runtimetab.apps-connect-over-internet")}</p>
 
       <ConfirmDialog
         target={confirm}
@@ -558,8 +555,7 @@ function RuntimeRowView({
           {isLocal ? (
             <Button size="sm" variant="outline" disabled={busy || status === "off"} onClick={onRestart}>
               {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
-              Restart
-            </Button>
+              {t("components.workspaceRuntimeControls.restart")}</Button>
           ) : (
             <span className="text-xs text-muted-foreground">{t("pages.tools.runtime.runsProviderSide", { defaultValue: "Runs on the provider's side" })}</span>
           )}
@@ -577,24 +573,21 @@ function RuntimeRowView({
               <Fact label={t("pages.tools.runtime.started", { defaultValue: "Started" })} value={<RelativeTime value={slot.lastStartedAt ?? slot.startedAt} />} />
             </dl>
             {slot.lastError ? (
-              <p className="mt-3 text-xs text-destructive">Last error: {slot.lastError}</p>
+              <p className="mt-3 text-xs text-destructive">{t("ui.pages.apps.appnotconnected.last-error")}{slot.lastError}</p>
             ) : null}
             <div className="mt-4 flex items-center gap-2">
               {canControl ? (
                 <>
                   <Button size="sm" variant="outline" disabled={busy} onClick={onStop}>
                     {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Square className="mr-1.5 h-3.5 w-3.5" fill="currentColor" />}
-                    Stop
-                  </Button>
+                    {t("components.issueRunLedger.stop")}</Button>
                   <Button size="sm" variant="outline" disabled={busy} onClick={onRestart}>
                     {busy ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <RotateCw className="mr-1.5 h-3.5 w-3.5" />}
-                    Restart
-                  </Button>
+                    {t("components.workspaceRuntimeControls.restart")}</Button>
                 </>
               ) : !isLocal ? (
                 <p className="text-xs text-muted-foreground">
-                  This app runs on the provider's side — there's nothing to stop or restart here.
-                </p>
+                  {t("ui.pages.tools.runtimetab.app-runs-provider-side")}</p>
               ) : (
                 <p className="text-xs text-muted-foreground">{t("pages.tools.runtime.appOffHint", { defaultValue: "This app is off. It will start again when an agent needs it." })}</p>
               )}
@@ -630,26 +623,21 @@ function ConfirmDialog({
           {isRestart ? (
             <>
               <p>
-                Anything in progress will stop. Agents using {target?.name} right now will see a Failed result on
-                their action.
-              </p>
+                {t("ui.pages.tools.runtimetab.anything-progress-will-stop")}{target?.name} {t("ui.pages.tools.runtimetab.right-now-will-see")}</p>
               <p className="text-xs text-muted-foreground">{t("pages.tools.runtime.restartHint", { defaultValue: "Restart usually takes 2–3 seconds." })}</p>
             </>
           ) : (
             <>
               <p>
-                {target?.name} will stop running. Agents won't be able to use it until it starts again.
-              </p>
+                {target?.name} {t("ui.pages.tools.runtimetab.will-stop-running-agents")}</p>
               <p className="text-xs text-muted-foreground">
-                It starts again automatically the next time an agent needs it.
-              </p>
+                {t("ui.pages.tools.runtimetab.starts-again-automatically-next")}</p>
             </>
           )}
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={onCancel} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button onClick={onConfirm} disabled={pending}>
             {pending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
             {isRestart ? t("pages.tools.runtime.restart", { defaultValue: "Restart" }) : t("pages.tools.runtime.stop", { defaultValue: "Stop" })}

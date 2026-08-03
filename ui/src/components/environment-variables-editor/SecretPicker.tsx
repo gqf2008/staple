@@ -324,7 +324,7 @@ export function SecretPicker({
             <Plus className="size-3.5 shrink-0" />
             {query.trim() ? (
               <span>
-                Create secret <span className="font-mono">&ldquo;{query.trim()}&rdquo;</span>…
+                {t("components.createSecretPopover.createSecret")}<span className="font-mono">{t("ui.components.commandpalette.ldquo")}{query.trim()}{t("ui.components.commandpalette.rdquo")}</span>…
               </span>
             ) : (
               <span>{t("components.secretPicker.createNew", { defaultValue: "Create new secret…" })}</span>

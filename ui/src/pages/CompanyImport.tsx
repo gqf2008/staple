@@ -178,7 +178,7 @@ function renderImportFileExtra(node: FileTreeNode, checked: boolean, renameMap: 
     <span className="inline-flex items-center gap-1.5 shrink-0">
       {renamedTo && checked && (
         <span className="text-(length:--text-nano) text-cyan-500 font-mono truncate max-w-(--sz-7rem)" title={renamedTo}>
-          &rarr; {renamedTo}
+          {t("ui.pages.agentdetail.rarr")}{renamedTo}
         </span>
       )}
       {actionBadge}
@@ -237,7 +237,7 @@ function ImportPreviewPane({
             <span className="truncate font-mono text-sm">{selectedFile}</span>
             {renamedTo && (
               <span className="shrink-0 font-mono text-sm text-cyan-500">
-                &rarr; {renamedTo}
+                {t("ui.pages.agentdetail.rarr")}{renamedTo}
               </span>
             )}
           </div>
@@ -269,8 +269,7 @@ function ImportPreviewPane({
           </pre>
         ) : (
           <div className="rounded-lg border border-border bg-accent/10 px-4 py-3 text-sm text-muted-foreground">
-            Binary asset preview is not available for this file type.
-          </div>
+            {t("ui.pages.companyexport.binary-asset-preview-not")}</div>
         )}
       </div>
     </div>
@@ -448,8 +447,7 @@ function ConflictResolutionList({
       <div className="rounded-md border border-border">
         <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
           <h3 className="text-sm font-medium">
-            Renames
-          </h3>
+            {t("ui.pages.companyimport.renames")}</h3>
           <span className="text-xs text-muted-foreground">
             {conflicts.length} item{conflicts.length === 1 ? "" : "s"}
           </span>
@@ -632,8 +630,7 @@ function AdapterPickerList({
                     onClick={() => onToggleExpand(agent.slug)}
                   >
                     <ChevronRight className={cn("h-3 w-3 transition-transform", isExpanded && "rotate-90")} />
-                    configure adapter
-                  </button>
+                    {t("ui.pages.companyimport.configure-adapter")}</button>
                 </div>
                 {isExpanded && (
                   <div className="border-t border-border bg-accent/10 px-4 py-3 space-y-3">
@@ -1446,9 +1443,7 @@ export function CompanyImport() {
         <div>
           <h2 className="text-base font-semibold">{t("pages.companyImport.importCompleted", { defaultValue: "Import completed" })}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            The import finished and your company is ready. Its detailed summary is no
-            longer available, but the company has been added — open it to view it.
-          </p>
+            {t("ui.pages.companyimport.import-finished-your-company")}</p>
         </div>
       </div>
     );
@@ -1466,7 +1461,7 @@ export function CompanyImport() {
           <h2 className="text-base font-semibold">{t("pages.companyImport.importComplete", { defaultValue: "Import complete" })}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             {result.company.name}: {result.agents.length} agent{result.agents.length === 1 ? "" : "s"},{" "}
-            {result.projects.length} project{result.projects.length === 1 ? "" : "s"}, and{" "}
+            {result.projects.length} project{result.projects.length === 1 ? "" : "s"}{t("ui.pages.companyimport.text")}{" "}
             {result.routines.length} routine{result.routines.length === 1 ? "" : "s"} processed.
           </p>
         </div>
@@ -1483,7 +1478,7 @@ export function CompanyImport() {
           <div className="rounded-md border border-border">
             <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
               <h3 className="text-sm font-medium">{t("pages.companyImport.activateImported", { defaultValue: "Activate imported agents and routines" })}</h3>
-              <span className="text-xs text-muted-foreground">imported paused</span>
+              <span className="text-xs text-muted-foreground">{t("ui.pages.companyimport.imported-paused")}</span>
             </div>
             <div className="divide-y divide-border">
               {activationItems.map((item) => {
@@ -1510,7 +1505,7 @@ export function CompanyImport() {
                     {isActivated ? (
                       <span className="shrink-0 text-xs text-emerald-500">activated</span>
                     ) : failure ? (
-                      <span className="shrink-0 text-xs text-destructive">failed: {failure}</span>
+                      <span className="shrink-0 text-xs text-destructive">{t("ui.pages.companyimport.failed")}{failure}</span>
                     ) : (
                       <span className="shrink-0 text-xs text-muted-foreground">paused</span>
                     )}
@@ -1537,8 +1532,7 @@ export function CompanyImport() {
             variant="outline"
             onClick={() => window.location.assign(dashboardPath)}
           >
-            Go to dashboard
-          </Button>
+            {t("ui.pages.companyimport.go-dashboard")}</Button>
         </div>
       </div>
     );
@@ -1553,14 +1547,12 @@ export function CompanyImport() {
         <div>
           <h2 className="text-base font-semibold">{t("pages.companyImport.resumeWatching", { defaultValue: "Resume watching import" })}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            An import you started earlier is still running on the server.
-          </p>
+            {t("ui.pages.companyimport.import-you-started-earlier")}</p>
         </div>
         <div className="flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
           <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />
           <p className="text-xs text-muted-foreground">
-            Import running on the server — safe to keep waiting; reconnecting won&apos;t lose it.
-          </p>
+            {t("ui.pages.companyimport.import-running-server-safe")}</p>
         </div>
       </div>
     );
@@ -1577,8 +1569,7 @@ export function CompanyImport() {
         <div>
           <h2 className="text-base font-semibold">{t("pages.companyImport.importSource", { defaultValue: "Import source" })}</h2>
           <p className="text-xs text-muted-foreground mt-1">
-            Choose a GitHub repo or upload a local Paperclip zip package.
-          </p>
+            {t("ui.pages.companyimport.choose-github-repo-upload")}</p>
         </div>
 
         <div className="grid gap-2 md:grid-cols-2">
@@ -1628,8 +1619,7 @@ export function CompanyImport() {
                 onClick={() => packageInputRef.current?.click()}
                 disabled={importMutation.isPending}
               >
-                Choose zip
-              </Button>
+                {t("ui.pages.companyimport.choose-zip")}</Button>
               {localPackage && (
                 <span className="text-xs text-muted-foreground">
                   {localPackage.name} with{" "}
@@ -1676,7 +1666,7 @@ export function CompanyImport() {
           >
             <option value="new">{t("pages.companyImport.createNewCompany", { defaultValue: "Create new company" })}</option>
             <option value="existing">
-              Existing company: {selectedCompany?.name}
+              {t("ui.pages.companyimport.existing-company")}{selectedCompany?.name}
             </option>
           </select>
         </Field>
@@ -1731,23 +1721,18 @@ export function CompanyImport() {
           </Button>
           {!hasSource && !previewMutation.isPending && (
             <span className="text-xs text-muted-foreground">
-              Choose a package above to enable the preview.
-            </span>
+              {t("ui.pages.companyimport.choose-package-above-enable")}</span>
           )}
           {importMutation.isPending && (
             <span className="text-xs text-muted-foreground">
-              Import in progress — the package and settings unlock when it finishes.
-            </span>
+              {t("ui.pages.companyimport.import-progress-package-settings")}</span>
           )}
         </div>
         {previewMutation.isPending && (
           <div className="mt-3 flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
             <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />
             <p className="text-xs text-muted-foreground">
-              Uploading and analyzing your package
-              {localCompressedBytes !== null ? ` (${formatMegabytes(localCompressedBytes)} zip)` : ""} — large
-              packages can take a few minutes. Keep this page open.
-            </p>
+              {t("ui.pages.companyimport.uploading-analyzing-your-package")}{localCompressedBytes !== null ? ` (${formatMegabytes(localCompressedBytes)} zip)` : ""} {t("ui.pages.companyimport.large-packages-can-take")}</p>
           </div>
         )}
         {previewMutation.isError &&
@@ -1755,12 +1740,11 @@ export function CompanyImport() {
           previewMutation.variables === previewGenerationRef.current && (
           <div className="mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2.5">
             <p className="text-xs text-destructive">
-              Preview failed:{" "}
+              {t("ui.pages.companyimport.preview-failed")}{" "}
               {previewMutation.error instanceof Error
                 ? previewMutation.error.message
                 : "the request did not complete."}{" "}
-              Retry, or use the CLI folder import for very large packages.
-            </p>
+              {t("ui.pages.companyimport.retry-use-cli-folder")}</p>
           </div>
         )}
       </div>
@@ -1772,8 +1756,7 @@ export function CompanyImport() {
           <div className="sticky top-0 z-10 border-b border-border bg-background px-5 py-3">
             <div className="flex flex-wrap items-center gap-4 text-sm">
               <span className="font-medium">
-                Import preview
-              </span>
+                {t("ui.pages.companyimport.import-preview")}</span>
               <span className="text-muted-foreground">
                 {selectedCount} / {totalFiles} file{totalFiles === 1 ? "" : "s"} selected
               </span>
@@ -1824,8 +1807,7 @@ export function CompanyImport() {
                 }}
                 className="accent-foreground"
               />
-              Start imported agents and routines paused
-            </label>
+              {t("ui.pages.companyimport.start-imported-agents-routines")}</label>
             <Button
               size="sm"
               onClick={() => importMutation.mutate({ previewForImport: importPreview, pauseAutomations })}
@@ -1841,21 +1823,17 @@ export function CompanyImport() {
             <div className="mx-5 mt-3 flex items-start gap-2 rounded-md border border-border bg-muted/30 px-3 py-2.5">
               <Loader2 className="mt-0.5 h-3.5 w-3.5 shrink-0 animate-spin text-muted-foreground" />
               <p className="text-xs text-muted-foreground">
-                Import running on the server — safe to keep waiting; reconnecting won&apos;t lose it.
-                Large packages can take several minutes.
-              </p>
+                {t("ui.pages.companyimport.import-running-server-safe-alt")}</p>
             </div>
           )}
           {importMutation.isError && !importMutation.isPending && (
             <div className="mx-5 mt-3 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-2.5">
               <p className="text-xs text-destructive">
-                Import failed:{" "}
+                {t("ui.pages.companyimport.import-failed")}{" "}
                 {importMutation.error instanceof Error
                   ? importMutation.error.message
                   : "the request did not complete."}{" "}
-                Nothing may have been created, or the import stopped partway — check the target company
-                before retrying.
-              </p>
+                {t("ui.pages.companyimport.nothing-may-have-been")}</p>
             </div>
           )}
 

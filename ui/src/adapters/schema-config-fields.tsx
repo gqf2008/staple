@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, useEffect, useRef, useCallback } from "react";
 
 import type { AdapterConfigSchema, ConfigFieldSchema, CreateConfigValues } from "@paperclipai/adapter-utils";
@@ -189,8 +190,7 @@ function ComboboxField({
             ))}
             {filter && filtered.length === 0 && (
               <div className="px-2 py-1.5 text-sm text-muted-foreground">
-                Use &quot;{filter}&quot; as custom value (press Enter)
-              </div>
+                {t("ui.adapters.schema-config-fields.use-quot")}{filter}{t("ui.adapters.schema-config-fields.quot-custom-value-press")}</div>
             )}
           </PopoverContent>
         </Popover>

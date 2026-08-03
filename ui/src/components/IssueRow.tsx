@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ReactNode } from "react";
 import type { ExternalObjectSummary, Issue, IssueRecoveryAction } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -116,7 +117,7 @@ export function IssueRow({
         "inline-flex h-4 w-4 items-center justify-center rounded-full transition-colors",
         selected ? "hover:bg-muted/80" : "hover:bg-blue-500/20",
       )}
-      aria-label="Mark as read"
+      aria-label={t("components.keyboardShortcuts.markAsRead")}
     >
       <span
         className={cn(
@@ -137,7 +138,7 @@ export function IssueRow({
         selected ? "border-muted-foreground text-muted-foreground" : null,
       )}
       title={`Productivity review: ${productivityReviewTriggerLabel(productivityReview.trigger)}`}
-      aria-label="Productivity review open"
+      aria-label={t("components.productivityReviewBadge.reviewOpen")}
     >
       <Eye className="h-2.5 w-2.5" aria-hidden />
     </span>
@@ -154,11 +155,10 @@ export function IssueRow({
     <Badge variant="outline"
       data-testid="issue-row-parked-blocker"
       className="[&>svg]:size-2.5 ml-1.5 gap-0.5 border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-      title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+      title={t("ui.components.issuerow.blocked-parked-work-least")}
     >
       <Flag className="h-2.5 w-2.5" aria-hidden />
-      Blocked by parked work
-    </Badge>
+      {t("ui.components.issueblockednotice.blocked-parked-work")}</Badge>
   ) : null;
 
   return (
@@ -190,7 +190,7 @@ export function IssueRow({
           className,
         )}
       >
-        <span className="sr-only">Open {identifier}: {issue.title}</span>
+        <span className="sr-only">{t("status.open")}{identifier}: {issue.title}</span>
       </Link>
       <span className="flex shrink-0 items-center gap-1 pt-px sm:hidden">
         {mobileLeading ?? <StatusIcon status={issue.status} blockerAttention={issue.blockerAttention} size="md" className={selectedStatusClass} />}
@@ -276,8 +276,7 @@ export function IssueRow({
           {mobileMeta ? (
             <>
               <span className="text-xs text-muted-foreground sm:hidden" aria-hidden="true">
-                &middot;
-              </span>
+                {t("ui.components.issuerow.middot")}</span>
               <span className="text-xs text-muted-foreground sm:hidden">{mobileMeta}</span>
             </>
           ) : null}
@@ -302,11 +301,10 @@ export function IssueRow({
               }}
               disabled={archiveDisabled}
               className="inline-flex shrink-0 items-center gap-1.5 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground opacity-0 transition-opacity hover:bg-accent hover:text-foreground group-hover:opacity-100 focus-visible:opacity-100 disabled:pointer-events-none disabled:opacity-30"
-              aria-label="Archive"
+              aria-label={t("components.projectProperties.archive")}
             >
               <Archive className="h-3.5 w-3.5" />
-              Archive
-            </button>
+              {t("components.projectProperties.archive")}</button>
           ) : null}
           {externalObjectSummary ? (
             <ExternalObjectStatusSummary summary={externalObjectSummary} compact />

@@ -78,10 +78,9 @@ export function CliAuthPage() {
         <Card className="block p-6">
           <h1 className="text-xl font-semibold">{t("pages.cliAuth.cliApproved", { defaultValue: "CLI access approved" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            The Paperclip CLI can now finish authentication on the requesting machine.
-          </p>
+            {t("ui.pages.cliauth.paperclip-cli-can-now")}</p>
           <p className="mt-4 text-sm text-muted-foreground">
-            Command: <span className="font-mono text-foreground">{challenge.command}</span>
+            {t("pages.agentDetail.commandLabel")}<span className="font-mono text-foreground">{challenge.command}</span>
           </p>
         </Card>
       </div>
@@ -96,8 +95,7 @@ export function CliAuthPage() {
             {challenge.status === "expired" ? t("pages.cliAuth.challengeExpired", { defaultValue: "CLI auth challenge expired" }) : t("pages.cliAuth.challengeCancelled", { defaultValue: "CLI auth challenge cancelled" })}
           </h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Start the CLI auth flow again from your terminal to generate a new approval request.
-          </p>
+            {t("ui.pages.cliauth.start-cli-auth-flow")}</p>
         </Card>
       </div>
     );
@@ -109,8 +107,7 @@ export function CliAuthPage() {
         <Card className="block p-6">
           <h1 className="text-xl font-semibold">{t("pages.cliAuth.signInRequired", { defaultValue: "Sign in required" })}</h1>
           <p className="mt-2 text-sm text-muted-foreground">
-            Sign in or create an account, then return to this page to approve the CLI access request.
-          </p>
+            {t("ui.pages.cliauth.sign-create-account-then")}</p>
           <Button asChild className="mt-4">
             <Link to={`/auth?next=${encodeURIComponent(currentPath)}`}>{t("pages.cliAuth.signInCreate", { defaultValue: "Sign in / Create account" })}</Link>
           </Button>
@@ -124,8 +121,7 @@ export function CliAuthPage() {
       <Card className="block p-6">
         <h1 className="text-xl font-semibold">{t("pages.cliAuth.approveTitle", { defaultValue: "Approve Paperclip CLI access" })}</h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          A local Paperclip CLI process is requesting board access to this instance.
-        </p>
+          {t("ui.pages.cliauth.local-paperclip-cli-process")}</p>
 
         <div className="mt-5 space-y-3 text-sm">
           <div>
@@ -160,8 +156,7 @@ export function CliAuthPage() {
 
         {!challenge.canApprove && (
           <p className="mt-4 text-sm text-destructive">
-            This challenge requires instance-admin access. Sign in with an instance admin account to approve it.
-          </p>
+            {t("ui.pages.cliauth.challenge-requires-instance-admin")}</p>
         )}
 
         <div className="mt-5 flex gap-3">

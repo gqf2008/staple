@@ -365,7 +365,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
         badge={
           showReleasePicker && pinnedRelease ? (
             <Badge variant="secondary" className="text-(length:--text-nano)">
-              Beta · {releaseShortLabel(pinnedRelease)}
+              {t("ui.pages.agent-skills.agentskillstab.beta")}{releaseShortLabel(pinnedRelease)}
             </Badge>
           ) : undefined
         }
@@ -424,8 +424,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
             <Button asChild variant="outline" size="sm" className="shrink-0">
               <Link to="/skills" className="no-underline">
                 <Store className="h-3.5 w-3.5" />
-                Browse skills store
-              </Link>
+                {t("ui.pages.agent-skills.agentskillstab.browse-skills-store")}</Link>
             </Button>
           </div>
         </div>
@@ -453,16 +452,14 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               className="flex items-center justify-between gap-3 border-b border-amber-300/40 bg-amber-50/60 px-3 py-2 text-xs text-amber-800 last:border-b-0 dark:border-amber-500/20 dark:bg-amber-950/20 dark:text-amber-200"
             >
               <span className="min-w-0 truncate">
-                <span className="font-medium">{key}</span> is enabled but missing from the company library.
-              </span>
+                <span className="font-medium">{key}</span> {t("ui.pages.agent-skills.agentskillstab.enabled-but-missing-from")}</span>
               <button
                 type="button"
                 onClick={() => toggleSkill(key, false)}
                 className="inline-flex shrink-0 items-center gap-1 rounded-md border border-amber-400/50 px-2 py-0.5 font-medium transition-colors hover:bg-amber-100/60 dark:hover:bg-amber-900/30"
               >
                 <X className="h-3 w-3" />
-                Remove
-              </button>
+                {t("components.agentsUsingSkillDialog.remove")}</button>
             </div>
           ))}
         </div>
@@ -509,8 +506,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
                     )}
                   />
                   <span className="text-xs font-medium text-muted-foreground">
-                    Detected on adapter (read-only)
-                  </span>
+                    {t("ui.pages.agent-skills.agentskillstab.detected-adapter-read-only")}</span>
                   <span className="text-xs text-muted-foreground/70">{filteredDetected.length}</span>
                 </CollapsibleTrigger>
                 <CollapsibleContent>
@@ -527,7 +523,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
           ) : null}
 
           <div className="text-xs text-muted-foreground">
-            Adapter: {adapterLabels[agent.adapterType] ?? agent.adapterType}
+            {t("pages.agentDetail.adapterLabel")}{adapterLabels[agent.adapterType] ?? agent.adapterType}
           </div>
         </div>
       )}
@@ -548,31 +544,27 @@ function SaveStatusChip({
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Saving…
-      </span>
+        {t("components.agentMultiSelect.saving")}</span>
     );
   }
   if (error) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-destructive">
         <AlertCircle className="h-3.5 w-3.5" />
-        Couldn’t save
-      </span>
+        {t("ui.pages.agent-skills.agentskillstab.couldn-save")}</span>
     );
   }
   if (unsaved) {
     return (
       <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
         <Loader2 className="h-3.5 w-3.5 animate-spin" />
-        Saving soon…
-      </span>
+        {t("ui.pages.agent-skills.agentskillstab.saving-soon")}</span>
     );
   }
   return (
     <span className="inline-flex items-center gap-1.5 text-xs text-(--status-task-done)">
       <CheckCircle2 className="h-3.5 w-3.5" />
-      Saved
-    </span>
+      {t("components.inboxAgentPolicy.saved")}</span>
   );
 }
 
@@ -607,14 +599,12 @@ function EmptyLibraryCard() {
       <div className="space-y-1">
         <p className="text-sm font-medium text-foreground">{t("pages.agentSkillsTab.noLibrarySkills", { defaultValue: "No skills in the company library" })}</p>
         <p className="text-xs text-muted-foreground">
-          Install skills to the company, then enable them on this agent.
-        </p>
+          {t("ui.pages.agent-skills.agentskillstab.install-skills-company-then")}</p>
       </div>
       <Button asChild variant="outline" size="sm">
         <Link to="/skills" className="no-underline">
           <Store className="h-3.5 w-3.5" />
-          Browse skills store
-        </Link>
+          {t("ui.pages.agent-skills.agentskillstab.browse-skills-store")}</Link>
       </Button>
     </div>
   );

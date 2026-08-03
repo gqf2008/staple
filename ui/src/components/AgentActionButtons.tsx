@@ -366,8 +366,7 @@ export function AgentActionButtons({
             <AlertDialogFooter>
               <AlertDialogCancel>{t("components.agentActionButtons.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
               <AlertDialogAction onClick={() => agentAction.mutate("pause")}>
-                Pause anyway
-              </AlertDialogAction>
+                {t("ui.components.agentactionbuttons.pause-anyway")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -395,8 +394,7 @@ export function AgentActionButtons({
             ) : (
               <Copy className="h-3 w-3" />
             )}
-            Duplicate Agent
-          </button>
+            {t("ui.components.agentactionbuttons.duplicate-agent")}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
@@ -405,8 +403,7 @@ export function AgentActionButtons({
             }}
           >
             <Copy className="h-3 w-3" />
-            Copy Agent ID
-          </button>
+            {t("ui.components.agentactionbuttons.copy-agent-id")}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
@@ -415,8 +412,7 @@ export function AgentActionButtons({
             }}
           >
             <RotateCcw className="h-3 w-3" />
-            Reset Sessions
-          </button>
+            {t("ui.components.agentactionbuttons.reset-sessions")}</button>
           {!hideTerminate && (
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive"
@@ -426,8 +422,7 @@ export function AgentActionButtons({
               }}
             >
               <Trash2 className="h-3 w-3" />
-              Terminate
-            </button>
+              {t("ui.components.agentactionbuttons.terminate")}</button>
           )}
         </PopoverContent>
       </Popover>

@@ -69,7 +69,7 @@ export function BudgetPolicyCard({
           {summary.amount > 0 ? formatCents(summary.amount) : t("components.budgetPolicy.disabled", { defaultValue: "Disabled" })}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
-          Soft alert at {summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
+          {t("ui.components.budgetpolicycard.soft-alert")}{summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
         </div>
       </div>
     </div>
@@ -88,7 +88,7 @@ export function BudgetPolicyCard({
           {summary.amount > 0 ? formatCents(summary.amount) : t("components.budgetPolicy.disabled", { defaultValue: "Disabled" })}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
-          Soft alert at {summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
+          {t("ui.components.budgetpolicycard.soft-alert")}{summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
         </div>
       </div>
     </div>
@@ -131,8 +131,7 @@ export function BudgetPolicyCard({
     <div className={cn("flex flex-col gap-3 sm:flex-row sm:items-end", isPlain ? "" : "rounded-xl border border-border/70 bg-background/50 p-3")}>
       <div className="min-w-0 flex-1">
         <label className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Budget (USD)
-        </label>
+          {t("ui.components.budgetpolicycard.budget-usd")}</label>
         <Input
           value={draftBudget}
           onChange={(event) => setDraftBudget(event.target.value)}

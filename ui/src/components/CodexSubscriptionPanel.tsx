@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { QuotaWindow } from "@paperclipai/shared";
 import { cn, quotaSourceDisplayName } from "@/lib/utils";
 
@@ -66,11 +67,9 @@ export function CodexSubscriptionPanel({
       <div className="flex items-start justify-between gap-3 border-b border-border pb-3">
         <div className="min-w-0">
           <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-            Codex subscription
-          </div>
+            {t("ui.components.codexsubscriptionpanel.codex-subscription")}</div>
           <div className="mt-1 text-sm text-muted-foreground">
-            Live Codex quota windows.
-          </div>
+            {t("ui.components.codexsubscriptionpanel.live-codex-quota-windows")}</div>
         </div>
         {source ? (
           <span className="shrink-0 border border-border px-2.5 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
@@ -88,8 +87,7 @@ export function CodexSubscriptionPanel({
       <div className="mt-4 space-y-5">
         <div className="space-y-3">
           <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-            Account windows
-          </div>
+            {t("ui.components.codexsubscriptionpanel.account-windows")}</div>
           <div className="space-y-3">
             {accountWindows.map((window) => (
               <QuotaWindowRow key={window.label} window={window} />
@@ -100,8 +98,7 @@ export function CodexSubscriptionPanel({
         {modelWindows.length > 0 ? (
           <div className="space-y-3">
             <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-              Model windows
-            </div>
+              {t("ui.components.codexsubscriptionpanel.model-windows")}</div>
             <div className="space-y-3">
               {modelWindows.map((window) => (
                 <QuotaWindowRow key={window.label} window={window} />
@@ -142,8 +139,7 @@ function QuotaWindowRow({ window }: { window: QuotaWindow }) {
           ) : null}
         </div>
         <div className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
-          {window.usedPercent}% used
-        </div>
+          {window.usedPercent}{t("ui.components.claudesubscriptionpanel.used")}</div>
       </div>
 
       <div className="mt-3 h-2 overflow-hidden bg-muted">

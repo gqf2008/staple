@@ -225,8 +225,8 @@ export function NewProjectDialog() {
                 {selectedCompany.name.slice(0, 3).toUpperCase()}
               </span>
             )}
-            <span className="text-muted-foreground/60">&rsaquo;</span>
-            <span>New project</span>
+            <span className="text-muted-foreground/60">{t("ui.components.newgoaldialog.rsaquo")}</span>
+            <span>{t("components.sidebarProjects.newProject")}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -243,7 +243,7 @@ export function NewProjectDialog() {
               className="text-muted-foreground"
               onClick={() => { reset(); closeNewProject(); }}
             >
-              <span className="text-lg leading-none">&times;</span>
+              <span className="text-lg leading-none">{t("ui.components.newagentdialog.times")}</span>
             </Button>
           </div>
         </div>
@@ -285,15 +285,14 @@ export function NewProjectDialog() {
         <div className="px-4 pt-3 pb-3 space-y-3 border-t border-border">
           <div>
             <div className="mb-1 flex items-center gap-1.5">
-              <label className="block text-xs text-muted-foreground">Repo URL</label>
+              <label className="block text-xs text-muted-foreground">{t("pages.executionWorkspaceDetail.repoUrl")}</label>
               <span className="text-xs text-muted-foreground/50">optional</span>
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3 w-3 text-muted-foreground/50 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-(--sz-240px) text-xs">
-                  Link a GitHub repository so agents can clone, read, and push code for this project.
-                </TooltipContent>
+                  {t("ui.components.newprojectdialog.link-github-repository-so")}</TooltipContent>
               </Tooltip>
             </div>
             <input
@@ -306,15 +305,14 @@ export function NewProjectDialog() {
 
           <div>
             <div className="mb-1 flex items-center gap-1.5">
-              <label className="block text-xs text-muted-foreground">Local folder</label>
+              <label className="block text-xs text-muted-foreground">{t("components.dialogs.newProject.localFolder")}</label>
               <span className="text-xs text-muted-foreground/50">optional</span>
               <Tooltip delayDuration={300}>
                 <TooltipTrigger asChild>
                   <HelpCircle className="h-3 w-3 text-muted-foreground/50 cursor-help" />
                 </TooltipTrigger>
                 <TooltipContent side="top" className="max-w-(--sz-240px) text-xs">
-                  Set an absolute path on this machine where local agents will read and write files for this project.
-                </TooltipContent>
+                  {t("ui.components.newprojectdialog.set-absolute-path-machine")}</TooltipContent>
               </Tooltip>
             </div>
             <div className="flex items-center gap-2">
@@ -392,8 +390,7 @@ export function NewProjectDialog() {
                   className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-muted-foreground"
                   onClick={() => setGoalOpen(false)}
                 >
-                  No goal
-                </button>
+                  {t("ui.components.newprojectdialog.no-goal")}</button>
               )}
               {availableGoals.map((g) => (
                 <button
@@ -409,8 +406,7 @@ export function NewProjectDialog() {
               ))}
               {selectedGoals.length > 0 && availableGoals.length === 0 && (
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                  All goals already selected.
-                </div>
+                  {t("ui.components.newprojectdialog.all-goals-already-selected")}</div>
               )}
             </PopoverContent>
           </Popover>
@@ -431,7 +427,7 @@ export function NewProjectDialog() {
         {/* Footer */}
         <div className="flex items-center justify-between px-4 py-2.5 border-t border-border">
           {createProject.isError ? (
-            <p className="text-xs text-destructive">Failed to create project.</p>
+            <p className="text-xs text-destructive">{t("ui.components.newprojectdialog.failed-create-project")}</p>
           ) : (
             <span />
           )}

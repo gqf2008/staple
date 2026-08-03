@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { ServerCog, Wrench } from "lucide-react";
 import { Link } from "@/lib/router";
 import { advancedTabHref } from "@/pages/tools/tool-tabs";
@@ -26,12 +27,11 @@ export function ByoConnectCard({ onConnect }: { onConnect: () => void }) {
         <ServerCog className="h-5 w-5 text-muted-foreground" />
       </span>
       <div className="min-w-0 flex-1">
-        <div className="text-sm font-semibold text-foreground">Connect your own tool</div>
+        <div className="text-sm font-semibold text-foreground">{t("ui.pages.apps.store-cards.connect-your-own-tool")}</div>
         <div className="text-xs text-muted-foreground">
-          Paste the URL from a custom or self-hosted MCP server and review its actions before enabling it.
-        </div>
+          {t("ui.pages.apps.store-cards.paste-url-from-custom")}</div>
       </div>
-      <span className="shrink-0 text-xs font-semibold text-primary">Connect →</span>
+      <span className="shrink-0 text-xs font-semibold text-primary">{t("pages.appsConnect.connectArrow")}</span>
     </button>
   );
 }
@@ -44,7 +44,6 @@ export function AdvancedToolsLink() {
       className="inline-flex items-center gap-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground"
     >
       <Wrench className="h-3.5 w-3.5" />
-      Developer tools (advanced)
-    </Link>
+      {t("ui.pages.apps.store-cards.developer-tools-advanced")}</Link>
   );
 }

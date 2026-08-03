@@ -159,12 +159,10 @@ export function TokensPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Each token is a separate way in. Revoke any one without breaking the others.
-        </p>
+          {t("ui.pages.apps.gateways.panels.tokenspanel.each-token-separate-way")}</p>
         <Button size="sm" onClick={() => setMinting((value) => !value)}>
           <Plus className="mr-1.5 h-3.5 w-3.5" />
-          Mint token
-        </Button>
+          {t("pages.gatewayTokensPanel.mintToken")}</Button>
       </div>
 
       {minting ? (
@@ -186,7 +184,7 @@ export function TokensPanel({
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("pages.gatewayTokensPanel.note", { defaultValue: "Note (why it exists)" })}</span>
-              <Input value={ownerNote} onChange={(e) => setOwnerNote(e.target.value)} placeholder="Dotta’s MacBook" />
+              <Input value={ownerNote} onChange={(e) => setOwnerNote(e.target.value)} placeholder={t("ui.pages.apps.gateways.panels.tokenspanel.dotta-macbook")} />
             </label>
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("pages.gatewayTokensPanel.expires", { defaultValue: "Expires" })}</span>
@@ -195,8 +193,7 @@ export function TokensPanel({
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setMinting(false)}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button type="submit" size="sm" disabled={createMutation.isPending || !name.trim()}>
               {createMutation.isPending ? t("pages.gatewayTokensPanel.minting", { defaultValue: "Minting…" }) : t("pages.gatewayTokensPanel.mintToken", { defaultValue: "Mint token" })}
             </Button>
@@ -210,12 +207,10 @@ export function TokensPanel({
             <div>
               <div className="text-sm font-semibold text-foreground">{t("pages.gatewayTokensPanel.newToken", { defaultValue: "New token — copy now" })}</div>
               <div className="text-xs text-muted-foreground">
-                You won’t see the full value again. Store it in your client’s config or your secret manager.
-              </div>
+                {t("ui.pages.apps.gateways.panels.tokenspanel.you-won-see-full")}</div>
             </div>
             <Button variant="ghost" size="sm" onClick={() => setCreated(null)} aria-label={t("pages.gatewayTokensPanel.dismissToken", { defaultValue: "Dismiss new token" })}>
-              Dismiss
-            </Button>
+              {t("pages.inbox.dismiss")}</Button>
           </div>
           <div className="flex items-center gap-2">
             <code className="min-w-0 flex-1 truncate rounded bg-background px-3 py-2 font-mono text-xs text-foreground">
@@ -224,12 +219,10 @@ export function TokensPanel({
             {revealed ? (
               <Button variant="outline" size="sm" onClick={() => void copyToken(created.token)}>
                 <Copy className="mr-1 h-3.5 w-3.5" />
-                Copy
-              </Button>
+                {t("components.commentThread.copy")}</Button>
             ) : (
               <Button variant="outline" size="sm" onClick={() => setRevealed(true)}>
-                Show
-              </Button>
+                {t("pages.agentDetail.show")}</Button>
             )}
           </div>
         </div>
@@ -237,8 +230,7 @@ export function TokensPanel({
 
       {tokens.length === 0 ? (
         <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No tokens yet. Mint one for the client that will connect to this gateway.
-        </div>
+          {t("ui.pages.apps.gateways.panels.tokenspanel.no-tokens-yet-mint")}</div>
       ) : (
         <>
           {/* Desktop / tablet: full table. */}
@@ -287,8 +279,7 @@ export function TokensPanel({
                               setRevokeName("");
                             }}
                           >
-                            Revoke
-                          </Button>
+                            {t("ui.pages.agentdetail.revoke")}</Button>
                         ) : null}
                       </td>
                     </tr>
@@ -336,8 +327,7 @@ export function TokensPanel({
                         setRevokeName("");
                       }}
                     >
-                      Revoke
-                    </Button>
+                      {t("ui.pages.agentdetail.revoke")}</Button>
                   ) : null}
                 </div>
               );
@@ -348,8 +338,7 @@ export function TokensPanel({
 
       <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
         <KeyRound className="h-3.5 w-3.5" />
-        Every mint, reveal, and revoke is recorded in Activity.
-      </p>
+        {t("ui.pages.apps.gateways.panels.tokenspanel.every-mint-reveal-revoke")}</p>
 
       {confirmToken ? (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4" role="dialog" aria-modal="true">
@@ -357,9 +346,7 @@ export function TokensPanel({
             <div>
               <h3 className="text-sm font-semibold text-foreground">{t("pages.gatewayTokensPanel.revokeConfirm", { defaultValue: "Revoke this token?" })}</h3>
               <p className="mt-1 text-sm text-muted-foreground">
-                Any client using <span className="font-medium text-foreground">{confirmToken.name}</span> goes
-                silent immediately. This can’t be undone. Type the token name to confirm.
-              </p>
+                {t("ui.pages.apps.gateways.panels.tokenspanel.any-client-using")}<span className="font-medium text-foreground">{confirmToken.name}</span> {t("ui.pages.apps.gateways.panels.tokenspanel.goes-silent-immediately-can")}</p>
             </div>
             <Input
               value={revokeName}
@@ -377,8 +364,7 @@ export function TokensPanel({
                   setRevokeName("");
                 }}
               >
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
               <Button
                 variant="destructive"
                 size="sm"

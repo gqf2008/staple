@@ -173,8 +173,7 @@ export function InstanceSettings() {
           <h1 className="text-lg font-semibold">{t("pages.instanceSettings.schedulerHeartbeats", { defaultValue: "Scheduler Heartbeats" })}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Agents with a timer heartbeat enabled across all of your companies.
-        </p>
+          {t("ui.pages.instancesettings.agents-timer-heartbeat-enabled")}</p>
       </div>
 
       <div className="flex items-center gap-4 text-sm text-muted-foreground">

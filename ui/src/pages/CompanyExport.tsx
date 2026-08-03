@@ -558,8 +558,7 @@ function ExportPreviewPane({
           </pre>
         ) : (
           <div className="rounded-lg border border-border bg-accent/10 px-4 py-3 text-sm text-muted-foreground">
-            Binary asset preview is not available for this file type.
-          </div>
+            {t("ui.pages.companyexport.binary-asset-preview-not")}</div>
         )}
       </div>
     </div>
@@ -974,7 +973,7 @@ export function CompanyExport() {
               {selectedCompany?.name ?? t("pages.companyExport.company", { defaultValue: "Company" })} export
             </span>
             <span className="text-muted-foreground">
-              Exporting {selectedCount.toLocaleString()} of {totalFiles.toLocaleString()} file{totalFiles === 1 ? "" : "s"}
+              {t("ui.pages.companyexport.exporting")}{selectedCount.toLocaleString()} of {totalFiles.toLocaleString()} file{totalFiles === 1 ? "" : "s"}
               {selectedCount > 0 && ` (~${formatBytes(estimatedZipBytes)})`}
             </span>
             {warnings.length > 0 && (
@@ -1096,7 +1095,7 @@ export function CompanyExport() {
                   onClick={() => setTaskLimit((prev) => prev + TASKS_PAGE_SIZE)}
                   className="w-full rounded-md border border-border px-3 py-1.5 text-xs text-muted-foreground hover:bg-accent/30 hover:text-foreground transition-colors"
                 >
-                  Show more tasks ({visibleTaskChildren} of {totalTaskChildren})
+                  {t("ui.pages.companyexport.show-more-tasks")}{visibleTaskChildren} of {totalTaskChildren})
                 </button>
               </div>
             )}

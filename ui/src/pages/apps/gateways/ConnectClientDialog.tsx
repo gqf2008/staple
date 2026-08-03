@@ -76,8 +76,7 @@ export function ConnectClientDialog({
         <DialogHeader>
           <DialogTitle>{t("pages.connectClientDialog.connectClient", { defaultValue: "Connect a client" })}</DialogTitle>
           <DialogDescription>
-            Pick how you’ll point your client at this gateway.
-          </DialogDescription>
+            {t("ui.pages.apps.gateways.connectclientdialog.pick-how-you-ll")}</DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 sm:grid-cols-(--gtc-10)">
@@ -107,8 +106,7 @@ export function ConnectClientDialog({
                   : "text-muted-foreground hover:bg-muted/60",
               )}
             >
-              Raw URL
-            </button>
+              {t("ui.pages.apps.gateways.connectclientdialog.raw-url")}</button>
           </nav>
 
           <div className="min-w-0 space-y-3">
@@ -121,12 +119,10 @@ export function ConnectClientDialog({
                   </code>
                   <Button variant="outline" size="sm" onClick={() => void copyText(endpoint, t("pages.connectClientDialog.endpointUrl", { defaultValue: "Endpoint URL" }))}>
                     <Copy className="mr-1 h-3.5 w-3.5" />
-                    Copy
-                  </Button>
+                    {t("components.commentThread.copy")}</Button>
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  Authenticate with <code>Authorization: Bearer &lt;token&gt;</code> over streamable HTTP.
-                </p>
+                  {t("ui.pages.apps.gateways.connectclientdialog.authenticate")}<code>{t("ui.pages.apps.gateways.connectclientdialog.authorization-bearer-lt-token")}</code> {t("ui.pages.apps.gateways.connectclientdialog.over-streamable-http")}</p>
               </div>
             ) : activeSnippet ? (
               <div className="space-y-1.5">
@@ -138,8 +134,7 @@ export function ConnectClientDialog({
                     onClick={() => void copyText(configText, `${activeSnippet.label} config`)}
                   >
                     <Copy className="mr-1 h-3.5 w-3.5" />
-                    Copy
-                  </Button>
+                    {t("components.commentThread.copy")}</Button>
                 </div>
                 <pre className="max-h-64 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-mono text-xs text-muted-foreground">
                   {configText}
@@ -170,25 +165,18 @@ export function ConnectClientDialog({
                       onClick={() => void copyText(createdToken.token, t("pages.connectClientDialog.accessToken", { defaultValue: "Access token" }))}
                     >
                       <Copy className="mr-1 h-3.5 w-3.5" />
-                      Copy
-                    </Button>
+                      {t("components.commentThread.copy")}</Button>
                   ) : (
                     <Button variant="outline" size="sm" onClick={() => setRevealed(true)}>
-                      Show
-                    </Button>
+                      {t("pages.agentDetail.show")}</Button>
                   )}
                 </div>
               ) : (
                 <p className="text-xs text-muted-foreground">
-                  Mint a token on the <span className="font-medium">{t("pages.connectClientDialog.tokens", { defaultValue: "Tokens" })}</span> tab, then paste it where the
-                  snippet shows <code>{t("pages.connectClientDialog.bearer", { defaultValue: "Bearer …" })}</code>. You won’t see a token’s full value again after it’s
-                  created.
-                </p>
+                  {t("ui.pages.apps.gateways.connectclientdialog.mint-token")}<span className="font-medium">{t("pages.connectClientDialog.tokens", { defaultValue: "Tokens" })}</span> {t("ui.pages.apps.gateways.connectclientdialog.tab-then-paste-where")}<code>{t("pages.connectClientDialog.bearer", { defaultValue: "Bearer …" })}</code>{t("ui.pages.apps.gateways.connectclientdialog.you-won-see-token")}</p>
               )}
               <p className="text-xs text-muted-foreground">
-                Treat this like a password. Anyone with the token can call exactly the tools this gateway
-                allows. If it leaks, revoke it — the client goes silent immediately.
-              </p>
+                {t("ui.pages.apps.gateways.connectclientdialog.treat-like-password-anyone")}</p>
             </div>
           </div>
         </div>
@@ -196,8 +184,7 @@ export function ConnectClientDialog({
         <DialogFooter>
           <Button onClick={() => onOpenChange(false)}>
             <Check className="mr-1.5 h-4 w-4" />
-            Done
-          </Button>
+            {t("common.done")}</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

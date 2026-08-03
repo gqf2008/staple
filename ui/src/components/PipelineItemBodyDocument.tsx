@@ -306,12 +306,10 @@ export function PipelineItemBodyDocument({
         </div>
         <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
           <span className="text-(length:--text-micro) text-muted-foreground">
-            Saving creates rev {(doc?.latestRevisionNumber ?? 0) + 1} · ⌘↵ to save · Esc to cancel
-          </span>
+            {t("ui.components.pipelineitembodydocument.saving-creates-rev")}{(doc?.latestRevisionNumber ?? 0) + 1} {t("ui.components.pipelineitembodydocument.save-esc-cancel")}</span>
           <div className="flex items-center gap-2">
             <Button variant="ghost" size="sm" onClick={cancelEdit} disabled={saveMutation.isPending}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button size="sm" onClick={() => void handleSave()} disabled={saveMutation.isPending}>
               {saveMutation.isPending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
               {saveMutation.isPending ? t("components.pipelineItemBodyDocument.saving", { defaultValue: "Saving…" }) : t("components.pipelineItemBodyDocument.save", { defaultValue: "Save" })}
@@ -327,17 +325,14 @@ export function PipelineItemBodyDocument({
           <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
             <div className="space-y-1">
               <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
-                Viewing revision {selectedHistoricalRevision.revisionNumber}
+                {t("ui.components.issuedocumentssection.viewing-revision")}{selectedHistoricalRevision.revisionNumber}
               </p>
               <p className="text-xs text-muted-foreground">
-                Historical preview. New comments are disabled while previewing a historical revision. Restoring it
-                creates a new latest revision and keeps history append-only.
-              </p>
+                {t("ui.components.pipelineitembodydocument.historical-preview-new-comments")}</p>
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button variant="outline" size="sm" onClick={() => setSelectedRevisionId(null)}>
-                Return to latest
-              </Button>
+                {t("ui.components.issuedocumentssection.return-latest")}</Button>
               <Button
                 size="sm"
                 onClick={() => restoreMutation.mutate(selectedHistoricalRevision.id)}
@@ -444,12 +439,11 @@ export function PipelineItemBodyDocument({
           />
         ) : null}
         actionsSlot={editing ? (
-          <span className="text-(length:--text-micro) font-medium text-amber-700 dark:text-amber-300">● Editing · unsaved</span>
+          <span className="text-(length:--text-micro) font-medium text-amber-700 dark:text-amber-300">{t("ui.components.pipelineitembodydocument.editing-unsaved")}</span>
         ) : (
           <Button variant="ghost" size="sm" className="h-auto gap-1.5 px-2 py-1 text-xs" onClick={beginEdit}>
             <FilePenLine className="h-3.5 w-3.5" />
-            Edit
-          </Button>
+            {t("components.issueProperties.edit")}</Button>
         )}
       />
 

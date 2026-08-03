@@ -144,8 +144,7 @@ export function SearchFilterSheet({
             className={cn("text-xs text-muted-foreground hover:text-foreground", activeCount === 0 && "invisible")}
             onClick={() => update({})}
           >
-            Clear all
-          </button>
+            {t("pages.search.clearAll")}</button>
         </SheetHeader>
 
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
@@ -210,8 +209,7 @@ export function SearchFilterSheet({
         <SheetFooter className="flex-row gap-2 border-t border-border">
           <SheetClose asChild>
             <Button variant="outline" className="flex-1">
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </SheetClose>
           <Button
             className="flex-1"
@@ -239,8 +237,7 @@ export function SearchFilterSheetTrigger({
   return (
     <Button variant="outline" size="sm" className="h-8 gap-1.5 text-xs font-normal" onClick={onClick}>
       <SlidersHorizontal className="h-3.5 w-3.5" />
-      Filters
-      {activeCount > 0 ? (
+      {t("components.searchFilterSheet.filters")}{activeCount > 0 ? (
         <span className="ml-0.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-(length:--text-nano) font-semibold tabular-nums text-primary-foreground">
           {activeCount}
         </span>

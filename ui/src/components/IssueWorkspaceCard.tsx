@@ -370,16 +370,14 @@ export function IssueWorkspaceCard({
                 className="h-6 px-2 text-xs text-muted-foreground"
                 onClick={handleCancel}
               >
-                <X className="h-3 w-3 mr-1" />Cancel
-              </Button>
+                <X className="h-3 w-3 mr-1" />{t("common.cancel")}</Button>
               <Button
                 size="sm"
                 className="h-6 px-2 text-xs"
                 onClick={handleSave}
                 disabled={!canSaveWorkspaceConfig}
               >
-                Save
-              </Button>
+                {t("components.agentConfigForm.save")}</Button>
             </>
           ) : (
             <Button
@@ -388,8 +386,7 @@ export function IssueWorkspaceCard({
               className="h-6 px-2 text-xs text-muted-foreground"
               onClick={() => setEditing(true)}
             >
-              <Pencil className="h-3 w-3 mr-1" />Edit
-            </Button>
+              <Pencil className="h-3 w-3 mr-1" />{t("components.issueProperties.edit")}</Button>
           )}
         </div>
       </div>
@@ -417,7 +414,7 @@ export function IssueWorkspaceCard({
           )}
           {environmentsEnabled && currentEnvironmentId && (
             <div className="text-muted-foreground" style={{ overflowWrap: "anywhere" }}>
-              Environment: <span className="text-foreground">{currentEnvironment?.name ?? currentEnvironmentId}</span>
+              {t("ui.components.issueworkspacecard.environment")}<span className="text-foreground">{currentEnvironment?.name ?? currentEnvironmentId}</span>
               {currentSelection === "reuse_existing" && currentReusableEnvironmentId === currentEnvironmentId
                 ? " · reused workspace"
                 : !issue.executionWorkspaceSettings?.environmentId && projectEnvironmentId === currentEnvironmentId
@@ -436,7 +433,7 @@ export function IssueWorkspaceCard({
           )}
           {currentSelection === "reuse_existing" && selectedReusableExecutionWorkspace && (
             <div className="text-muted-foreground" style={{ overflowWrap: "anywhere" }}>
-              Reusing:{" "}
+              {t("ui.components.issueworkspacecard.reusing")}{" "}
               {selectedReusableWorkspaceLink ? (
                 <Link
                   to={selectedReusableWorkspaceLink}
@@ -455,8 +452,7 @@ export function IssueWorkspaceCard({
                 to={currentWorkspaceLink}
                 className="text-(length:--text-micro) text-muted-foreground hover:text-foreground hover:underline"
               >
-                View workspace details →
-              </Link>
+                {t("ui.components.issueworkspacecard.view-workspace-details")}</Link>
             </div>
           )}
         </div>
@@ -501,7 +497,7 @@ export function IssueWorkspaceCard({
           {workspace && (
             <div className="text-(length:--text-micro) text-muted-foreground space-y-0.5 pt-1 border-t border-border/50">
               <div style={{ overflowWrap: "anywhere" }}>
-                Current:{" "}
+                {t("ui.components.issueworkspacecard.current")}{" "}
                 {currentWorkspaceLink ? (
                   <Link
                     to={currentWorkspaceLink}
@@ -529,16 +525,14 @@ export function IssueWorkspaceCard({
             className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
           >
             <FolderSearch className="h-3.5 w-3.5 shrink-0" />
-            Browse files…
-          </button>
+            {t("ui.components.issueworkspacecard.browse-files")}</button>
           <button
             type="button"
             onClick={onOpenFileByPath ?? onBrowseFiles}
             className="inline-flex items-center gap-1.5 text-muted-foreground transition-colors hover:text-foreground"
           >
             <FileSearch className="h-3.5 w-3.5 shrink-0" />
-            Open file by path…
-          </button>
+            {t("ui.components.issueworkspacecard.open-file-path")}</button>
         </div>
       )}
     </div>

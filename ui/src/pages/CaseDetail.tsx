@@ -136,7 +136,7 @@ function CaseRelationshipsSection({
       ) : null}
       {children.length > 0 ? (
         <div className="space-y-1">
-          <h2 className="text-xs font-medium text-muted-foreground">Children {children.length}</h2>
+          <h2 className="text-xs font-medium text-muted-foreground">{t("pages.pipelineSettings.children")}{children.length}</h2>
           <CaseChildrenTree children={children} maxVisible={5} />
         </div>
       ) : null}
@@ -276,8 +276,7 @@ function CaseLabelsPicker({
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
         <Button variant="ghost" size="sm" className="h-6 gap-1 px-2 text-xs text-muted-foreground">
-          <Plus className="h-3.5 w-3.5" /> Labels
-        </Button>
+          <Plus className="h-3.5 w-3.5" /> {t("components.issueProperties.labels")}</Button>
       </PopoverTrigger>
       <PopoverContent align="start" className="w-64 p-2">
         <Input
@@ -319,7 +318,7 @@ function CaseLabelsPicker({
               disabled={createLabel.isPending}
               onClick={() => createLabel.mutate({ name: search.trim(), color: newColor })}
             >
-              Create “{search.trim()}”
+              {t("ui.pages.casedetail.create")}{search.trim()}”
             </Button>
           </div>
         )}
@@ -357,7 +356,7 @@ function CasePropertiesContent({
           <CasePropertyRow label={t("pages.caseDetail.key", { defaultValue: "Key" })} mode={mode}>
             <CaseCopyableToken
               value={caseData.key}
-              label="case key"
+              label={t("ui.components.caseidentifierkey.case-key")}
               className="font-mono text-xs text-muted-foreground"
               truncate={!isFull}
             />
@@ -591,8 +590,7 @@ export function CaseDetail() {
       <div className="mx-auto max-w-md py-16 text-center">
         <p className="text-sm text-muted-foreground">{t("pages.caseDetail.notFound", { defaultValue: "Case not found." })}</p>
         <Link to={caseHref()} className="mt-2 inline-block text-sm text-primary hover:underline">
-          ← Back to cases
-        </Link>
+          {t("ui.pages.casedetail.back-cases")}</Link>
       </div>
     );
   }
@@ -641,8 +639,7 @@ export function CaseDetail() {
                   onClick={() => copyCaseToClipboard(caseData)}
                 >
                   {copied ? <Check className="h-3 w-3" /> : <Copy className="h-3 w-3" />}
-                  Copy as markdown
-                </button>
+                  {t("pages.agentDetail.copyAsMarkdown")}</button>
                 <button
                   type="button"
                   className="flex w-full items-center gap-2 rounded px-2 py-1.5 text-xs hover:bg-accent/50"
@@ -651,8 +648,7 @@ export function CaseDetail() {
                   }}
                 >
                   <SlidersHorizontal className="h-3 w-3" />
-                  Properties
-                </button>
+                  {t("components.issueProperties.title")}</button>
               </PopoverContent>
             </Popover>
           </div>
@@ -670,7 +666,7 @@ export function CaseDetail() {
           <TabsTrigger value="overview">{t("pages.caseDetail.overview", { defaultValue: "Overview" })}</TabsTrigger>
           <TabsTrigger value="properties">{t("pages.caseDetail.properties", { defaultValue: "Properties" })}</TabsTrigger>
           <TabsTrigger value="activity">
-            Activity{events.length > 0 && <span className="ml-1 text-muted-foreground">{events.length}</span>}
+            {t("nav.activity")}{events.length > 0 && <span className="ml-1 text-muted-foreground">{events.length}</span>}
           </TabsTrigger>
         </TabsList>
 
@@ -694,7 +690,7 @@ export function CaseDetail() {
 
           {caseData.attachments.length > 0 && (
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold">Attachments ({caseData.attachments.length})</h2>
+              <h2 className="text-sm font-semibold">{t("ui.pages.casedetail.attachments")}{caseData.attachments.length})</h2>
               <CaseAttachmentsGallery attachments={caseData.attachments} />
             </section>
           )}

@@ -375,7 +375,7 @@ export function Dashboard() {
                                 ? <span className="hidden sm:inline-flex"><Identity name={name} size="sm" /></span>
                                 : null;
                             })()}
-                            <span className="text-xs text-muted-foreground sm:hidden">&middot;</span>
+                            <span className="text-xs text-muted-foreground sm:hidden">{t("ui.components.issuerow.middot")}</span>
                             <span className="text-xs text-muted-foreground shrink-0 sm:order-last">
                               {timeAgo(issue.updatedAt)}
                             </span>

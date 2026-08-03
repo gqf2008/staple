@@ -125,19 +125,16 @@ export function StatusCardTile({
             <DropdownMenuContent align="end">
               <DropdownMenuItem onSelect={onOpen}>{t("pages.statusCardTile.openDetail", { defaultValue: "Open detail" })}</DropdownMenuItem>
               <DropdownMenuItem onSelect={onRefresh} disabled={refreshPending || lifecycle === "updating"}>
-                Refresh now
-              </DropdownMenuItem>
+                {t("ui.pages.statuscards.statuscardtile.refresh-now")}</DropdownMenuItem>
               {(lifecycle === "compiling" && !setupRunning) || lifecycle === "error" ? (
                 <DropdownMenuItem onSelect={onRecompile} disabled={recompilePending}>
-                  Run now
-                </DropdownMenuItem>
+                  {t("components.agentActionButtons.runNow")}</DropdownMenuItem>
               ) : null}
-              <DropdownMenuItem onSelect={onEditInterest}>Edit interest &amp; settings</DropdownMenuItem>
+              <DropdownMenuItem onSelect={onEditInterest}>{t("ui.pages.statuscards.statuscardtile.edit-interest-amp-settings")}</DropdownMenuItem>
               <DropdownMenuItem onSelect={onOpenDebug}>{t("pages.statusCardTile.queryDebug", { defaultValue: "Query debug" })}</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onSelect={onArchive} variant="destructive">
-                Archive
-              </DropdownMenuItem>
+                {t("components.projectProperties.archive")}</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
@@ -167,8 +164,7 @@ export function StatusCardTile({
                 className="mt-2 inline-flex items-center gap-1.5 font-medium text-foreground underline-offset-2 hover:underline"
               >
                 <ExternalLink className="h-3.5 w-3.5" />
-                View setup task
-              </Link>
+                {t("ui.pages.statuscards.statuscarddetaildrawer.view-setup-task")}</Link>
             ) : (
               // The first run stalled (agent run died mid-setup) and the card
               // can sit here forever, so offer a manual re-kick.
@@ -202,8 +198,7 @@ export function StatusCardTile({
                   className="inline-flex shrink-0 items-center gap-1 font-medium underline-offset-2 hover:underline"
                 >
                   <ExternalLink className="h-3.5 w-3.5" />
-                  View update task
-                </Link>
+                  {t("ui.pages.statuscards.statuscardtile.view-update-task")}</Link>
               ) : null}
             </div>
           </div>
@@ -217,8 +212,7 @@ export function StatusCardTile({
             className="flex w-full items-center justify-between gap-2 rounded-md border border-amber-500/40 bg-amber-500/5 px-3 py-1.5 text-left text-xs text-foreground transition-colors hover:bg-amber-500/10 disabled:opacity-60"
           >
             <span>
-              {card.pendingChangeCount} {card.pendingChangeCount === 1 ? "change" : "changes"} since last update
-            </span>
+              {card.pendingChangeCount} {card.pendingChangeCount === 1 ? "change" : "changes"} {t("ui.pages.statuscards.statuscardtile.since-last-update")}</span>
             <span className="shrink-0 font-medium text-amber-700 dark:text-amber-400">{t("pages.statusCardTile.refresh", { defaultValue: "Refresh" })}</span>
           </button>
         ) : null}
@@ -227,15 +221,12 @@ export function StatusCardTile({
           <div className="flex items-center justify-between gap-2 rounded-md border border-destructive/40 bg-destructive/5 px-3 py-1.5 text-xs">
             <span className="flex items-center gap-1.5 text-destructive">
               <AlertTriangle className="h-3.5 w-3.5 shrink-0" />
-              Last update failed
-            </span>
+              {t("ui.pages.statuscards.statuscardtile.last-update-failed")}</span>
             <span className="flex shrink-0 items-center gap-3">
               <button type="button" onClick={stopClick(onRefresh)} disabled={refreshPending} className="font-medium text-destructive hover:underline disabled:opacity-60">
-                Retry
-              </button>
+                {t("components.issueProperties.retry")}</button>
               <button type="button" onClick={stopClick(onOpen)} className="text-muted-foreground hover:underline">
-                Details
-              </button>
+                {t("components.systemNotice.details")}</button>
             </span>
           </div>
         ) : null}
@@ -261,8 +252,7 @@ export function StatusCardTile({
           <MarkdownBody className="text-xs leading-6 text-foreground [&_p]:my-0.5">{card.summaryBody!}</MarkdownBody>
         ) : lifecycle === "compiling" ? (
           <p className="text-xs text-muted-foreground">
-            You can add instructions and pick an update policy while this runs.
-          </p>
+            {t("ui.pages.statuscards.statuscardtile.you-can-add-instructions")}</p>
         ) : lifecycle === "updating" && draftStream.draft ? (
           <MarkdownBody className="text-xs leading-6 text-foreground [&_p]:my-0.5">{draftStream.draft}</MarkdownBody>
         ) : (

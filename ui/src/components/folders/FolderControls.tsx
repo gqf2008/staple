@@ -256,8 +256,7 @@ export function FolderRail({
             />
           ))}
           <div className="px-2 pb-1 pt-3 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-            System
-          </div>
+            {t("components.activityFeed.system")}</div>
           {renderVirtualRow("unfiled", t("components.folderControls.unfiled", { defaultValue: "Unfiled" }), result?.unfiledCount ?? 0, <FolderSwatch color={null} className="mt-0.5" />)}
         </div>
       )}
@@ -346,8 +345,7 @@ export function FolderRailItem({
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={onDelete}>
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </DropdownMenuItem>
+            {t("common.delete")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -390,11 +388,9 @@ export function AllUnfiledBanner({
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
       <FolderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 text-muted-foreground">
-        Group these {itemLabelPlural} into folders to keep things tidy.
-      </span>
+        {t("ui.components.folders.foldercontrols.group-these")}{itemLabelPlural} {t("ui.components.folders.foldercontrols.into-folders-keep-things")}</span>
       <Button size="sm" variant="outline" onClick={onCreateFolder}>
-        Create your first folder
-      </Button>
+        {t("ui.components.folders.foldercontrols.create-your-first-folder")}</Button>
       <Button size="icon-sm" variant="ghost" aria-label={t("components.folderControls.dismissSuggestion", { defaultValue: "Dismiss folder suggestion" })} onClick={dismiss}>
         <X className="h-3.5 w-3.5" />
       </Button>
@@ -467,8 +463,7 @@ export function MobileFolderSheet({
             <>
               {model.my ? renderBranch(model.my, t("components.folderControls.mySkills", { defaultValue: "My Skills" })) : null}
               <div className="px-2 pb-0.5 pt-2 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                Company
-              </div>
+                {t("nav.sectionCompany")}</div>
               {model.company.map((node) => renderBranch(node))}
               {model.projects ? renderBranch(model.projects, t("components.folderControls.projects", { defaultValue: "Projects" })) : null}
               {model.bundled ? renderBranch(model.bundled, t("components.folderControls.bundled", { defaultValue: "Bundled" })) : null}
@@ -487,8 +482,7 @@ export function MobileFolderSheet({
         <div className="border-t border-border px-4 pt-3">
           <Button size="sm" variant="outline" className="w-full" onClick={onCreate}>
             <Plus className="mr-2 h-3.5 w-3.5" />
-            New folder
-          </Button>
+            {t("components.folderControls.newFolder")}</Button>
         </div>
       </SheetContent>
     </Sheet>
@@ -585,8 +579,7 @@ function MoveToMenuItems({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onMove(null)}>
           <FolderSwatch color={null} />
-          Unfiled
-          {currentFolderId == null ? <Check className="ml-auto h-3.5 w-3.5" /> : null}
+          {t("components.folderControls.unfiled")}{currentFolderId == null ? <Check className="ml-auto h-3.5 w-3.5" /> : null}
         </DropdownMenuItem>
         {visibleFolders.map((folder) => (
           <DropdownMenuItem key={folder.id} onSelect={() => onMove(folder.id)}>
@@ -601,8 +594,7 @@ function MoveToMenuItems({
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onCreateAndMove}>
           <Plus className="h-3.5 w-3.5" />
-          New folder...
-        </DropdownMenuItem>
+          {t("ui.components.folders.foldercontrols.new-folder")}</DropdownMenuItem>
     </>
   );
 }
@@ -678,15 +670,13 @@ export function FolderFormDialog({
                 )}
                 onClick={() => setColor(null)}
               >
-                None
-              </button>
+                {t("components.commentThread.none")}</button>
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button onClick={() => onSubmit({ name: name.trim(), color })} disabled={pending || !name.trim()}>
             {pending ? t("components.folderControls.saving", { defaultValue: "Saving..." }) : isEdit ? t("components.folderControls.save", { defaultValue: "Save" }) : t("components.folderControls.createFolder", { defaultValue: "Create folder" })}
           </Button>
@@ -717,8 +707,7 @@ export function DeleteFolderDialog({
         <AlertDialogHeader>
           <AlertDialogTitle>{t("components.folderControls.deleteFolder", { defaultValue: "Delete folder" })}</AlertDialogTitle>
           <AlertDialogDescription>
-            The {folder?.itemCount ?? 0} {itemLabelPlural} in this folder won't be deleted. They'll move to Unfiled.
-          </AlertDialogDescription>
+            The {folder?.itemCount ?? 0} {itemLabelPlural} {t("ui.components.folders.foldercontrols.folder-won-deleted-they")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
           <AlertDialogCancel disabled={pending}>{t("components.folderControls.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>

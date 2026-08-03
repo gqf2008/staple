@@ -178,13 +178,13 @@ function AuditRow({
           ) : null}
           {documentKey ? (
             <p className="text-xs text-muted-foreground">
-              Document <span className="font-mono text-(length:--text-micro)">{documentKey}</span>
+              {t("components.artifactsPanel.document")}<span className="font-mono text-(length:--text-micro)">{documentKey}</span>
             </p>
           ) : null}
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             {showOnBehalf && responsibleLabel ? (
               <span className="inline-flex items-center rounded-full bg-muted px-2 py-0.5">
-                on behalf of {responsibleLabel}
+                {t("ui.components.issuerunledger.behalf")}{responsibleLabel}
               </span>
             ) : null}
             {record.runId && record.agentId ? (
@@ -192,8 +192,7 @@ function AuditRow({
                 to={`/agents/${record.agentId}/runs/${record.runId}`}
                 className="text-primary hover:underline"
               >
-                View run
-              </Link>
+                {t("components.liveUpdates.viewRun")}</Link>
             ) : null}
             <span className="font-mono text-(length:--text-micro) opacity-70">{record.action}</span>
           </div>
@@ -219,12 +218,9 @@ function AuditUpsell() {
         <div>
           <p className="text-sm font-medium text-foreground">{t("pages.audit.enterpriseView", { defaultValue: "Agent audit is a Paperclip Enterprise view" })}</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
-            The agent audit log gives you a searchable, exportable record of everything your agents
-            did — every comment, task change, approval, and run — with the responsible person for
-            each action. Ask an administrator to grant you the{" "}
-            <span className="font-mono text-(length:--text-micro)">audit:view_agent_actions</span>{" "}
-            permission to view it.
-          </p>
+            {t("ui.pages.audit.auditfeed.agent-audit-log-gives")}{" "}
+            <span className="font-mono text-(length:--text-micro)">{t("ui.pages.audit.auditfeed.audit-view-agent-actions")}</span>{" "}
+            {t("ui.pages.audit.auditfeed.permission-view")}</p>
         </div>
       </CardContent>
     </Card>
@@ -354,9 +350,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
           <div>
             <h1 className="text-lg font-semibold text-foreground">{t("pages.audit.title", { defaultValue: "Audit" })}</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Everything your agents did, newest first — each line is one recorded action, with the
-              person responsible for it. Click through to the task or run for the full context.
-            </p>
+              {t("ui.pages.audit.auditfeed.everything-your-agents-did")}</p>
           </div>
         </div>
       ) : null}
@@ -365,7 +359,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
         {!lockedAgentId ? (
           <Select value={agent} onValueChange={setAgent}>
             <SelectTrigger className="w-40">
-              <SelectValue placeholder="Agent" />
+              <SelectValue placeholder={t("components.dialogs.newGoal.levelAgent")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>{t("pages.audit.allAgents", { defaultValue: "All agents" })}</SelectItem>
@@ -432,8 +426,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
         />
         {hasActiveFilters ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear filters
-          </Button>
+            {t("components.routineOperate.clearFilters")}</Button>
         ) : null}
         <Button
           variant="outline"
@@ -449,7 +442,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
 
       {feed.isLoading ? (
         <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">Loading…</CardContent>
+          <CardContent className="py-14 text-center text-sm text-muted-foreground">{t("components.secretBindingPicker.loading")}</CardContent>
         </Card>
       ) : feed.error ? (
         <Card>
@@ -458,8 +451,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
               {feed.error instanceof Error ? feed.error.message : t("pages.audit.loadFailed", { defaultValue: "Failed to load the audit log." })}
             </p>
             <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
-              Try again
-            </Button>
+              {t("components.issueRecoveryAction.tryAgain")}</Button>
           </CardContent>
         </Card>
       ) : items.length === 0 ? (
@@ -478,8 +470,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
             </div>
             {hasActiveFilters ? (
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
-              </Button>
+                {t("components.routineOperate.clearFilters")}</Button>
             ) : null}
           </CardContent>
         </Card>
@@ -514,8 +505,7 @@ export function AuditFeed({ companyId, lockedAgentId, hideHeader }: AuditFeedPro
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
-      </p>
+        {t("ui.pages.audit.auditfeed.recorded-paperclip-entries-can")}</p>
     </div>
   );
 }

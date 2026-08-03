@@ -233,7 +233,7 @@ export function AgentsUsingSkillDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Agents using {skill.name}</DialogTitle>
+          <DialogTitle>{t("ui.components.skill-studio.agentsusingskilldialog.agents-using")}{skill.name}</DialogTitle>
           <DialogDescription>
             {count === 0
               ? t("components.agentsUsingSkillDialog.noAgentsAssigned", { defaultValue: "No agents have this skill assigned yet." })
@@ -355,7 +355,7 @@ function AgentRow({
             className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground disabled:opacity-60"
           >
             <option value={LATEST_VALUE}>
-              Latest{latestRevision !== null ? ` (v${latestRevision})` : ""}
+              {t("components.summarySlotCard.latest")}{latestRevision !== null ? ` (v${latestRevision})` : ""}
             </option>
             {versions.map((version) => (
               <option key={version.id} value={version.id}>
@@ -373,8 +373,7 @@ function AgentRow({
         )}
         {behindLatest > 0 ? (
           <span className="text-(length:--text-nano) text-amber-500">
-            {behindLatest} version{behindLatest === 1 ? "" : "s"} behind latest
-          </span>
+            {behindLatest} version{behindLatest === 1 ? "" : "s"} {t("ui.components.skill-studio.agentsusingskilldialog.behind-latest")}</span>
         ) : null}
       </div>
 
@@ -391,8 +390,7 @@ function AgentRow({
               {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("components.agentsUsingSkillDialog.remove", { defaultValue: "Remove" })}
             </Button>
             <Button variant="ghost" size="sm" onClick={onCancelRemove} disabled={busy}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
         ) : (
           <Button
@@ -454,8 +452,7 @@ function AddAgentPicker({
       renderValue={() => (
         <span className="flex items-center gap-1.5 text-muted-foreground">
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-          Add agent…
-        </span>
+          {t("components.agentsUsingSkillDialog.addAgent")}</span>
       )}
       renderOption={(option) => (
         <span className="flex min-w-0 flex-col">

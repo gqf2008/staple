@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect } from "react";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "@/context/CompanyContext";
@@ -27,19 +28,18 @@ export function AppsReview() {
   }, [setBreadcrumbs, selectedCompany?.name]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to review approvals.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("ui.pages.apps.appsreview.select-company-review-approvals")}</div>;
   }
 
   return (
     <div className="max-w-3xl space-y-6 pb-12">
       <header>
-        <h1 className="text-2xl font-bold tracking-tight">Review</h1>
+        <h1 className="text-2xl font-bold tracking-tight">{t("components.appsSidebar.review")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Actions your agents want to run that need your OK first. Approve, always-allow, or decline.
-        </p>
+          {t("ui.pages.apps.appsreview.actions-your-agents-want")}</p>
       </header>
 
-      <ReviewQueueCard emptyState="reassure" heading="Waiting for your OK" />
+      <ReviewQueueCard emptyState="reassure" heading={t("pages.reviewQueueCard.waitingForOk")} />
     </div>
   );
 }

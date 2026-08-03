@@ -209,15 +209,14 @@ export function Connections() {
             <div>
               <h1 className="text-2xl font-bold tracking-tight">{t("pages.connections.title", { defaultValue: "Connections" })}</h1>
               <p className="mt-1 text-sm text-muted-foreground">
-                The tools you’ve connected, and whether they’re working.
-              </p>
+                {t("ui.pages.apps.connections.tools-you-ve-connected")}</p>
             </div>
             <Button onClick={() => navigate(BROWSE_HREF)}>{t("pages.connections.connectApp", { defaultValue: "Connect an app" })}</Button>
           </header>
 
           <div className="flex flex-wrap items-center gap-2">
             <FilterChip active={filter === "all"} onClick={() => setFilter("all")}>
-              All ({rows.length})
+              {t("ui.pages.companyskills.all")}{rows.length})
             </FilterChip>
             <FilterChip
               active={filter === "attention"}
@@ -225,7 +224,7 @@ export function Connections() {
               disabled={rowsNeedingAttention.length === 0}
               onClick={() => setFilter("attention")}
             >
-              Needs attention ({rowsNeedingAttention.length})
+              {t("ui.pages.apps.connections.needs-attention")}{rowsNeedingAttention.length})
             </FilterChip>
           </div>
 
@@ -238,11 +237,9 @@ export function Connections() {
               <ShieldQuestion className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-                  {reviewCount} {reviewCount === 1 ? "action is" : "actions are"} waiting for your OK
-                </div>
+                  {reviewCount} {reviewCount === 1 ? "action is" : "actions are"} {t("pages.reviewQueueCard.waitingForOk")}</div>
                 <div className="truncate text-xs text-amber-700 dark:text-amber-300">
-                  Your agents paused to check with you before making a change.
-                </div>
+                  {t("ui.pages.apps.connections.your-agents-paused-check")}</div>
               </div>
               <span className="shrink-0 text-xs font-semibold text-amber-800 dark:text-amber-200">{t("pages.connections.review", { defaultValue: "Review →" })}</span>
             </button>
@@ -363,8 +360,7 @@ export function Connections() {
 
           <div className="flex flex-wrap items-center justify-between gap-2">
             <p className="text-xs text-muted-foreground">
-              Apps you connect become available to every agent unless you change “Who can use it”.
-            </p>
+              {t("ui.pages.apps.connections.apps-you-connect-become")}</p>
             <AdvancedToolsLink />
           </div>
         </div>
@@ -426,8 +422,7 @@ function EmptyConnections({ onBrowse }: { onBrowse: () => void }) {
       <header>
         <h1 className="text-2xl font-bold tracking-tight">{t("pages.connections.title", { defaultValue: "Connections" })}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          The tools you’ve connected, and whether they’re working.
-        </p>
+          {t("ui.pages.apps.connections.tools-you-ve-connected")}</p>
       </header>
 
       <div className="rounded-2xl border border-dashed border-border bg-card p-10 text-center">
@@ -436,12 +431,9 @@ function EmptyConnections({ onBrowse }: { onBrowse: () => void }) {
         </div>
         <p className="mt-4 text-sm font-medium text-foreground">{t("pages.connections.noConnections", { defaultValue: "No connections yet." })}</p>
         <p className="mt-1 text-sm text-muted-foreground">
-          Add one from <span className="font-medium text-foreground">{t("pages.connections.apps", { defaultValue: "Apps" })}</span> to give your agents
-          the tools they need.
-        </p>
+          {t("ui.pages.apps.connections.add-one-from")}<span className="font-medium text-foreground">{t("pages.connections.apps", { defaultValue: "Apps" })}</span> {t("ui.pages.apps.connections.give-your-agents-tools")}</p>
         <Button className="mt-6" onClick={onBrowse}>
-          Browse apps
-        </Button>
+          {t("ui.pages.apps.connections.browse-apps")}</Button>
       </div>
     </div>
   );

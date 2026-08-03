@@ -1080,10 +1080,9 @@ export function WorkspaceFileBrowser({
               onClick={() => loadMoreFolder(currentFolderKey)}
               className="rounded px-1 py-0.5 text-left hover:bg-accent hover:text-foreground"
             >
-              Load more from this folder
-            </button>
+              {t("components.workspaceFileBrowser.loadMore")}</button>
           ) : (
-            <>Showing first {items.length} — refine the search to narrow.</>
+            <>{t("ui.components.workspacefilebrowser.showing-first")}{items.length} {t("ui.components.workspacefilebrowser.refine-search-narrow")}</>
           )}
         </div>
       ) : null}

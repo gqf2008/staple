@@ -95,9 +95,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        For a tool that runs from a command. Paperclip runs it in your company's own isolated workspace.
-        Administrators only.
-      </p>
+        {t("ui.pages.tools.runyourowntab.tool-runs-from-command")}</p>
 
       <div className="space-y-5 rounded-lg border border-border bg-card p-5">
         <div className="space-y-1.5">
@@ -128,7 +126,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
         <div className="space-y-2">
           <div className="flex items-baseline gap-2">
             <Label>{t("pages.tools.runYourOwn.keysNeeded", { defaultValue: "Keys it needs" })}</Label>
-            <span className="text-xs text-muted-foreground">· optional, depends on the tool</span>
+            <span className="text-xs text-muted-foreground">{t("ui.pages.tools.runyourowntab.optional-depends-tool")}</span>
           </div>
           {keyRows.length > 0 ? (
             <div className="space-y-2">
@@ -145,7 +143,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                             rows.map((r) => (r.id === row.id ? { ...r, value: event.target.value } : r)),
                           )
                         }
-                        placeholder="API_KEY"
+                        placeholder={t("ui.pages.tools.runyourowntab.api-key")}
                         spellCheck={false}
                         className={`font-mono text-(length:--text-compact) ${invalid ? "border-destructive" : ""}`}
                       />
@@ -161,8 +159,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                     </div>
                     {invalid ? (
                       <p className="text-xs text-destructive">
-                        Use letters, numbers and underscores, starting with a letter or underscore (e.g. API_KEY).
-                      </p>
+                        {t("ui.pages.tools.runyourowntab.use-letters-numbers-underscores")}</p>
                     ) : null}
                   </div>
                 );
@@ -171,20 +168,17 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
           ) : null}
           <Button type="button" variant="outline" size="sm" onClick={addKeyRow} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
-            Add a key
-          </Button>
+            {t("ui.pages.tools.runyourowntab.add-key")}</Button>
         </div>
 
         <div className="flex items-start gap-2.5 rounded-md bg-muted/50 px-3 py-2.5">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <div className="text-xs">
             <p className="font-medium text-foreground">
-              This runs in your company's own workspace, isolated from everything else.
-            </p>
+              {t("ui.pages.tools.runyourowntab.runs-your-company-own")}</p>
             <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
               <Lock className="h-3 w-3" />
-              Only administrators see this option.
-            </p>
+              {t("ui.pages.tools.runyourowntab.only-administrators-see-option")}</p>
           </div>
         </div>
 
@@ -195,8 +189,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
             {createMutation.isPending ? t("pages.tools.runYourOwn.adding", { defaultValue: "Adding…" }) : t("pages.tools.runYourOwn.checkAndContinue", { defaultValue: "Check & continue" })}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Paperclip will register the command and the keys it needs.
-          </span>
+            {t("ui.pages.tools.runyourowntab.paperclip-will-register-command")}</span>
         </div>
       </div>
 
@@ -282,8 +275,7 @@ function RunYourOwnRow({
             onClick={() => disableMutation.mutate()}
             disabled={disableMutation.isPending}
           >
-            Turn off
-          </Button>
+            {t("ui.pages.tools.policiestab.turn-off")}</Button>
         )}
       </td>
     </tr>

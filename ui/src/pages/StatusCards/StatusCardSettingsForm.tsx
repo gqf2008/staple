@@ -127,8 +127,7 @@ export function StatusCardSettingsForm({
             title={t("pages.statusCardSettings.manualOnly", { defaultValue: "Manual only — updates when I press refresh" })}
             badge={
               <span className="ml-auto rounded-full bg-muted px-2 py-0.5 text-(length:--text-nano) font-medium uppercase tracking-wide text-muted-foreground">
-                Default
-              </span>
+                {t("components.agentConfigForm.default")}</span>
             }
             onSelect={() => setMode("manual")}
           />
@@ -178,7 +177,7 @@ export function StatusCardSettingsForm({
                   ))}
                 </SelectContent>
               </Select>
-              <span className="text-xs">after the last change · max</span>
+              <span className="text-xs">{t("ui.pages.statuscards.statuscardsettingsform.after-last-change-max")}</span>
               <Input
                 type="number"
                 min={1}
@@ -188,7 +187,7 @@ export function StatusCardSettingsForm({
                 className="h-8 w-16 text-sm"
                 aria-label={t("pages.statusCardSettings.maxUpdatesPerHour", { defaultValue: "Max updates per hour" })}
               />
-              <span className="text-xs">updates/hour</span>
+              <span className="text-xs">{t("ui.pages.statuscards.statuscardsettingsform.updates-hour")}</span>
             </div>
           </RadioRow>
         </div>
@@ -202,8 +201,7 @@ export function StatusCardSettingsForm({
       {autoUpdating ? (
         <Collapsible className="rounded-md border border-border">
           <CollapsibleTrigger className="group flex w-full items-center justify-between gap-2 px-3 py-2.5 text-sm font-semibold">
-            Advanced
-            <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
+            {t("components.issueRunLedger.advanced")}<ChevronDown className="h-4 w-4 text-muted-foreground transition-transform group-data-[state=open]:rotate-180" />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-6 border-t border-border px-3 py-3">
             <section className="space-y-2">
@@ -267,7 +265,7 @@ export function StatusCardSettingsForm({
                     setPolicy({ dailyTokenCap: event.target.value === "" || parsed <= 0 ? undefined : parsed });
                   }}
                   className="h-8 w-36"
-                  placeholder="no cap"
+                  placeholder={t("ui.pages.statuscards.statuscardsettingsform.no-cap")}
                   aria-label={t("pages.statusCardSettings.dailyTokenCap", { defaultValue: "Daily token cap" })}
                 />
               </div>

@@ -94,9 +94,7 @@ export function InstanceGeneralSettings() {
           <h1 className="text-lg font-semibold">{t("pages.instanceGeneralSettings.general", { defaultValue: "General" })}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
-          Configure instance-wide preferences including log display, keyboard shortcuts, backup
-          retention, and data sharing.
-        </p>
+          {t("ui.pages.instancegeneralsettings.configure-instance-wide-preferences")}</p>
       </div>
 
       {actionError && (
@@ -143,10 +141,7 @@ export function InstanceGeneralSettings() {
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">{t("pages.instanceGeneralSettings.censorUsername", { defaultValue: "Censor username in logs" })}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Hide the username segment in home-directory paths and similar operator-visible log output. Standalone
-              username mentions outside of paths are not yet masked in the live transcript view. This is off by
-              default.
-            </p>
+              {t("ui.pages.instancegeneralsettings.hide-username-segment-home")}</p>
           </div>
           <ToggleSwitch
             checked={censorUsernameInLogs}
@@ -162,9 +157,7 @@ export function InstanceGeneralSettings() {
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">{t("pages.instanceGeneralSettings.keyboardShortcuts", { defaultValue: "Keyboard shortcuts" })}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Enable app keyboard shortcuts, including inbox navigation and global shortcuts like creating tasks or
-              toggling panels. This is off by default.
-            </p>
+              {t("ui.pages.instancegeneralsettings.enable-app-keyboard-shortcuts")}</p>
           </div>
           <ToggleSwitch
             checked={keyboardShortcuts}
@@ -180,10 +173,7 @@ export function InstanceGeneralSettings() {
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">{t("pages.instanceGeneralSettings.backupRetention", { defaultValue: "Backup retention" })}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Configure how long automatic database backups are retained. Backups run roughly
-              every hour and are compressed with gzip. Within the daily window all backups are
-              kept; beyond that, one backup per week and one per month are preserved.
-            </p>
+              {t("ui.pages.instancegeneralsettings.configure-how-long-automatic")}</p>
           </div>
 
           <div className="space-y-1.5">
@@ -282,9 +272,7 @@ export function InstanceGeneralSettings() {
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">{t("pages.instanceGeneralSettings.feedbackSharing", { defaultValue: "AI feedback sharing" })}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Control whether thumbs up and thumbs down votes can send the voted AI output to
-              Paperclip Labs. Votes are always saved locally.
-            </p>
+              {t("ui.pages.instancegeneralsettings.control-whether-thumbs-up")}</p>
             {FEEDBACK_TERMS_URL ? (
               <a
                 href={FEEDBACK_TERMS_URL}
@@ -292,15 +280,12 @@ export function InstanceGeneralSettings() {
                 rel="noreferrer"
                 className="inline-flex text-sm text-muted-foreground underline underline-offset-4 hover:text-foreground"
               >
-                Read our terms of service
-              </a>
+                {t("ui.components.agentbubbleactionrow.read-our-terms-service")}</a>
             ) : null}
           </div>
           {feedbackDataSharingPreference === "prompt" ? (
             <div className="rounded-lg border border-border/70 bg-accent/20 px-3 py-2 text-sm text-muted-foreground">
-              No default is saved yet. The next thumbs up or thumbs down choice will ask once and
-              then save the answer here.
-            </div>
+              {t("ui.pages.instancegeneralsettings.no-default-saved-yet")}</div>
           ) : null}
           <div className="flex flex-wrap gap-2">
             {[
@@ -344,12 +329,10 @@ export function InstanceGeneralSettings() {
             })}
           </div>
           <p className="text-xs text-muted-foreground">
-            To retest the first-use prompt in local dev, remove the{" "}
-            <code>feedbackDataSharingPreference</code> key from the{" "}
-            <code>instance_settings.general</code> JSON row for this instance, or set it back to{" "}
-            <code>"prompt"</code>. Unset and <code>"prompt"</code> both mean no default has been
-            chosen yet.
-          </p>
+            {t("ui.pages.instancegeneralsettings.retest-first-use-prompt")}{" "}
+            <code>{t("ui.pages.instancegeneralsettings.feedbackdatasharingpreference")}</code> {t("ui.pages.instancegeneralsettings.key-from")}{" "}
+            <code>instance_settings.general</code> {t("ui.pages.instancegeneralsettings.json-row-instance-set")}{" "}
+            <code>{t("ui.pages.instancegeneralsettings.prompt")}</code>{t("ui.pages.instancegeneralsettings.unset")}<code>{t("ui.pages.instancegeneralsettings.prompt")}</code> {t("ui.pages.instancegeneralsettings.both-mean-no-default")}</p>
         </div>
       </Card>
 
@@ -358,8 +341,7 @@ export function InstanceGeneralSettings() {
           <div className="space-y-1.5">
             <h2 className="text-sm font-semibold">{t("pages.instanceGeneralSettings.signOut", { defaultValue: "Sign out" })}</h2>
             <p className="max-w-2xl text-sm text-muted-foreground">
-              Sign out of this Paperclip instance. You will be redirected to the login page.
-            </p>
+              {t("ui.pages.instancegeneralsettings.sign-paperclip-instance-you")}</p>
           </div>
           <Button
             variant="outline"

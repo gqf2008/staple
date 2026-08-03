@@ -121,17 +121,15 @@ export function ProfilesIndex({
   const header = (
     <ToolsPageHeader
       title={t("pages.tools.profilesIndex.title", { defaultValue: "Access profiles" })}
-      description="Decide which tools your agents can use. Build a profile once, then assign it to the agents that need it."
+      description={t("ui.pages.tools.profiles.profilesindex.decide-which-tools-your")}
       actions={
         <>
           <Button variant="outline" onClick={() => setResolverOpen(true)}>
             <ShieldCheck className="mr-1.5 h-4 w-4" />
-            Check an agent's access
-          </Button>
+            {t("pages.tools.profilesIndex.checkAccess")}</Button>
           <Button onClick={() => navigate(newProfileHref())}>
             <Plus className="mr-1.5 h-4 w-4" />
-            New profile
-          </Button>
+            {t("pages.tools.profiles.newProfile")}</Button>
         </>
       }
     />
@@ -143,8 +141,7 @@ export function ProfilesIndex({
         <SheetHeader className="border-b border-border">
           <SheetTitle>{t("pages.tools.profilesIndex.checkAccess", { defaultValue: "Check an agent's access" })}</SheetTitle>
           <SheetDescription>
-            See exactly which tools an agent can use right now, and which profile allows each one.
-          </SheetDescription>
+            {t("ui.pages.tools.profiles.profilesindex.see-exactly-which-tools")}</SheetDescription>
         </SheetHeader>
         <div className="flex min-h-0 flex-1 flex-col p-4">
           <EffectiveAgentPanel companyId={companyId} agentOptions={agentOptions} />
@@ -196,8 +193,7 @@ export function ProfilesIndex({
       {rows.length === 0 ? (
         statusFilter === "archived" ? (
           <div className="rounded-lg border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
-            No archived profiles.
-          </div>
+            {t("ui.pages.tools.profiles.profilesindex.no-archived-profiles")}</div>
         ) : (
           <EmptyTemplatePicker onPick={(key) => navigate(newProfileHref(key))} />
         )
@@ -256,7 +252,7 @@ export function ProfilesIndex({
                       {assigned.unassigned ? (
                         <span className="text-muted-foreground">
                           {assigned.text}
-                          <span className="ml-1 text-xs text-muted-foreground/70">— does not change access</span>
+                          <span className="ml-1 text-xs text-muted-foreground/70">{t("ui.pages.tools.profiles.profilesindex.does-not-change-access")}</span>
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1.5 text-foreground">
@@ -276,8 +272,7 @@ export function ProfilesIndex({
                             onClick={open}
                             className="text-xs font-medium text-primary hover:underline"
                           >
-                            Resume
-                          </button>
+                            {t("components.agentActionButtons.resume")}</button>
                         ) : null}
                       </span>
                     </td>
@@ -354,15 +349,13 @@ function RowMenu({
         {onRestore ? (
           <DropdownMenuItem onSelect={onRestore}>
             <ArchiveRestore className="mr-1.5 h-4 w-4" />
-            Restore
-          </DropdownMenuItem>
+            {t("components.routineList.restore")}</DropdownMenuItem>
         ) : (
           <DropdownMenuItem onSelect={onArchive}>{t("pages.tools.profilesIndex.archive", { defaultValue: "Archive" })}</DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onDelete} className="text-destructive focus:text-destructive">
-          Delete
-        </DropdownMenuItem>
+          {t("common.delete")}</DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>
   );
@@ -375,8 +368,7 @@ function EmptyTemplatePicker({ onPick }: { onPick: (key: TemplateKey) => void })
       <div className="mb-4 max-w-2xl">
         <h3 className="text-base font-semibold text-foreground">{t("pages.tools.profilesIndex.createFirst", { defaultValue: "Create your first access profile" })}</h3>
         <p className="text-sm text-muted-foreground">
-          Pick a starting point. You can fine-tune exactly which tools it allows in the next step.
-        </p>
+          {t("ui.pages.tools.profiles.profilesindex.pick-starting-point-you")}</p>
       </div>
       <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
         {TEMPLATES.map((template) => (

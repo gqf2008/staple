@@ -119,8 +119,7 @@ function GoogleSheetsAllowlistSection({
       <div>
         <h2 className="text-sm font-bold text-foreground">{t("pages.appSetupPanel.sheetsAgentsCanUse", { defaultValue: "Sheets agents can use" })}</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
-          Agents can only use the sheets listed here.
-        </p>
+          {t("ui.pages.apps.app-detail.setuppanel.agents-can-only-use")}</p>
       </div>
 
       <div className="mt-4 space-y-2">
@@ -142,7 +141,7 @@ function GoogleSheetsAllowlistSection({
                     {sheetUrl}
                   </span>
                   <span className="block truncate font-mono text-(length:--text-micro) font-normal text-muted-foreground/80">
-                    ID: {id}
+                    {t("ui.pages.apps.app-detail.setuppanel.id")}{id}
                   </span>
                 </a>
                 <Button
@@ -153,8 +152,7 @@ function GoogleSheetsAllowlistSection({
                   title={ids.length <= 1 ? t("pages.appSetupPanel.sheetRequired", { defaultValue: "Add another sheet before removing this one." }) : undefined}
                   onClick={() => saveIds(ids.filter((current) => current !== id))}
                 >
-                  Remove
-                </Button>
+                  {t("components.agentsUsingSkillDialog.remove")}</Button>
               </div>
             );
           })
@@ -189,8 +187,7 @@ function GoogleSheetsAllowlistSection({
             setDraft("");
           }}
         >
-          Add sheet
-        </Button>
+          {t("ui.pages.apps.app-detail.setuppanel.add-sheet")}</Button>
       </div>
       {error && <div className="mt-2 text-xs text-destructive">{error}</div>}
     </section>
@@ -248,20 +245,17 @@ export function QuarantinePill({
     <div className="rounded-xl border border-amber-500/40 bg-amber-500/[0.08] p-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div className="text-sm font-semibold text-amber-800 dark:text-amber-200">
-          {count} new {count === 1 ? "action" : "actions"} to review
-        </div>
+          {count} new {count === 1 ? "action" : "actions"} {t("ui.pages.pipelines.review")}</div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
             {open ? t("pages.appSetupPanel.hide", { defaultValue: "Hide" }) : t("pages.appSetupPanel.review", { defaultValue: "Review" })}
           </Button>
           <Button size="sm" disabled={disabled} onClick={() => onTurnOn(entries.map((e) => e.id))}>
-            Turn on all
-          </Button>
+            {t("ui.pages.apps.app-detail.setuppanel.turn-all")}</Button>
         </div>
       </div>
       <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-        This app added actions since you set it up. They stay off until you turn them on.
-      </p>
+        {t("ui.pages.apps.app-detail.setuppanel.app-added-actions-since")}</p>
       {open && (
         <div className="mt-3 divide-y divide-amber-500/25 rounded-lg border border-amber-500/40 bg-background">
           {entries.map((entry) => (
@@ -273,8 +267,7 @@ export function QuarantinePill({
                 )}
               </div>
               <Button size="sm" variant="outline" disabled={disabled} onClick={() => onTurnOn([entry.id])}>
-                Turn on
-              </Button>
+                {t("ui.pages.apps.app-detail.setuppanel.turn")}</Button>
             </div>
           ))}
         </div>

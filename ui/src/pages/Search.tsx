@@ -660,9 +660,9 @@ export function Search() {
             </div>
           ) : (
             <span className="truncate">
-              Try <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">status:todo</code>,{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">assignee:me</code>,{" "}
-              or <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">updated:&gt;7d</code>.
+              {t("ui.pages.search.try")}<code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("ui.pages.search.status-todo")}</code>,{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("ui.pages.search.assignee-me")}</code>,{" "}
+              or <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("ui.pages.search.updated-gt-7d")}</code>.
             </span>
           )}
         </div>
@@ -808,14 +808,12 @@ function SearchTabContent({
         <div>
           <h2 className="text-lg font-semibold">{t("pages.search.typeToSearch", { defaultValue: "Type to search company memory." })}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Tasks, comments, plan documents, artifacts, agents, projects — same surface, ranked by relevance.
-          </p>
+            {t("ui.pages.search.tasks-comments-plan-documents")}</p>
         </div>
         {recentSearches.length > 0 ? (
           <div>
             <div className="mb-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-              Recent searches
-            </div>
+              {t("ui.pages.search.recent-searches")}</div>
             <ul className="flex flex-col divide-y divide-border rounded-md border border-border">
               {recentSearches.map((entry) => (
                 <li key={entry}>
@@ -835,16 +833,11 @@ function SearchTabContent({
         <ul className="space-y-1 text-xs text-muted-foreground">
           <li>
             <span className="font-medium text-foreground">{t("pages.search.identifierLookup", { defaultValue: "Identifier lookup:" })}</span> type{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">PAP-123</code> to jump straight to a task.
-          </li>
+            <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">PAP-123</code> {t("ui.pages.search.jump-straight-task")}</li>
           <li>
-            <span className="font-medium text-foreground">{t("pages.search.quotedPhrases", { defaultValue: "Quoted phrases:" })}</span> wrap a phrase in quotes to match the
-            exact sequence.
-          </li>
+            <span className="font-medium text-foreground">{t("pages.search.quotedPhrases", { defaultValue: "Quoted phrases:" })}</span> {t("ui.pages.search.wrap-phrase-quotes-match")}</li>
           <li>
-            <span className="font-medium text-foreground">⌘K:</span> reopens the command palette pre-seeded with your
-            current query.
-          </li>
+            <span className="font-medium text-foreground">⌘K:</span> {t("ui.pages.search.reopens-command-palette-pre")}</li>
         </ul>
       </div>
     );
@@ -857,16 +850,12 @@ function SearchTabContent({
         <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden />
         <div className="text-base font-semibold">{t("pages.search.couldntRun", { defaultValue: "Couldn’t run that search" })}</div>
         <p className="text-sm text-muted-foreground">
-          {status ? `The server returned ${status}.` : t("pages.search.requestFailed", { defaultValue: "The request failed." })} Your input and filters are still here, so
-          you can retry or fall back to the Tasks filter.
-        </p>
+          {status ? `The server returned ${status}.` : t("pages.search.requestFailed", { defaultValue: "The request failed." })} {t("ui.pages.search.your-input-filters-still")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button onClick={refetch} variant="default" size="sm">
-            Retry
-          </Button>
+            {t("components.issueProperties.retry")}</Button>
           <Button onClick={navigateIssuesFallback} variant="outline" size="sm">
-            Open Tasks filter view
-          </Button>
+            {t("ui.pages.search.open-tasks-filter-view")}</Button>
         </div>
       </div>
     );
@@ -876,8 +865,7 @@ function SearchTabContent({
     return (
       <div className="flex flex-col gap-2 px-2 py-3 sm:px-4">
         <div className="px-3 text-xs text-muted-foreground" data-testid="search-loading">
-          Searching for &ldquo;{trimmedQuery}&rdquo;…
-        </div>
+          {t("ui.pages.search.searching-ldquo")}{trimmedQuery}{t("ui.pages.search.rdquo")}</div>
         <div className="flex flex-col">
           <div className="px-3 py-2">
             <Skeleton className="h-3 w-24" />
@@ -903,29 +891,24 @@ function SearchTabContent({
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col items-center justify-center gap-3 px-4 py-12 text-center">
         <FileQuestion className="h-10 w-10 text-muted-foreground" aria-hidden />
-        <div className="text-base font-semibold">No results for &ldquo;{trimmedQuery}&rdquo;</div>
+        <div className="text-base font-semibold">{t("ui.pages.search.no-results-ldquo")}{trimmedQuery}{t("ui.components.commandpalette.rdquo")}</div>
         <p className="text-sm text-muted-foreground">
-          We couldn’t find a match in {describeScope(scope).toLowerCase()}. Try widening the scope or rephrasing your
-          query.
-        </p>
+          {t("ui.pages.search.we-couldn-find-match")}{describeScope(scope).toLowerCase()}{t("ui.pages.search.try-widening-scope-rephrasing")}</p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           {scope !== "all" ? (
             <Button onClick={showAllScope} size="sm" variant="outline">
-              Search all scopes
-            </Button>
+              {t("ui.pages.search.search-all-scopes")}</Button>
           ) : null}
           <Button onClick={openNewIssue} size="sm" variant="default">
             <Plus className="mr-1.5 h-4 w-4" />
-            Create task from this query
-          </Button>
+            {t("ui.pages.search.create-task-from-query")}</Button>
           <Button onClick={navigateIssuesFallback} size="sm" variant="ghost">
-            Open Tasks filter view
-          </Button>
+            {t("ui.pages.search.open-tasks-filter-view")}</Button>
         </div>
         <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
           <li>{t("pages.search.fewerTokens", { defaultValue: "Try fewer tokens or a single distinctive term." })}</li>
           <li>
-            Use an identifier shortcut like <code className="rounded bg-muted px-1 py-0.5">PAP-123</code>.
+            {t("ui.pages.search.use-identifier-shortcut-like")}<code className="rounded bg-muted px-1 py-0.5">PAP-123</code>.
           </li>
           <li>{t("pages.search.wrapQuotes", { defaultValue: "Wrap multi-word phrases in quotes." })}</li>
         </ul>

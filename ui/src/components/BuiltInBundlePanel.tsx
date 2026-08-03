@@ -329,8 +329,7 @@ export function BuiltInBundlePanel({
           detail={adapterDetail}
           actions={
             <Button variant="outline" size="sm" onClick={onConfigure}>
-              Configure
-            </Button>
+              {t("ui.components.builtinbundlepanel.configure")}</Button>
           }
         />
 

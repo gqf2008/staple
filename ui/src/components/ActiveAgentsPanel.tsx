@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { memo, useMemo } from "react";
 import { Link } from "@/lib/router";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -155,7 +156,7 @@ export function ActiveAgentsPanel({
       {showMoreLink && hiddenRunCount > 0 && (
         <div className="mt-3 flex justify-end text-xs text-muted-foreground">
           <Link to="/dashboard/live" className="hover:text-foreground hover:underline">
-            {hiddenRunCount} more active/recent run{hiddenRunCount === 1 ? "" : "s"}
+            {hiddenRunCount} {t("ui.components.activeagentspanel.more-active-recent-run")}{hiddenRunCount === 1 ? "" : "s"}
           </Link>
         </div>
       )}

@@ -137,9 +137,7 @@ export function GatewaysList() {
       <header className="space-y-1">
         <h1 className="text-2xl font-bold tracking-tight">{t("pages.gatewaysList.apps", { defaultValue: "Apps" })}</h1>
         <p className="text-sm text-muted-foreground">
-          A gateway is one safe MCP endpoint that exposes only the apps you assign. Hand it to a client
-          like Cursor or Claude Desktop.
-        </p>
+          {t("ui.pages.apps.gateways.gatewayslist.gateway-one-safe-mcp")}</p>
       </header>
 
       <AppsSubNav active="gateways" />
@@ -168,8 +166,7 @@ export function GatewaysList() {
             </div>
             <Button onClick={() => setCreating(true)}>
               <Plus className="mr-1.5 h-4 w-4" />
-              New gateway
-            </Button>
+              {t("pages.newGatewayDialog.newGateway")}</Button>
           </div>
 
           {(() => {
@@ -204,7 +201,7 @@ export function GatewaysList() {
             );
             const empty = (
               <div className="px-4 py-8 text-center text-sm text-muted-foreground">
-                No gateways match “{search.trim()}”.
+                {t("ui.pages.apps.gateways.gatewayslist.no-gateways-match")}{search.trim()}”.
               </div>
             );
             return (
@@ -299,9 +296,7 @@ export function GatewaysList() {
           <div className="rounded-lg border border-border bg-muted/30 px-4 py-3">
             <div className="text-sm font-semibold text-foreground">{t("pages.gatewaysList.whyGateway", { defaultValue: "Why a gateway?" })}</div>
             <p className="mt-1 text-sm text-muted-foreground">
-              You pick which apps go through it, who can use it, and how. Revoke the token, the whole
-              gateway goes silent — no app-by-app cleanup.
-            </p>
+              {t("ui.pages.apps.gateways.gatewayslist.you-pick-which-apps")}</p>
           </div>
         </div>
       )}
@@ -344,13 +339,10 @@ function EmptyGateways({ onCreate }: { onCreate: () => void }) {
     <div className="rounded-2xl border border-dashed border-border p-12 text-center">
       <h2 className="text-lg font-semibold text-foreground">{t("pages.gatewaysList.noGateways", { defaultValue: "No gateways yet" })}</h2>
       <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-        Group your connected apps into one safe endpoint you can hand to a client, then revoke it in one
-        move.
-      </p>
+        {t("ui.pages.apps.gateways.gatewayslist.group-your-connected-apps")}</p>
       <Button className="mt-5" onClick={onCreate}>
         <Plus className="mr-1.5 h-4 w-4" />
-        New gateway
-      </Button>
+        {t("pages.newGatewayDialog.newGateway")}</Button>
     </div>
   );
 }

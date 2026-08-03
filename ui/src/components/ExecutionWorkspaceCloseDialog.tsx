@@ -94,16 +94,13 @@ export function ExecutionWorkspaceCloseDialog({
         <DialogHeader>
           <DialogTitle>{actionLabel}</DialogTitle>
           <DialogDescription className="break-words">
-            Archive <span className="font-medium text-foreground">{workspaceName}</span> and clean up any owned workspace
-            artifacts. Paperclip keeps the workspace record and task history, but removes it from active workspace views.
-          </DialogDescription>
+            {t("components.projectProperties.archive")}<span className="font-medium text-foreground">{workspaceName}</span> {t("ui.components.executionworkspaceclosedialog.clean-up-any-owned")}</DialogDescription>
         </DialogHeader>
 
         {readinessQuery.isLoading ? (
           <div className="flex items-center gap-2 rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
             <Loader2 className="h-4 w-4 animate-spin" />
-            Checking whether this workspace is safe to close...
-          </div>
+            {t("ui.components.executionworkspaceclosedialog.checking-whether-workspace-safe")}</div>
         ) : readinessQuery.error ? (
           <div className="rounded-xl border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
             {readinessQuery.error instanceof Error ? readinessQuery.error.message : t("components.executionWorkspaceCloseDialog.inspectFailed", { defaultValue: "Failed to inspect workspace close readiness." })}
@@ -265,30 +262,27 @@ export function ExecutionWorkspaceCloseDialog({
 
             {currentStatus === "cleanup_failed" ? (
               <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 px-4 py-3 text-sm text-muted-foreground">
-                Cleanup previously failed on this workspace. Retrying close will rerun the cleanup flow and update the
-                workspace status if it succeeds.
-              </div>
+                {t("ui.components.executionworkspaceclosedialog.cleanup-previously-failed-workspace")}</div>
             ) : null}
 
             {currentStatus === "archived" ? (
               <div className="rounded-xl border border-border bg-background px-4 py-3 text-sm text-muted-foreground">
-                This workspace is already archived.
-              </div>
+                {t("ui.components.executionworkspaceclosedialog.workspace-already-archived")}</div>
             ) : null}
 
             {readiness.git?.repoRoot ? (
               <div className="break-words text-xs text-muted-foreground">
-                Repo root: <span className="font-mono break-all">{readiness.git.repoRoot}</span>
+                {t("pages.agentDetail.repoRootLabel")}<span className="font-mono break-all">{readiness.git.repoRoot}</span>
                 {readiness.git.workspacePath ? (
                   <>
-                    {" · "}Workspace path: <span className="font-mono break-all">{readiness.git.workspacePath}</span>
+                    {" · "}{t("ui.components.executionworkspaceclosedialog.workspace-path")}<span className="font-mono break-all">{readiness.git.workspacePath}</span>
                   </>
                 ) : null}
               </div>
             ) : null}
 
             <div className="text-xs text-muted-foreground">
-              Last checked {formatDateTime(new Date(readinessQuery.dataUpdatedAt))}
+              {t("ui.components.executionworkspaceclosedialog.last-checked")}{formatDateTime(new Date(readinessQuery.dataUpdatedAt))}
             </div>
           </div>
         ) : null}
@@ -299,8 +293,7 @@ export function ExecutionWorkspaceCloseDialog({
             onClick={() => onOpenChange(false)}
             disabled={closeWorkspace.isPending}
           >
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             variant={currentStatus === "cleanup_failed" ? "default" : "destructive"}
             onClick={() => closeWorkspace.mutate()}

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect } from "react";
 import { ArrowLeft, RadioTower } from "lucide-react";
 import { Link } from "@/lib/router";
@@ -37,25 +38,23 @@ export function DashboardLive() {
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" />
-            Dashboard
-          </Link>
-          <h1 className="mt-2 text-2xl font-semibold tracking-normal text-foreground">Live agent runs</h1>
+            {t("nav.dashboard")}</Link>
+          <h1 className="mt-2 text-2xl font-semibold tracking-normal text-foreground">{t("ui.pages.dashboardlive.live-agent-runs")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Active runs first, followed by the most recent completed runs.
-          </p>
+            {t("ui.pages.dashboardlive.active-runs-first-followed")}</p>
         </div>
-        <div className="text-sm text-muted-foreground">Showing up to {DASHBOARD_LIVE_RUN_LIMIT}</div>
+        <div className="text-sm text-muted-foreground">{t("ui.components.issueslist.showing-up")}{DASHBOARD_LIVE_RUN_LIMIT}</div>
       </div>
 
       <ActiveAgentsPanel
         companyId={selectedCompanyId}
-        title="Active / recent"
+        title={t("ui.pages.dashboardlive.active-recent")}
         minRunCount={DASHBOARD_LIVE_RUN_LIMIT}
         fetchLimit={DASHBOARD_LIVE_RUN_LIMIT}
         cardLimit={DASHBOARD_LIVE_RUN_LIMIT}
         gridClassName="gap-3 md:grid-cols-2 2xl:grid-cols-3"
         cardClassName="h-(--sz-420px)"
-        emptyMessage="No active or recent agent runs."
+        emptyMessage={t("ui.pages.dashboardlive.no-active-recent-agent")}
         queryScope="dashboard-live"
         showMoreLink={false}
       />

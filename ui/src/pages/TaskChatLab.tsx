@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Pause, Play, RotateCcw } from "lucide-react";
@@ -78,15 +79,14 @@ export function TaskChatLab() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="border-b border-border px-4 py-2">
-        <h1 className="text-sm font-semibold">Task Chat Lab</h1>
+        <h1 className="text-sm font-semibold">{t("ui.pages.taskchatlab.task-chat-lab")}</h1>
         <p className="text-xs text-muted-foreground">
-          Synthetic harness for the task chat redesign · every state renders here with no live agent.
-        </p>
+          {t("ui.pages.taskchatlab.synthetic-harness-task-chat")}</p>
       </header>
 
       <div className="flex min-h-0 flex-1">
         {/* State switcher */}
-        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label="States">
+        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label={t("pages.designGuide.states")}>
           {(["live", "tier-b"] as const).map((tier) => (
             <div key={tier} className="mb-3">
               <p className="mb-1 px-1 text-(length:--text-nano) font-semibold uppercase tracking-wide text-muted-foreground">
@@ -133,10 +133,9 @@ export function TaskChatLab() {
               className="flex items-center gap-1 rounded border border-border px-2 py-1 hover:bg-accent"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Replay
-            </button>
+              {t("ui.pages.taskchatlab.replay")}</button>
             <label className="flex items-center gap-2">
-              <span className="text-muted-foreground">Speed</span>
+              <span className="text-muted-foreground">{t("ui.pages.taskchatlab.speed")}</span>
               <input
                 type="range"
                 min={0.1}
@@ -144,7 +143,7 @@ export function TaskChatLab() {
                 step={0.1}
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                aria-label="Streaming speed"
+                aria-label={t("ui.pages.taskchatlab.streaming-speed")}
                 className="w-32"
               />
               <span className="w-10 tabular-nums">{speed.toFixed(1)}×</span>

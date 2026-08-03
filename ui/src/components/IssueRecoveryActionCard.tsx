@@ -408,7 +408,7 @@ function BranchFacet({
         {branch ? (
           <code className="truncate font-mono text-xs text-foreground/90">{branch}</code>
         ) : (
-          <span className="text-xs italic text-muted-foreground">detached / unknown</span>
+          <span className="text-xs italic text-muted-foreground">{t("ui.components.issuerecoveryactioncard.detached-unknown")}</span>
         )}
       </div>
       <div className="mt-0.5 pl-5 font-mono text-(length:--text-micro) text-muted-foreground">
@@ -436,8 +436,7 @@ function DivergenceDiagnosis({
     >
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-          Divergence diagnosis
-        </span>
+          {t("ui.components.issuerecoveryactioncard.divergence-diagnosis")}</span>
         <Badge variant="outline"
           data-testid="recovery-ancestry-verdict"
           className={cn(
@@ -450,7 +449,7 @@ function DivergenceDiagnosis({
       </div>
       <div className="grid gap-2 sm:grid-cols-2">
         <BranchFacet
-          label="Expected · recorded"
+          label={t("ui.components.issuerecoveryactioncard.expected-recorded")}
           branch={divergence.expectedBranch}
           sha={divergence.expectedHeadSha}
         />
@@ -470,11 +469,9 @@ function DivergenceDiagnosis({
         >
           <Lock className="mt-0.5 h-3.5 w-3.5 shrink-0" aria-hidden />
           <span>
-            Worktree claimed by{" "}
+            {t("ui.components.issuerecoveryactioncard.worktree-claimed")}{" "}
             <code className="font-mono text-foreground/90">{contentionLabel(divergence.contention)}</code>{" "}
-            {divergence.contention.hasActiveRun ? "(active run)" : "(claim held)"} — the lossless repair
-            can&apos;t run while another workspace holds the live branch.
-          </span>
+            {divergence.contention.hasActiveRun ? "(active run)" : "(claim held)"} {t("ui.components.issuerecoveryactioncard.lossless-repair-can-apos")}</span>
         </p>
       ) : null}
     </div>
@@ -522,8 +519,7 @@ function BreakGlassOverride({
           className="border-red-400/60 text-red-700 hover:bg-red-500/10 dark:border-red-500/40 dark:text-red-300"
         >
           <OctagonAlert className="h-3.5 w-3.5" aria-hidden />
-          I&apos;ve verified this — reconcile anyway
-        </Button>
+          {t("ui.components.issuerecoveryactioncard.apos-ve-verified-reconcile")}</Button>
       </PopoverTrigger>
       <PopoverContent
         align="start"
@@ -537,14 +533,10 @@ function BreakGlassOverride({
             className="flex items-center gap-1.5 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-red-700 dark:text-red-300"
           >
             <OctagonAlert className="h-3.5 w-3.5" aria-hidden />
-            Break-glass reconciliation
-          </div>
+            {t("ui.components.issuerecoveryactioncard.break-glass-reconciliation")}</div>
           <p className="text-xs leading-5 text-muted-foreground">
-            This overrides Paperclip&apos;s safety check and points the recorded workspace at the live
-            branch{" "}
-            <span className="font-medium text-foreground/80">without an ancestry proof</span>. Confirm
-            the divergence below and record why before continuing.
-          </p>
+            {t("ui.components.issuerecoveryactioncard.overrides-paperclip-apos-safety")}{" "}
+            <span className="font-medium text-foreground/80">{t("ui.components.issuerecoveryactioncard.without-ancestry-proof")}</span>{t("ui.components.issuerecoveryactioncard.confirm-divergence-below-record")}</p>
         </div>
         <dl
           data-testid="recovery-breakglass-restated-divergence"
@@ -571,13 +563,13 @@ function BreakGlassOverride({
         </dl>
         <div className="space-y-1">
           <Label htmlFor="recovery-breakglass-reason" className="text-(length:--text-micro) text-muted-foreground">
-            Reason <span className="text-red-600 dark:text-red-400">(required — recorded in the audit log)</span>
+            {t("components.issueProperties.reason")}<span className="text-red-600 dark:text-red-400">{t("ui.components.issuerecoveryactioncard.required-recorded-audit-log")}</span>
           </Label>
           <Textarea
             id="recovery-breakglass-reason"
             value={reason}
             onChange={(event) => setReason(event.target.value)}
-            placeholder="e.g. Verified the live branch carries only the intended follow-up commits; safe to adopt."
+            placeholder={t("ui.components.issuerecoveryactioncard.verified-live-branch-carries")}
             className="min-h-20 text-xs"
             data-testid="recovery-breakglass-reason"
             aria-required="true"
@@ -642,8 +634,7 @@ function RepairWorkspace({
       ) : (
         <Wrench className="h-3.5 w-3.5" aria-hidden />
       )}
-      Repair workspace — quarantine changes &amp; restore branch
-    </Button>
+      {t("ui.components.issuerecoveryactioncard.repair-workspace-quarantine-changes")}</Button>
   );
   if (disabled) {
     // Contended: the server refuses the repair, so render a plainly disabled control with the reason
@@ -674,13 +665,9 @@ function RepairWorkspace({
             className="flex items-center gap-1.5 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-sky-700 dark:text-sky-300"
           >
             <Wrench className="h-3.5 w-3.5" aria-hidden />
-            Repair workspace
-          </div>
+            {t("ui.components.issuerecoveryactioncard.repair-workspace")}</div>
           <p className="text-xs leading-5 text-muted-foreground">
-            This is lossless — no reason required. Your uncommitted changes are committed onto a fresh
-            rescue branch, then the recorded branch is restored so the task can resume. The live branch
-            is left exactly as it is.
-          </p>
+            {t("ui.components.issuerecoveryactioncard.lossless-no-reason-required")}</p>
         </div>
         <dl
           data-testid="recovery-repair-restated"
@@ -696,7 +683,7 @@ function RepairWorkspace({
             <dt className="shrink-0 text-muted-foreground">{t("components.issueRecoveryAction.liveBranch", { defaultValue: "Live branch" })}</dt>
             <dd className="min-w-0 truncate font-mono text-foreground/90">
               {divergence.liveBranch ?? "detached"}
-              <span className="ml-1 font-sans text-muted-foreground">(left untouched)</span>
+              <span className="ml-1 font-sans text-muted-foreground">{t("ui.components.issuerecoveryactioncard.left-untouched")}</span>
             </dd>
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -706,7 +693,7 @@ function RepairWorkspace({
               className="min-w-0 truncate font-mono text-foreground/90"
             >
               {divergence.rescueBranchPreview}
-              <span className="text-muted-foreground">&lt;timestamp&gt;</span>
+              <span className="text-muted-foreground">{t("ui.components.issuerecoveryactioncard.lt-timestamp-gt")}</span>
             </dd>
           </div>
           <div className="flex items-center justify-between gap-2">
@@ -1059,11 +1046,11 @@ export function IssueRecoveryActionCard({
             ) : action.ownerType === "system" ? (
               <span className="font-medium">{t("components.issueRecoveryAction.system", { defaultValue: "System" })}</span>
             ) : (
-              <span className="text-muted-foreground">unassigned — pick one to wake them</span>
+              <span className="text-muted-foreground">{t("ui.components.issuerecoveryactioncard.unassigned-pick-one-wake")}</span>
             )}
             {action.returnOwnerAgentId ? (
               <>
-                <span className="text-muted-foreground">→ Returns to:</span>
+                <span className="text-muted-foreground">{t("ui.components.issuerecoveryactioncard.returns")}</span>
                 <AgentLink agentId={action.returnOwnerAgentId} agentMap={agentMap} />
               </>
             ) : null}
@@ -1103,7 +1090,7 @@ export function IssueRecoveryActionCard({
             ) : null}
             {showTimeoutInline ? (
               <span className="rounded-md border border-border/50 bg-background/60 px-1.5 py-0.5 text-(length:--text-micro) text-muted-foreground">
-                Times out {formatTimeShort(action.timeoutAt) ?? "soon"}
+                {t("ui.components.issuerecoveryactioncard.times")}{formatTimeShort(action.timeoutAt) ?? "soon"}
               </span>
             ) : null}
           </span>
@@ -1111,7 +1098,7 @@ export function IssueRecoveryActionCard({
         {cardState === "resolved" && action.outcome ? (
           <MetadataRow label={t("components.issueRecoveryAction.resolution", { defaultValue: "Resolution" })}>
             <span className={cn("font-medium", tone.labelClass)}>
-              Resolved as {OUTCOME_LABEL[action.outcome]}
+              {t("ui.components.issuerecoveryactioncard.resolved")}{OUTCOME_LABEL[action.outcome]}
               {action.resolvedAt ? ` · ${formatTimeShort(action.resolvedAt) ?? ""}` : ""}
             </span>
           </MetadataRow>
@@ -1131,8 +1118,7 @@ export function IssueRecoveryActionCard({
                   data-testid="recovery-action-resolve-trigger"
                   aria-label={t("components.issueRecoveryAction.resolveRecovery", { defaultValue: "Resolve recovery" })}
                 >
-                  Resolve…
-                </Button>
+                  {t("ui.components.issuerecoveryactioncard.resolve")}</Button>
               </PopoverTrigger>
               <PopoverContent
                 align="start"
@@ -1140,8 +1126,7 @@ export function IssueRecoveryActionCard({
                 className="w-72 p-1.5"
               >
                 <div className="px-2 py-1 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                  Resolve recovery
-                </div>
+                  {t("components.issueRecoveryAction.resolveRecovery")}</div>
                 <div className="flex flex-col">
                   {visibleResolveOptions.map((option) => (
                     <button
@@ -1176,8 +1161,7 @@ export function IssueRecoveryActionCard({
               ) : (
                 <RefreshCw className="h-3.5 w-3.5" aria-hidden />
               )}
-              Reconcile forward &amp; continue
-            </Button>
+              {t("ui.components.issuerecoveryactioncard.reconcile-forward-amp-continue")}</Button>
           ) : null}
           {showRepairAction && divergence ? (
             <RepairWorkspace
@@ -1204,26 +1188,21 @@ export function IssueRecoveryActionCard({
                   ) : (
                     <GitBranchPlus className="h-3.5 w-3.5" aria-hidden />
                   )}
-                  Re-issue on isolated workspace
-                  {reissueRecommended ? (
+                  {t("components.issueRecoveryAction.reissueIsolated")}{reissueRecommended ? (
                     <span
                       data-testid="recovery-reissue-recommended"
                       className="ml-1 rounded-sm bg-background/25 px-1.5 py-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-label)"
                     >
-                      Recommended
-                    </span>
+                      {t("components.issueRecoveryAction.recommended")}</span>
                   ) : null}
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="start" sideOffset={6} className="w-80 space-y-3 p-3">
                 <div className="space-y-1">
                   <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                    Re-issue on isolated workspace
-                  </div>
+                    {t("components.issueRecoveryAction.reissueIsolated")}</div>
                   <p className="text-xs leading-5 text-muted-foreground">
-                    Creates a fresh copy of this task on an isolated git worktree based on the live
-                    branch. Your current workspace and its commits are left untouched.
-                  </p>
+                    {t("ui.components.issuerecoveryactioncard.creates-fresh-copy-task")}</p>
                 </div>
                 <dl className="space-y-1 rounded-md border border-border/70 bg-muted/30 px-2.5 py-2 text-(length:--text-micro)">
                   <div className="flex items-center justify-between gap-2">
@@ -1273,12 +1252,10 @@ export function IssueRecoveryActionCard({
           {showResolveActions ? (
             cardState === "observe_only" ? (
               <span className="text-(length:--text-micro) text-muted-foreground">
-                Recovery is observing without interrupting the live run.
-              </span>
+                {t("ui.components.issuerecoveryactioncard.recovery-observing-without-interrupting")}</span>
             ) : (
               <span className="text-(length:--text-micro) text-muted-foreground">
-                The card stays open until an explicit decision is recorded.
-              </span>
+                {t("ui.components.issuerecoveryactioncard.card-stays-open-until")}</span>
             )
           ) : null}
         </div>

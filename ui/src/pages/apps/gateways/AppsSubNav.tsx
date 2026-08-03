@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
 
@@ -16,7 +17,7 @@ const ITEMS: { key: SubNavKey; label: string; href: string }[] = [
  */
 export function AppsSubNav({ active }: { active: SubNavKey }) {
   return (
-    <nav className="flex items-center gap-6 border-b border-border text-sm" aria-label="Apps sections">
+    <nav className="flex items-center gap-6 border-b border-border text-sm" aria-label={t("ui.pages.apps.gateways.appssubnav.apps-sections")}>
       {ITEMS.map((item) => {
         const isActive = item.key === active;
         return (

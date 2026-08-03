@@ -714,8 +714,7 @@ function IssueDetailLoadingState({
                   title={`Routine execution from routine ${headerSeed.originId}`}
                 >
                   <Repeat className="h-3 w-3" />
-                  Routine
-                </Badge>
+                  {t("components.builtInBundle.routine")}</Badge>
               ) : null}
               {/* Seeded header — same anatomy as the resolved one below, so the
                   eyebrow does not change shape when the real issue arrives. */}
@@ -729,8 +728,7 @@ function IssueDetailLoadingState({
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
                   <ProjectTile size="xs" />
-                  No project
-                </span>
+                  {t("components.dialogs.newIssue.noProject")}</span>
               )}
             </>
           ) : (
@@ -843,23 +841,20 @@ function InboxMobileToolbar({
               onClick={() => { onCopy(); setMenuOpen(false); }}
             >
               <Copy className="h-3 w-3" />
-              Copy as markdown
-            </button>
+              {t("pages.agentDetail.copyAsMarkdown")}</button>
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
               onClick={() => { onProperties(); setMenuOpen(false); }}
             >
               <SlidersHorizontal className="h-3 w-3" />
-              Properties
-            </button>
+              {t("components.issueProperties.title")}</button>
             {issueIdProp && (
               <button
                 className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive"
                 onClick={() => { onHide(); setMenuOpen(false); }}
               >
                 <EyeOff className="h-3 w-3" />
-                Hide this task
-              </button>
+                {t("ui.pages.issuedetail.hide-task")}</button>
             )}
           </PopoverContent>
         </Popover>
@@ -1461,7 +1456,7 @@ function IssueDetailActivityTab({
                 ) : null}
                 {issueCostSummary.hasTokens ? (
                   <span>
-                    Tokens {formatTokens(issueCostSummary.totalTokens)}
+                    {t("pages.connectClientDialog.tokens")}{formatTokens(issueCostSummary.totalTokens)}
                     {issueCostSummary.cached > 0
                       ? ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)}, cached ${formatTokens(issueCostSummary.cached)})`
                       : ` (in ${formatTokens(issueCostSummary.input)}, out ${formatTokens(issueCostSummary.output)})`}
@@ -1469,7 +1464,7 @@ function IssueDetailActivityTab({
                 ) : null}
                 {issueCostSummary.hasRuntime ? (
                   <span>
-                    Runtime {formatDurationMs(issueCostSummary.runtimeMs)}
+                    {t("ui.pages.issuedetail.runtime")}{formatDurationMs(issueCostSummary.runtimeMs)}
                     {` (${issueCostSummary.runCount} run${issueCostSummary.runCount === 1 ? "" : "s"})`}
                   </span>
                 ) : null}
@@ -1480,7 +1475,7 @@ function IssueDetailActivityTab({
               {hasIssueTreeCost && issueTreeCostSummary ? (
                 <div className="flex flex-wrap gap-3">
                   <span className="font-medium text-foreground">
-                    Including sub-tasks {(issueTreeCostSummary.costCents / 100).toLocaleString(undefined, {
+                    {t("ui.pages.issuedetail.including-sub-tasks")}{(issueTreeCostSummary.costCents / 100).toLocaleString(undefined, {
                       style: "currency",
                       currency: "USD",
                       minimumFractionDigits: 4,
@@ -1488,14 +1483,14 @@ function IssueDetailActivityTab({
                     })}
                   </span>
                   <span>
-                    Tokens {formatTokens(issueTreeCostTokens)}
+                    {t("pages.connectClientDialog.tokens")}{formatTokens(issueTreeCostTokens)}
                     {issueTreeCostSummary.cachedInputTokens > 0
                       ? ` (in ${formatTokens(issueTreeCostSummary.inputTokens)}, out ${formatTokens(issueTreeCostSummary.outputTokens)}, cached ${formatTokens(issueTreeCostSummary.cachedInputTokens)})`
                       : ` (in ${formatTokens(issueTreeCostSummary.inputTokens)}, out ${formatTokens(issueTreeCostSummary.outputTokens)})`}
                   </span>
                   {issueTreeCostSummary.runCount > 0 ? (
                     <span>
-                      Runtime {formatDurationMs(issueTreeCostSummary.runtimeMs)}
+                      {t("ui.pages.issuedetail.runtime")}{formatDurationMs(issueTreeCostSummary.runtimeMs)}
                       {` (${issueTreeCostSummary.runCount} run${issueTreeCostSummary.runCount === 1 ? "" : "s"})`}
                     </span>
                   ) : null}
@@ -4173,8 +4168,7 @@ export function IssueDetail() {
                 <span className="animate-pulse absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-blue-500" />
               </span>
-              Live
-            </Badge>
+              {t("components.issueChatThread.live")}</Badge>
           )}
 
           {issue.originKind === "routine_execution" && issue.originId && (
@@ -4184,8 +4178,7 @@ export function IssueDetail() {
               title={`Routine execution from routine ${issue.originId}`}
             >
               <Repeat className="h-3 w-3" />
-              Routine
-            </Link>
+              {t("components.builtInBundle.routine")}</Link>
           )}
 
           {issue.productivityReview ? (
@@ -4198,18 +4191,16 @@ export function IssueDetail() {
               title={t("pages.issueDetail.productivityReview", { defaultValue: "This task is a productivity review." })}
             >
               <Eye className="h-3 w-3" />
-              Productivity review
-            </Badge>
+              {t("components.productivityReviewBadge.productivityReview")}</Badge>
           ) : null}
 
           {issue.originKind === "task_watchdog" ? (
             <Badge variant="outline"
               className="border-sky-500/40 bg-sky-500/10 text-(length:--text-nano) text-sky-700 dark:text-sky-300"
-              title="This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate."
+              title={t("ui.pages.issuedetail.task-generated-watchdog-task")}
             >
               <ScanEye className="h-3 w-3" />
-              Watchdog
-            </Badge>
+              {t("components.issueProperties.watchdog")}</Badge>
           ) : null}
 
           {/* Task Chat Redesign: no mode chip in the header — mode is a
@@ -4234,11 +4225,10 @@ export function IssueDetail() {
             <Badge variant="outline"
               data-testid="issue-detail-parked-blocker"
               className="border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-              title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+              title={t("ui.components.issuerow.blocked-parked-work-least")}
             >
               <Flag className="h-3 w-3" />
-              Blocked by parked work
-            </Badge>
+              {t("ui.components.issueblockednotice.blocked-parked-work")}</Badge>
           ) : null}
 
           {/* Project reads as a tile plus a name, matching the project rows in
@@ -4259,8 +4249,7 @@ export function IssueDetail() {
           ) : (
             <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
               <ProjectTile size="xs" />
-              No project
-            </span>
+              {t("components.dialogs.newIssue.noProject")}</span>
           )}
 
           <IssueAttributionByline
@@ -4389,8 +4378,7 @@ export function IssueDetail() {
                   }}
                 >
                   <PauseCircle className="h-3 w-3" />
-                  Pause work...
-                </button>
+                  {t("ui.pages.issuedetail.pause-work")}</button>
               ) : null}
               {canResumeLeafWork ? (
                 <button
@@ -4403,8 +4391,7 @@ export function IssueDetail() {
                   }}
                 >
                   <PlayCircle className="h-3 w-3" />
-                  Resume work
-                </button>
+                  {t("pages.issueDetail.resumeWork")}</button>
               ) : null}
               {canShowSubtreeControls ? (
                 <>
@@ -4418,8 +4405,7 @@ export function IssueDetail() {
                     }}
                   >
                     <PauseCircle className="h-3 w-3" />
-                    Pause subtree...
-                  </button>
+                    {t("ui.pages.issuedetail.pause-subtree")}</button>
                   {canResumeSubtree ? (
                     <button
                       className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
@@ -4431,8 +4417,7 @@ export function IssueDetail() {
                       }}
                     >
                       <PlayCircle className="h-3 w-3" />
-                      Resume subtree
-                    </button>
+                      {t("pages.issueDetail.resumeSubtree")}</button>
                   ) : null}
                   <button
                     className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive"
@@ -4444,8 +4429,7 @@ export function IssueDetail() {
                     }}
                   >
                     <XCircle className="h-3 w-3" />
-                    Cancel subtree...
-                  </button>
+                    {t("ui.pages.issuedetail.cancel-subtree")}</button>
                   {canRestoreSubtree ? (
                     <button
                       className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
@@ -4458,8 +4442,7 @@ export function IssueDetail() {
                       }}
                     >
                       <Repeat className="h-3 w-3" />
-                      Restore subtree...
-                    </button>
+                      {t("ui.pages.issuedetail.restore-subtree")}</button>
                   ) : null}
                 </>
               ) : null}
@@ -4474,8 +4457,7 @@ export function IssueDetail() {
                 }}
               >
                 <EyeOff className="h-3 w-3" />
-                Hide this task
-              </button>
+                {t("ui.pages.issuedetail.hide-task")}</button>
             </PopoverContent>
             </Popover>
           </div>
@@ -4590,8 +4572,7 @@ export function IssueDetail() {
       {issue.hiddenAt && (
         <div className={cn("flex items-center gap-2 rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive", shellSectionClass)}>
           <EyeOff className="h-4 w-4 shrink-0" />
-          This task is hidden
-        </div>
+          {t("ui.pages.issuedetail.task-hidden")}</div>
       )}
       {activePauseHold && (
         <div className={cn("rounded-md border border-amber-500/35 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200", shellSectionClass)}>
@@ -4634,7 +4615,7 @@ export function IssueDetail() {
                       setTreeControlOpen(true);
                     }}
                   >
-                    View affected ({childIssues.length === 0 ? 1 : heldDescendantCount})
+                    {t("ui.pages.issuedetail.view-affected")}{childIssues.length === 0 ? 1 : heldDescendantCount})
                   </Button>
                   {canShowSubtreeControls ? (
                     <Button
@@ -4647,15 +4628,14 @@ export function IssueDetail() {
                         setTreeControlOpen(true);
                       }}
                     >
-                      Cancel subtree...
-                    </Button>
+                      {t("ui.pages.issuedetail.cancel-subtree")}</Button>
                   ) : null}
                 </div>
               ) : null}
             </div>
           ) : (
             <div className="text-xs">
-              This task is paused by ancestor{" "}
+              {t("ui.pages.issuedetail.task-paused-ancestor")}{" "}
               {activePauseHoldRoot?.identifier ? (
                 <Link to={createIssueDetailPath(activePauseHoldRoot.identifier)} className="underline">
                   {activePauseHoldRoot.identifier}
@@ -4663,8 +4643,7 @@ export function IssueDetail() {
               ) : (
                 activePauseHold.rootIssueId.slice(0, 8)
               )}
-              . Resume from the root task to deliver deferred work.
-            </div>
+              {t("ui.pages.issuedetail.resume-from-root-task")}</div>
           )}
         </div>
       )}
@@ -4703,8 +4682,7 @@ export function IssueDetail() {
         <div className="flex flex-wrap items-center justify-end gap-2 min-w-0">
           <Button variant="outline" size="sm" onClick={openNewSubIssue} className="shrink-0 shadow-none">
             <Plus className="mr-1.5 h-3.5 w-3.5" />
-            New Sub-task
-          </Button>
+            {t("components.dialogs.newIssue.newSubTask")}</Button>
         </div>
       )}
 
@@ -4851,16 +4829,13 @@ export function IssueDetail() {
         <TabsList variant="line" className={cn("w-full justify-start gap-1", shellSectionClass)}>
           <TabsTrigger value="chat" className="gap-1.5">
             <MessageSquare className="h-3.5 w-3.5" />
-            Chat
-          </TabsTrigger>
+            {t("ui.pages.issuedetail.chat")}</TabsTrigger>
           <TabsTrigger value="activity" className="gap-1.5">
             <ActivityIcon className="h-3.5 w-3.5" />
-            Activity
-          </TabsTrigger>
+            {t("nav.activity")}</TabsTrigger>
           <TabsTrigger value="related-work" className="gap-1.5">
             <ListTree className="h-3.5 w-3.5" />
-            Related work
-          </TabsTrigger>
+            {t("ui.pages.issuedetail.related-work")}</TabsTrigger>
           {issuePluginTabItems.map((item) => (
             <TabsTrigger key={item.value} value={item.value}>
               {item.label}
@@ -5038,14 +5013,12 @@ export function IssueDetail() {
           <div className="min-h-0 flex-1 space-y-4 overflow-y-auto overscroll-contain px-6 py-4">
             {treeControlMode === "cancel" ? (
               <div className="rounded-md border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                Cancelling a subtree is destructive. Non-terminal tasks will be marked cancelled, and running or queued work will be interrupted where possible.
-              </div>
+                {t("ui.pages.issuedetail.cancelling-subtree-destructive-non")}</div>
             ) : null}
 
             <div className="space-y-1.5">
               <label className="text-xs text-muted-foreground">
-                Reason (optional)
-              </label>
+                {t("ui.pages.issuedetail.reason-optional")}</label>
               <Textarea
                 value={treeControlReason}
                 onChange={(event) => setTreeControlReason(event.target.value)}
@@ -5065,7 +5038,7 @@ export function IssueDetail() {
                     onChange={(event) => setTreeControlWakeAgentsOnResume(event.target.checked)}
                   />
                   <span>
-                    <span className="block font-medium">Wake affected agents ({previewAffectedAgentCount})</span>
+                    <span className="block font-medium">{t("ui.pages.issuedetail.wake-affected-agents")}{previewAffectedAgentCount})</span>
                     <span className="text-xs text-muted-foreground">
                       {previewAffectedAgentCount === 0
                         ? t("pages.issueDetail.noEligibleWakeAgents", { defaultValue: "No assignee agents are eligible to wake from this preview." })
@@ -5096,7 +5069,7 @@ export function IssueDetail() {
                   checked={treeControlCancelConfirmed}
                   onChange={(event) => setTreeControlCancelConfirmed(event.target.checked)}
                 />
-                <span>I understand this will cancel {previewAffectedIssueCount} tasks.</span>
+                <span>{t("ui.pages.issuedetail.understand-will-cancel")}{previewAffectedIssueCount} tasks.</span>
               </label>
             ) : null}
 
@@ -5118,8 +5091,7 @@ export function IssueDetail() {
                       void refetchTreeControlPreview();
                     }}
                   >
-                    Retry preview
-                  </Button>
+                    {t("ui.pages.issuedetail.retry-preview")}</Button>
                 </div>
               ) : treeControlPreview ? (
                 <div className="space-y-2">
@@ -5168,8 +5140,7 @@ export function IssueDetail() {
           </div>
           <DialogFooter className="border-t border-border/60 bg-background px-6 py-4">
             <Button variant="outline" onClick={() => setTreeControlOpen(false)} disabled={executeTreeControl.isPending}>
-              Close
-            </Button>
+              {t("components.fileViewer.close")}</Button>
             <Button
               onClick={() => executeTreeControl.mutate()}
               disabled={executeTreeControl.isPending || !canApplyTreeControl}

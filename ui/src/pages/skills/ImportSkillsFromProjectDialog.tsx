@@ -237,8 +237,7 @@ function CandidateStatusBadge({
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-muted-foreground border-border/60"
         >
-          <Link2 className="h-3 w-3" /> Imported
-        </Badge>
+          <Link2 className="h-3 w-3" /> {t("pages.secrets.importVault.imported")}</Badge>
       );
     case "conflict":
       return (
@@ -246,8 +245,7 @@ function CandidateStatusBadge({
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-amber-600 border-amber-500/40 dark:text-amber-400"
         >
-          <AlertTriangle className="h-3 w-3" /> Conflict
-        </Badge>
+          <AlertTriangle className="h-3 w-3" /> {t("pages.secrets.importVault.conflict")}</Badge>
       );
     case "skipped":
       return (
@@ -255,8 +253,7 @@ function CandidateStatusBadge({
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-muted-foreground border-border/60"
         >
-          <FileWarning className="h-3 w-3" /> Skipped
-        </Badge>
+          <FileWarning className="h-3 w-3" /> {t("pages.secrets.importVault.skipped")}</Badge>
       );
     case "new":
     default:
@@ -265,8 +262,7 @@ function CandidateStatusBadge({
           variant="outline"
           className="gap-1 px-1.5 py-0 font-normal text-emerald-600 border-emerald-500/40 dark:text-emerald-400"
         >
-          <CheckCircle2 className="h-3 w-3" /> New
-        </Badge>
+          <CheckCircle2 className="h-3 w-3" /> {t("components.issueDocuments.new")}</Badge>
       );
   }
 }
@@ -461,11 +457,9 @@ export function ImportSkillsFromProjectDialog({
         <header className="flex shrink-0 items-start justify-between gap-3 border-b border-border/60 px-5 py-4">
           <div className="flex flex-col gap-1">
             <DialogTitle className="text-base font-semibold">
-              Import skills from project
-            </DialogTitle>
+              {t("ui.pages.companyskills.import-skills-from-project")}</DialogTitle>
             <DialogDescription className="text-xs text-muted-foreground">
-              Pick a project, scan its workspaces for skills, and import them as references.
-            </DialogDescription>
+              {t("ui.pages.skills.importskillsfromprojectdialog.pick-project-scan-workspaces")}</DialogDescription>
           </div>
           <button
             type="button"
@@ -512,8 +506,7 @@ export function ImportSkillsFromProjectDialog({
             <div className="min-w-0 flex-1 text-xs text-muted-foreground">
               <span className="flex items-center gap-1.5">
                 <Link2 className="h-3.5 w-3.5 shrink-0" />
-                Files stay in the project — Studio edits save directly to them.
-              </span>
+                {t("ui.pages.skills.importskillsfromprojectdialog.files-stay-project-studio")}</span>
             </div>
           ) : (
             <div className="hidden min-w-0 flex-1 sm:block" />
@@ -530,8 +523,7 @@ export function ImportSkillsFromProjectDialog({
                       disabled={selectableCandidates.length === 0}
                       data-testid="select-all"
                     >
-                      Select all
-                    </Button>
+                      {t("ui.components.issuethreadinteractioncard.select-all")}</Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -539,13 +531,11 @@ export function ImportSkillsFromProjectDialog({
                       disabled={selectedCount === 0}
                       data-testid="deselect-all"
                     >
-                      Deselect all
-                    </Button>
+                      {t("components.folderControls.deselectAll")}</Button>
                   </div>
                 )}
                 <Button variant="outline" size="sm" onClick={backToPick}>
-                  <ArrowLeft className="mr-1 h-3.5 w-3.5" /> Back
-                </Button>
+                  <ArrowLeft className="mr-1 h-3.5 w-3.5" /> {t("pages.teamCatalog.back")}</Button>
                 {!scanError && candidates.length > 0 && (
                   <Button
                     size="sm"
@@ -555,8 +545,7 @@ export function ImportSkillsFromProjectDialog({
                   >
                     {importMutation.isPending ? (
                       <>
-                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> Importing…
-                      </>
+                        <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> {t("ui.pages.secrets.importfromvaultdialog.importing")}</>
                     ) : (
                       `Import ${selectedCount} skill${selectedCount === 1 ? "" : "s"}`
                     )}
@@ -566,13 +555,11 @@ export function ImportSkillsFromProjectDialog({
             )}
             {step === "pick" && (
               <Button variant="ghost" size="sm" onClick={handleClose}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             )}
             {step === "result" && (
               <Button size="sm" onClick={handleClose}>
-                Done
-              </Button>
+                {t("common.done")}</Button>
             )}
           </div>
         </footer>
@@ -661,8 +648,7 @@ function PickProjectStep({
                       </div>
                       {disabled && (
                         <div className="mt-1 text-(length:--text-micro) text-muted-foreground">
-                          Remote-only project — no locally scannable workspaces to import from.
-                        </div>
+                          {t("ui.pages.skills.importskillsfromprojectdialog.remote-only-project-no")}</div>
                       )}
                     </div>
                     {!disabled && (
@@ -692,10 +678,9 @@ function ScanningStep({ projectName }: { projectName: string }) {
         <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       </div>
       <div>
-        <p className="text-sm font-medium">Scanning {projectName || "project"} for skills…</p>
+        <p className="text-sm font-medium">{t("ui.pages.skills.importskillsfromprojectdialog.scanning")}{projectName || "project"} {t("ui.pages.skills.importskillsfromprojectdialog.skills")}</p>
         <p className="mt-1 text-xs text-muted-foreground">
-          Looking in well-known skill folders across each workspace.
-        </p>
+          {t("ui.pages.skills.importskillsfromprojectdialog.looking-well-known-skill")}</p>
       </div>
       <div className="flex max-w-md flex-wrap justify-center gap-1.5">
         {HIGHLIGHTED_SCAN_FOLDERS.map((folder) => (
@@ -765,8 +750,7 @@ function SelectStep({
           </p>
           {!grant && (
             <Button variant="outline" size="sm" className="mt-4" onClick={onRetry}>
-              Try again
-            </Button>
+              {t("components.issueRecoveryAction.tryAgain")}</Button>
           )}
         </div>
       </div>
@@ -785,22 +769,20 @@ function SelectStep({
           </div>
           <p className="text-base font-semibold">{t("pages.skills.importFromProject.noSkillsFound", { defaultValue: "No skills found" })}</p>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            None of the well-known skill folders in this project's workspaces contain a{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">{t("pages.skills.importFromProject.skillMd", { defaultValue: "SKILL.md" })}</code>. We searched{" "}
+            {t("ui.pages.skills.importskillsfromprojectdialog.none-well-known-skill")}{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">{t("pages.skills.importFromProject.skillMd", { defaultValue: "SKILL.md" })}</code>{t("ui.pages.skills.importskillsfromprojectdialog.we-searched")}{" "}
             {HIGHLIGHTED_SCAN_FOLDERS.join(", ")} and {APPROX_TOTAL_SCAN_FOLDERS -
               HIGHLIGHTED_SCAN_FOLDERS.length}{" "}
-            other agent-harness folders.
-          </p>
+            {t("ui.pages.skills.importskillsfromprojectdialog.other-agent-harness-folders")}</p>
           {onImportFromPath && (
             <p className="mt-3 text-sm text-muted-foreground">
-              For skills in non-standard folders, use{" "}
+              {t("ui.pages.skills.importskillsfromprojectdialog.skills-non-standard-folders")}{" "}
               <button
                 type="button"
                 className="font-medium text-foreground underline underline-offset-2"
                 onClick={onImportFromPath}
               >
-                Import from path or URL
-              </button>
+                {t("pages.skills.importFromProject.title")}</button>
               .
             </p>
           )}
@@ -826,15 +808,14 @@ function SelectStep({
       <div className="min-h-0 flex-1 overflow-y-auto">
         {groups.length === 0 ? (
           <div className="flex h-full items-center justify-center p-6 text-sm text-muted-foreground">
-            No skills match “{filter.trim()}”.
+            {t("ui.pages.skills.importskillsfromprojectdialog.no-skills-match")}{filter.trim()}”.
           </div>
         ) : (
           groups.map((group, groupIndex) => (
             <section key={group.key}>
               {groupIndex > 0 && !group.isPrimary && groups[groupIndex - 1]?.isPrimary && (
                 <header className="border-y border-border/60 bg-muted/30 px-5 py-2 text-xs uppercase tracking-wide text-muted-foreground">
-                  Other Workspaces
-                </header>
+                  {t("ui.pages.skills.importskillsfromprojectdialog.other-workspaces")}</header>
               )}
               <header className="sticky top-0 z-10 border-b border-border/60 bg-background px-5 py-2 text-sm font-medium text-foreground">
                 {group.workspaceName}
@@ -907,8 +888,7 @@ function SelectStep({
                                   htmlFor={`rename-${candidate.workspaceId}-${candidate.slug}`}
                                   className="shrink-0 text-xs text-muted-foreground"
                                 >
-                                  Import as
-                                </label>
+                                  {t("ui.pages.skills.importskillsfromprojectdialog.import")}</label>
                                 <Input
                                   id={`rename-${candidate.workspaceId}-${candidate.slug}`}
                                   value={selectedValue?.slug ?? ""}
@@ -925,8 +905,7 @@ function SelectStep({
                                 />
                                 {selectedValue && !isValidSelectionSlug(selectedValue) && (
                                   <span className="text-xs text-destructive">
-                                    Use a lowercase URL-safe slug.
-                                  </span>
+                                    {t("ui.pages.skills.importskillsfromprojectdialog.use-lowercase-url-safe")}</span>
                                 )}
                               </div>
                             )}
@@ -961,10 +940,7 @@ function ResultStep({ result }: ResultStepProps) {
         <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
           <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div className="text-xs leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">{t("pages.skills.importFromProject.noFilesCopied", { defaultValue: "No files were copied." })}</span> These skills
-            reference the files in the project workspace — editing them in Skill Studio saves
-            directly back to those files.
-          </div>
+            <span className="font-medium text-foreground">{t("pages.skills.importFromProject.noFilesCopied", { defaultValue: "No files were copied." })}</span> {t("ui.pages.skills.importskillsfromprojectdialog.these-skills-reference-files")}</div>
         </div>
         <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
           <span className="text-emerald-600 dark:text-emerald-400">
@@ -978,7 +954,7 @@ function ResultStep({ result }: ResultStepProps) {
         {importedSkills.length > 0 && (
           <section>
             <header className="bg-muted/30 px-5 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
-              Imported · {importedSkills.length}
+              {t("ui.pages.skills.importskillsfromprojectdialog.imported")}{importedSkills.length}
             </header>
             <ul className="divide-y divide-border/60" data-testid="result-imported">
               {importedSkills.map((skill) => (
@@ -998,7 +974,7 @@ function ResultStep({ result }: ResultStepProps) {
                     to={skillStudioRoute(skill.id)}
                     className="inline-flex shrink-0 items-center gap-1 text-xs font-medium text-foreground no-underline hover:underline"
                   >
-                    Open <ExternalLink className="h-3 w-3" />
+                    {t("status.open")}<ExternalLink className="h-3 w-3" />
                   </Link>
                 </li>
               ))}
@@ -1008,7 +984,7 @@ function ResultStep({ result }: ResultStepProps) {
         {result.skipped.length > 0 && (
           <section>
             <header className="bg-muted/30 px-5 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
-              Skipped · {result.skipped.length}
+              {t("ui.pages.skills.importskillsfromprojectdialog.skipped")}{result.skipped.length}
             </header>
             <ul className="divide-y divide-border/60" data-testid="result-skipped">
               {result.skipped.map((row, index) => (
@@ -1031,7 +1007,7 @@ function ResultStep({ result }: ResultStepProps) {
         {result.warnings.length > 0 && (
           <section>
             <header className="bg-muted/30 px-5 py-1.5 text-xs uppercase tracking-wide text-muted-foreground">
-              Warnings · {result.warnings.length}
+              {t("ui.pages.skills.importskillsfromprojectdialog.warnings")}{result.warnings.length}
             </header>
             <ul className="divide-y divide-border/60" data-testid="result-warnings">
               {result.warnings.map((warning, index) => (

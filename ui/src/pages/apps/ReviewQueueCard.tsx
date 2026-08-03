@@ -53,8 +53,7 @@ export function ReviewQueueCard({
     if (emptyState === "hidden") return null;
     return (
       <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
-        Nothing is waiting for your OK right now.
-      </div>
+        {t("pages.appNotConnected.nothingWaiting")}</div>
     );
   }
 
@@ -149,7 +148,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
             in {humanizeConnectionDisplayName(item.applicationName)}
           </span>
         )}
-        <span className="text-xs text-muted-foreground">· asked {timeAgo(item.request.createdAt)}</span>
+        <span className="text-xs text-muted-foreground">{t("ui.pages.apps.reviewqueuecard.asked")}{timeAgo(item.request.createdAt)}</span>
       </div>
 
       {preview ? (
@@ -158,23 +157,19 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
         </div>
       ) : (
         <p className="mt-1 text-sm text-muted-foreground">
-          An agent wants to run this action. It can change something, so we’re checking with you first.
-        </p>
+          {t("ui.pages.apps.reviewqueuecard.agent-wants-run-action")}</p>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => allowOnce.mutate()} disabled={busy}>
           {resolving === "allow" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Check className="mr-1.5 h-3.5 w-3.5" />}
-          Allow once
-        </Button>
+          {t("ui.pages.apps.reviewqueuecard.allow-once")}</Button>
         <Button size="sm" variant="outline" onClick={() => alwaysAllow.mutate()} disabled={busy}>
           {resolving === "always" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-          Always allow
-        </Button>
+          {t("components.agentBubbleActionRow.alwaysAllow")}</Button>
         <Button size="sm" variant="ghost" onClick={() => decline.mutate()} disabled={busy}>
           {resolving === "decline" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <X className="mr-1.5 h-3.5 w-3.5" />}
-          Decline
-        </Button>
+          {t("components.issueThreadInteraction.decline")}</Button>
       </div>
     </div>
   );

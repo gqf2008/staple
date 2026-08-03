@@ -88,8 +88,7 @@ export function GatewayAdvancedPanel({
           </code>
           <Button variant="outline" size="sm" onClick={() => void copy(endpoint, t("pages.gatewayAdvanced.endpointUrl", { defaultValue: "Endpoint URL" }))}>
             <Copy className="mr-1 h-3.5 w-3.5" />
-            Copy
-          </Button>
+            {t("components.commentThread.copy")}</Button>
         </div>
       </section>
 
@@ -98,8 +97,7 @@ export function GatewayAdvancedPanel({
           <h3 className="text-sm font-semibold text-foreground">{t("pages.gatewayAdvanced.rawConfig", { defaultValue: "Raw configuration" })}</h3>
           <Button variant="outline" size="sm" onClick={() => void copy(rawConfig, t("pages.gatewayAdvanced.configJson", { defaultValue: "Gateway config JSON" }))}>
             <Copy className="mr-1 h-3.5 w-3.5" />
-            Copy JSON
-          </Button>
+            {t("ui.pages.apps.gateways.panels.gatewayadvancedpanel.copy-json")}</Button>
         </div>
         <pre className="max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-md bg-muted p-3 font-mono text-xs text-muted-foreground">
           {rawConfig}
@@ -109,9 +107,7 @@ export function GatewayAdvancedPanel({
       <section className="space-y-2 rounded-lg border border-destructive/40 p-4">
         <h3 className="text-sm font-semibold text-destructive">{t("pages.gatewayAdvanced.dangerZone", { defaultValue: "Danger zone" })}</h3>
         <p className="text-sm text-muted-foreground">
-          Archiving takes the gateway offline for every client. Existing tokens stop working. Type the
-          gateway name to confirm.
-        </p>
+          {t("ui.pages.apps.gateways.panels.gatewayadvancedpanel.archiving-takes-gateway-offline")}</p>
         {confirming ? (
           <div className="space-y-2">
             <Input
@@ -130,14 +126,12 @@ export function GatewayAdvancedPanel({
                 {archiveMutation.isPending ? t("pages.gatewayAdvanced.archiving", { defaultValue: "Archiving…" }) : t("pages.gatewayAdvanced.archiveGateway", { defaultValue: "Archive gateway" })}
               </Button>
               <Button variant="ghost" size="sm" onClick={() => { setConfirming(false); setConfirmName(""); }}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             </div>
           </div>
         ) : (
           <Button variant="outline" size="sm" className="text-destructive" onClick={() => setConfirming(true)}>
-            Archive gateway
-          </Button>
+            {t("pages.gatewayAdvanced.archiveGateway")}</Button>
         )}
       </section>
     </div>

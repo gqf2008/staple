@@ -424,8 +424,7 @@ export function OpenClawGatewayConfigFields({
                 : mark("adapterConfig", "disableDeviceAuth", e.target.checked || undefined)
             }
           />
-          Skip device key authentication
-        </label>
+          {t("ui.adapters.openclaw-gateway.config-fields.skip-device-key-authentication")}</label>
       </Field>
 
       <Field label={t("components.openclawConfig.autoPair", { defaultValue: "Auto-pair on first connect" })}>
@@ -443,15 +442,12 @@ export function OpenClawGatewayConfigFields({
                 : mark("adapterConfig", "autoPairOnFirstConnect", e.target.checked)
             }
           />
-          Automatically approve device pairing
-        </label>
+          {t("ui.adapters.openclaw-gateway.config-fields.automatically-approve-device-pairing")}</label>
       </Field>
 
       <Field label={t("components.openclawConfig.deviceAuth", { defaultValue: "Device auth" })}>
         <div className="text-xs text-muted-foreground leading-relaxed">
-          When enabled, Paperclip persists a device key during onboarding so pairing approvals
-          remain stable across runs.
-        </div>
+          {t("ui.adapters.openclaw-gateway.config-fields.when-enabled-paperclip-persists")}</div>
       </Field>
     </>
   );

@@ -99,8 +99,7 @@ export function DecisionTrainingDrawer({
 
         {!item || !target ? (
           <div className="p-4 text-sm text-muted-foreground">
-            This decision can't be trained — it isn't anchored to an issue.
-          </div>
+            {t("ui.components.decisiontrainingdrawer.decision-can-trained-isn")}</div>
         ) : savedExampleId ? (
           <SavedState
             exampleId={savedExampleId}
@@ -172,8 +171,7 @@ function CreateState({
 
         <section className="space-y-2">
           <label htmlFor="training-notes" className="text-sm font-medium text-foreground">
-            Your notes
-          </label>
+            {t("ui.components.decisiontrainingdrawer.your-notes")}</label>
           <Textarea
             id="training-notes"
             value={notes}
@@ -194,12 +192,10 @@ function CreateState({
 
       <div className="flex items-center justify-end gap-2 border-t border-border p-4">
         <Button variant="ghost" onClick={onCancel} disabled={create.isPending}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
         <Button onClick={() => create.mutate()} disabled={create.isPending || preview.isError}>
           {create.isPending && <Loader2 className="size-4 animate-spin" />}
-          Save example
-        </Button>
+          {t("ui.components.decisiontrainingdrawer.save-example")}</Button>
       </div>
     </div>
   );
@@ -263,8 +259,7 @@ function SavedState({
   if (example.isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
-        <Loader2 className="mr-2 size-4 animate-spin" /> Loading example…
-      </div>
+        <Loader2 className="mr-2 size-4 animate-spin" /> {t("ui.components.decisiontrainingdrawer.loading-example")}</div>
     );
   }
   if (example.isError || !example.data) {
@@ -297,13 +292,13 @@ function SavedState({
           <span className="font-medium text-foreground">{authorLabel}</span>
           <span>·</span>
           <span title={new Date(record.createdAt).toLocaleString()}>
-            Created {relativeTime(record.createdAt)}
+            {t("components.agentProperties.created")}{relativeTime(record.createdAt)}
           </span>
           {edited && (
             <>
               <span>·</span>
               <span title={new Date(record.updatedAt).toLocaleString()}>
-                Edited {relativeTime(record.updatedAt)}
+                {t("pages.training.edited")}{relativeTime(record.updatedAt)}
               </span>
             </>
           )}
@@ -315,8 +310,7 @@ function SavedState({
             <span className="text-sm font-medium text-foreground">{t("components.decisionTraining.notes", { defaultValue: "Notes" })}</span>
             {!editing && (
               <Button variant="ghost" size="xs" onClick={startEditing}>
-                <Pencil className="size-3.5" /> Edit
-              </Button>
+                <Pencil className="size-3.5" /> {t("components.issueProperties.edit")}</Button>
             )}
           </div>
           {editing ? (
@@ -329,12 +323,10 @@ function SavedState({
               />
               <div className="flex justify-end gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={saveNotes.isPending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
                 <Button size="sm" onClick={() => saveNotes.mutate()} disabled={saveNotes.isPending}>
                   {saveNotes.isPending && <Loader2 className="size-4 animate-spin" />}
-                  Save notes
-                </Button>
+                  {t("pages.training.saveNotes")}</Button>
               </div>
             </div>
           ) : record.notes ? (
@@ -363,15 +355,13 @@ function SavedState({
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={remove.isPending}>
               {remove.isPending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-              Delete
-            </Button>
+              {t("common.delete")}</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>{t("components.decisionTraining.deleteConfirm", { defaultValue: "Delete this training example?" })}</AlertDialogTitle>
               <AlertDialogDescription>
-                This removes the frozen snapshot and your notes. This can't be undone.
-              </AlertDialogDescription>
+                {t("ui.components.decisiontrainingdrawer.removes-frozen-snapshot-your")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>{t("components.decisionTraining.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
@@ -379,16 +369,14 @@ function SavedState({
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => remove.mutate()}
               >
-                Delete
-              </AlertDialogAction>
+                {t("common.delete")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
         <Button asChild variant="outline" size="sm">
           <Link to={decisionTrainingHref(record.id)}>
-            Open full record
-            <ExternalLink className="size-3.5" />
+            {t("ui.components.decisiontrainingdrawer.open-full-record")}<ExternalLink className="size-3.5" />
           </Link>
         </Button>
       </div>
@@ -401,8 +389,7 @@ function DecisionContext({ item, outcome }: { item: AttentionItem; outcome: stri
   return (
     <section className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2" data-testid="training-context">
       <p className="text-(length:--text-nano) font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-        Decision
-      </p>
+        {t("components.decisionTraining.decision")}</p>
       <p className="line-clamp-2 text-sm font-medium text-foreground">{item.subject.title ?? t("components.decisionTraining.decision", { defaultValue: "Decision" })}</p>
       <p className="text-xs text-muted-foreground">
         {outcome ? `Resolved · ${outcome}` : t("components.decisionTraining.cutoffNow", { defaultValue: "Decision pending — cutoff will be now" })}
@@ -439,15 +426,13 @@ function SnapshotPreview({
         <span className="text-sm font-medium text-foreground">{heading}</span>
         {readOnly && (
           <span className="inline-flex items-center gap-1 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-            <Lock className="size-3" /> Read-only
-          </span>
+            <Lock className="size-3" /> {t("pages.tools.pasteConfig.readOnly")}</span>
         )}
       </div>
 
       {loading && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Capturing current state…
-        </p>
+          <Loader2 className="size-4 animate-spin" /> {t("ui.components.decisiontrainingdrawer.capturing-current-state")}</p>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -514,8 +499,7 @@ function SnapshotRow({
           to={href}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
-          <FileText className="size-3.5" /> View
-        </Link>
+          <FileText className="size-3.5" /> {t("components.builtInBundle.view")}</Link>
       )}
     </div>
   );

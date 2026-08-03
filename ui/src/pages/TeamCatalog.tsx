@@ -311,8 +311,7 @@ function RiskBanner({ team }: { team: CatalogTeam }) {
     >
       <div className="flex items-center gap-2 text-sm font-medium">
         <AlertTriangle className="h-4 w-4" />
-        This team references {unsafe.length} external source
-        {unsafe.length === 1 ? "" : "s"}
+        {t("ui.pages.teamcatalog.team-references")}{unsafe.length} {t("ui.pages.teamcatalog.external-source")}{unsafe.length === 1 ? "" : "s"}
       </div>
       <ul className="mt-1.5 space-y-0.5 text-xs">
         {unsafe.map((s) => (
@@ -479,7 +478,7 @@ export function TeamHierarchyPreview({ team }: { team: CatalogTeam }) {
           >
             <Crown className="h-3.5 w-3.5 text-amber-500" />
             <span className="font-medium">{titleCase(slug)}</span>
-            <span className="text-xs text-muted-foreground">root agent</span>
+            <span className="text-xs text-muted-foreground">{t("ui.pages.teamcatalog.root-agent")}</span>
           </li>
         ))}
         {members.map((slug) => (
@@ -609,7 +608,7 @@ export function ExternalSourcesList({ sources }: { sources: CatalogTeamSourceRef
         className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
       >
         {open ? <ChevronDown className="h-3 w-3" /> : <ChevronRight className="h-3 w-3" />}
-        External sources · {external.length}
+        {t("ui.pages.teamcatalog.external-sources")}{external.length}
       </button>
       {open && (
         <ul className="divide-y divide-border rounded-md border border-border">
@@ -708,16 +707,14 @@ export function TeamDetailPane({
               <ProvenanceBadge team={team} />
               {isInstalled && !outOfDate && (
                 <Badge variant="secondary" className="gap-1 text-(length:--text-nano)">
-                  <CheckCircle2 className="h-3 w-3" /> Installed
-                </Badge>
+                  <CheckCircle2 className="h-3 w-3" /> {t("pages.agentToolsTab.installed")}</Badge>
               )}
               {outOfDate && (
                 <Badge
                   variant="outline"
                   className="gap-1 border-amber-500/40 bg-amber-500/10 text-(length:--text-nano) text-amber-600 dark:text-amber-300"
                 >
-                  <ChevronUp className="h-3 w-3" /> Update available
-                </Badge>
+                  <ChevronUp className="h-3 w-3" /> {t("components.resourceStatusChip.updateAvailable")}</Badge>
               )}
             </div>
           </div>
@@ -812,8 +809,7 @@ export function TeamDetailPane({
                   className="text-xs text-muted-foreground hover:text-foreground"
                   onClick={() => onSelectFile(null)}
                 >
-                  Close
-                </button>
+                  {t("components.fileViewer.close")}</button>
               </div>
               <div className="max-h-96 overflow-auto p-3">
                 {fileContent === null ? (
@@ -1211,14 +1207,14 @@ function TeamInstallerDialog({
   const headerTitle = (
     <span className="flex items-center gap-2">
       <Users2 className="h-4 w-4" />
-      Install {team.name}
+      {t("pages.adapterManager.install")}{team.name}
     </span>
   );
   const headerDescription =
     phase === "form" ? (
       <span className="flex items-center gap-2">
         <span>
-          Step {stepIndex + 1} of {totalSteps} · {STEP_LABELS[currentStep]}
+          {t("ui.pages.pipelinesettings.step")}{stepIndex + 1} of {totalSteps} · {STEP_LABELS[currentStep]}
         </span>
         <span className="flex items-center gap-1" aria-hidden>
           {steps.map((s, i) => (
@@ -1300,8 +1296,7 @@ function TeamInstallerDialog({
                 <p className="font-medium">{t("pages.teamCatalog.installFailed2", { defaultValue: "Install failed" })}</p>
                 <p className="mt-0.5 text-xs">{applyError}</p>
                 <p className="mt-1 text-xs opacity-80">
-                  Partial state is not rolled back. Review the company activity log before retrying.
-                </p>
+                  {t("ui.pages.teamcatalog.partial-state-not-rolled")}</p>
               </div>
             </div>
           </div>
@@ -1322,20 +1317,19 @@ function TeamInstallerDialog({
         <div className="flex items-center gap-3">
           {currentStep === "preview" && hasErrors && (
             <span className="text-xs text-rose-600 dark:text-rose-300">
-              Install blocked: {blockedCount} error{blockedCount === 1 ? "" : "s"}
+              {t("ui.pages.teamcatalog.install-blocked")}{blockedCount} error{blockedCount === 1 ? "" : "s"}
             </span>
           )}
           {currentStep === "preview" && !hasErrors && missingRequiredSecretCount > 0 && (
             <span className="text-xs text-rose-600 dark:text-rose-300">
-              Required secrets missing: {missingRequiredSecretCount}
+              {t("ui.pages.teamcatalog.required-secrets-missing")}{missingRequiredSecretCount}
             </span>
           )}
           {currentStep === "preview" ? (
             needsScriptsConfirm && confirmScripts ? (
               <Button variant="destructive" onClick={submitInstall} disabled={installBlocked || previewMutation.isPending}>
                 <AlertTriangle className="h-4 w-4" />
-                Confirm — install with executables
-              </Button>
+                {t("ui.pages.teamcatalog.confirm-install-executables")}</Button>
             ) : (
               <Button onClick={submitInstall} disabled={installBlocked || previewMutation.isPending || !previewResult}>
                 {needsScriptsConfirm ? <AlertTriangle className="h-4 w-4" /> : <Download className="h-4 w-4" />}
@@ -1408,9 +1402,7 @@ export function StepTargetManager({
         className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2.5 text-sm text-blue-700 dark:text-blue-300"
         id="target-manager-help"
       >
-        This team&apos;s root agents need a manager in your company. Pick the agent who will become
-        their parent. Internal team hierarchy is preserved.
-      </div>
+        {t("ui.pages.teamcatalog.team-apos-root-agents")}</div>
 
       <div className="space-y-1.5">
         <SectionHeader>{t("pages.teamCatalog.rootAgents", { defaultValue: "Root agents" })}</SectionHeader>
@@ -1462,8 +1454,7 @@ export function StepTargetManager({
             checked={fullCompany}
             onChange={(e) => onToggleFullCompany(e.target.checked)}
           />
-          Use this team as a full-company package (no target manager)
-        </label>
+          {t("ui.pages.teamcatalog.use-team-full-company")}</label>
       )}
     </div>
   );
@@ -1487,9 +1478,7 @@ export function StepSourcePolicy({
   return (
     <div className="space-y-4">
       <div role="alert" className="rounded-md border border-amber-500/30 bg-amber-500/10 px-3 py-2.5 text-sm text-amber-700 dark:text-amber-300">
-        This team references {external.length} external source{external.length === 1 ? "" : "s"}.
-        Review each one and decide what to allow before continuing.
-      </div>
+        {t("ui.pages.teamcatalog.team-references")}{external.length} {t("ui.pages.teamcatalog.external-source")}{external.length === 1 ? "" : "s"}{t("ui.pages.teamcatalog.review-each-one-decide")}</div>
 
       <ul className="divide-y divide-border rounded-md border border-border">
         {external.map((source) => {
@@ -1547,9 +1536,7 @@ export function StepSourcePolicy({
 
       {hasUnsupported && !allowLocalPathSources && (
         <p className="text-xs text-rose-600 dark:text-rose-300">
-          This team has local-path sources. Enable &ldquo;Allow local-path sources&rdquo; to continue,
-          or install it from the CLI.
-        </p>
+          {t("ui.pages.teamcatalog.team-has-local-path")}</p>
       )}
     </div>
   );
@@ -1600,9 +1587,7 @@ export function StepSkillPlan({
   return (
     <div className="space-y-4">
       <div role="alert" className="rounded-md border border-blue-500/30 bg-blue-500/10 px-3 py-2.5 text-sm text-blue-700 dark:text-blue-300">
-        Before agents are imported, the catalog resolves the skills they depend on. This is the
-        resolution plan.
-      </div>
+        {t("ui.pages.teamcatalog.before-agents-imported-catalog")}</div>
       <ul className="divide-y divide-border rounded-md border border-border">
         {(preparations ?? team.requiredSkills.map(toPreparation)).map((prep) => {
           const meta = SKILL_ACTION_META[prep.action];
@@ -1723,8 +1708,7 @@ export function StepPreview({
   if (loading && !result) {
     return (
       <div className="flex items-center gap-2 py-12 text-sm text-muted-foreground">
-        <Loader2 className="h-4 w-4 animate-spin" /> Preparing preview…
-      </div>
+        <Loader2 className="h-4 w-4 animate-spin" /> {t("ui.pages.teamcatalog.preparing-preview")}</div>
     );
   }
   if (error) {
@@ -1735,8 +1719,7 @@ export function StepPreview({
           {error}
         </div>
         <Button variant="outline" onClick={onRetry}>
-          <RotateCcw className="h-4 w-4" /> Retry
-        </Button>
+          <RotateCcw className="h-4 w-4" /> {t("components.issueProperties.retry")}</Button>
       </div>
     );
   }
@@ -1860,9 +1843,7 @@ export function StepPreview({
             );
           })}
           <li className="px-3 py-1.5 text-(length:--text-micro) text-muted-foreground">
-            Each imported agent defaults to its package adapter; override here before install.
-            Deeper per-adapter model config is editable on the agent after install.
-          </li>
+            {t("ui.pages.teamcatalog.each-imported-agent-defaults")}</li>
         </PreviewSection>
       )}
 
@@ -1923,10 +1904,8 @@ export function StepPreview({
 
       {/* Provenance */}
       <div className="rounded-md border border-border px-3 py-2.5 text-xs text-muted-foreground">
-        Imported entities are stamped with <code className="font-mono">metadata.paperclip.catalogTeam</code>{" "}
-        ({team.packageName ?? team.key}, content hash <code className="font-mono">{team.contentHash.slice(0, 16)}…</code>),
-        and an activity event is recorded for preview and install.
-      </div>
+        {t("ui.pages.teamcatalog.imported-entities-stamped")}<code className="font-mono">{t("ui.pages.teamcatalog.metadata-paperclip-catalogteam")}</code>{" "}
+        ({team.packageName ?? team.key}{t("ui.pages.teamcatalog.content-hash")}<code className="font-mono">{team.contentHash.slice(0, 16)}…</code>{t("ui.pages.teamcatalog.activity-event-recorded-preview")}</div>
     </div>
   );
 }
@@ -1959,10 +1938,9 @@ export function ApplyProgress({ team }: { team: CatalogTeam }) {
     <div className="flex items-center gap-3 py-10 text-sm">
       <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />
       <div>
-        <p className="font-medium">Installing {team.name}…</p>
+        <p className="font-medium">{t("ui.pages.teamcatalog.installing")}{team.name}…</p>
         <p className="text-xs text-muted-foreground">
-          Resolving skills, importing agents, projects, and routines. This may take a moment.
-        </p>
+          {t("ui.pages.teamcatalog.resolving-skills-importing-agents")}</p>
       </div>
     </div>
   );
@@ -1999,8 +1977,7 @@ export function ApplySuccess({
         <p className="text-base font-semibold">{t("pages.teamCatalog.teamInstalled", { defaultValue: "Team installed" })}</p>
       </div>
       <p className="text-sm text-muted-foreground">
-        {team.name} was imported into your company. Imported entities are stamped with catalog provenance.
-      </p>
+        {team.name} {t("ui.pages.teamcatalog.was-imported-into-your")}</p>
       {result && (
         <ul className="divide-y divide-border/60 rounded-md border border-border px-3">
           <ResultRow label={t("pages.teamCatalog.agentsImported", { defaultValue: "Agents imported" })} count={agentsCreated} />
@@ -2381,8 +2358,7 @@ export function TeamCatalog() {
                   className="flex w-full items-center gap-1.5 px-2 py-1.5 text-xs text-muted-foreground hover:text-foreground"
                   onClick={() => setSearchParams(new URLSearchParams())}
                 >
-                  <RotateCcw className="h-3 w-3" /> Reset filters
-                </button>
+                  <RotateCcw className="h-3 w-3" /> {t("pages.teamCatalog.resetFilters")}</button>
               </>
             )}
           </DropdownMenuContent>
@@ -2390,8 +2366,7 @@ export function TeamCatalog() {
 
         {anyFilterActive && (
           <Button variant="ghost" size="sm" className="h-8 text-xs" onClick={() => setSearchParams(new URLSearchParams())}>
-            Reset filters
-          </Button>
+            {t("pages.teamCatalog.resetFilters")}</Button>
         )}
       </div>
 
@@ -2412,11 +2387,9 @@ export function TeamCatalog() {
           ) : catalogQuery.isError ? (
             <div className="p-4">
               <div role="alert" className="rounded-md border border-rose-500/30 bg-rose-500/10 px-3 py-2.5 text-sm text-rose-700 dark:text-rose-300">
-                Failed to load team catalog.
-              </div>
+                {t("ui.pages.teamcatalog.failed-load-team-catalog")}</div>
               <Button variant="outline" size="sm" className="mt-3" onClick={() => catalogQuery.refetch()}>
-                <RotateCcw className="h-3.5 w-3.5" /> Retry
-              </Button>
+                <RotateCcw className="h-3.5 w-3.5" /> {t("components.issueProperties.retry")}</Button>
             </div>
           ) : teams.length === 0 ? (
             <EmptyState icon={Users2} message={t("pages.teamCatalog.noCatalog", { defaultValue: "No team catalog configured." })} />
@@ -2432,7 +2405,7 @@ export function TeamCatalog() {
               {grouped.bundled.length > 0 && (
                 <>
                   <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                    Bundled · {grouped.bundled.length}
+                    {t("ui.pages.companyskills.bundled")}{grouped.bundled.length}
                   </div>
                   {grouped.bundled.map((team) => (
                     <TeamRow
@@ -2447,7 +2420,7 @@ export function TeamCatalog() {
               {grouped.optional.length > 0 && (
                 <>
                   <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                    Optional · {grouped.optional.length}
+                    {t("ui.pages.companyskills.optional")}{grouped.optional.length}
                   </div>
                   {grouped.optional.map((team) => (
                     <TeamRow
@@ -2462,7 +2435,7 @@ export function TeamCatalog() {
               {grouped.installed.length > 0 && (
                 <>
                   <div className="px-3 py-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                    Installed · {grouped.installed.length}
+                    {t("ui.pages.companyskills.installed")}{grouped.installed.length}
                   </div>
                   {grouped.installed.map((team) => (
                     <TeamRow
@@ -2493,8 +2466,7 @@ export function TeamCatalog() {
                 onClick={() => navigate(withFilters(TEAM_CATALOG_ROUTE_ROOT))}
                 className="flex items-center gap-1.5 border-b border-border px-4 py-2 text-sm text-muted-foreground hover:text-foreground"
               >
-                <ChevronLeft className="h-4 w-4" /> Back to catalog
-              </button>
+                <ChevronLeft className="h-4 w-4" /> {t("ui.pages.teamcatalog.back-catalog")}</button>
             )}
             {selectedTeam ? (
               <TeamDetailPane
@@ -2510,8 +2482,7 @@ export function TeamCatalog() {
               />
             ) : (
               <div className="flex flex-1 items-center justify-center text-sm text-muted-foreground">
-                Select a team to view details.
-              </div>
+                {t("ui.pages.teamcatalog.select-team-view-details")}</div>
             )}
           </div>
         )}

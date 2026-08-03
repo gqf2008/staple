@@ -49,8 +49,7 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
             {mode === "edit" ? t("pages.tools.profileWizardRoute.finishProfile", { defaultValue: "Finish your profile" }) : t("pages.tools.profileWizardRoute.newAccessProfile", { defaultValue: "New access profile" })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose which tools this profile allows, then assign it to the agents that need them.
-          </p>
+            {t("ui.pages.tools.profiles.profilewizardroute.choose-which-tools-profile")}</p>
         </header>
         <ProfileWizard
           companyId={selectedCompanyId}

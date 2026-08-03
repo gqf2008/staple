@@ -464,7 +464,7 @@ export function WhatNeedsMe() {
   return (
     <div ref={rootRef} className="max-w-3xl space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Decisions</h1>
+        <h1 className="text-xl font-bold">{t("nav.decisions")}</h1>
         <div className="flex items-center gap-2">
           {visibleCount > 0 && (
             <span className="text-sm text-muted-foreground">
@@ -790,7 +790,7 @@ export function DecisionBundleHeader({
       </span>
       {originIssue && (originIssue.identifier || originIssue.title) && (
         <span className="text-muted-foreground">
-          {"· from "}
+          {t("ui.pages.whatneedsme.from")}
           {originIssue.href ? (
             <a href={originIssue.href} className="hover:underline">
               {originIssue.identifier ?? originIssue.title}
@@ -825,15 +825,14 @@ function FilterMenu({
   return (
     <div className="max-h-(--sz-70vh) overflow-y-auto">
       <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Filter</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.companySkills.filter")}</span>
         {hasActive && (
           <button
             type="button"
             className="text-xs text-muted-foreground hover:text-foreground"
             onClick={() => onChange(defaultAttentionFilterState)}
           >
-            Clear
-          </button>
+            {t("components.issueProperties.clear")}</button>
         )}
       </div>
 
@@ -987,8 +986,7 @@ function ZeroState() {
       <p className="text-lg font-semibold text-foreground">{t("pages.decisions.allCaughtUp", { defaultValue: "You're all caught up" })}</p>
       <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Inbox className="h-4 w-4" />
-        Nothing needs a decision from you right now.
-      </p>
+        {t("ui.pages.whatneedsme.nothing-needs-decision-from")}</p>
     </div>
   );
 }

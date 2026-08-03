@@ -1380,7 +1380,7 @@ export function NewIssueDialog() {
                 ))}
               </PopoverContent>
             </Popover>
-            <span className="text-muted-foreground/60">&rsaquo;</span>
+            <span className="text-muted-foreground/60">{t("ui.components.newgoaldialog.rsaquo")}</span>
             <span>{isSubIssueMode ? t("components.dialogs.newIssue.newSubTask", { defaultValue: "New sub-task" }) : t("components.dialogs.newIssue.newTask", { defaultValue: "New task" })}</span>
           </div>
           <div className="flex items-center gap-1">
@@ -1400,7 +1400,7 @@ export function NewIssueDialog() {
               onClick={() => closeNewIssue()}
               disabled={createIssue.isPending}
             >
-              <span className="text-lg leading-none">&times;</span>
+              <span className="text-lg leading-none">{t("ui.components.newagentdialog.times")}</span>
             </Button>
           </div>
         </div>
@@ -1560,8 +1560,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <Eye className="h-3 w-3" />
-                    Reviewer
-                  </button>
+                    {t("components.dialogs.newIssue.reviewer")}</button>
                   <button
                     className={cn(
                       "flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50",
@@ -1574,8 +1573,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <ShieldCheck className="h-3 w-3" />
-                    Approver
-                  </button>
+                    {t("components.dialogs.newIssue.approver")}</button>
                   {taskWatchdogsEnabled && (
                     <button
                       className={cn(
@@ -1596,8 +1594,7 @@ export function NewIssueDialog() {
                       }}
                     >
                       <ScanEye className="h-3 w-3" />
-                      Watchdog
-                    </button>
+                      {t("components.issueProperties.watchdog")}</button>
                   )}
                 </PopoverContent>
               </Popover>
@@ -1753,7 +1750,7 @@ export function NewIssueDialog() {
                       />
                     </div>
                     <div className="space-y-1.5">
-                      <div className="text-xs font-medium text-foreground">Instructions <span className="font-normal text-muted-foreground">(optional)</span></div>
+                      <div className="text-xs font-medium text-foreground">{t("components.builtInBundle.instructions")}<span className="font-normal text-muted-foreground">{t("ui.components.newissuedialog.optional")}</span></div>
                       <Textarea
                         value={watchdogInstructions}
                         onChange={(event) => setWatchdogInstructions(event.target.value)}
@@ -1773,11 +1770,9 @@ export function NewIssueDialog() {
                           setWatchdogEditorOpen(false);
                         }}
                       >
-                        Remove
-                      </button>
+                        {t("components.agentsUsingSkillDialog.remove")}</button>
                       <Button type="button" size="sm" className="h-7 text-xs" onClick={() => setWatchdogEditorOpen(false)}>
-                        Done
-                      </Button>
+                        {t("common.done")}</Button>
                     </div>
                   </PopoverContent>
                 </Popover>
@@ -1807,8 +1802,7 @@ export function NewIssueDialog() {
             <div className="space-y-1.5">
               <div className="text-xs font-medium">{t("components.dialogs.newIssue.executionWorkspace", { defaultValue: "Execution workspace" })}</div>
               <div className="text-(length:--text-micro) text-muted-foreground">
-                Control whether this task runs in the shared workspace, a new isolated workspace, or an existing one.
-              </div>
+                {t("ui.components.newissuedialog.control-whether-task-runs")}</div>
               <select
                 className="w-full rounded border border-border bg-transparent px-2 py-1.5 text-xs outline-none"
                 value={executionWorkspaceMode}
@@ -1837,12 +1831,12 @@ export function NewIssueDialog() {
               )}
               {executionWorkspaceMode === "reuse_existing" && selectedReusableExecutionWorkspace && (
                 <div className="text-(length:--text-micro) text-muted-foreground">
-                  Reusing {selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? "existing execution workspace"}.
+                  {t("ui.components.newissuedialog.reusing")}{selectedReusableExecutionWorkspace.name} from {selectedReusableExecutionWorkspace.branchName ?? selectedReusableExecutionWorkspace.cwd ?? "existing execution workspace"}.
                 </div>
               )}
               {showParentWorkspaceWarning ? (
                 <div className="rounded-md border border-amber-300/60 bg-amber-50 px-2 py-1.5 text-(length:--text-micro) text-amber-900 dark:border-amber-800/70 dark:bg-amber-950/30 dark:text-amber-100">
-                  Warning: this sub-task will no longer use the parent task workspace{parentExecutionWorkspaceLabel ? ` (${parentExecutionWorkspaceLabel})` : ""}.
+                  {t("ui.components.newissuedialog.warning-sub-task-will")}{parentExecutionWorkspaceLabel ? ` (${parentExecutionWorkspaceLabel})` : ""}.
                 </div>
               ) : null}
             </div>
@@ -1889,12 +1883,12 @@ export function NewIssueDialog() {
                   </div>
                   {assigneeModelLane === "cheap" && (
                     <p className="text-(length:--text-micro) text-muted-foreground">
-                      Sends <code>modelProfile: "cheap"</code>{" "}
+                      {t("ui.components.newissuedialog.sends")}<code>{t("ui.components.newissuedialog.modelprofile-cheap")}</code>{" "}
                       {assigneeCheapProfile?.adapterConfig && typeof (assigneeCheapProfile.adapterConfig as Record<string, unknown>).model === "string"
-                        ? <>· adapter default <code>{String((assigneeCheapProfile.adapterConfig as Record<string, unknown>).model)}</code></>
+                        ? <>{t("ui.components.newissuedialog.adapter-default")}<code>{String((assigneeCheapProfile.adapterConfig as Record<string, unknown>).model)}</code></>
                         : assigneeCheapProfile
-                          ? <>· uses the agent's configured cheap profile</>
-                          : <>· falls back to the primary model if no cheap profile is configured</>}
+                          ? <>{t("ui.components.newissuedialog.uses-agent-configured-cheap")}</>
+                          : <>{t("ui.components.newissuedialog.falls-back-primary-model")}</>}
                     </p>
                   )}
                   {assigneeModelLane === "primary" && (
@@ -2096,8 +2090,7 @@ export function NewIssueDialog() {
                 ) : (
                   <>
                     <Minus className="h-3 w-3 text-muted-foreground" />
-                    Priority
-                  </>
+                    {t("components.fileTree.priority")}</>
                 )}
               </button>
             </PopoverTrigger>
@@ -2138,8 +2131,7 @@ export function NewIssueDialog() {
             disabled={createIssue.isPending}
           >
             <Paperclip className="h-3 w-3" />
-            Upload
-          </button>
+            {t("pages.issueDetail.upload")}</button>
 
           {/* Work mode chip */}
           <Popover open={workModeOpen} onOpenChange={setWorkModeOpen}>
@@ -2197,8 +2189,7 @@ export function NewIssueDialog() {
             <PopoverContent className="w-44 p-1" align="start" data-testid="new-issue-more-menu">
               <div className="sm:hidden">
                 <div className="px-2 py-1 text-(length:--text-nano) font-medium uppercase text-muted-foreground">
-                  Priority
-                </div>
+                  {t("components.fileTree.priority")}</div>
                 {priorityOptions().map((p) => (
                   <button
                     type="button"
@@ -2221,12 +2212,10 @@ export function NewIssueDialog() {
               </div>
               <button className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                Start date
-              </button>
+                {t("ui.components.newissuedialog.start-date")}</button>
               <button className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-muted-foreground">
                 <Calendar className="h-3 w-3" />
-                Due date
-              </button>
+                {t("ui.components.newissuedialog.due-date")}</button>
             </PopoverContent>
           </Popover>
         </div>
@@ -2238,7 +2227,7 @@ export function NewIssueDialog() {
           >
             <Flag className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
             <span className="leading-snug">
-              Assigning implies executable intent - leave status as <span className="font-medium">{t("components.newIssueDialog2.backlog", { defaultValue: "Backlog" })}</span> only to deliberately park this. The assignee will not be woken until status moves to <span className="font-medium">{t("components.newIssueDialog2.todo", { defaultValue: "Todo" })}</span> or <span className="font-medium">{t("components.newIssueDialog2.inProgress", { defaultValue: "In Progress" })}</span>.
+              {t("ui.components.newissuedialog.assigning-implies-executable-intent")}<span className="font-medium">{t("components.newIssueDialog2.backlog", { defaultValue: "Backlog" })}</span> {t("ui.components.newissuedialog.only-deliberately-park-assignee")}<span className="font-medium">{t("components.newIssueDialog2.todo", { defaultValue: "Todo" })}</span> or <span className="font-medium">{t("components.newIssueDialog2.inProgress", { defaultValue: "In Progress" })}</span>.
             </span>
           </div>
         ) : null}
@@ -2250,8 +2239,7 @@ export function NewIssueDialog() {
           >
             <ShieldAlert className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" />
             <span className="leading-snug">
-              Low-trust review agent. It can only act inside its assigned review boundary; issue, project, or run policy defines the concrete scope.
-            </span>
+              {t("ui.components.newissuedialog.low-trust-review-agent")}</span>
           </div>
         ) : null}
 
@@ -2264,8 +2252,7 @@ export function NewIssueDialog() {
             onClick={discardDraft}
             disabled={createIssue.isPending || !canDiscardDraft}
           >
-            Discard Draft
-          </Button>
+            {t("ui.components.newissuedialog.discard-draft")}</Button>
           <div className="flex items-center gap-3">
             <div className="min-h-5 text-right">
               {createIssue.isPending ? (

@@ -121,8 +121,7 @@ function TruncatedCopyable({ value, icon: Icon }: { value: string; icon: Compone
       {copied && (
         <span className={cn("inline-flex items-center gap-1 text-xs shrink-0", issueStatusText.done)} role="status">
           <Check className="h-3 w-3 shrink-0" />
-          Copied
-        </span>
+          {t("components.commentThread.copied")}</span>
       )}
     </div>
   );
@@ -624,18 +623,17 @@ export function IssueProperties({
         </div>
         {assigneeOverrideLane === "cheap" ? (
           <p className="text-xs text-muted-foreground">
-            Sends <code>modelProfile: "cheap"</code>{" "}
+            {t("ui.components.newissuedialog.sends")}<code>{t("ui.components.newissuedialog.modelprofile-cheap")}</code>{" "}
             {assigneeCheapProfile?.adapterConfig && typeof (assigneeCheapProfile.adapterConfig as Record<string, unknown>).model === "string"
-              ? <>· adapter default <code>{String((assigneeCheapProfile.adapterConfig as Record<string, unknown>).model)}</code></>
+              ? <>{t("ui.components.newissuedialog.adapter-default")}<code>{String((assigneeCheapProfile.adapterConfig as Record<string, unknown>).model)}</code></>
               : assigneeCheapProfile
-                ? <>· uses the agent&apos;s configured cheap profile</>
-                : <>· falls back to the primary model if no cheap profile is configured</>}
+                ? <>{t("ui.components.issue-properties.issueproperties.uses-agent-apos-configured")}</>
+                : <>{t("ui.components.newissuedialog.falls-back-primary-model")}</>}
           </p>
         ) : null}
         {assigneeOverrideLane === "custom" ? (
           <p className="text-xs text-muted-foreground">
-            Task-level model override — replaces the agent&apos;s primary model for this issue.
-          </p>
+            {t("ui.components.issue-properties.issueproperties.task-level-model-override")}</p>
         ) : null}
       </div>
       {assigneeOverrideLane === "custom" ? (
@@ -694,8 +692,7 @@ export function IssueProperties({
         className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
         onClick={() => updateAssigneeAdapterOverrides(null)}
       >
-        Clear adapter options
-      </button>
+        {t("ui.components.issue-properties.issueproperties.clear-adapter-options")}</button>
     </div>
   );
   const reviewerValues = stageParticipantValues(issue.executionPolicy, "review");
@@ -917,7 +914,7 @@ export function IssueProperties({
         </span>
       ) : null}
       {issue.watchdog.status === "disabled" ? (
-        <span className="shrink-0 text-xs text-muted-foreground">(disabled)</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{t("ui.components.issue-properties.issueproperties.disabled")}</span>
       ) : null}
     </span>
   ) : (
@@ -958,7 +955,7 @@ export function IssueProperties({
       </div>
       <div className="space-y-1.5">
         <div className="text-xs font-medium text-foreground">
-          Instructions <span className="font-normal text-muted-foreground">(optional)</span>
+          {t("components.builtInBundle.instructions")}<span className="font-normal text-muted-foreground">{t("ui.components.newissuedialog.optional")}</span>
         </div>
         <Textarea
           value={watchdogInstructionsInput}
@@ -970,7 +967,7 @@ export function IssueProperties({
       </div>
       {watchdogIssueRef ? (
         <div className="text-xs text-muted-foreground">
-          Watchdog task:{" "}
+          {t("ui.components.issue-properties.issueproperties.watchdog-task")}{" "}
           <Link to={`/issues/${watchdogIssueRef.id}`} className="text-primary hover:underline">
             {watchdogIssueRef.identifier ?? t("components.issueProperties.viewTask", { defaultValue: "View task" })}
           </Link>
@@ -1098,7 +1095,7 @@ export function IssueProperties({
         >
           <div className="flex items-center justify-between border-b border-border px-4 py-3">
             <span className="text-sm font-semibold">{t("components.issueProperties.monitor", { defaultValue: "Monitor" })}</span>
-            {monitorAttemptCount > 0 ? <span className="text-xs text-muted-foreground">Attempt {monitorAttemptCount}</span> : null}
+            {monitorAttemptCount > 0 ? <span className="text-xs text-muted-foreground">{t("ui.components.issuescheduledretrycard.attempt")}{monitorAttemptCount}</span> : null}
           </div>
           <div className="space-y-3 px-4 py-3 text-left">
             <div>
@@ -1167,7 +1164,7 @@ export function IssueProperties({
   const scheduledRetryRetryNowSuccess = retryNow.isSuccess
     && (retryNow.data?.outcome === "promoted" || retryNow.data?.outcome === "already_promoted");
   const scheduledRetryAttemptBadge = scheduledRetryAttempt !== null ? (
-    <span className="whitespace-nowrap shrink-0 text-xs text-muted-foreground">Attempt {scheduledRetryAttempt}</span>
+    <span className="whitespace-nowrap shrink-0 text-xs text-muted-foreground">{t("ui.components.issuescheduledretrycard.attempt")}{scheduledRetryAttempt}</span>
   ) : null;
   const scheduledRetryTrigger = (
     <span className="inline-flex min-w-0 items-center gap-1.5">
@@ -1193,7 +1190,7 @@ export function IssueProperties({
         </span>
         {scheduledRetryAttempt !== null ? (
           <span className="text-xs text-muted-foreground">
-            Attempt {scheduledRetryAttempt}
+            {t("ui.components.issuescheduledretrycard.attempt")}{scheduledRetryAttempt}
           </span>
         ) : null}
       </div>
@@ -1268,8 +1265,7 @@ export function IssueProperties({
           {retryNow.isPending ? (
             <span className="inline-flex items-center gap-1.5">
               <Loader2 className="h-3.5 w-3.5 animate-spin" aria-hidden="true" />
-              Retrying…
-            </span>
+              {t("pages.agentDetail.retrying")}</span>
           ) : scheduledRetryRetryNowSuccess ? (
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
@@ -1278,8 +1274,7 @@ export function IssueProperties({
           ) : (
             <span className="inline-flex items-center gap-1.5">
               <RotateCcw className="h-3.5 w-3.5" aria-hidden="true" />
-              Retry now
-            </span>
+              {t("ui.components.issueblockednotice.retry-now")}</span>
           )}
         </Button>
         <span className="text-right text-xs text-muted-foreground">
@@ -1328,16 +1323,14 @@ export function IssueProperties({
             disabled={!monitorAtInput}
             onClick={saveMonitor}
           >
-            Schedule
-          </button>
+            {t("components.routineSections.schedule")}</button>
           {issue.executionPolicy?.monitor ? (
             <button
               type="button"
               className="inline-flex items-center rounded-full border border-border px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
               onClick={clearMonitor}
             >
-              Clear
-            </button>
+              {t("components.issueProperties.clear")}</button>
           ) : null}
         </div>
       </div>
@@ -1389,8 +1382,7 @@ export function IssueProperties({
       title={t("components.issueProperties.addLabel", { defaultValue: "Add label" })}
     >
       <Plus className="h-3 w-3" />
-      Add label
-    </button>
+      {t("components.issueProperties.addLabel")}</button>
   ) : undefined;
 
   const labelsContent = (
@@ -1649,8 +1641,7 @@ export function IssueProperties({
             onClick={() => toggleExecutionParticipant(stageType, `user:${currentUserId}`)}
           >
             <User className="h-3 w-3 shrink-0 text-muted-foreground" />
-            Assign to me
-          </button>
+            {t("components.issueProperties.assignToMe")}</button>
         )}
         {issue.createdByUserId && issue.createdByUserId !== currentUserId && (
           <button
@@ -1895,8 +1886,7 @@ export function IssueProperties({
             setParentOpen(false);
           }}
         >
-          No parent
-        </button>
+          {t("components.issuesList.noParent")}</button>
         {parentOptions.map((candidate) => (
           <button
             key={candidate.id}
@@ -1968,8 +1958,7 @@ export function IssueProperties({
             setBlockedBySearch("");
           }}
         >
-          No blockers
-        </button>
+          {t("ui.components.issue-properties.issueproperties.no-blockers")}</button>
         {blockerOptions.map((candidate) => {
           const selected = blockedByIds.includes(candidate.id);
           return (
@@ -2005,8 +1994,7 @@ export function IssueProperties({
       onClick={onClick}
     >
       <Plus className="h-3 w-3" />
-      Add blocker
-    </button>
+      {t("ui.components.issue-properties.issueproperties.add-blocker")}</button>
   );
 
   const propertiesBody = (
@@ -2118,7 +2106,7 @@ export function IssueProperties({
 
         {inline ? (
           <div>
-            <PropertyRow label="Blocked by" wrap>
+            <PropertyRow label={t("ui.components.issue-properties.issueproperties.blocked")} wrap>
               {visibleBlockedByRelations.map((relation) => (
                 <RemovableIssueReferencePill key={relation.id} issue={relation} onRemove={removeBlockedBy} />
               ))}
@@ -2136,7 +2124,7 @@ export function IssueProperties({
             )}
           </div>
         ) : (
-          <PropertyRow label="Blocked by" wrap>
+          <PropertyRow label={t("ui.components.issue-properties.issueproperties.blocked")} wrap>
             {visibleBlockedByRelations.map((relation) => (
               <RemovableIssueReferencePill key={relation.id} issue={relation} onRemove={removeBlockedBy} />
             ))}
@@ -2162,7 +2150,7 @@ export function IssueProperties({
           </PropertyRow>
         )}
 
-        <PropertyRow label="Blocking" wrap>
+        <PropertyRow label={t("ui.components.issue-properties.issueproperties.blocking")} wrap>
           {blockingIssues.length > 0 ? (
             <div className="flex flex-wrap items-center gap-1.5">
               {visibleBlockingIssues.map((relation) => (
@@ -2198,8 +2186,7 @@ export function IssueProperties({
                 onClick={onAddSubIssue}
               >
                 <Plus className="h-3 w-3" />
-                Add sub-task
-              </button>
+                {t("ui.components.issue-properties.issueproperties.add-sub-task")}</button>
             ) : null}
           </div>
         </PropertyRow>
@@ -2336,8 +2323,7 @@ export function IssueProperties({
                 className="text-sm text-primary hover:underline inline-flex min-w-0 items-center gap-1.5"
               >
                 <HardDrive className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                View workspace
-                <ArrowUpRight className="h-3 w-3 shrink-0" />
+                {t("ui.components.issue-properties.issueproperties.view-workspace")}<ArrowUpRight className="h-3 w-3 shrink-0" />
               </Link>
             </PropertyRow>
           )}
@@ -2529,17 +2515,14 @@ export function IssueProperties({
       }
     >
       <TabsTrigger value="properties" className={paneTabTriggerClass}>
-        Properties
-      </TabsTrigger>
+        {t("components.issueProperties.title")}</TabsTrigger>
       {hasPlanTab ? (
         <TabsTrigger value="plans" className={paneTabTriggerClass}>
-          Plan
-        </TabsTrigger>
+          {t("components.agentConfigForm.plan")}</TabsTrigger>
       ) : null}
       {hasArtifactsTab ? (
         <TabsTrigger value="artifacts" className={paneTabTriggerClass}>
-          Artifacts
-        </TabsTrigger>
+          {t("nav.artifacts")}</TabsTrigger>
       ) : null}
     </TabsList>
   );

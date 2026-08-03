@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import { Link } from "@/lib/router";
 import { Bot, User, Cog, ChevronDown, ListFilter } from "lucide-react";
@@ -116,7 +117,7 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
       : `${active.size} filters`;
 
   if (events.length === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>;
+    return <p className="py-6 text-center text-sm text-muted-foreground">{t("components.routineOperate.noActivity")}</p>;
   }
 
   return (
@@ -134,10 +135,9 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Activity filter</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("ui.components.caseactivityfeed.activity-filter")}</DropdownMenuLabel>
             <DropdownMenuItem onSelect={() => setActive(new Set())}>
-              All activity
-            </DropdownMenuItem>
+              {t("ui.components.caseactivityfeed.all-activity")}</DropdownMenuItem>
             <DropdownMenuSeparator />
             {presentKinds.map((kind) => (
               <DropdownMenuCheckboxItem
@@ -152,7 +152,7 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
         </DropdownMenu>
       </div>
       {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">No events match this filter.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("ui.components.caseactivityfeed.no-events-match-filter")}</p>
       ) : (
         <div className="divide-y divide-border">
           {filtered.map((event) => (

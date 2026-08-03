@@ -64,7 +64,7 @@ export function GeminiLocalConfigFields({
               }
               immediate
               className={inputClass}
-              placeholder="gemini --acp"
+              placeholder={t("ui.adapters.gemini-local.config-fields.gemini-acp")}
             />
           </Field>
           <Field label={t("components.geminiConfig.acpSessionMode", { defaultValue: "ACP session mode" })} hint={t("components.geminiConfig.sessionModeHint", { defaultValue: "Persistent keeps ACP session state between runs. One-shot starts fresh each run." })}>
@@ -110,7 +110,7 @@ export function GeminiLocalConfigFields({
           </Field>
           <Field
             label={t("components.geminiConfig.acpStateDir", { defaultValue: "ACP state directory" })}
-            hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
+            hint={t("ui.adapters.claude-local.config-fields.optional-acp-session-state")}
           >
             <div className="flex items-center gap-2">
               <DraftInput
@@ -133,7 +133,7 @@ export function GeminiLocalConfigFields({
           </Field>
           <Field
             label={t("components.geminiConfig.warmIdleMs", { defaultValue: "ACP warm process idle ms" })}
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            hint={t("ui.adapters.claude-local.config-fields.defaults-which-closes-acp")}
           >
             {isCreate ? (
               <input

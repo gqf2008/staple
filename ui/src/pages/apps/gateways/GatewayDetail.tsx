@@ -150,10 +150,9 @@ export function GatewayDetail() {
   if (!gateway) {
     return (
       <div className="max-w-3xl p-6">
-        <p className="text-sm text-muted-foreground">We couldn’t find that gateway.</p>
+        <p className="text-sm text-muted-foreground">{t("ui.pages.apps.gateways.gatewaydetail.we-couldn-find-gateway")}</p>
         <Button className="mt-4" variant="outline" onClick={() => navigate("/apps/gateways")}>
-          Back to gateways
-        </Button>
+          {t("ui.pages.apps.gateways.gatewaydetail.back-gateways")}</Button>
       </div>
     );
   }
@@ -172,16 +171,14 @@ export function GatewayDetail() {
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground">
             <Link to="/apps/gateways" className="hover:underline">
-              Apps · Gateways
-            </Link>
+              {t("ui.pages.apps.gateways.gatewaydetail.apps-gateways")}</Link>
           </div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">{gateway.name}</h1>
           <p className="mt-1 truncate font-mono text-xs text-muted-foreground">{endpointHost}</p>
         </div>
         <Button onClick={() => setSnippetOpen(true)}>
           <Send className="mr-1.5 h-4 w-4" />
-          Show snippet
-        </Button>
+          {t("ui.pages.apps.gateways.gatewaydetail.show-snippet")}</Button>
       </div>
 
       <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label={t("pages.gatewayDetail.gatewayTabs", { defaultValue: "Gateway tabs" })}>
