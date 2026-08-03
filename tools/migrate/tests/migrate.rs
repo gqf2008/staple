@@ -1,20 +1,20 @@
 //! End-to-end snapshot migration test: seed a source database, export,
 //! import into a clean database, verify counts and constraints.
 
-use std::path::PathBuf;
+use std::path::Path;
 
 use staple_migrate::{export, import, load_snapshot, verify};
 use tempfile::TempDir;
 
 /// Seeds a source database with data covering parent/child FK relations.
-async fn seed_source(path: &PathBuf) {
+async fn seed_source(path: &Path) {
     let db = staple_migrate::open_local(&path.display().to_string())
         .await
         .unwrap();
     let conn = db.connect().unwrap();
     conn.execute("PRAGMA foreign_keys = ON", ()).await.unwrap();
     // Use the same migrations as the data layer.
-    let migrations = PathBuf::from(env!("CARGO_MANIFEST_DIR"))
+    let migrations = Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()
         .unwrap()
         .parent()
