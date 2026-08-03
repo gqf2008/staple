@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "../i18n";
 import {
   BookOpen,
   Bot,
@@ -377,14 +378,14 @@ export function DesignGuide() {
   const [selectValue, setSelectValue] = useState("in_progress");
   const [menuChecked, setMenuChecked] = useState(true);
   const [collapsibleOpen, setCollapsibleOpen] = useState(false);
-  const [inlineText, setInlineText] = useState("Click to edit this text");
-  const [inlineTitle, setInlineTitle] = useState("Editable Title");
+  const [inlineText, setInlineText] = useState(t("pages.designGuide.clickToEdit", { defaultValue: "Click to edit this text" }));
+  const [inlineTitle, setInlineTitle] = useState(t("pages.designGuide.editableTitle", { defaultValue: "Editable Title" }));
   const [inlineDesc, setInlineDesc] = useState(
     "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift."
   );
   const [filters, setFilters] = useState<FilterValue[]>([
-    { key: "status", label: "Status", value: "Active" },
-    { key: "priority", label: "Priority", value: "High" },
+    { key: "status", label: t("pages.designGuide.status", { defaultValue: "Status" }), value: t("pages.designGuide.active", { defaultValue: "Active" }) },
+    { key: "priority", label: t("pages.designGuide.priority", { defaultValue: "Priority" }), value: t("pages.designGuide.high", { defaultValue: "High" }) },
   ]);
   const [allowExternal, setAllowExternal] = useState(false);
   const [allowUnpinned, setAllowUnpinned] = useState(false);
@@ -394,7 +395,7 @@ export function DesignGuide() {
     <div className="space-y-10 max-w-4xl">
       {/* Page header */}
       <div>
-        <h2 className="text-xl font-bold">Design Guide</h2>
+        <h2 className="text-xl font-bold">{t("pages.designGuide.title", { defaultValue: "Design Guide" })}</h2>
         <p className="text-sm text-muted-foreground mt-1">
           Every component, style, and pattern used across Paperclip.
         </p>
@@ -403,12 +404,12 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COVERAGE                                                     */}
       {/* ============================================================ */}
-      <Section title="Component Coverage">
+      <Section title={t("pages.designGuide.componentCoverage", { defaultValue: "Component Coverage" })}>
         <p className="text-sm text-muted-foreground">
           This page should be updated when new UI primitives or app-level patterns ship.
         </p>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="UI primitives">
+          <SubSection title={t("pages.designGuide.uiPrimitives", { defaultValue: "UI primitives" })}>
             <div className="flex flex-wrap gap-2">
               {[
                 "avatar", "badge", "breadcrumb", "button", "card", "checkbox", "collapsible",
@@ -421,7 +422,7 @@ export function DesignGuide() {
               ))}
             </div>
           </SubSection>
-          <SubSection title="App components">
+          <SubSection title={t("pages.designGuide.appComponents", { defaultValue: "App components" })}>
             <div className="flex flex-wrap gap-2">
               {[
                 "StatusBadge", "StatusIcon", "PriorityIcon", "EntityRow", "EmptyState", "MetricCard",
@@ -441,38 +442,38 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COLORS                                                       */}
       {/* ============================================================ */}
-      <Section title="Colors">
-        <SubSection title="Core">
+      <Section title={t("pages.designGuide.colors", { defaultValue: "Colors" })}>
+        <SubSection title={t("pages.designGuide.core", { defaultValue: "Core" })}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Swatch name="Background" cssVar="--background" />
-            <Swatch name="Foreground" cssVar="--foreground" />
-            <Swatch name="Card" cssVar="--card" />
-            <Swatch name="Primary" cssVar="--primary" />
-            <Swatch name="Primary foreground" cssVar="--primary-foreground" />
-            <Swatch name="Secondary" cssVar="--secondary" />
-            <Swatch name="Muted" cssVar="--muted" />
-            <Swatch name="Muted foreground" cssVar="--muted-foreground" />
-            <Swatch name="Accent" cssVar="--accent" />
-            <Swatch name="Destructive" cssVar="--destructive" />
+            <Swatch name={t("pages.designGuide.background", { defaultValue: "Background" })} cssVar="--background" />
+            <Swatch name={t("pages.designGuide.foreground", { defaultValue: "Foreground" })} cssVar="--foreground" />
+            <Swatch name={t("pages.designGuide.card", { defaultValue: "Card" })} cssVar="--card" />
+            <Swatch name={t("pages.designGuide.primary", { defaultValue: "Primary" })} cssVar="--primary" />
+            <Swatch name={t("pages.designGuide.primaryForeground", { defaultValue: "Primary foreground" })} cssVar="--primary-foreground" />
+            <Swatch name={t("pages.designGuide.secondary", { defaultValue: "Secondary" })} cssVar="--secondary" />
+            <Swatch name={t("pages.designGuide.muted", { defaultValue: "Muted" })} cssVar="--muted" />
+            <Swatch name={t("pages.designGuide.mutedForeground", { defaultValue: "Muted foreground" })} cssVar="--muted-foreground" />
+            <Swatch name={t("pages.designGuide.accent", { defaultValue: "Accent" })} cssVar="--accent" />
+            <Swatch name={t("pages.designGuide.destructive", { defaultValue: "Destructive" })} cssVar="--destructive" />
             <Swatch name="Border" cssVar="--border" />
-            <Swatch name="Ring" cssVar="--ring" />
+            <Swatch name={t("pages.designGuide.ring", { defaultValue: "Ring" })} cssVar="--ring" />
           </div>
         </SubSection>
 
         <SubSection title="Sidebar">
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <Swatch name="Sidebar" cssVar="--sidebar" />
-            <Swatch name="Sidebar border" cssVar="--sidebar-border" />
+            <Swatch name={t("pages.designGuide.sidebarBorder", { defaultValue: "Sidebar border" })} cssVar="--sidebar-border" />
           </div>
         </SubSection>
 
-        <SubSection title="Chart">
+        <SubSection title={t("pages.designGuide.chart", { defaultValue: "Chart" })}>
           <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
-            <Swatch name="Chart 1" cssVar="--chart-1" />
-            <Swatch name="Chart 2" cssVar="--chart-2" />
-            <Swatch name="Chart 3" cssVar="--chart-3" />
-            <Swatch name="Chart 4" cssVar="--chart-4" />
-            <Swatch name="Chart 5" cssVar="--chart-5" />
+            <Swatch name={t("pages.designGuide.chart1", { defaultValue: "Chart 1" })} cssVar="--chart-1" />
+            <Swatch name={t("pages.designGuide.chart2", { defaultValue: "Chart 2" })} cssVar="--chart-2" />
+            <Swatch name={t("pages.designGuide.chart3", { defaultValue: "Chart 3" })} cssVar="--chart-3" />
+            <Swatch name={t("pages.designGuide.chart4", { defaultValue: "Chart 4" })} cssVar="--chart-4" />
+            <Swatch name={t("pages.designGuide.chart5", { defaultValue: "Chart 5" })} cssVar="--chart-5" />
           </div>
         </SubSection>
       </Section>
@@ -480,7 +481,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TYPOGRAPHY                                                   */}
       {/* ============================================================ */}
-      <Section title="Typography">
+      <Section title={t("pages.designGuide.typography", { defaultValue: "Typography" })}>
         <div className="space-y-3">
           <h2 className="text-xl font-bold">Page Title — text-xl font-bold</h2>
           <h2 className="text-lg font-semibold">Section Title — text-lg font-semibold</h2>
@@ -507,7 +508,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SPACING & RADIUS                                             */}
       {/* ============================================================ */}
-      <Section title="Radius">
+      <Section title={t("pages.designGuide.radius", { defaultValue: "Radius" })}>
         <div className="flex items-end gap-4 flex-wrap">
           {[
             ["sm", "var(--radius-sm)"],
@@ -530,28 +531,28 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BUTTONS                                                      */}
       {/* ============================================================ */}
-      <Section title="Buttons">
-        <SubSection title="Variants">
+      <Section title={t("pages.designGuide.buttons", { defaultValue: "Buttons" })}>
+        <SubSection title={t("pages.designGuide.variants", { defaultValue: "Variants" })}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button variant="default">Default</Button>
-            <Button variant="secondary">Secondary</Button>
-            <Button variant="outline">Outline</Button>
-            <Button variant="ghost">Ghost</Button>
-            <Button variant="destructive">Destructive</Button>
-            <Button variant="link">Link</Button>
+            <Button variant="default">{t("pages.designGuide.default", { defaultValue: "Default" })}</Button>
+            <Button variant="secondary">{t("pages.designGuide.secondary", { defaultValue: "Secondary" })}</Button>
+            <Button variant="outline">{t("pages.designGuide.outline", { defaultValue: "Outline" })}</Button>
+            <Button variant="ghost">{t("pages.designGuide.ghost", { defaultValue: "Ghost" })}</Button>
+            <Button variant="destructive">{t("pages.designGuide.destructive", { defaultValue: "Destructive" })}</Button>
+            <Button variant="link">{t("pages.designGuide.link", { defaultValue: "Link" })}</Button>
           </div>
         </SubSection>
 
-        <SubSection title="Sizes">
+        <SubSection title={t("pages.designGuide.sizes", { defaultValue: "Sizes" })}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button size="xs">Extra Small</Button>
-            <Button size="sm">Small</Button>
-            <Button size="default">Default</Button>
-            <Button size="lg">Large</Button>
+            <Button size="xs">{t("pages.designGuide.extraSmall", { defaultValue: "Extra Small" })}</Button>
+            <Button size="sm">{t("pages.designGuide.small", { defaultValue: "Small" })}</Button>
+            <Button size="default">{t("pages.designGuide.default", { defaultValue: "Default" })}</Button>
+            <Button size="lg">{t("pages.designGuide.large", { defaultValue: "Large" })}</Button>
           </div>
         </SubSection>
 
-        <SubSection title="Icon buttons">
+        <SubSection title={t("pages.designGuide.iconButtons", { defaultValue: "Icon buttons" })}>
           <div className="flex items-center gap-2 flex-wrap">
             <Button variant="ghost" size="icon-xs"><Search /></Button>
             <Button variant="ghost" size="icon-sm"><Search /></Button>
@@ -560,7 +561,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="With icons">
+        <SubSection title={t("pages.designGuide.withIcons", { defaultValue: "With icons" })}>
           <div className="flex items-center gap-2 flex-wrap">
             <Button><Plus /> New Issue</Button>
             <Button variant="outline"><Upload /> Upload</Button>
@@ -569,10 +570,10 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="States">
+        <SubSection title={t("pages.designGuide.states", { defaultValue: "States" })}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Button disabled>Disabled</Button>
-            <Button variant="outline" disabled>Disabled Outline</Button>
+            <Button disabled>{t("pages.designGuide.disabled", { defaultValue: "Disabled" })}</Button>
+            <Button variant="outline" disabled>{t("pages.designGuide.disabledOutline", { defaultValue: "Disabled Outline" })}</Button>
           </div>
         </SubSection>
       </Section>
@@ -580,14 +581,14 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BADGES                                                       */}
       {/* ============================================================ */}
-      <Section title="Badges">
-        <SubSection title="Variants">
+      <Section title={t("pages.designGuide.badges", { defaultValue: "Badges" })}>
+        <SubSection title={t("pages.designGuide.variants", { defaultValue: "Variants" })}>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant="default">Default</Badge>
-            <Badge variant="secondary">Secondary</Badge>
-            <Badge variant="outline">Outline</Badge>
-            <Badge variant="destructive">Destructive</Badge>
-            <Badge variant="ghost">Ghost</Badge>
+            <Badge variant="default">{t("pages.designGuide.default", { defaultValue: "Default" })}</Badge>
+            <Badge variant="secondary">{t("pages.designGuide.secondary", { defaultValue: "Secondary" })}</Badge>
+            <Badge variant="outline">{t("pages.designGuide.outline", { defaultValue: "Outline" })}</Badge>
+            <Badge variant="destructive">{t("pages.designGuide.destructive", { defaultValue: "Destructive" })}</Badge>
+            <Badge variant="ghost">{t("pages.designGuide.ghost", { defaultValue: "Ghost" })}</Badge>
           </div>
         </SubSection>
       </Section>
@@ -595,7 +596,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  STATUS BADGES & ICONS                                        */}
       {/* ============================================================ */}
-      <Section title="Status System">
+      <Section title={t("pages.designGuide.statusSystem", { defaultValue: "Status System" })}>
         <SubSection title="StatusBadge (all statuses)">
           <div className="flex items-center gap-2 flex-wrap">
             {[
@@ -707,7 +708,7 @@ export function DesignGuide() {
           <code className="font-mono">--agent-Nb</code>); <code className="font-mono">prefers-reduced-motion</code>{" "}
           skips the liquid rise and pulses and renders the final state.
         </p>
-        <SubSection title="States">
+        <SubSection title={t("pages.designGuide.states", { defaultValue: "States" })}>
           <div className="flex items-end gap-10">
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="slot" />
@@ -727,7 +728,7 @@ export function DesignGuide() {
             </div>
           </div>
         </SubSection>
-        <SubSection title="Sizes">
+        <SubSection title={t("pages.designGuide.sizes", { defaultValue: "Sizes" })}>
           <div className="flex items-end gap-8">
             <div className="flex flex-col items-center gap-2">
               <AgentCapsule state="online" size="sm" gradient={1} />
@@ -747,7 +748,7 @@ export function DesignGuide() {
             </div>
           </div>
         </SubSection>
-        <SubSection title="Gradients">
+        <SubSection title={t("pages.designGuide.gradients", { defaultValue: "Gradients" })}>
           <div className="flex items-end gap-3 flex-wrap">
             {Array.from({ length: AGENT_GRADIENT_COUNT }, (_, i) => (
               <div key={i} className="flex flex-col items-center gap-1.5">
@@ -762,30 +763,30 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  FORM ELEMENTS                                                */}
       {/* ============================================================ */}
-      <Section title="Form Elements">
+      <Section title={t("pages.designGuide.formElements", { defaultValue: "Form Elements" })}>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="Input">
-            <Input placeholder="Default input" />
-            <Input placeholder="Disabled input" disabled className="mt-2" />
+          <SubSection title={t("pages.designGuide.input", { defaultValue: "Input" })}>
+            <Input placeholder={t("pages.designGuide.defaultInput", { defaultValue: "Default input" })} />
+            <Input placeholder={t("pages.designGuide.disabledInput", { defaultValue: "Disabled input" })} disabled className="mt-2" />
           </SubSection>
 
-          <SubSection title="Textarea">
-            <Textarea placeholder="Write something..." />
+          <SubSection title={t("pages.designGuide.textarea", { defaultValue: "Textarea" })}>
+            <Textarea placeholder={t("pages.designGuide.writeSomething", { defaultValue: "Write something..." })} />
           </SubSection>
 
-          <SubSection title="Checkbox & Label">
+          <SubSection title={t("pages.designGuide.checkboxLabel", { defaultValue: "Checkbox & Label" })}>
             <div className="space-y-3">
               <div className="flex items-center gap-2">
                 <Checkbox id="check1" defaultChecked />
-                <Label htmlFor="check1">Checked item</Label>
+                <Label htmlFor="check1">{t("pages.designGuide.checkedItem", { defaultValue: "Checked item" })}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="check2" />
-                <Label htmlFor="check2">Unchecked item</Label>
+                <Label htmlFor="check2">{t("pages.designGuide.uncheckedItem", { defaultValue: "Unchecked item" })}</Label>
               </div>
               <div className="flex items-center gap-2">
                 <Checkbox id="check3" disabled />
-                <Label htmlFor="check3">Disabled item</Label>
+                <Label htmlFor="check3">{t("pages.designGuide.disabledItem", { defaultValue: "Disabled item" })}</Label>
               </div>
             </div>
           </SubSection>
@@ -793,7 +794,7 @@ export function DesignGuide() {
           <SubSection title="Inline Editor">
             <div className="space-y-4">
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Title (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("pages.designGuide.titleSingle", { defaultValue: "Title (single-line)" })}</p>
                 <InlineEditor
                   value={inlineTitle}
                   onSave={setInlineTitle}
@@ -802,7 +803,7 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Body text (single-line)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("pages.designGuide.bodySingle", { defaultValue: "Body text (single-line)" })}</p>
                 <InlineEditor
                   value={inlineText}
                   onSave={setInlineText}
@@ -811,13 +812,13 @@ export function DesignGuide() {
                 />
               </div>
               <div>
-                <p className="text-xs text-muted-foreground mb-1">Description (multiline, auto-sizing)</p>
+                <p className="text-xs text-muted-foreground mb-1">{t("pages.designGuide.descMultiline", { defaultValue: "Description (multiline, auto-sizing)" })}</p>
                 <InlineEditor
                   value={inlineDesc}
                   onSave={setInlineDesc}
                   as="p"
                   className="text-sm text-muted-foreground"
-                  placeholder="Add a description..."
+                  placeholder={t("pages.designGuide.addDescription", { defaultValue: "Add a description..." })}
                   multiline
                 />
               </div>
@@ -829,33 +830,33 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SELECT                                                       */}
       {/* ============================================================ */}
-      <Section title="Select">
+      <Section title={t("pages.designGuide.select", { defaultValue: "Select" })}>
         <div className="grid gap-6 md:grid-cols-2">
-          <SubSection title="Default size">
+          <SubSection title={t("pages.designGuide.defaultSize", { defaultValue: "Default size" })}>
             <Select value={selectValue} onValueChange={setSelectValue}>
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Select status" />
+                <SelectValue placeholder={t("pages.designGuide.selectStatus", { defaultValue: "Select status" })} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="backlog">Backlog</SelectItem>
-                <SelectItem value="todo">Todo</SelectItem>
-                <SelectItem value="in_progress">In Progress</SelectItem>
-                <SelectItem value="in_review">In Review</SelectItem>
-                <SelectItem value="done">Done</SelectItem>
+                <SelectItem value="backlog">{t("pages.designGuide.backlog", { defaultValue: "Backlog" })}</SelectItem>
+                <SelectItem value="todo">{t("pages.designGuide.todo", { defaultValue: "Todo" })}</SelectItem>
+                <SelectItem value="in_progress">{t("pages.designGuide.inProgress", { defaultValue: "In Progress" })}</SelectItem>
+                <SelectItem value="in_review">{t("pages.designGuide.inReview", { defaultValue: "In Review" })}</SelectItem>
+                <SelectItem value="done">{t("pages.designGuide.done", { defaultValue: "Done" })}</SelectItem>
               </SelectContent>
             </Select>
             <p className="text-xs text-muted-foreground">Current value: {selectValue}</p>
           </SubSection>
-          <SubSection title="Small trigger">
+          <SubSection title={t("pages.designGuide.smallTrigger", { defaultValue: "Small trigger" })}>
             <Select defaultValue="high">
               <SelectTrigger size="sm" className="w-full">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="critical">Critical</SelectItem>
-                <SelectItem value="high">High</SelectItem>
-                <SelectItem value="medium">Medium</SelectItem>
-                <SelectItem value="low">Low</SelectItem>
+                <SelectItem value="critical">{t("pages.designGuide.critical", { defaultValue: "Critical" })}</SelectItem>
+                <SelectItem value="high">{t("pages.designGuide.high", { defaultValue: "High" })}</SelectItem>
+                <SelectItem value="medium">{t("pages.designGuide.medium", { defaultValue: "Medium" })}</SelectItem>
+                <SelectItem value="low">{t("pages.designGuide.low", { defaultValue: "Low" })}</SelectItem>
               </SelectContent>
             </Select>
           </SubSection>
@@ -865,7 +866,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  DROPDOWN MENU                                                */}
       {/* ============================================================ */}
-      <Section title="Dropdown Menu">
+      <Section title={t("pages.designGuide.dropdownMenu", { defaultValue: "Dropdown Menu" })}>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" size="sm">
@@ -901,17 +902,17 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  POPOVER                                                      */}
       {/* ============================================================ */}
-      <Section title="Popover">
+      <Section title={t("pages.designGuide.popover", { defaultValue: "Popover" })}>
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">Open Popover</Button>
+            <Button variant="outline" size="sm">{t("pages.designGuide.openPopover", { defaultValue: "Open Popover" })}</Button>
           </PopoverTrigger>
           <PopoverContent className="space-y-2">
-            <p className="text-sm font-medium">Agent heartbeat</p>
+            <p className="text-sm font-medium">{t("pages.designGuide.agentHeartbeat", { defaultValue: "Agent heartbeat" })}</p>
             <p className="text-xs text-muted-foreground">
               Last run succeeded 24s ago. Next timer run in 9m.
             </p>
-            <Button size="xs">Wake now</Button>
+            <Button size="xs">{t("pages.designGuide.wakeNow", { defaultValue: "Wake now" })}</Button>
           </PopoverContent>
         </Popover>
       </Section>
@@ -919,17 +920,17 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COLLAPSIBLE                                                  */}
       {/* ============================================================ */}
-      <Section title="Collapsible">
+      <Section title={t("pages.designGuide.collapsible", { defaultValue: "Collapsible" })}>
         <Collapsible open={collapsibleOpen} onOpenChange={setCollapsibleOpen} className="space-y-2">
           <CollapsibleTrigger asChild>
             <Button variant="outline" size="sm">
-              {collapsibleOpen ? "Hide" : "Show"} advanced filters
+              {collapsibleOpen ? t("pages.designGuide.hide", { defaultValue: "Hide" }) : t("pages.designGuide.show", { defaultValue: "Show" })} advanced filters
             </Button>
           </CollapsibleTrigger>
           <CollapsibleContent className="rounded-md border border-border p-3">
             <div className="space-y-2">
-              <Label htmlFor="owner-filter">Owner</Label>
-              <Input id="owner-filter" placeholder="Filter by agent name" />
+              <Label htmlFor="owner-filter">{t("pages.designGuide.owner", { defaultValue: "Owner" })}</Label>
+              <Input id="owner-filter" placeholder={t("pages.designGuide.filterByAgent", { defaultValue: "Filter by agent name" })} />
             </div>
           </CollapsibleContent>
         </Collapsible>
@@ -938,29 +939,29 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SHEET                                                        */}
       {/* ============================================================ */}
-      <Section title="Sheet">
+      <Section title={t("pages.designGuide.sheet", { defaultValue: "Sheet" })}>
         <Sheet>
           <SheetTrigger asChild>
-            <Button variant="outline" size="sm">Open Side Panel</Button>
+            <Button variant="outline" size="sm">{t("pages.designGuide.openSidePanel", { defaultValue: "Open Side Panel" })}</Button>
           </SheetTrigger>
           <SheetContent side="right">
             <SheetHeader>
-              <SheetTitle>Issue Properties</SheetTitle>
-              <SheetDescription>Edit metadata without leaving the current page.</SheetDescription>
+              <SheetTitle>{t("pages.designGuide.issueProperties", { defaultValue: "Issue Properties" })}</SheetTitle>
+              <SheetDescription>{t("pages.designGuide.editMetadataHint", { defaultValue: "Edit metadata without leaving the current page." })}</SheetDescription>
             </SheetHeader>
             <div className="space-y-4 px-4">
               <div className="space-y-1">
-                <Label htmlFor="sheet-title">Title</Label>
-                <Input id="sheet-title" defaultValue="Improve onboarding docs" />
+                <Label htmlFor="sheet-title">{t("pages.designGuide.title2", { defaultValue: "Title" })}</Label>
+                <Input id="sheet-title" defaultValue={t("pages.designGuide.onboardingDoc", { defaultValue: "Improve onboarding docs" })} />
               </div>
               <div className="space-y-1">
-                <Label htmlFor="sheet-description">Description</Label>
-                <Textarea id="sheet-description" defaultValue="Capture setup pitfalls and screenshots." />
+                <Label htmlFor="sheet-description">{t("pages.designGuide.description", { defaultValue: "Description" })}</Label>
+                <Textarea id="sheet-description" defaultValue={t("pages.designGuide.onboardingDocHint", { defaultValue: "Capture setup pitfalls and screenshots." })} />
               </div>
             </div>
             <SheetFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{t("pages.designGuide.cancel", { defaultValue: "Cancel" })}</Button>
+              <Button>{t("pages.designGuide.save", { defaultValue: "Save" })}</Button>
             </SheetFooter>
           </SheetContent>
         </Sheet>
@@ -969,7 +970,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SCROLL AREA                                                  */}
       {/* ============================================================ */}
-      <Section title="Scroll Area">
+      <Section title={t("pages.designGuide.scrollArea", { defaultValue: "Scroll Area" })}>
         <ScrollArea className="h-36 rounded-md border border-border">
           <div className="space-y-2 p-3">
             {Array.from({ length: 12 }).map((_, i) => (
@@ -984,13 +985,13 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COMMAND                                                      */}
       {/* ============================================================ */}
-      <Section title="Command (CMDK)">
+      <Section title={t("pages.designGuide.commandPalette", { defaultValue: "Command (CMDK)" })}>
         <div className="rounded-md border border-border">
           <Command>
-            <CommandInput placeholder="Type a command or search..." />
+            <CommandInput placeholder={t("pages.designGuide.commandPlaceholder", { defaultValue: "Type a command or search..." })} />
             <CommandList>
-              <CommandEmpty>No results found.</CommandEmpty>
-              <CommandGroup heading="Pages">
+              <CommandEmpty>{t("pages.designGuide.noResults", { defaultValue: "No results found." })}</CommandEmpty>
+              <CommandGroup heading={t("pages.designGuide.pages", { defaultValue: "Pages" })}>
                 <CommandItem>
                   <LayoutDashboard className="h-4 w-4" />
                   Dashboard
@@ -1001,7 +1002,7 @@ export function DesignGuide() {
                 </CommandItem>
               </CommandGroup>
               <CommandSeparator />
-              <CommandGroup heading="Actions">
+              <CommandGroup heading={t("pages.designGuide.actions", { defaultValue: "Actions" })}>
                 <CommandItem>
                   <CommandIcon className="h-4 w-4" />
                   Open command palette
@@ -1019,19 +1020,19 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  BREADCRUMB                                                   */}
       {/* ============================================================ */}
-      <Section title="Breadcrumb">
+      <Section title={t("pages.designGuide.breadcrumb", { defaultValue: "Breadcrumb" })}>
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Projects</BreadcrumbLink>
+              <BreadcrumbLink href="#">{t("pages.designGuide.projects", { defaultValue: "Projects" })}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbLink href="#">Paperclip App</BreadcrumbLink>
+              <BreadcrumbLink href="#">{t("pages.designGuide.paperclipApp", { defaultValue: "Paperclip App" })}</BreadcrumbLink>
             </BreadcrumbItem>
             <BreadcrumbSeparator />
             <BreadcrumbItem>
-              <BreadcrumbPage>Issue List</BreadcrumbPage>
+              <BreadcrumbPage>{t("pages.designGuide.issueList", { defaultValue: "Issue List" })}</BreadcrumbPage>
             </BreadcrumbItem>
           </BreadcrumbList>
         </Breadcrumb>
@@ -1040,8 +1041,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  CARDS                                                        */}
       {/* ============================================================ */}
-      <Section title="Cards">
-        <SubSection title="Standard Card">
+      <Section title={t("pages.designGuide.cards", { defaultValue: "Cards" })}>
+        <SubSection title={t("pages.designGuide.standardCard", { defaultValue: "Standard Card" })}>
           <Card>
             <CardHeader>
               <CardTitle>Card Title</CardTitle>
@@ -1052,17 +1053,17 @@ export function DesignGuide() {
             </CardContent>
             <CardFooter className="gap-2">
               <Button size="sm">Action</Button>
-              <Button variant="outline" size="sm">Cancel</Button>
+              <Button variant="outline" size="sm">{t("pages.designGuide.cancel", { defaultValue: "Cancel" })}</Button>
             </CardFooter>
           </Card>
         </SubSection>
 
-        <SubSection title="Metric Cards">
+        <SubSection title={t("pages.designGuide.metricCards", { defaultValue: "Metric Cards" })}>
           <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <MetricCard icon={Bot} value={12} label="Active Agents" description="+3 this week" />
-            <MetricCard icon={CircleDot} value={48} label="Open Issues" />
-            <MetricCard icon={DollarSign} value="$1,234" label="Monthly Cost" description="Under budget" />
-            <MetricCard icon={Zap} value="99.9%" label="Uptime" />
+            <MetricCard icon={Bot} value={12} label={t("pages.designGuide.activeAgents", { defaultValue: "Active Agents" })} description="+3 this week" />
+            <MetricCard icon={CircleDot} value={48} label={t("pages.designGuide.openIssues", { defaultValue: "Open Issues" })} />
+            <MetricCard icon={DollarSign} value="$1,234" label={t("pages.designGuide.monthlyCost", { defaultValue: "Monthly Cost" })} description={t("pages.designGuide.underBudget", { defaultValue: "Under budget" })} />
+            <MetricCard icon={Zap} value="99.9%" label={t("pages.designGuide.uptime", { defaultValue: "Uptime" })} />
           </div>
         </SubSection>
       </Section>
@@ -1071,7 +1072,7 @@ export function DesignGuide() {
       {/*  TABS                                                         */}
       {/* ============================================================ */}
       <Section title="Tabs">
-        <SubSection title="Default (pill) variant">
+        <SubSection title={t("pages.designGuide.pillVariant", { defaultValue: "Default (pill) variant" })}>
           <Tabs defaultValue="overview">
             <TabsList>
               <TabsTrigger value="overview">Overview</TabsTrigger>
@@ -1094,7 +1095,7 @@ export function DesignGuide() {
           </Tabs>
         </SubSection>
 
-        <SubSection title="Line variant">
+        <SubSection title={t("pages.designGuide.lineVariant", { defaultValue: "Line variant" })}>
           <Tabs defaultValue="summary">
             <TabsList variant="line">
               <TabsTrigger value="summary">Summary</TabsTrigger>
@@ -1117,7 +1118,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  ENTITY ROWS                                                  */}
       {/* ============================================================ */}
-      <Section title="Entity Rows">
+      <Section title={t("pages.designGuide.entityRows", { defaultValue: "Entity Rows" })}>
         <div className="border border-border rounded-md">
           <EntityRow
             leading={
@@ -1127,7 +1128,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-001"
-            title="Implement authentication flow"
+            title={t("pages.designGuide.entityTitle1", { defaultValue: "Implement authentication flow" })}
             subtitle="Responsible: Agent Alpha"
             trailing={<IssueStatusBadge status="in_progress" />}
             onClick={() => {}}
@@ -1140,7 +1141,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-002"
-            title="Set up CI/CD pipeline"
+            title={t("pages.designGuide.entityTitle2", { defaultValue: "Set up CI/CD pipeline" })}
             subtitle="Completed 2 days ago"
             trailing={<IssueStatusBadge status="done" />}
             onClick={() => {}}
@@ -1153,7 +1154,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-003"
-            title="Write API documentation"
+            title={t("pages.designGuide.entityTitle3", { defaultValue: "Write API documentation" })}
             trailing={<IssueStatusBadge status="todo" />}
             onClick={() => {}}
           />
@@ -1165,65 +1166,65 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-004"
-            title="Deploy to production"
+            title={t("pages.designGuide.entityTitle4", { defaultValue: "Deploy to production" })}
             subtitle="Blocked by PAP-001"
             trailing={<IssueStatusBadge status="blocked" />}
             selected
           />
         </div>
-        <SubSection title="Membership action">
+        <SubSection title={t("pages.designGuide.membershipAction", { defaultValue: "Membership action" })}>
           <div className="border border-border rounded-md">
             <EntityRow
-              title="Joined resource"
+              title={t("pages.designGuide.joinedResource", { defaultValue: "Joined resource" })}
               subtitle="Hover or focus the row to reveal the reserved action slot."
               className="group"
               trailing={
                 <MembershipAction
                   state="joined"
-                  resourceName="Joined resource"
+                  resourceName={t("pages.designGuide.joinedResource", { defaultValue: "Joined resource" })}
                   onJoin={() => {}}
                   onLeave={() => {}}
                 />
               }
             />
             <EntityRow
-              title="Left resource"
-              subtitle="Persistent action with dimmed row content."
+              title={t("pages.designGuide.leftResource", { defaultValue: "Left resource" })}
+              subtitle={t("pages.designGuide.dimmedRowHint", { defaultValue: "Persistent action with dimmed row content." })}
               className="group text-foreground/55"
               trailing={
                 <MembershipAction
                   state="left"
-                  resourceName="Left resource"
+                  resourceName={t("pages.designGuide.leftResource", { defaultValue: "Left resource" })}
                   onJoin={() => {}}
                   onLeave={() => {}}
                 />
               }
             />
             <EntityRow
-              title="Leaving resource"
-              subtitle="Disabled while the optimistic mutation is pending."
+              title={t("pages.designGuide.leavingResource", { defaultValue: "Leaving resource" })}
+              subtitle={t("pages.designGuide.disabledPendingHint", { defaultValue: "Disabled while the optimistic mutation is pending." })}
               className="group text-foreground/55"
               trailing={
                 <MembershipAction
                   state="left"
                   pending
                   pendingState="left"
-                  resourceName="Leaving resource"
+                  resourceName={t("pages.designGuide.leavingResource", { defaultValue: "Leaving resource" })}
                   onJoin={() => {}}
                   onLeave={() => {}}
                 />
               }
             />
             <EntityRow
-              title="Joining resource"
-              subtitle="The target state is visible immediately while the server confirms."
+              title={t("pages.designGuide.joiningResource", { defaultValue: "Joining resource" })}
+              subtitle={t("pages.designGuide.optimisticHint", { defaultValue: "The target state is visible immediately while the server confirms." })}
               className="group"
               trailing={
                 <MembershipAction
                   state="joined"
                   pending
                   pendingState="joined"
-                  resourceName="Joining resource"
+                  resourceName={t("pages.designGuide.joiningResource", { defaultValue: "Joining resource" })}
                   onJoin={() => {}}
                   onLeave={() => {}}
                 />
@@ -1236,7 +1237,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  FILTER BAR                                                   */}
       {/* ============================================================ */}
-      <Section title="Filter Bar">
+      <Section title={t("pages.designGuide.filterBar", { defaultValue: "Filter Bar" })}>
         <FilterBar
           filters={filters}
           onRemove={(key) => setFilters((f) => f.filter((x) => x.key !== key))}
@@ -1248,8 +1249,8 @@ export function DesignGuide() {
             size="sm"
             onClick={() =>
               setFilters([
-                { key: "status", label: "Status", value: "Active" },
-                { key: "priority", label: "Priority", value: "High" },
+                { key: "status", label: t("pages.designGuide.status", { defaultValue: "Status" }), value: t("pages.designGuide.active", { defaultValue: "Active" }) },
+                { key: "priority", label: t("pages.designGuide.priority", { defaultValue: "Priority" }), value: t("pages.designGuide.high", { defaultValue: "High" }) },
               ])
             }
           >
@@ -1261,8 +1262,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  AVATARS                                                      */}
       {/* ============================================================ */}
-      <Section title="Avatars">
-        <SubSection title="Sizes">
+      <Section title={t("pages.designGuide.avatars", { defaultValue: "Avatars" })}>
+        <SubSection title={t("pages.designGuide.sizes", { defaultValue: "Sizes" })}>
           <div className="flex items-center gap-3">
             <Avatar size="sm"><AvatarFallback>SM</AvatarFallback></Avatar>
             <Avatar><AvatarFallback>DF</AvatarFallback></Avatar>
@@ -1270,7 +1271,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Group">
+        <SubSection title={t("pages.designGuide.group", { defaultValue: "Group" })}>
           <AvatarGroup>
             <Avatar><AvatarFallback>A1</AvatarFallback></Avatar>
             <Avatar><AvatarFallback>A2</AvatarFallback></Avatar>
@@ -1284,7 +1285,7 @@ export function DesignGuide() {
       {/*  IDENTITY                                                     */}
       {/* ============================================================ */}
       <Section title="Identity">
-        <SubSection title="Sizes">
+        <SubSection title={t("pages.designGuide.sizes", { defaultValue: "Sizes" })}>
           <div className="flex items-center gap-6">
             <Identity name="Agent Alpha" size="sm" />
             <Identity name="Agent Alpha" />
@@ -1292,7 +1293,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Initials derivation">
+        <SubSection title={t("pages.designGuide.initialsDerivation", { defaultValue: "Initials derivation" })}>
           <div className="flex flex-col gap-2">
             <Identity name="CEO Agent" size="sm" />
             <Identity name="Alpha" size="sm" />
@@ -1300,7 +1301,7 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Custom initials">
+        <SubSection title={t("pages.designGuide.customInitials", { defaultValue: "Custom initials" })}>
           <Identity name="Backend Service" initials="BS" size="sm" />
         </SubSection>
       </Section>
@@ -1308,7 +1309,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TOOLTIPS                                                     */}
       {/* ============================================================ */}
-      <Section title="Tooltips">
+      <Section title={t("pages.designGuide.tooltips", { defaultValue: "Tooltips" })}>
         <div className="flex items-center gap-4">
           <Tooltip>
             <TooltipTrigger asChild>
@@ -1328,7 +1329,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  DIALOG                                                       */}
       {/* ============================================================ */}
-      <Section title="Dialog">
+      <Section title={t("pages.designGuide.dialog", { defaultValue: "Dialog" })}>
         <Dialog>
           <DialogTrigger asChild>
             <Button variant="outline">Open Dialog</Button>
@@ -1346,13 +1347,13 @@ export function DesignGuide() {
                 <Input placeholder="Enter a name" className="mt-1.5" />
               </div>
               <div>
-                <Label>Description</Label>
-                <Textarea placeholder="Describe..." className="mt-1.5" />
+                <Label>{t("pages.designGuide.description", { defaultValue: "Description" })}</Label>
+                <Textarea placeholder={t("pages.designGuide.describe", { defaultValue: "Describe..." })} className="mt-1.5" />
               </div>
             </div>
             <DialogFooter>
-              <Button variant="outline">Cancel</Button>
-              <Button>Save</Button>
+              <Button variant="outline">{t("pages.designGuide.cancel", { defaultValue: "Cancel" })}</Button>
+              <Button>{t("pages.designGuide.save", { defaultValue: "Save" })}</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -1361,12 +1362,12 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  EMPTY STATE                                                  */}
       {/* ============================================================ */}
-      <Section title="Empty State">
+      <Section title={t("pages.designGuide.emptyState", { defaultValue: "Empty State" })}>
         <div className="border border-border rounded-md">
           <EmptyState
             icon={Inbox}
-            message="No items to show. Create your first one to get started."
-            action="Create Item"
+            message={t("pages.designGuide.emptyStateHint", { defaultValue: "No items to show. Create your first one to get started." })}
+            action={t("pages.designGuide.createItem", { defaultValue: "Create Item" })}
             onAction={() => {}}
           />
         </div>
@@ -1375,7 +1376,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  PROGRESS BARS                                                */}
       {/* ============================================================ */}
-      <Section title="Progress Bars (Budget)">
+      <Section title={t("pages.designGuide.progressBars", { defaultValue: "Progress Bars (Budget)" })}>
         <div className="space-y-3">
           {[
             { label: "Under budget (40%)", pct: 40, color: "bg-green-400" },
@@ -1401,7 +1402,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  LOG VIEWER                                                   */}
       {/* ============================================================ */}
-      <Section title="Log Viewer">
+      <Section title={t("pages.designGuide.logViewer", { defaultValue: "Log Viewer" })}>
         <div className="bg-neutral-950 rounded-lg p-3 font-mono text-xs max-h-80 overflow-y-auto">
           <div className="text-foreground">[12:00:01] INFO  Agent started successfully</div>
           <div className="text-foreground">[12:00:02] INFO  Processing task PAP-001</div>
@@ -1423,14 +1424,14 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  PROPERTY ROW PATTERN                                         */}
       {/* ============================================================ */}
-      <Section title="Property Row Pattern">
+      <Section title={t("pages.designGuide.propertyRow", { defaultValue: "Property Row Pattern" })}>
         <div className="border border-border rounded-md p-4 space-y-1 max-w-sm">
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-xs text-muted-foreground">Status</span>
+            <span className="text-xs text-muted-foreground">{t("pages.designGuide.status", { defaultValue: "Status" })}</span>
             <StatusBadge status="active" />
           </div>
           <div className="flex items-center justify-between py-1.5">
-            <span className="text-xs text-muted-foreground">Priority</span>
+            <span className="text-xs text-muted-foreground">{t("pages.designGuide.priority", { defaultValue: "Priority" })}</span>
             <PriorityIcon priority="high" />
           </div>
           <div className="flex items-center justify-between py-1.5">
@@ -1450,8 +1451,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  NAVIGATION PATTERNS                                          */}
       {/* ============================================================ */}
-      <Section title="Navigation Patterns">
-        <SubSection title="Sidebar nav items">
+      <Section title={t("pages.designGuide.navigationPatterns", { defaultValue: "Navigation Patterns" })}>
+        <SubSection title={t("pages.designGuide.sidebarNav", { defaultValue: "Sidebar nav items" })}>
           <Card className="block w-60 p-3 space-y-0.5">
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium bg-accent text-accent-foreground">
               <LayoutDashboard className="h-4 w-4" />
@@ -1475,7 +1476,7 @@ export function DesignGuide() {
           </Card>
         </SubSection>
 
-        <SubSection title="View toggle">
+        <SubSection title={t("pages.designGuide.viewToggle", { defaultValue: "View toggle" })}>
           <div className="flex items-center border border-border rounded-md w-fit">
             <button className="px-3 py-1.5 text-xs font-medium bg-accent text-foreground rounded-l-md">
               <ListTodo className="h-3.5 w-3.5 inline mr-1" />
@@ -1492,24 +1493,24 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  GROUPED LIST (Issues pattern)                                */}
       {/* ============================================================ */}
-      <Section title="Grouped List (Issues pattern)">
+      <Section title={t("pages.designGuide.groupedList", { defaultValue: "Grouped List (Issues pattern)" })}>
         <div>
           <div className="flex items-center gap-2 px-4 py-2 bg-muted/50 rounded-t-md">
             <StatusIcon status="in_progress" />
-            <span className="text-sm font-medium">In Progress</span>
+            <span className="text-sm font-medium">{t("pages.designGuide.inProgress", { defaultValue: "In Progress" })}</span>
             <span className="text-xs text-muted-foreground ml-1">2</span>
           </div>
           <div className="border border-border rounded-b-md">
             <EntityRow
               leading={<PriorityIcon priority="high" />}
               identifier="PAP-101"
-              title="Build agent heartbeat system"
+              title={t("pages.designGuide.groupedTitle1", { defaultValue: "Build agent heartbeat system" })}
               onClick={() => {}}
             />
             <EntityRow
               leading={<PriorityIcon priority="medium" />}
               identifier="PAP-102"
-              title="Add cost tracking dashboard"
+              title={t("pages.designGuide.groupedTitle2", { defaultValue: "Add cost tracking dashboard" })}
               onClick={() => {}}
             />
           </div>
@@ -1519,7 +1520,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COMMENT THREAD PATTERN                                       */}
       {/* ============================================================ */}
-      <Section title="Comment Thread Pattern">
+      <Section title={t("pages.designGuide.commentThread", { defaultValue: "Comment Thread Pattern" })}>
         <div className="space-y-3 max-w-2xl">
           <h3 className="text-sm font-semibold">Comments (2)</h3>
           <div className="space-y-3">
@@ -1539,7 +1540,7 @@ export function DesignGuide() {
             </div>
           </div>
           <div className="space-y-2">
-            <Textarea placeholder="Leave a comment..." rows={3} />
+            <Textarea placeholder={t("pages.designGuide.commentPlaceholder", { defaultValue: "Leave a comment..." })} rows={3} />
             <Button size="sm">Comment</Button>
           </div>
         </div>
@@ -1548,7 +1549,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  COST TABLE PATTERN                                           */}
       {/* ============================================================ */}
-      <Section title="Cost Table Pattern">
+      <Section title={t("pages.designGuide.costTable", { defaultValue: "Cost Table Pattern" })}>
         <div className="border border-border rounded-lg overflow-hidden">
           <table className="w-full text-xs">
             <thead className="border-b border-border bg-accent/20">
@@ -1582,8 +1583,8 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SKELETONS                                                    */}
       {/* ============================================================ */}
-      <Section title="Skeletons">
-        <SubSection title="Individual">
+      <Section title={t("pages.designGuide.skeletons", { defaultValue: "Skeletons" })}>
+        <SubSection title={t("pages.designGuide.individual", { defaultValue: "Individual" })}>
           <div className="space-y-2">
             <Skeleton className="h-4 w-48" />
             <Skeleton className="h-8 w-full max-w-sm" />
@@ -1591,13 +1592,13 @@ export function DesignGuide() {
           </div>
         </SubSection>
 
-        <SubSection title="Page Skeleton (list)">
+        <SubSection title={t("pages.designGuide.pageSkeletonList", { defaultValue: "Page Skeleton (list)" })}>
           <div className="border border-border rounded-md p-4">
             <PageSkeleton variant="list" />
           </div>
         </SubSection>
 
-        <SubSection title="Page Skeleton (detail)">
+        <SubSection title={t("pages.designGuide.pageSkeletonDetail", { defaultValue: "Page Skeleton (detail)" })}>
           <div className="border border-border rounded-md p-4">
             <PageSkeleton variant="detail" />
           </div>
@@ -1607,7 +1608,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  SEPARATOR                                                    */}
       {/* ============================================================ */}
-      <Section title="Separator">
+      <Section title={t("pages.designGuide.separator", { defaultValue: "Separator" })}>
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">Horizontal</p>
           <Separator />
@@ -1624,7 +1625,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TEAM CATALOG                                                 */}
       {/* ============================================================ */}
-      <Section title="Team Catalog">
+      <Section title={t("pages.designGuide.teamCatalog", { defaultValue: "Team Catalog" })}>
         <p className="text-sm text-muted-foreground">
           Components from the Team Catalog browse/install surface (<code className="font-mono text-xs">/teams-catalog</code>).
           Fixtures are shared with the Storybook stories.
@@ -1745,15 +1746,15 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  KEYBOARD SHORTCUTS                                           */}
       {/* ============================================================ */}
-      <Section title="Keyboard Shortcuts">
+      <Section title={t("pages.designGuide.keyboardShortcuts", { defaultValue: "Keyboard Shortcuts" })}>
         <div className="border border-border rounded-md divide-y divide-border text-sm">
           {[
-            ["Cmd+K / Ctrl+K", "Open Command Palette"],
-            ["C", "New Issue (outside inputs)"],
-            ["[", "Toggle Sidebar"],
-            ["]", "Toggle Properties Panel"],
+            [t("pages.designGuide.cmdK", { defaultValue: "Cmd+K / Ctrl+K" }), t("pages.designGuide.openCommandPalette", { defaultValue: "Open Command Palette" })],
+            ["C", t("pages.designGuide.newIssueShortcut", { defaultValue: "New Issue (outside inputs)" })],
+            ["[", t("pages.designGuide.toggleSidebar", { defaultValue: "Toggle Sidebar" })],
+            ["]", t("pages.designGuide.toggleProperties", { defaultValue: "Toggle Properties Panel" })],
 
-            ["Cmd+Enter / Ctrl+Enter", "Submit markdown comment"],
+            [t("pages.designGuide.cmdEnter", { defaultValue: "Cmd+Enter / Ctrl+Enter" }), t("pages.designGuide.submitComment", { defaultValue: "Submit markdown comment" })],
           ].map(([key, desc]) => (
             <div key={key} className="flex items-center justify-between px-4 py-2">
               <span className="text-muted-foreground">{desc}</span>
@@ -1765,14 +1766,14 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="Issue Output Surface">
-        <SubSection title="Multiple outputs (primary video + 'Also produced')">
+      <Section title={t("pages.designGuide.issueOutput", { defaultValue: "Issue Output Surface" })}>
+        <SubSection title={t("pages.designGuide.multipleOutputs", { defaultValue: "Multiple outputs (primary video + 'Also produced')" })}>
           <IssueOutputSection workProducts={DESIGN_GUIDE_OUTPUTS} />
         </SubSection>
-        <SubSection title="Degraded output (invalid / failed attachment metadata)">
+        <SubSection title={t("pages.designGuide.degradedOutput", { defaultValue: "Degraded output (invalid / failed attachment metadata)" })}>
           <IssueOutputSection workProducts={DESIGN_GUIDE_DEGRADED_OUTPUTS} />
         </SubSection>
-        <SubSection title="Empty state">
+        <SubSection title={t("pages.designGuide.emptyState2", { defaultValue: "Empty state" })}>
           <p className="text-xs text-muted-foreground">
             When an issue has produced no artifact work products, the Output section renders nothing
             at all (no placeholder card).
@@ -1783,7 +1784,7 @@ export function DesignGuide() {
       {/* ============================================================ */}
       {/*  TOOLS & ACCESS (PAP-10389)                                   */}
       {/* ============================================================ */}
-      <Section title="Tools & Access">
+      <Section title={t("pages.designGuide.toolsAccess", { defaultValue: "Tools & Access" })}>
         <SubSection title="EnforcementBanner — default / denied-detected">
           <div className="space-y-3">
             <EnforcementBanner companyId="" forceVariant="default" recentDenialCount={0} />
@@ -1828,14 +1829,14 @@ export function DesignGuide() {
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("pages.designGuide.slack", { defaultValue: "Slack" }),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
               input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
-              reason="This tool can write to your workspace, so a human signs off before the agent posts."
+              reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
               expiresInLabel="expires in 23h 51m"
             />
@@ -1845,7 +1846,7 @@ export function DesignGuide() {
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("pages.designGuide.slack", { defaultValue: "Slack" }),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:7d793037a0760186574b0282f2f435e7a4b1b2b0b822cd15d6c15b0f00a0e3f1",
@@ -1853,7 +1854,7 @@ export function DesignGuide() {
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
               input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
-              reason="This tool can write to your workspace, so a human signs off before the agent posts."
+              reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
               expiresInLabel="expires in 18h 02m"
             />
@@ -1873,14 +1874,14 @@ export function DesignGuide() {
               risk="medium"
               isWrite
               binding={{
-                application: "Slack",
+                application: t("pages.designGuide.slack", { defaultValue: "Slack" }),
                 manifestVersion: "2.4.1",
                 connection: "https://slack.com/api · acme-workspace",
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
               input={{ channel: "#launch", text: "Deploy v2 is live 🎉" }}
-              reason="This tool can write to your workspace, so a human signs off before the agent posts."
+              reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
               expiresInLabel="expires in 23h 51m"
             />
@@ -1924,15 +1925,15 @@ export function DesignGuide() {
         <SubSection title="EmptyState (canonical, with description + action)">
           <EmptyState
             icon={Inbox}
-            message="No connections yet"
-            description="Add a connection to an application to configure credentials and discover its tools."
-            action="New connection"
+            message={t("pages.designGuide.noConnections", { defaultValue: "No connections yet" })}
+            description={t("pages.designGuide.noConnectionsHint", { defaultValue: "Add a connection to an application to configure credentials and discover its tools." })}
+            action={t("pages.designGuide.newConnection", { defaultValue: "New connection" })}
             onAction={() => {}}
           />
         </SubSection>
       </Section>
 
-      <Section title="Environment Variables Editor">
+      <Section title={t("pages.designGuide.envVarsEditor", { defaultValue: "Environment Variables Editor" })}>
         <p className="text-sm text-muted-foreground">
           Reusable env-var editor (agents, projects, environments, routines). One shared grid, an
           in-field Text/Secret source switch, a fuzzy secret picker with a pinned “Create secret”
@@ -1943,7 +1944,7 @@ export function DesignGuide() {
         <EnvironmentVariablesEditorShowcase />
       </Section>
 
-      <Section title="Resizable Panels">
+      <Section title={t("pages.designGuide.resizablePanels", { defaultValue: "Resizable Panels" })}>
         <p className="text-sm text-muted-foreground">
           Design-system wrapper over <span className="font-mono">react-resizable-panels</span>{" "}
           (Skill Studio D2). Drag a handle to resize; panels accept percentage or pixel
@@ -1988,14 +1989,14 @@ export function DesignGuide() {
         <div className="space-y-3">
           <InlineBanner
             tone="info"
-            title="Built-in agent"
+            title={t("pages.designGuide.builtInAgent", { defaultValue: "Built-in agent" })}
             actions={<Button variant="outline" size="sm">Reset to defaults</Button>}
           >
             Ships with Paperclip and powers <strong>Briefs</strong>. It can be paused but not deleted.
           </InlineBanner>
           <InlineBanner
             tone="warning"
-            title="Briefs is paused."
+            title={t("pages.designGuide.briefsPaused", { defaultValue: "Briefs is paused." })}
             actions={
               <>
                 <Button variant="ghost" size="sm">View agent</Button>
@@ -2007,7 +2008,7 @@ export function DesignGuide() {
           </InlineBanner>
           <InlineBanner
             tone="danger"
-            title="Summary generation failed."
+            title={t("pages.designGuide.summaryFailed", { defaultValue: "Summary generation failed." })}
             actions={<Button size="sm">Retry</Button>}
           >
             The linked issue reached a terminal state before a summary was written.
@@ -2018,7 +2019,7 @@ export function DesignGuide() {
         </div>
       </Section>
 
-      <Section title="Built-in Agent Lifecycle Chips">
+      <Section title={t("pages.designGuide.builtInLifecycle", { defaultValue: "Built-in Agent Lifecycle Chips" })}>
         <p className="text-sm text-muted-foreground">
           A derived lifecycle chip (amber) for attention states. The lifecycle chip is separate from
           the agent status vocabulary and only shows for{" "}
