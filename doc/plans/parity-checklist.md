@@ -54,7 +54,9 @@
 | decision desk 完整 retention/sweeper | 基础队列/三态已实现 | 进行中 |
 | 插件生态（plugin namespaces 等） | 上游 addenda | 未开始 |
 | UI 完整功能（搜索、看板拖拽、设置页等） | 骨架 + 核心页已实现 | 进行中 |
+| **UI 国际化（i18n）** | 上游已合入 zh-CN/zh-TW 全量 sweep + 多语言 locale（`ui/src/i18n/locales/*.json`，约 2100 键）；Rust/Topcoat UI 尚无 i18n 层 | 未开始（参考分支 `sync/reference-i18n`） |
 
 ## 参考镜像同步登记
 
 - 每次 `gqf2008/paperclip` 同步上游后，diff 中新增的 API/表/测试按上述模块追加登记，状态默认 `未开始`。
+- 2026-08-03：登记上游 **UI 国际化（i18n）sweep**（zh-CN/zh-TW 全量翻译 + 多语言 locale，来自参考分支 `sync/reference-i18n`，仅改动 Node 参考快照 `ui/`，不影响 `crates/`）。
