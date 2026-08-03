@@ -17,6 +17,7 @@ pub mod issue_comments;
 pub mod issue_relations;
 pub mod issues;
 pub mod projects;
+pub mod secrets;
 pub mod work_products;
 
 pub use activity::{
@@ -65,4 +66,8 @@ pub use projects::{
 pub use work_products::{
     NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
     WorkProductRecord, WorkProductRepository,
+};
+pub use secrets::{
+    CompanySecretRecord, NewSecret, SecretError, SecretRepository, SecretVersionRecord,
+    TursoSecretRepository,
 };

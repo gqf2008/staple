@@ -6,8 +6,10 @@
 pub mod connection;
 pub mod migrations;
 pub mod repositories;
+pub mod secrets;
 
 pub use connection::{DataError, DbConfig, connect, open};
+pub use secrets::{CipherError, SecretCipher, default_key_path, redact};
 pub use libsql::{Connection, Database};
 pub use migrations::{
     MigrateError, Migration, load_migrations, migrate, migrate_conn, migrate_down,
@@ -32,4 +34,22 @@ pub use repositories::{
     allowed_approval_transition, allowed_status_transition, approvals, assets, companies, costs,
     documents, goals, heartbeat_runs, issue_comments, issue_relations, issues, projects,
     work_products,
+    BudgetSummary, CompanySecretRecord, CompleteHeartbeatRun, CompanyPatch, CompanyRecord,
+    CompanyRepository, CostError, CostEventOutcome, CostEventRecord, CostRepository,
+    DocumentError, DocumentRecord, DocumentRepository, GoalError, GoalPatch, GoalRecord,
+    GoalRepository, HeartbeatError, HeartbeatRunRecord, HeartbeatRepository, IssueAttachmentRecord,
+    IssueCommentError, IssueCommentRecord, IssueCommentRepository, IssueError, IssuePatch,
+    IssueRecord, IssueRelationError, IssueRelationRecord, IssueRelationRepository,
+    IssueRepository, NewActivity, NewApproval, NewAsset, NewCompany, NewCostEvent, NewGoal,
+    NewHeartbeatRun, NewIssue, NewIssueAttachment, NewIssueComment, NewIssueDocument,
+    NewIssueRelation, NewProject, NewSecret, NewWorkProduct, ProjectError, ProjectPatch,
+    ProjectRecord, ProjectRepository, RepoError, SecretError, SecretRepository,
+    SecretVersionRecord, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
+    TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository, TursoWorkProductRepository,
+    UpdateIssueDocument, WorkProductError, WorkProductPatch, WorkProductRecord,
+    WorkProductRepository, allowed_approval_transition, allowed_status_transition, activity,
+    approvals, assets, companies, costs, documents, goals, heartbeat_runs, issue_comments,
+    issue_relations, issues, projects, work_products,
 };
