@@ -2556,3 +2556,85 @@ async fn adapter_plugin_status_endpoint() {
     assert_eq!(status, StatusCode::OK);
     assert!(body["reports"].is_array());
 }
+
+#[tokio::test]
+async fn ui_internationalization_zh_cn_and_switcher() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "本地化任务").await;
+
+    // English default: nav + page titles.
+    let (_, html) = send(&app, Method::GET, "/", None).await;
+    assert!(html.contains("Companies"));
+    assert!(
+        html.contains(">中文<"),
+        "language switcher to zh-CN missing"
+    );
+
+    // zh-CN: query param switches the home page.
+    let (_, html) = send(&app, Method::GET, "/?lang=zh-CN", None).await;
+    assert!(html.contains("公司"));
+    assert!(
+        html.contains(">English<"),
+        "language switcher back to English missing"
+    );
+    assert!(html.contains("Acme"));
+
+    // zh-CN company overview: sections localized, issue title present.
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}?lang=zh-CN"),
+        None,
+    )
+    .await;
+    assert!(html.contains("目标"));
+    assert!(html.contains("项目"));
+    assert!(html.contains("任务"));
+    assert!(html.contains("本地化任务"));
+
+    // zh-CN issue detail: sections + comment form localized.
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/issues/{issue_id}?lang=zh-CN"),
+        None,
+    )
+    .await;
+    assert!(html.contains("评论"));
+    assert!(html.contains("文档"));
+    assert!(html.contains("附件"));
+    assert!(html.contains("工作产物"));
+    assert!(html.contains("发表评论"));
+    assert!(html.contains("添加"));
+
+    // zh-CN approvals + activity.
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/approvals?lang=zh-CN"),
+        None,
+    )
+    .await;
+    assert!(html.contains("审批"));
+    assert!(html.contains("发起"));
+    assert!(html.contains("待处理"));
+
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/activity?lang=zh-CN"),
+        None,
+    )
+    .await;
+    assert!(html.contains("审计日志"));
+    // The zh-CN title replaced the English one.
+    assert!(!html.contains("Audit log"));
+    // Audit action strings are data values and stay as-is (issue.created).
+
+    // Language persists through navigation links (?lang= on every link).
+    let (_, html) = send(&app, Method::GET, "/?lang=zh-CN", None).await;
+    assert!(html.contains("/companies/"));
+    // zh-CN page must not contain the untranslated English nav strings.
+    assert!(!html.contains(">Companies<"));
+}
