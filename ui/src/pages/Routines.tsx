@@ -69,12 +69,12 @@ import {
 const concurrencyPolicies = ["coalesce_if_active", "always_enqueue", "skip_if_active"];
 const catchUpPolicies = ["skip_missed", "enqueue_missed_with_cap"];
 const concurrencyPolicyDescriptions: Record<string, string> = {
-  coalesce_if_active: "If a run is already active, keep just one follow-up run queued.",
-  always_enqueue: "Queue every trigger occurrence, even if the routine is already running.",
-  skip_if_active: "Drop new trigger occurrences while a run is still active.",
+  coalesce_if_active: t("pages.routines2.coalesceHint", { defaultValue: "If a run is already active, keep just one follow-up run queued." }),
+  always_enqueue: t("pages.routines2.alwaysEnqueueHint", { defaultValue: "Queue every trigger occurrence, even if the routine is already running." }),
+  skip_if_active: t("pages.routines2.skipIfActiveHint", { defaultValue: "Drop new trigger occurrences while a run is still active." }),
 };
 const catchUpPolicyDescriptions: Record<string, string> = {
-  skip_missed: "Ignore windows that were missed while the scheduler or routine was paused.",
+  skip_missed: t("pages.routines2.skipMissedHint", { defaultValue: "Ignore windows that were missed while the scheduler or routine was paused." }),
   enqueue_missed_with_cap: "Catch up missed schedule windows after recovery; sub-hourly schedules are combined into one catch-up run, slower schedules replay each missed window up to a cap.",
 };
 
@@ -244,7 +244,7 @@ export function buildRoutineSections(
     .filter((group) => group.items.length > 0)
     .map((group) => (
       builtInRoutines.length > 0 && groupByValue === "none" && group.key === "__all"
-        ? { ...group, label: "Custom routines" }
+        ? { ...group, label: t("pages.routines2.customRoutines", { defaultValue: "Custom routines" }) }
         : group
     ));
 
@@ -254,7 +254,7 @@ export function buildRoutineSections(
     ...customGroups,
     {
       key: builtInRoutineGroupKey,
-      label: "Built-in routines",
+      label: t("pages.routines2.builtInRoutines", { defaultValue: "Built-in routines" }),
       items: builtInRoutines,
     },
   ];
@@ -455,10 +455,10 @@ export function Routines() {
       setAdvancedOpen(false);
       await queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) });
       pushToast({
-        title: "Routine created",
+        title: t("pages.routines2.routineCreated", { defaultValue: "Routine created" }),
         body: routine.assigneeAgentId
-          ? "Add the first trigger to turn it into a live workflow."
-          : "Draft saved. Add a default agent before enabling automation.",
+          ? t("pages.routines2.addFirstTrigger", { defaultValue: "Add the first trigger to turn it into a live workflow." })
+          : t("pages.routines2.draftSavedHint", { defaultValue: "Draft saved. Add a default agent before enabling automation." }),
         tone: "success",
       });
       navigate(`/routines/${routine.id}?tab=triggers`);
@@ -484,7 +484,7 @@ export function Routines() {
           ]);
         } catch (moveError) {
           pushToast({
-            title: "Folder created, move failed",
+            title: t("pages.routines2.folderMoveFailed", { defaultValue: "Folder created, move failed" }),
             body: moveError instanceof Error ? moveError.message : t("pages.routines.moveFailed", { defaultValue: "Paperclip could not move the selected routines." }),
             tone: "error",
           });
@@ -493,12 +493,12 @@ export function Routines() {
       } else {
         setFolderSelection(folder.id);
       }
-      pushToast({ title: "Folder created", body: folder.name, tone: "success" });
+      pushToast({ title: t("pages.routines2.folderCreated", { defaultValue: "Folder created" }), body: folder.name, tone: "success" });
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Failed to save folder",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not save the folder.",
+        title: t("pages.routines2.folderSaveFailed", { defaultValue: "Failed to save folder" }),
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines2.folderSaveFailedBody", { defaultValue: "Paperclip could not save the folder." }),
         tone: "error",
       });
     },
@@ -513,8 +513,8 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Folder save failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not update the folder.",
+        title: t("pages.routines2.folderSaveFailed2", { defaultValue: "Folder save failed" }),
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines2.folderUpdateFailed", { defaultValue: "Paperclip could not update the folder." }),
         tone: "error",
       });
     },
@@ -528,12 +528,12 @@ export function Routines() {
         queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.folders.list(selectedCompanyId!, "routine") }),
       ]);
-      pushToast({ title: "Folder deleted", body: "Items moved to Unfiled.", tone: "success" });
+      pushToast({ title: t("pages.routines2.folderDeleted", { defaultValue: "Folder deleted" }), body: "Items moved to Unfiled.", tone: "success" });
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Folder delete failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not delete the folder.",
+        title: t("pages.routines2.folderDeleteFailed", { defaultValue: "Folder delete failed" }),
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines2.folderDeleteFailedBody", { defaultValue: "Paperclip could not delete the folder." }),
         tone: "error",
       });
     },
@@ -549,7 +549,7 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Move failed",
+        title: t("pages.routines2.moveFailed", { defaultValue: "Move failed" }),
         body: mutationError instanceof Error ? mutationError.message : t("pages.routines.moveFailedSingle", { defaultValue: "Paperclip could not move the routine." }),
         tone: "error",
       });
@@ -579,8 +579,8 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Failed to update routine",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not update the routine.",
+        title: t("pages.routines2.routineUpdateFailed", { defaultValue: "Failed to update routine" }),
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines2.routineUpdateFailedBody", { defaultValue: "Paperclip could not update the routine." }),
         tone: "error",
       });
     },
@@ -614,8 +614,8 @@ export function Routines() {
     },
     onError: (mutationError) => {
       pushToast({
-        title: "Routine run failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not start the routine run.",
+        title: t("pages.routines2.runFailed", { defaultValue: "Routine run failed" }),
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines2.runFailedBody", { defaultValue: "Paperclip could not start the routine run." }),
         tone: "error",
       });
     },
@@ -870,7 +870,7 @@ export function Routines() {
                         <span>{label}</span>
                         {routineViewState.sortField === field ? (
                           <span className="text-xs text-muted-foreground">
-                            {routineViewState.sortDir === "asc" ? "Asc" : "Desc"}
+                            {routineViewState.sortDir === "asc" ? t("pages.routines2.asc", { defaultValue: "Asc" }) : t("pages.routines2.desc", { defaultValue: "Desc" })}
                           </span>
                         ) : null}
                       </button>
@@ -880,9 +880,9 @@ export function Routines() {
               </Popover>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs" title="Group">
+                  <Button variant="ghost" size="sm" className="text-xs" title={t("pages.routines2.group", { defaultValue: "Group" })}>
                     <Layers className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-                    <span className="hidden sm:inline">Group</span>
+                    <span className="hidden sm:inline">{t("pages.routines2.group", { defaultValue: "Group" })}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-44 p-0">
@@ -890,8 +890,8 @@ export function Routines() {
                     {([
                       ["folder", t("pages.routines.sortFolder", { defaultValue: "Folder" })],
                       ["project", t("pages.routines.sortProject", { defaultValue: "Project" })],
-                      ["assignee", "Agent"],
-                      ["none", "None"],
+                      ["assignee", t("pages.routines2.agent", { defaultValue: "Agent" })],
+                      ["none", t("pages.routines2.none", { defaultValue: "None" })],
                     ] as const).map(([value, label]) => (
                       <button
                         key={value}
@@ -1050,7 +1050,7 @@ export function Routines() {
                           <span className="truncate">{option.label}</span>
                         )
                       ) : (
-                        <span className="text-muted-foreground">Responsible</span>
+                        <span className="text-muted-foreground">{t("pages.routines2.responsible", { defaultValue: "Responsible" })}</span>
                       )
                     }
                     renderOption={(option) => {
@@ -1089,7 +1089,7 @@ export function Routines() {
                           <span className="truncate">{option.label}</span>
                         </>
                       ) : (
-                        <span className="text-muted-foreground">Project</span>
+                        <span className="text-muted-foreground">{t("pages.routines2.project", { defaultValue: "Project" })}</span>
                       )
                     }
                     renderOption={(option) => {
@@ -1118,7 +1118,7 @@ export function Routines() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__unfiled">Unfiled</SelectItem>
+                      <SelectItem value="__unfiled">{t("pages.routines2.unfiled", { defaultValue: "Unfiled" })}</SelectItem>
                       {(routineFolders?.folders ?? []).map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           {folder.name}
@@ -1135,7 +1135,7 @@ export function Routines() {
                 ref={descriptionEditorRef}
                 value={draft.description}
                 onChange={(description) => setDraft((current) => ({ ...current, description }))}
-                placeholder="Add instructions..."
+                placeholder={t("pages.routines2.addInstructions", { defaultValue: "Add instructions..." })}
                 bordered={false}
                 contentClassName="min-h-(--sz-160px) text-sm text-muted-foreground"
                 mentions={mentionOptions}
@@ -1151,15 +1151,15 @@ export function Routines() {
               <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
                 <CollapsibleTrigger className="flex w-full items-center justify-between text-left">
                   <div>
-                    <p className="text-sm font-medium">Advanced delivery settings</p>
-                    <p className="text-sm text-muted-foreground">Keep policy controls secondary to the work definition.</p>
+                    <p className="text-sm font-medium">{t("pages.routines2.advancedDelivery", { defaultValue: "Advanced delivery settings" })}</p>
+                    <p className="text-sm text-muted-foreground">{t("pages.routines2.policySecondary", { defaultValue: "Keep policy controls secondary to the work definition." })}</p>
                   </div>
                   {advancedOpen ? <ChevronDown className="h-4 w-4 text-muted-foreground" /> : <ChevronRight className="h-4 w-4 text-muted-foreground" />}
                 </CollapsibleTrigger>
                 <CollapsibleContent className="pt-3">
                   <div className="grid gap-4 md:grid-cols-2">
                     <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">Concurrency</p>
+                      <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">{t("pages.routines2.concurrency", { defaultValue: "Concurrency" })}</p>
                       <Select
                         value={draft.concurrencyPolicy}
                         onValueChange={(concurrencyPolicy) => setDraft((current) => ({ ...current, concurrencyPolicy }))}
@@ -1176,7 +1176,7 @@ export function Routines() {
                       <p className="text-xs text-muted-foreground">{concurrencyPolicyDescriptions[draft.concurrencyPolicy]}</p>
                     </div>
                     <div className="space-y-2">
-                      <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">Catch-up</p>
+                      <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">{t("pages.routines2.catchUp", { defaultValue: "Catch-up" })}</p>
                       <Select
                         value={draft.catchUpPolicy}
                         onValueChange={(catchUpPolicy) => setDraft((current) => ({ ...current, catchUpPolicy }))}
@@ -1211,11 +1211,11 @@ export function Routines() {
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {createRoutine.isPending ? "Creating..." : "Create routine"}
+                {createRoutine.isPending ? t("pages.routines2.creating", { defaultValue: "Creating..." }) : t("pages.routines2.createRoutine", { defaultValue: "Create routine" })}
               </Button>
               {createRoutine.isError ? (
                 <p className="text-sm text-destructive">
-                  {createRoutine.error instanceof Error ? createRoutine.error.message : "Failed to create routine"}
+                  {createRoutine.error instanceof Error ? createRoutine.error.message : t("pages.routines2.createFailed", { defaultValue: "Failed to create routine" })}
                 </p>
               ) : null}
             </div>
@@ -1226,7 +1226,7 @@ export function Routines() {
       {error ? (
         <Card>
           <CardContent className="pt-6 text-sm text-destructive">
-            {error instanceof Error ? error.message : "Failed to load routines"}
+            {error instanceof Error ? error.message : t("pages.routines2.loadFailed", { defaultValue: "Failed to load routines" })}
           </CardContent>
         </Card>
       ) : null}
@@ -1414,7 +1414,7 @@ export function Routines() {
         result={railFolderResult}
         selection={folderSelection}
         allLabel={t("pages.routines.all", { defaultValue: "All routines" })}
-        itemLabelPlural="Routines"
+        itemLabelPlural={t("pages.routines2.title", { defaultValue: "Routines" })}
         onSelect={setFolderSelection}
         onCreate={() => openCreateFolder()}
       />

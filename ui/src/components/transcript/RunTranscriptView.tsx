@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import type { TranscriptEntry } from "../../adapters";
 import type { ToolRunDecision } from "@paperclipai/shared";
 import { MarkdownBody, type MarkdownExternalReferenceMap } from "../MarkdownBody";
@@ -317,20 +318,20 @@ function isCommandTool(name: string, input: unknown): boolean {
 }
 
 function displayToolName(name: string, input: unknown): string {
-  if (isCommandTool(name, input)) return "Executing command";
+  if (isCommandTool(name, input)) return t("components.runTranscript.executingCommand", { defaultValue: "Executing command" });
   return humanizeLabel(name);
 }
 
 function summarizeToolResult(result: string | undefined, isError: boolean | undefined, density: TranscriptDensity): string {
-  if (!result) return isError ? "Tool failed" : "Waiting for result";
+  if (!result) return isError ? t("components.runTranscript.toolFailed", { defaultValue: "Tool failed" }) : t("components.runTranscript.waitingResult", { defaultValue: "Waiting for result" });
   const structured = parseStructuredToolResult(result);
   if (structured) {
     if (structured.body) {
       return truncate(structured.body.split("\n")[0] ?? structured.body, density === "compact" ? 84 : 140);
     }
-    if (structured.status === "completed") return "Completed";
+    if (structured.status === "completed") return t("components.runTranscript.completed", { defaultValue: "Completed" });
     if (structured.status === "failed" || structured.status === "error") {
-      return structured.exitCode ? `Failed with exit code ${structured.exitCode}` : "Failed";
+      return structured.exitCode ? `Failed with exit code ${structured.exitCode}` : t("components.runTranscript.failed", { defaultValue: "Failed" });
     }
   }
   const lines = result
@@ -386,36 +387,36 @@ function summarizeToolDecision(decision: ToolRunDecision | null): { label: strin
   if (!decision) return null;
   if (decision.pendingAction) {
     return {
-      label: "Needs approval",
+      label: t("components.runTranscript.needsApproval", { defaultValue: "Needs approval" }),
       className: "text-amber-700 dark:text-amber-300",
       detail: `Action request ${decision.pendingAction.actionRequestId.slice(0, 8)}`,
     };
   }
   if (decision.denialReason || decision.invocation.status === "denied" || decision.outcome === "denied") {
     return {
-      label: "Denied",
+      label: t("components.runTranscript.denied", { defaultValue: "Denied" }),
       className: "text-red-700 dark:text-red-300",
       detail: decision.denialReason ?? decision.reasonCode ?? undefined,
     };
   }
   if (decision.invocation.status === "failed" || decision.invocation.status === "timed_out" || decision.outcome === "failure" || decision.outcome === "timeout") {
     return {
-      label: decision.invocation.status === "timed_out" || decision.outcome === "timeout" ? "Timed out" : "Failed",
+      label: decision.invocation.status === "timed_out" || decision.outcome === "timeout" ? t("components.runTranscript.timedOut", { defaultValue: "Timed out" }) : t("components.runTranscript.failed", { defaultValue: "Failed" }),
       className: "text-red-700 dark:text-red-300",
       detail: decision.denialReason ?? decision.reasonCode ?? undefined,
     };
   }
   if (decision.actionRequest?.status === "approved") {
-    return { label: "Approved", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("components.runTranscript.approved", { defaultValue: "Approved" }), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.actionRequest?.status === "executed") {
-    return { label: "Executed", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("components.runTranscript.executed", { defaultValue: "Executed" }), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.decision === "allow" || decision.invocation.status === "authorized" || decision.invocation.status === "executing" || decision.invocation.status === "succeeded") {
-    return { label: "Allowed", className: "text-emerald-700 dark:text-emerald-300" };
+    return { label: t("components.runTranscript.allowed", { defaultValue: "Allowed" }), className: "text-emerald-700 dark:text-emerald-300" };
   }
   if (decision.decision === "require_approval" || decision.invocation.approvalState === "pending") {
-    return { label: "Needs approval", className: "text-amber-700 dark:text-amber-300" };
+    return { label: t("components.runTranscript.needsApproval", { defaultValue: "Needs approval" }), className: "text-amber-700 dark:text-amber-300" };
   }
   return {
     label: humanizeLabel(decision.invocation.status),
@@ -429,7 +430,7 @@ function parseSystemActivity(text: string): { activityId?: string; name: string;
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? t("components.runTranscript.activity", { defaultValue: "Activity" })),
     activityId: match[3] || undefined,
   };
 }
@@ -578,7 +579,7 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
       const toolUseId = entry.toolUseId ?? extractToolUseId(entry.input);
       // Streaming runtimes (e.g. ACPX) re-emit the same tool call as its
       // status progresses. Fold updates into the existing running card
-      // instead of stacking duplicate "Running" blocks.
+      // instead of stacking duplicate t("components.runTranscript.running", { defaultValue: "Running" }) blocks.
       const pending = toolUseId ? pendingToolBlocks.get(toolUseId) : undefined;
       if (pending && pending.status === "running") {
         pending.input = mergeToolInput(pending.input, entry.input);
@@ -645,7 +646,7 @@ export function normalizeTranscript(entries: TranscriptEntry[], streaming: boole
         ts: entry.ts,
         label: "result",
         tone: entry.isError ? "error" : "info",
-        text: entry.text.trim() || entry.errors[0] || (entry.isError ? "Run failed" : "Completed"),
+        text: entry.text.trim() || entry.errors[0] || (entry.isError ? t("components.runTranscript.runFailed", { defaultValue: "Run failed" }) : t("components.runTranscript.completed", { defaultValue: "Completed" })),
         detail:
           !entry.isError && entry.text.trim().length > 0
             ? `${formatTokens(entry.inputTokens)} / ${formatTokens(entry.outputTokens)} / $${entry.costUsd.toFixed(6)}`
@@ -783,7 +784,7 @@ function TranscriptMessageBlock({
       {!isAssistant && (
         <div className="mb-1.5 flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
           <User className={compact ? "h-3.5 w-3.5" : "h-4 w-4"} />
-          <span>User</span>
+          <span>{t("components.runTranscript.user", { defaultValue: "User" })}</span>
         </div>
       )}
       <MarkdownBody
@@ -862,7 +863,7 @@ function ToolDecisionDetails({ decision, compact }: { decision: ToolRunDecision 
       compact ? "text-(length:--text-micro)" : "text-xs",
     )}>
       <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-        <span className="font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Decision</span>
+        <span className="font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("components.runTranscript.decision", { defaultValue: "Decision" })}</span>
         <ToolDecisionBadge decision={decision} />
         {decision.reasonCode && <span className="font-mono text-muted-foreground">{decision.reasonCode}</span>}
       </div>
@@ -900,10 +901,10 @@ function TranscriptToolCard({
   const parsedResult = parseStructuredToolResult(block.result);
   const statusLabel =
     block.status === "running"
-      ? "Running"
+      ? t("components.runTranscript.running", { defaultValue: "Running" })
       : block.status === "error"
-        ? "Errored"
-        : "Completed";
+        ? t("components.runTranscript.errored", { defaultValue: "Errored" })
+        : t("components.runTranscript.completed", { defaultValue: "Completed" });
   const statusTone =
     block.status === "running"
       ? "text-blue-700 dark:text-blue-300"
@@ -957,7 +958,7 @@ function TranscriptToolCard({
           type="button"
           className="mt-0.5 inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open ? t("components.runTranscript.collapseTool", { defaultValue: "Collapse tool details" }) : t("components.runTranscript.expandTool", { defaultValue: "Expand tool details" })}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -982,7 +983,7 @@ function TranscriptToolCard({
                   "overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro)",
                   block.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
                 )}>
-                  {block.result ? formatToolPayload(block.result) : "Waiting for result..."}
+                  {block.result ? formatToolPayload(block.result) : t("components.runTranscript.waitingResult2", { defaultValue: "Waiting for result..." })}
                 </pre>
               </div>
             </div>
@@ -1022,9 +1023,9 @@ function TranscriptCommandGroup({
   const isRunning = Boolean(runningItem);
   const showExpandedErrorState = open && hasError;
   const title = isRunning
-    ? "Executing command"
+    ? t("components.runTranscript.executingCommand", { defaultValue: "Executing command" })
     : block.items.length === 1
-      ? "Executed command"
+      ? t("components.runTranscript.executedCommand", { defaultValue: "Executed command" })
       : `Executed ${block.items.length} commands`;
   const subtitle = runningItem
     ? summarizeToolInput("command_execution", runningItem.input, density)
@@ -1098,7 +1099,7 @@ function TranscriptCommandGroup({
             event.stopPropagation();
             setOpen((value) => !value);
           }}
-          aria-label={open ? "Collapse command details" : "Expand command details"}
+          aria-label={open ? t("components.runTranscript.collapseCommand", { defaultValue: "Collapse command details" }) : t("components.runTranscript.expandCommand", { defaultValue: "Expand command details" })}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1228,7 +1229,7 @@ function TranscriptToolGroup({
           type="button"
           className={cn("inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground", subtitle && "mt-0.5")}
           onClick={(e) => { e.stopPropagation(); setOpen((v) => !v); }}
-          aria-label={open ? "Collapse tool details" : "Expand tool details"}
+          aria-label={open ? t("components.runTranscript.collapseTool", { defaultValue: "Collapse tool details" }) : t("components.runTranscript.expandTool", { defaultValue: "Expand tool details" })}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1257,20 +1258,20 @@ function TranscriptToolGroup({
                   : item.status === "error" ? "text-red-700 dark:text-red-300"
                   : "text-emerald-700 dark:text-emerald-300"
                 )}>
-                  {item.status === "running" ? "Running" : item.status === "error" ? "Errored" : "Completed"}
+                  {item.status === "running" ? t("components.runTranscript.running", { defaultValue: "Running" }) : item.status === "error" ? t("components.runTranscript.errored", { defaultValue: "Errored" }) : t("components.runTranscript.completed", { defaultValue: "Completed" })}
                 </span>
                 <ToolDecisionBadge decision={findToolDecision(toolDecisionMaps, item)} />
               </div>
               <div className={cn("grid gap-2 pl-7", compact ? "grid-cols-1" : "lg:grid-cols-2")}>
                 <div>
-                  <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">Input</div>
+                  <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.runTranscript.input", { defaultValue: "Input" })}</div>
                   <pre className="overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro) text-foreground/80">
                     {formatToolPayload(item.input) || "<empty>"}
                   </pre>
                 </div>
                 {item.result && (
                   <div>
-                    <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">Result</div>
+                    <div className="mb-0.5 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.runTranscript.result", { defaultValue: "Result" })}</div>
                     <pre className={cn(
                       "overflow-x-auto whitespace-pre-wrap break-words font-mono text-(length:--text-micro)",
                       item.status === "error" ? "text-red-700 dark:text-red-300" : "text-foreground/80",
@@ -1569,7 +1570,7 @@ function TranscriptStdoutRow({
           type="button"
           className="inline-flex h-5 w-5 items-center justify-center text-muted-foreground transition-colors hover:text-foreground"
           onClick={() => setOpen((value) => !value)}
-          aria-label={open ? "Collapse stdout" : "Expand stdout"}
+          aria-label={open ? t("components.runTranscript.collapseStdout", { defaultValue: "Collapse stdout" }) : t("components.runTranscript.expandStdout", { defaultValue: "Expand stdout" })}
         >
           {open ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
         </button>
@@ -1705,7 +1706,7 @@ export function RunTranscriptView({
   limit,
   streaming = false,
   collapseStdout = false,
-  emptyMessage = "No transcript yet.",
+  emptyMessage = t("components.runTranscript.noTranscript", { defaultValue: "No transcript yet." }),
   className,
   thinkingClassName,
   externalReferences,

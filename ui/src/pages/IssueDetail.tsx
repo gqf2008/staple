@@ -227,7 +227,7 @@ type StopAndFinalizeRunError = Error & {
 function createRunCancelledStatusUpdateError(err: unknown): StopAndFinalizeRunError {
   const message = err instanceof Error
     ? `Run was stopped, but updating the task failed: ${err.message}`
-    : "Run was stopped, but updating the task failed. Retry the task status update.";
+    : t("pages.issueDetail.stopUpdateFailed", { defaultValue: "Run was stopped, but updating the task failed. Retry the task status update." });
   const error = new Error(message) as StopAndFinalizeRunError;
   error.runCancelledBeforeStatusUpdateFailed = true;
   return error;
@@ -269,7 +269,7 @@ const LEAF_WORK_CONTROL_MODE_LABEL: Partial<Record<IssueTreeControlMode, string>
 const TREE_CONTROL_MODE_HELP_TEXT: Record<IssueTreeControlMode, string> = {
   pause: t("pages.issueDetail.pauseSubtreeDesc", { defaultValue: "Pause active execution in this task subtree until an explicit resume." }),
   resume: t("pages.issueDetail.resumeSubtreeDesc", { defaultValue: "Release the active subtree pause hold so held work can continue." }),
-  cancel: "Cancel non-terminal tasks in this subtree and stop queued/running work where possible.",
+  cancel: t("pages.issueDetail.cancelSubtreeDesc", { defaultValue: "Cancel non-terminal tasks in this subtree and stop queued/running work where possible." }),
   restore: t("pages.issueDetail.restoreSubtreeDesc", { defaultValue: "Restore tasks cancelled by this subtree operation so work can resume." }),
 };
 const LEAF_WORK_CONTROL_MODE_HELP_TEXT: Partial<Record<IssueTreeControlMode, string>> = {
@@ -2231,8 +2231,8 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Recovery resolution failed",
-        body: err instanceof Error ? err.message : "Unable to resolve recovery action",
+        title: t("pages.issueDetail.recoveryResolveFailed", { defaultValue: "Recovery resolution failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.recoveryResolveFailedBody", { defaultValue: "Unable to resolve recovery action" }),
         tone: "error",
       });
     },
@@ -2248,7 +2248,7 @@ export function IssueDetail() {
       if (treeControlMode === "resume") {
         const pauseHoldId = treeControlState?.activePauseHold?.holdId;
         if (!pauseHoldId) {
-          throw new Error("No active subtree pause hold is available to resume.");
+          throw new Error(t("pages.issueDetail.noPauseHold", { defaultValue: "No active subtree pause hold is available to resume." }));
         }
         const releasedHold = await issuesApi.releaseTreeHold(issueId!, pauseHoldId, {
           reason: treeControlReason.trim() || null,
@@ -2281,14 +2281,14 @@ export function IssueDetail() {
             ? treeControlScope === "leaf" ? t("pages.issueDetail.workPaused", { defaultValue: "Work paused" }) : t("pages.issueDetail.subtreePaused", { defaultValue: "Subtree paused" })
             : `${modeLabel} applied`,
         body: result.kind === "release"
-          ? (result.hold.releaseReason?.trim() || (treeControlScope === "leaf" ? "Active task pause released." : "Active subtree pause released."))
+          ? (result.hold.releaseReason?.trim() || (treeControlScope === "leaf" ? t("pages.issueDetail.taskPauseReleased", { defaultValue: "Active task pause released." }) : t("pages.issueDetail.subtreePauseReleased", { defaultValue: "Active subtree pause released." })))
           : result.hold.mode === "pause"
             ? treeControlScope === "leaf"
               ? `Work paused. ${cancelCount} run${cancelCount === 1 ? "" : "s"} cancelled.`
               : `Subtree paused. ${cancelCount} run${cancelCount === 1 ? "" : "s"} cancelled.`
             : result.hold.reason?.trim()
               ? result.hold.reason
-              : "Subtree control applied.",
+              : t("pages.issueDetail.subtreeApplied", { defaultValue: "Subtree control applied." }),
       });
       setTreeControlOpen(false);
       setTreeControlReason("");
@@ -2318,7 +2318,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Unable to apply subtree control",
+        title: t("pages.issueDetail.subtreeApplyFailed", { defaultValue: "Unable to apply subtree control" }),
         body: err instanceof Error ? err.message : t("pages.issueDetail.pleaseTryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });
@@ -2357,7 +2357,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Unable to pause work",
+        title: t("pages.issueDetail.pauseFailed", { defaultValue: "Unable to pause work" }),
         body: err instanceof Error ? err.message : t("pages.issueDetail.pleaseTryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });
@@ -2380,7 +2380,7 @@ export function IssueDetail() {
       invalidateIssueRunState();
       invalidateIssueCollections();
       pushToast({
-        title: status === "done" ? "Run stopped and task done" : "Run stopped and task cancelled",
+        title: status === "done" ? t("pages.issueDetail.runStoppedDone", { defaultValue: "Run stopped and task done" }) : t("pages.issueDetail.runStoppedCancelled", { defaultValue: "Run stopped and task cancelled" }),
         tone: "success",
       });
     },
@@ -2389,8 +2389,8 @@ export function IssueDetail() {
       pushToast({
         title: runWasStopped
           ? "Run stopped; task update failed"
-          : status === "done" ? "Stop and done failed" : "Stop and cancel failed",
-        body: err instanceof Error ? err.message : "Unable to stop the run and update the task",
+          : status === "done" ? t("pages.issueDetail.stopDoneFailed", { defaultValue: "Stop and done failed" }) : t("pages.issueDetail.stopCancelFailed", { defaultValue: "Stop and cancel failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.stopUpdateFailedBody", { defaultValue: "Unable to stop the run and update the task" }),
         tone: "error",
       });
     },
@@ -2417,7 +2417,7 @@ export function IssueDetail() {
     onError: (err) => {
       pushToast({
         title: t("pages.issueDetail.taskUpdateFailed", { defaultValue: "Task update failed" }),
-        body: err instanceof Error ? err.message : "Unable to save sub-task changes",
+        body: err instanceof Error ? err.message : t("pages.issueDetail.subTaskSaveFailed", { defaultValue: "Unable to save sub-task changes" }),
         tone: "error",
       });
     },
@@ -2433,14 +2433,14 @@ export function IssueDetail() {
       invalidateIssueRunState();
       invalidateIssueCollections();
       pushToast({
-        title: "Monitor check queued",
+        title: t("pages.issueDetail.monitorQueued", { defaultValue: "Monitor check queued" }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Monitor check failed",
-        body: err instanceof Error ? err.message : "Unable to trigger the monitor right now",
+        title: t("pages.issueDetail.monitorFailed", { defaultValue: "Monitor check failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.monitorTriggerFailed", { defaultValue: "Unable to trigger the monitor right now" }),
         tone: "error",
       });
     },
@@ -2465,14 +2465,14 @@ export function IssueDetail() {
         queryClient.invalidateQueries({ queryKey: queryKeys.approvals.list(resolvedCompanyId) });
       }
       pushToast({
-        title: variables.action === "approve" ? "Approval approved" : "Approval rejected",
+        title: variables.action === "approve" ? t("pages.issueDetail.approvalApproved", { defaultValue: "Approval approved" }) : t("pages.issueDetail.approvalRejected", { defaultValue: "Approval rejected" }),
         tone: "success",
       });
     },
     onError: (err, variables) => {
       pushToast({
-        title: variables.action === "approve" ? "Approval failed" : "Rejection failed",
-        body: err instanceof Error ? err.message : "Unable to update approval",
+        title: variables.action === "approve" ? t("pages.issueDetail.approvalFailed", { defaultValue: "Approval failed" }) : t("pages.issueDetail.rejectionFailed", { defaultValue: "Rejection failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.approvalUpdateFailed", { defaultValue: "Unable to update approval" }),
         tone: "error",
       });
     },
@@ -2535,8 +2535,8 @@ export function IssueDetail() {
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
-            body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
+            title: t("pages.issueDetail.cancelFailed", { defaultValue: "Cancel failed" }),
+            body: err instanceof Error ? err.message : t("pages.issueDetail.commentCancelFailed", { defaultValue: "Unable to cancel the queued comment" }),
             tone: "error",
           });
         }
@@ -2569,8 +2569,8 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+        title: t("pages.issueDetail.commentFailed", { defaultValue: "Comment failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.commentPostFailed", { defaultValue: "Unable to post comment" }),
         tone: "error",
       });
     },
@@ -2609,19 +2609,19 @@ export function IssueDetail() {
         : 0;
       pushToast({
         title: interaction.kind === "request_confirmation"
-          ? "Request confirmed"
+          ? t("pages.issueDetail.requestConfirmed", { defaultValue: "Request confirmed" })
           : interaction.kind === "request_checkbox_confirmation"
-          ? "Selection confirmed"
+          ? t("pages.issueDetail.selectionConfirmed", { defaultValue: "Selection confirmed" })
           : skippedCount > 0
           ? `Accepted ${createdCount} draft${createdCount === 1 ? "" : "s"} and skipped ${skippedCount}`
-          : "Suggested tasks accepted",
+          : t("pages.issueDetail.suggestionsAccepted", { defaultValue: "Suggested tasks accepted" }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Accept failed",
-        body: err instanceof Error ? err.message : "Unable to accept the suggested tasks",
+        title: t("pages.issueDetail.acceptFailed", { defaultValue: "Accept failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.acceptFailedBody", { defaultValue: "Unable to accept the suggested tasks" }),
         tone: "error",
       });
     },
@@ -2634,14 +2634,14 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: interaction.kind === "request_confirmation" ? "Request declined" : "Suggestion rejected",
+        title: interaction.kind === "request_confirmation" ? t("pages.issueDetail.requestDeclined", { defaultValue: "Request declined" }) : t("pages.issueDetail.suggestionRejected", { defaultValue: "Suggestion rejected" }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Reject failed",
-        body: err instanceof Error ? err.message : "Unable to reject the suggested tasks",
+        title: t("pages.issueDetail.rejectFailed", { defaultValue: "Reject failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.rejectFailedBody", { defaultValue: "Unable to reject the suggested tasks" }),
         tone: "error",
       });
     },
@@ -2659,14 +2659,14 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Answers submitted",
+        title: t("pages.issueDetail.answersSubmitted", { defaultValue: "Answers submitted" }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Submit failed",
-        body: err instanceof Error ? err.message : "Unable to submit answers",
+        title: t("pages.issueDetail.submitFailed", { defaultValue: "Submit failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.submitFailedBody", { defaultValue: "Unable to submit answers" }),
         tone: "error",
       });
     },
@@ -2690,15 +2690,15 @@ export function IssueDetail() {
         : false;
       pushToast({
         title: complete
-          ? "All verdicts applied"
+          ? t("pages.issueDetail.verdictsApplied", { defaultValue: "All verdicts applied" })
           : `Applied ${applied} decision${applied === 1 ? "" : "s"}`,
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Apply failed",
-        body: err instanceof Error ? err.message : "Unable to apply the verdicts",
+        title: t("pages.issueDetail.applyFailed", { defaultValue: "Apply failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.applyFailedBody", { defaultValue: "Unable to apply the verdicts" }),
         tone: "error",
       });
     },
@@ -2712,14 +2712,14 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Question cancelled",
+        title: t("pages.issueDetail.questionCancelled", { defaultValue: "Question cancelled" }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
-        body: err instanceof Error ? err.message : "Unable to cancel the question",
+        title: t("pages.issueDetail.cancelFailed", { defaultValue: "Cancel failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.questionCancelFailed", { defaultValue: "Unable to cancel the question" }),
         tone: "error",
       });
     },
@@ -2798,8 +2798,8 @@ export function IssueDetail() {
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
-            body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
+            title: t("pages.issueDetail.cancelFailed", { defaultValue: "Cancel failed" }),
+            body: err instanceof Error ? err.message : t("pages.issueDetail.commentCancelFailed", { defaultValue: "Unable to cancel the queued comment" }),
             tone: "error",
           });
         }
@@ -2834,8 +2834,8 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
-        body: err instanceof Error ? err.message : "Unable to post comment",
+        title: t("pages.issueDetail.commentFailed", { defaultValue: "Comment failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.commentPostFailed", { defaultValue: "Unable to post comment" }),
         tone: "error",
       });
     },
@@ -2915,8 +2915,8 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueRunState();
       pushToast({
-        title: "Interrupt requested",
-        body: "The active run is stopping so queued comments can continue next.",
+        title: t("pages.issueDetail.interruptRequested", { defaultValue: "Interrupt requested" }),
+        body: t("pages.issueDetail.interruptHint", { defaultValue: "The active run is stopping so queued comments can continue next." }),
         tone: "success",
       });
     },
@@ -2931,8 +2931,8 @@ export function IssueDetail() {
         setLocallyQueuedCommentRunIds(context.previousLocalQueuedCommentRunIds);
       }
       pushToast({
-        title: "Interrupt failed",
-        body: err instanceof Error ? err.message : "Unable to interrupt the active run",
+        title: t("pages.issueDetail.interruptFailed", { defaultValue: "Interrupt failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.interruptFailedBody", { defaultValue: "Unable to interrupt the active run" }),
         tone: "error",
       });
     },
@@ -2953,15 +2953,15 @@ export function IssueDetail() {
       invalidateIssueThreadLazily();
       invalidateIssueCollections();
       pushToast({
-        title: "Queued comment canceled",
-        body: "The queued message was restored to the composer.",
+        title: t("pages.issueDetail.queuedCommentCancelled", { defaultValue: "Queued comment canceled" }),
+        body: t("pages.issueDetail.messageRestored", { defaultValue: "The queued message was restored to the composer." }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
-        body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
+        title: t("pages.issueDetail.cancelFailed", { defaultValue: "Cancel failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.commentCancelFailed", { defaultValue: "Unable to cancel the queued comment" }),
         tone: "error",
       });
     },
@@ -2977,15 +2977,15 @@ export function IssueDetail() {
       invalidateIssueCollections();
       invalidateIssueDocumentAnnotationState();
       pushToast({
-        title: "Comment deleted",
-        body: "The thread now shows a deleted-comment marker.",
+        title: t("pages.issueDetail.commentDeleted", { defaultValue: "Comment deleted" }),
+        body: t("pages.issueDetail.deletedMarker", { defaultValue: "The thread now shows a deleted-comment marker." }),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Delete failed",
-        body: err instanceof Error ? err.message : "Unable to delete the comment",
+        title: t("pages.issueDetail.deleteFailed", { defaultValue: "Delete failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.commentDeleteFailed", { defaultValue: "Unable to delete the comment" }),
         tone: "error",
       });
     },
@@ -3003,8 +3003,8 @@ export function IssueDetail() {
       if (cancelledCommentBody) {
         restoreQueuedCommentDraft(cancelledCommentBody);
         pushToast({
-          title: "Queued comment canceled",
-          body: "The queued message was restored to the composer.",
+          title: t("pages.issueDetail.queuedCommentCancelled", { defaultValue: "Queued comment canceled" }),
+          body: t("pages.issueDetail.messageRestored", { defaultValue: "The queued message was restored to the composer." }),
           tone: "success",
         });
       }
@@ -3059,11 +3059,11 @@ export function IssueDetail() {
         title:
           variables.sharingPreferenceAtSubmit === "prompt"
             ? variables.allowSharing
-              ? "Feedback saved. Future votes will share"
-              : "Feedback saved. Future votes will stay local"
+              ? t("pages.issueDetail.feedbackShare", { defaultValue: "Feedback saved. Future votes will share" })
+              : t("pages.issueDetail.feedbackLocal", { defaultValue: "Feedback saved. Future votes will stay local" })
             : variables.allowSharing
-              ? "Feedback saved and sharing enabled"
-              : "Feedback saved",
+              ? t("pages.issueDetail.feedbackShared", { defaultValue: "Feedback saved and sharing enabled" })
+              : t("pages.issueDetail.feedbackSaved", { defaultValue: "Feedback saved" }),
         tone: "success",
       });
     },
@@ -3072,8 +3072,8 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.feedbackVotes(issueId!), context.previousVotes);
       }
       pushToast({
-        title: "Failed to save feedback",
-        body: err instanceof Error ? err.message : "Unknown error",
+        title: t("pages.issueDetail.feedbackSaveFailed", { defaultValue: "Failed to save feedback" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.unknownError", { defaultValue: "Unknown error" }),
         tone: "error",
       });
     },
@@ -3081,7 +3081,7 @@ export function IssueDetail() {
 
   const uploadAttachment = useMutation({
     mutationFn: async (file: File) => {
-      if (!selectedCompanyId) throw new Error("No company selected");
+      if (!selectedCompanyId) throw new Error(t("pages.issueDetail.noCompany", { defaultValue: "No company selected" }));
       return issuesApi.uploadAttachment(selectedCompanyId, issueId!, file);
     },
     onSuccess: () => {
@@ -3090,7 +3090,7 @@ export function IssueDetail() {
       invalidateIssueDetail();
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Upload failed");
+      setAttachmentError(err instanceof Error ? err.message : t("pages.issueDetail.uploadFailed", { defaultValue: "Upload failed" }));
     },
   });
 
@@ -3115,7 +3115,7 @@ export function IssueDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.issues.documents(issueId!) });
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Document import failed");
+      setAttachmentError(err instanceof Error ? err.message : t("pages.issueDetail.docImportFailed", { defaultValue: "Document import failed" }));
     },
   });
 
@@ -3127,7 +3127,7 @@ export function IssueDetail() {
       invalidateIssueDetail();
     },
     onError: (err) => {
-      setAttachmentError(err instanceof Error ? err.message : "Delete failed");
+      setAttachmentError(err instanceof Error ? err.message : t("pages.issueDetail.deleteFailed", { defaultValue: "Delete failed" }));
     },
   });
 
@@ -3147,7 +3147,7 @@ export function IssueDetail() {
       }
       invalidateIssueCollections();
       navigate(sourceBreadcrumb.href.startsWith("/inbox") ? sourceBreadcrumb.href : "/inbox", { replace: true });
-      pushToast({ title: "Task archived from inbox", tone: "success" });
+      pushToast({ title: t("pages.issueDetail.archivedFromInbox", { defaultValue: "Task archived from inbox" }), tone: "success" });
     },
     onError: (err, id, context) => {
       if (context?.companyId) clearLocalInboxArchive(context.companyId, id);
@@ -3155,8 +3155,8 @@ export function IssueDetail() {
         restoreIssueToInboxCaches(queryClient, context.previousData, id);
       }
       pushToast({
-        title: "Archive failed",
-        body: err instanceof Error ? err.message : "Unable to archive this task from the inbox",
+        title: t("pages.issueDetail.archiveFailed", { defaultValue: "Archive failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.archiveFailedBody", { defaultValue: "Unable to archive this task from the inbox" }),
         tone: "error",
       });
     },
@@ -3537,12 +3537,12 @@ export function IssueDetail() {
     try {
       await copyTextToClipboard(md);
       setCopied(true);
-      pushToast({ title: "Copied to clipboard", tone: "success" });
+      pushToast({ title: t("pages.issueDetail.copiedToClipboard", { defaultValue: "Copied to clipboard" }), tone: "success" });
       setTimeout(() => setCopied(false), 2000);
     } catch (error) {
       pushToast({
-        title: "Copy failed",
-        body: error instanceof Error ? error.message : "Unable to copy task markdown",
+        title: t("pages.issueDetail.copyFailed", { defaultValue: "Copy failed" }),
+        body: error instanceof Error ? error.message : t("pages.issueDetail.copyMarkdownFailed", { defaultValue: "Unable to copy task markdown" }),
         tone: "error",
       });
     }
@@ -3762,7 +3762,7 @@ export function IssueDetail() {
     mutationFn: async (
       request: import("../components/IssueRecoveryActionCard").RecoveryReissueRequest,
     ) => {
-      if (!issue) throw new Error("Task is not loaded yet.");
+      if (!issue) throw new Error(t("pages.issueDetail.taskNotLoaded", { defaultValue: "Task is not loaded yet." }));
       const sourceLabel = issue.identifier ?? "the stalled task";
       const descriptionLines = [
         `Re-issued from ${sourceLabel} on an isolated git worktree after a workspace branch divergence.`,
@@ -3795,7 +3795,7 @@ export function IssueDetail() {
     onSuccess: (created) => {
       invalidateIssueCollections();
       pushToast({
-        title: "Isolated re-issue created",
+        title: t("pages.issueDetail.reissueCreated", { defaultValue: "Isolated re-issue created" }),
         body: created.identifier
           ? `${created.identifier} will run on a fresh isolated workspace.`
           : "A fresh isolated re-issue was created.",
@@ -3807,8 +3807,8 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Re-issue failed",
-        body: err instanceof Error ? err.message : "Unable to create an isolated re-issue.",
+        title: t("pages.issueDetail.reissueFailed", { defaultValue: "Re-issue failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.reissueFailedBody", { defaultValue: "Unable to create an isolated re-issue." }),
         tone: "error",
       });
     },
@@ -3846,12 +3846,12 @@ export function IssueDetail() {
       pushToast(
         variables.mode === "quarantine_restore"
           ? {
-              title: "Workspace repaired",
+              title: t("pages.issueDetail.workspaceRepaired", { defaultValue: "Workspace repaired" }),
               body: "Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume.",
               tone: "success",
             }
           : {
-              title: "Workspace branch reconciled",
+              title: t("pages.issueDetail.branchReconciled", { defaultValue: "Workspace branch reconciled" }),
               body: "The recorded branch now matches the live branch; the task will resume.",
               tone: "success",
             },
@@ -3859,8 +3859,8 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Reconcile failed",
-        body: err instanceof Error ? err.message : "Unable to reconcile the workspace branch.",
+        title: t("pages.issueDetail.reconcileFailed", { defaultValue: "Reconcile failed" }),
+        body: err instanceof Error ? err.message : t("pages.issueDetail.reconcileFailedBody", { defaultValue: "Unable to reconcile the workspace branch." }),
         tone: "error",
       });
     },
@@ -3876,8 +3876,8 @@ export function IssueDetail() {
   const handleReconcileForwardRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Reconcile failed",
-        body: "This task has no execution workspace to reconcile.",
+        title: t("pages.issueDetail.reconcileFailed", { defaultValue: "Reconcile failed" }),
+        body: t("pages.issueDetail.noWorkspaceToReconcile", { defaultValue: "This task has no execution workspace to reconcile." }),
         tone: "error",
       });
       return;
@@ -3891,8 +3891,8 @@ export function IssueDetail() {
     (reason: string) => {
       if (!reconcileExecutionWorkspaceId) {
         pushToast({
-          title: "Reconcile failed",
-          body: "This task has no execution workspace to reconcile.",
+          title: t("pages.issueDetail.reconcileFailed", { defaultValue: "Reconcile failed" }),
+          body: t("pages.issueDetail.noWorkspaceToReconcile", { defaultValue: "This task has no execution workspace to reconcile." }),
           tone: "error",
         });
         return;
@@ -3910,8 +3910,8 @@ export function IssueDetail() {
   const handleQuarantineRestoreRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Repair failed",
-        body: "This task has no execution workspace to repair.",
+        title: t("pages.issueDetail.repairFailed", { defaultValue: "Repair failed" }),
+        body: t("pages.issueDetail.noWorkspaceToRepair", { defaultValue: "This task has no execution workspace to repair." }),
         tone: "error",
       });
       return;
@@ -4111,7 +4111,7 @@ export function IssueDetail() {
         )}
       >
         <Paperclip className="h-3.5 w-3.5 mr-1.5" />
-        {uploadAttachment.isPending || importMarkdownDocument.isPending ? "Uploading..." : (
+        {uploadAttachment.isPending || importMarkdownDocument.isPending ? t("pages.issueDetail.uploading", { defaultValue: "Uploading..." }) : (
           <>
             <span className="hidden sm:inline">{t("pages.issueDetail.uploadAttachment", { defaultValue: "Upload attachment" })}</span>
             <span className="sm:hidden">{t("pages.issueDetail.upload", { defaultValue: "Upload" })}</span>
@@ -4332,8 +4332,8 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setFileViewerPromptOpen(true)}
-                title="Open file... (g f)"
-                aria-label="Open file in this issue"
+                title={t("pages.issueDetail.openFileShortcut", { defaultValue: "Open file... (g f)" })}
+                aria-label={t("pages.issueDetail.openFileInIssue", { defaultValue: "Open file in this issue" })}
               >
                 <FileCode2 className="h-4 w-4" />
               </Button>
@@ -5185,7 +5185,7 @@ export function IssueDetail() {
       <Sheet open={mobilePropsOpen} onOpenChange={setMobilePropsOpen}>
         <SheetContent side="bottom" className="max-h-(--sz-85dvh) pb-(--sz-safe-bottom)">
           <SheetHeader>
-            <SheetTitle className="text-sm">Properties</SheetTitle>
+            <SheetTitle className="text-sm">{t("pages.issueDetail.properties", { defaultValue: "Properties" })}</SheetTitle>
           </SheetHeader>
           <ScrollArea className="flex-1 overflow-y-auto">
             <div className="px-4 pb-4">

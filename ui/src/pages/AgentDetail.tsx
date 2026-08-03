@@ -774,7 +774,7 @@ export function AgentDetail() {
       builtInAgentsApi.reset(resolvedCompanyId!, builtInState!.definition.key, [kind]),
     onSuccess: invalidateBuiltIn,
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to update bundle resource");
+      setActionError(error instanceof Error ? error.message : t("pages.agentDetail2.bundleUpdateFailed", { defaultValue: "Failed to update bundle resource" }));
     },
   });
   const runBuiltInRoutine = useMutation({
@@ -782,7 +782,7 @@ export function AgentDetail() {
       builtInAgentsApi.runRoutine(resolvedCompanyId!, builtInState!.definition.key, routineKey),
     onSuccess: invalidateBuiltIn,
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to run built-in routine");
+      setActionError(error instanceof Error ? error.message : t("pages.agentDetail2.builtInRoutineFailed", { defaultValue: "Failed to run built-in routine" }));
     },
   });
   const enableBuiltInSchedule = useMutation({
@@ -790,7 +790,7 @@ export function AgentDetail() {
       builtInAgentsApi.enableRoutineSchedule(resolvedCompanyId!, builtInState!.definition.key, routineKey),
     onSuccess: invalidateBuiltIn,
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to enable routine schedule");
+      setActionError(error instanceof Error ? error.message : t("pages.agentDetail2.enableScheduleFailed", { defaultValue: "Failed to enable routine schedule" }));
     },
   });
   const disableBuiltInSchedule = useMutation({
@@ -798,7 +798,7 @@ export function AgentDetail() {
       builtInAgentsApi.disableRoutineSchedule(resolvedCompanyId!, builtInState!.definition.key, routineKey),
     onSuccess: invalidateBuiltIn,
     onError: (error) => {
-      setActionError(error instanceof Error ? error.message : "Failed to disable routine schedule");
+      setActionError(error instanceof Error ? error.message : t("pages.agentDetail2.disableScheduleFailed", { defaultValue: "Failed to disable routine schedule" }));
     },
   });
   const builtInRoutineActionPending =
@@ -992,7 +992,7 @@ export function AgentDetail() {
 
   useEffect(() => {
     const crumbs: { label: string; href?: string }[] = [
-      { label: "Agents", href: "/agents" },
+      { label: t("pages.agentDetail2.agents", { defaultValue: "Agents" }), href: "/agents" },
     ];
     const agentName = agent?.name ?? routeAgentRef ?? t("pages.agentDetail.agent", { defaultValue: "Agent" });
     if (activeView === "dashboard" && !urlRunId) {
@@ -1000,20 +1000,20 @@ export function AgentDetail() {
     } else {
       crumbs.push({ label: agentName, href: `/agents/${canonicalAgentRef}/dashboard` });
       if (urlRunId) {
-        crumbs.push({ label: "Runs", href: `/agents/${canonicalAgentRef}/runs` });
+        crumbs.push({ label: t("pages.agentDetail2.runs", { defaultValue: "Runs" }), href: `/agents/${canonicalAgentRef}/runs` });
         crumbs.push({ label: `Run ${urlRunId.slice(0, 8)}` });
       } else if (activeView === "instructions") {
-        crumbs.push({ label: "Instructions" });
+        crumbs.push({ label: t("pages.agentDetail2.instructions", { defaultValue: "Instructions" }) });
       } else if (activeView === "configuration") {
-        crumbs.push({ label: "Configuration" });
+        crumbs.push({ label: t("pages.agentDetail2.configuration", { defaultValue: "Configuration" }) });
       // } else if (activeView === "skills") { // TODO: bring back later
-      //   crumbs.push({ label: "Skills" });
+      //   crumbs.push({ label: t("pages.agentDetail2.skills", { defaultValue: "Skills" }) });
       } else if (activeView === "tools") {
-        crumbs.push({ label: "Tools" });
+        crumbs.push({ label: t("pages.agentDetail2.tools", { defaultValue: "Tools" }) });
       } else if (activeView === "runs") {
-        crumbs.push({ label: "Runs" });
+        crumbs.push({ label: t("pages.agentDetail2.runs", { defaultValue: "Runs" }) });
       } else if (activeView === "budget") {
-        crumbs.push({ label: "Budget" });
+        crumbs.push({ label: t("pages.agentDetail2.budget", { defaultValue: "Budget" }) });
       } else {
         crumbs.push({ label: t("pages.agentDetail.dashboard", { defaultValue: "Dashboard" }) });
       }
@@ -1092,7 +1092,7 @@ export function AgentDetail() {
           <button
             type="button"
             className="h-6 w-6 shrink-0 text-yellow-900/70 hover:text-yellow-900 dark:text-yellow-100/70 dark:hover:text-yellow-100"
-            aria-label="Dismiss agent membership notice"
+            aria-label={t("pages.agentDetail2.dismissMembershipNotice", { defaultValue: "Dismiss agent membership notice" })}
             onClick={() => setDismissedLeftAgentIds((current) => new Set(current).add(agent.id))}
           >
             ×
@@ -1261,13 +1261,13 @@ export function AgentDetail() {
           <PageTabBar
             items={[
               { value: "dashboard", label: t("pages.agentDetail.dashboard", { defaultValue: "Dashboard" }) },
-              { value: "instructions", label: "Instructions" },
-              { value: "skills", label: "Skills" },
-              { value: "configuration", label: "Configuration" },
-              { value: "tools", label: "Tools" },
-              { value: "runs", label: "Runs" },
+              { value: "instructions", label: t("pages.agentDetail2.instructions", { defaultValue: "Instructions" }) },
+              { value: "skills", label: t("pages.agentDetail2.skills", { defaultValue: "Skills" }) },
+              { value: "configuration", label: t("pages.agentDetail2.configuration", { defaultValue: "Configuration" }) },
+              { value: "tools", label: t("pages.agentDetail2.tools", { defaultValue: "Tools" }) },
+              { value: "runs", label: t("pages.agentDetail2.runs", { defaultValue: "Runs" }) },
               { value: "audit", label: t("pages.agentDetail.audit", { defaultValue: "Audit" }) },
-              { value: "budget", label: "Budget" },
+              { value: "budget", label: t("pages.agentDetail2.budget", { defaultValue: "Budget" }) },
             ]}
             value={activeView}
             onValueChange={(value) => navigate(`/agents/${canonicalAgentRef}/${value}`)}
@@ -2048,7 +2048,7 @@ export function PromptsTab({
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const { isMobile } = useSidebar();
-  const [selectedFile, setSelectedFile] = useState<string>("AGENTS.md");
+  const [selectedFile, setSelectedFile] = useState<string>(t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" }));
   const [showFilePanel, setShowFilePanel] = useState(false);
   const [draft, setDraft] = useState<string | null>(null);
   const [bundleDraft, setBundleDraft] = useState<{
@@ -2072,7 +2072,7 @@ export function PromptsTab({
   } | null>(null);
 
   useEffect(() => {
-    setSelectedFile("AGENTS.md");
+    setSelectedFile(t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" }));
     setShowFilePanel(false);
     setDraft(null);
     setBundleDraft(null);
@@ -2099,7 +2099,7 @@ export function PromptsTab({
     ? (bundle?.managedRootPath ?? bundle?.rootPath ?? "")
     : (bundle?.rootPath ?? "");
   const currentMode = bundleDraft?.mode ?? persistedMode;
-  const currentEntryFile = bundleDraft?.entryFile ?? bundle?.entryFile ?? "AGENTS.md";
+  const currentEntryFile = bundleDraft?.entryFile ?? bundle?.entryFile ?? t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" });
   const currentRootPath = bundleDraft?.rootPath ?? persistedRootPath;
   const fileOptions = useMemo(
     () => bundle?.files.map((file) => file.path) ?? [],
@@ -2175,7 +2175,7 @@ export function PromptsTab({
 
   const uploadMarkdownImage = useMutation({
     mutationFn: async ({ file, namespace }: { file: File; namespace: string }) => {
-      if (!selectedCompanyId) throw new Error("Select a company to upload images");
+      if (!selectedCompanyId) throw new Error(t("pages.agentDetail2.selectCompanyImages", { defaultValue: "Select a company to upload images" }));
       return assetsApi.uploadImage(selectedCompanyId, file, namespace);
     },
   });
@@ -2280,7 +2280,7 @@ export function PromptsTab({
       (
         bundleDraft.mode !== persistedMode ||
         bundleDraft.rootPath !== persistedRootPath ||
-        bundleDraft.entryFile !== (bundle?.entryFile ?? "AGENTS.md")
+        bundleDraft.entryFile !== (bundle?.entryFile ?? t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" }))
       ),
   );
   const fileDirty = draft !== null && draft !== currentContent;
@@ -2424,7 +2424,7 @@ export function PromptsTab({
                           selectedFile: selectedOrEntryFile,
                         };
                       }
-                      const nextEntryFile = currentEntryFile || "AGENTS.md";
+                      const nextEntryFile = currentEntryFile || t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" });
                       setBundleDraft({
                         mode: "managed",
                         rootPath: bundle?.managedRootPath ?? currentRootPath,
@@ -2441,7 +2441,7 @@ export function PromptsTab({
                     variant={currentMode === "external" ? "default" : "outline"}
                     onClick={() => {
                       const externalBundle = externalBundleRef.current;
-                      const nextEntryFile = externalBundle?.entryFile ?? currentEntryFile ?? "AGENTS.md";
+                      const nextEntryFile = externalBundle?.entryFile ?? currentEntryFile ?? t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" });
                       setBundleDraft({
                         mode: "external",
                         rootPath: externalBundle?.rootPath ?? (bundle?.mode === "external" ? (bundle.rootPath ?? "") : ""),
@@ -2518,7 +2518,7 @@ export function PromptsTab({
                 <Input
                   value={currentEntryFile}
                   onChange={(event) => {
-                    const nextEntryFile = event.target.value || "AGENTS.md";
+                    const nextEntryFile = event.target.value || t("pages.agentDetail2.agentsMd", { defaultValue: "AGENTS.md" });
                     const nextSelectedFile = selectedOrEntryFile === currentEntryFile
                       ? nextEntryFile
                       : selectedOrEntryFile;
@@ -2590,7 +2590,7 @@ export function PromptsTab({
               <Input
                 value={newFilePath}
                 onChange={(event) => setNewFilePath(event.target.value)}
-                placeholder="TOOLS.md"
+                placeholder={t("pages.agentDetail2.toolsMd", { defaultValue: "TOOLS.md" })}
                 className="font-mono text-sm"
                 autoFocus
                 onKeyDown={(event) => {
@@ -2706,9 +2706,9 @@ export function PromptsTab({
                 <p className="text-xs text-muted-foreground">
                   {selectedFileExists
                     ? selectedFileSummary?.deprecated
-                      ? "Deprecated virtual file"
+                      ? t("pages.agentDetail2.deprecatedFile", { defaultValue: "Deprecated virtual file" })
                       : `${selectedFileDetail?.language ?? "text"} file`
-                    : "New file in this bundle"}
+                    : t("pages.agentDetail2.newBundleFile", { defaultValue: "New file in this bundle" })}
                 </p>
               </div>
             </div>
@@ -3032,7 +3032,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
         payload: resumePayload,
       }, run.companyId);
       if (!("id" in result)) {
-        throw new Error(result.message ?? "Resume request was skipped.");
+        throw new Error(result.message ?? t("pages.agentDetail2.resumeSkipped", { defaultValue: "Resume request was skipped." }));
       }
       return result;
     },
@@ -3064,7 +3064,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
         payload: retryPayload,
       }, run.companyId);
       if (!("id" in result)) {
-        throw new Error(result.message ?? "Retry was skipped.");
+        throw new Error(result.message ?? t("pages.agentDetail2.retrySkipped", { defaultValue: "Retry was skipped." }));
       }
       return result;
     },
@@ -3257,7 +3257,7 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                   onClick={() => runClaudeLogin.mutate()}
                   disabled={runClaudeLogin.isPending}
                 >
-                  {runClaudeLogin.isPending ? "Running claude login..." : t("pages.agentDetail.claudeLogin", { defaultValue: "Login to Claude Code" })}
+                  {runClaudeLogin.isPending ? t("pages.agentDetail2.claudeLoginRunning", { defaultValue: "Running claude login..." }) : t("pages.agentDetail.claudeLogin", { defaultValue: "Login to Claude Code" })}
                 </Button>
                 {runClaudeLogin.isError && (
                   <p className="text-xs text-destructive">

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -51,7 +52,7 @@ function seconds(ms: number): string {
   return `${(ms / 1000).toFixed(1)}s`;
 }
 
-/** relativeTime() returns "just now"; the spec capitalizes it ("Just now"). */
+/** relativeTime() returns "just now"; the spec capitalizes it (t("pages.apps.testPanel.justNow", { defaultValue: "Just now" })). */
 function relTime(date: Date): string {
   const t = relativeTime(date);
   return t.charAt(0).toUpperCase() + t.slice(1);
@@ -72,15 +73,15 @@ type DecisionMeta = { label: string; className: string };
 
 const DECISION_META: Record<ToolConnectionTestDecision, DecisionMeta> = {
   allowed: {
-    label: "Allowed",
+    label: t("pages.apps.testPanel.allowed", { defaultValue: "Allowed" }),
     className: "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
   },
   ask_first: {
-    label: "Ask first",
+    label: t("pages.apps.testPanel.askFirst", { defaultValue: "Ask first" }),
     className: "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300",
   },
   off: {
-    label: "Off",
+    label: t("pages.apps.testPanel.off", { defaultValue: "Off" }),
     className: "border-border bg-muted text-muted-foreground",
   },
 };
@@ -106,9 +107,9 @@ function summaryCount(label: string, n: number): string {
 
 function accessSummaryLine(summary: ToolConnectionAccessSummary): string {
   return [
-    summaryCount("Allowed for", summary.allowedCount),
-    summaryCount("Ask first for", summary.askFirstCount),
-    summaryCount("Off for", summary.offCount),
+    summaryCount(t("pages.apps.testPanel.allowedFor", { defaultValue: "Allowed for" }), summary.allowedCount),
+    summaryCount(t("pages.apps.testPanel.askFirstFor", { defaultValue: "Ask first for" }), summary.askFirstCount),
+    summaryCount(t("pages.apps.testPanel.offFor", { defaultValue: "Off for" }), summary.offCount),
   ].join(" · ");
 }
 
@@ -150,7 +151,7 @@ export function TestPanel({
     setAgentId((withAccess ?? agents[0]).id);
   }, [agents, agentId]);
 
-  // Switches the header from "TEST AS" card to the compact "Testing as …" line.
+  // Switches the header from t("pages.apps.testPanel.testAs", { defaultValue: "TEST AS" }) card to the compact t("pages.apps.testPanel.testingAs", { defaultValue: "Testing as …" }) line.
   const [hasInteracted, setHasInteracted] = useState(false);
 
   const selectedAgent = agents.find((a) => a.id === agentId) ?? null;
@@ -213,7 +214,7 @@ export function TestPanel({
   if (agents.length === 0) {
     return (
       <div className="rounded-lg border border-border bg-card p-6 text-center">
-        <p className="text-sm font-medium text-foreground">No agents to test as</p>
+        <p className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.noAgentsToTest", { defaultValue: "No agents to test as" })}</p>
         <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
           Only agents you can assign tasks to can preview {appName}. Give an agent access in{" "}
           <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
@@ -251,8 +252,8 @@ export function TestPanel({
           <div className="relative min-w-(--sz-12rem) flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Find an action"
-              placeholder="Find an action…"
+              aria-label={t("pages.apps.testPanel.findAction", { defaultValue: "Find an action" })}
+              placeholder={t("pages.apps.testPanel.findActionPlaceholder", { defaultValue: "Find an action…" })}
               className="pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -292,7 +293,7 @@ export function TestPanel({
           {visibleQuarantined.length > 0 && selectedAgent && (
             <ActionGroup
               heading={`New (${visibleQuarantined.length})`}
-              subheading="New actions wait, switched off, until you turn them on."
+              subheading={t("pages.apps.testPanel.newActionsOff", { defaultValue: "New actions wait, switched off, until you turn them on." })}
               entries={visibleQuarantined}
               decisionFor={() => "off" as const}
               agent={selectedAgent}
@@ -312,12 +313,12 @@ export function TestPanel({
 function EmptyState({ connectionId, appName }: { connectionId: string; appName: string }) {
   return (
     <div className="rounded-lg border border-border bg-card p-8 text-center">
-      <p className="text-base font-bold text-foreground">Nothing to test yet</p>
+      <p className="text-base font-bold text-foreground">{t("pages.apps.testPanel.nothingToTest", { defaultValue: "Nothing to test yet" })}</p>
       <p className="mx-auto mt-1.5 max-w-md text-sm text-muted-foreground">
         Once {appName} is connected, the actions it offers will show up here so you can try them out.
       </p>
       <Button asChild className="mt-4" variant="outline">
-        <Link to={appTabHref(connectionId, "setup")}>Go to Setup</Link>
+        <Link to={appTabHref(connectionId, "setup")}>{t("pages.apps.testPanel.goToSetup", { defaultValue: "Go to Setup" })}</Link>
       </Button>
     </div>
   );
@@ -364,7 +365,7 @@ function TestAsHeader({
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="min-w-0">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Test as</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.testAsLabel", { defaultValue: "Test as" })}</p>
           <AgentPicker
             agents={agents}
             selectedAgent={selectedAgent}
@@ -413,7 +414,7 @@ function AgentPicker({
             "items-center gap-1.5 text-foreground outline-none hover:text-primary focus-visible:text-primary",
             inline ? "inline-flex font-semibold underline-offset-2 hover:underline" : "mt-0.5 flex text-lg font-bold",
           )}
-          aria-label="Choose which agent to test as"
+          aria-label={t("pages.apps.testPanel.chooseAgent", { defaultValue: "Choose which agent to test as" })}
         >
           {selectedAgent.name}
           <ChevronsUpDown className={cn("text-muted-foreground", inline ? "h-3.5 w-3.5" : "h-4 w-4")} />
@@ -424,8 +425,8 @@ function AgentPicker({
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search agents"
-              placeholder="Search agents…"
+              aria-label={t("pages.apps.testPanel.searchAgents", { defaultValue: "Search agents" })}
+              placeholder={t("pages.apps.testPanel.searchAgentsPlaceholder", { defaultValue: "Search agents…" })}
               className="h-8 pl-8 text-sm"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
@@ -435,7 +436,7 @@ function AgentPicker({
         </div>
         <div className="max-h-60 overflow-y-auto p-1">
           {filtered.length === 0 ? (
-            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No agents match.</p>
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">{t("pages.apps.testPanel.noAgentsMatch", { defaultValue: "No agents match." })}</p>
           ) : (
             filtered.map((agent) => {
               const summary = agent.effectiveAccess;
@@ -464,7 +465,7 @@ function AgentPicker({
                     <span className="block truncate text-sm font-medium text-foreground">{agent.name}</span>
                     <span className="block truncate text-xs text-muted-foreground">
                       {noAccess
-                        ? "No access — not allowed for any action"
+                        ? t("pages.apps.testPanel.noAccess", { defaultValue: "No access — not allowed for any action" })
                         : `Allowed ${summary.allowedCount} · Ask first ${summary.askFirstCount} · Off ${summary.offCount}`}
                     </span>
                   </span>
@@ -474,16 +475,16 @@ function AgentPicker({
           )}
         </div>
         <div className="border-t border-border px-3 py-2 text-(length:--text-micro) text-muted-foreground">
-          <p>Only agents you can assign tasks to are listed.</p>
+          <p>{t("pages.apps.testPanel.assignableHint", { defaultValue: "Only agents you can assign tasks to are listed." })}</p>
           <p>Pick one to preview what they'd see in {appName}.</p>
         </div>
         <div className="border-t border-border p-3">
-          <p className="text-xs font-semibold text-foreground">What the badges mean</p>
+          <p className="text-xs font-semibold text-foreground">{t("pages.apps.testPanel.badgesMeaning", { defaultValue: "What the badges mean" })}</p>
           <ul className="mt-1.5 space-y-1 text-xs text-muted-foreground">
-            <li><span className="font-medium text-foreground">Allowed</span> — runs immediately when you press Run.</li>
-            <li><span className="font-medium text-foreground">Ask first</span> — Run is parked in Review for your OK.</li>
+            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.allowed", { defaultValue: "Allowed" })}</span> — runs immediately when you press Run.</li>
+            <li><span className="font-medium text-foreground">{t("pages.apps.testPanel.askFirst", { defaultValue: "Ask first" })}</span> — Run is parked in Review for your OK.</li>
             <li>
-              <span className="font-medium text-foreground">Off</span> — won't run. Change it in{" "}
+              <span className="font-medium text-foreground">{t("pages.apps.testPanel.off", { defaultValue: "Off" })}</span> — won't run. Change it in{" "}
               <Link className="text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
                 Permissions
               </Link>.
@@ -662,7 +663,7 @@ function storeAskFirstOutcome(connectionId: string, entry: ToolCatalogEntry, age
   }
 }
 
-/** Fold optional fields behind the JsonSchemaForm "More options" disclosure. */
+/** Fold optional fields behind the JsonSchemaForm t("pages.apps.testPanel.moreOptions", { defaultValue: "More options" }) disclosure. */
 function splitRequiredOptional(schema: JsonSchemaNode): JsonSchemaNode {
   const required = new Set(schema.required ?? []);
   const props = schema.properties ?? {};
@@ -802,10 +803,10 @@ function ActionTester({
           onChange={setValues}
           errors={errors}
           disabled={running}
-          advancedLabel="More options"
+          advancedLabel={t("pages.apps.testPanel.moreOptions", { defaultValue: "More options" })}
         />
       ) : (
-        <p className="text-xs text-muted-foreground">This action takes no inputs.</p>
+        <p className="text-xs text-muted-foreground">{t("pages.apps.testPanel.noInputs", { defaultValue: "This action takes no inputs." })}</p>
       )}
 
       <p className="text-xs text-muted-foreground">{GUT_CHECK[decision](appName, agent.name)}</p>
@@ -818,7 +819,7 @@ function ActionTester({
             </>
           ) : (
             <>
-              <Play className="h-3.5 w-3.5" /> {outcome ? "Run again" : "Run"}
+              <Play className="h-3.5 w-3.5" /> {outcome ? t("pages.apps.testPanel.runAgain", { defaultValue: "Run again" }) : t("pages.apps.testPanel.run", { defaultValue: "Run" })}
             </>
           )}
         </Button>
@@ -833,7 +834,7 @@ function ActionTester({
 
       {run.isError && !running && (
         <div className="rounded-md border border-destructive/40 bg-destructive/10 p-3 text-sm text-destructive">
-          Couldn't reach {agent.name}. {run.error instanceof Error ? run.error.message : "Please try again."}
+          Couldn't reach {agent.name}. {run.error instanceof Error ? run.error.message : t("pages.apps.testPanel.tryAgain", { defaultValue: "Please try again." })}
         </div>
       )}
 
@@ -861,12 +862,12 @@ function RunningCard({
   elapsedMs: number;
   onCancel: () => void;
 }) {
-  const verb = entry.isReadOnly ? "Reading from" : entry.isWrite ? "Writing to" : "Calling";
+  const verb = entry.isReadOnly ? t("pages.apps.testPanel.readingFrom", { defaultValue: "Reading from" }) : entry.isWrite ? t("pages.apps.testPanel.writingTo", { defaultValue: "Writing to" }) : t("pages.apps.testPanel.calling", { defaultValue: "Calling" });
   return (
     <div className="rounded-md border border-border bg-muted/30 p-4">
       <div className="flex items-center gap-2">
         <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
-        <span className="text-sm font-medium text-foreground">Running…</span>
+        <span className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.running", { defaultValue: "Running…" })}</span>
       </div>
       <p className="mt-1 text-xs text-muted-foreground">
         {verb} {appName} as {agentName}.
@@ -903,13 +904,13 @@ function ResultPanel({
   if (result.decision === "off") {
     return (
       <div className="rounded-md border border-border bg-muted/40 p-3 text-sm text-muted-foreground">
-        {result.error?.message ?? "This action is off and won't run."}
+        {result.error?.message ?? t("pages.apps.testPanel.actionOff", { defaultValue: "This action is off and won't run." })}
       </div>
     );
   }
   // The gateway can return `decision:"allowed"` (policy let the call through) yet
   // the upstream MCP tool still fails at the tool layer (`isError:true` in the
-  // result envelope). Surface that as a failure card, not the green "Worked" one.
+  // result envelope). Surface that as a failure card, not the green t("pages.apps.testPanel.worked", { defaultValue: "Worked" }) one.
   const toolError = result.error ?? mcpToolError(result.result);
   if (toolError) {
     return <ErrorResult outcome={outcome} appName={appName} connectionId={connectionId} error={toolError} />;
@@ -934,7 +935,7 @@ function mcpToolError(value: unknown): { message: string; reasonCode: string | n
   const message =
     (typeof envelope.content === "string" && envelope.content.trim() !== "" && envelope.content)
     || (typeof envelope.error === "string" && envelope.error.trim() !== "" && envelope.error)
-    || "The app returned an error result.";
+    || t("pages.apps.testPanel.appError", { defaultValue: "The app returned an error result." });
   return { message, reasonCode: "tool_error" };
 }
 
@@ -975,7 +976,7 @@ function successHeadline(value: unknown, entry: ToolCatalogEntry, appName: strin
   if (!entry.isReadOnly && verb) return `Worked. Row ${verb}.`;
   const rows = asRows(value);
   if (rows) return `Worked. ${rows.length} ${rows.length === 1 ? "row" : "rows"} came back.`;
-  if (isEmptyResult(value)) return "Worked. No data to show.";
+  if (isEmptyResult(value)) return t("pages.apps.testPanel.workedNoData", { defaultValue: "Worked. No data to show." });
   return `Worked. ${appName} sent back the result.`;
 }
 
@@ -1004,7 +1005,7 @@ function AllowedResult({
 
       {!isEmptyResult(value) && (
         <div className="mt-3">
-          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Preview</p>
+          <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.preview", { defaultValue: "Preview" })}</p>
           <div className="mt-1.5">
             <PrettyPreview value={value} />
           </div>
@@ -1095,7 +1096,7 @@ function RawResponseDisclosure({ value }: { value: unknown }) {
         onClick={() => setShowRaw((prev) => !prev)}
         className="text-xs font-semibold uppercase tracking-wide text-primary hover:underline"
       >
-        {showRaw ? "Hide raw response" : "Show raw response"}
+        {showRaw ? t("pages.apps.testPanel.hideRaw", { defaultValue: "Hide raw response" }) : t("pages.apps.testPanel.showRaw", { defaultValue: "Show raw response" })}
       </button>
       {showRaw && (
         <pre className="mt-2 max-h-64 overflow-auto rounded-md border border-border bg-background p-3 text-xs text-foreground">
@@ -1124,7 +1125,7 @@ function ErrorResult({
     <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2">
         <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <span className="text-sm font-medium text-foreground">It didn't work.</span>
+        <span className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.didntWork", { defaultValue: "It didn't work." })}</span>
       </div>
       <p className="mt-0.5 flex items-center gap-1.5 text-xs text-muted-foreground">
         <Clock className="h-3 w-3" />
@@ -1136,14 +1137,14 @@ function ErrorResult({
         {error.reasonCode && <p className="mt-0.5 text-xs text-muted-foreground">code: {error.reasonCode}</p>}
       </div>
       <div className="mt-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">What to try</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.whatToTry", { defaultValue: "What to try" })}</p>
         <ul className="mt-1 list-disc space-y-0.5 pl-4 text-sm text-foreground">
           {hints.map((hint) => (
             <li key={hint}>{hint}</li>
           ))}
         </ul>
       </div>
-      <p className="mt-3 text-xs text-muted-foreground">Adjust the input above and try again.</p>
+      <p className="mt-3 text-xs text-muted-foreground">{t("pages.apps.testPanel.adjustInput", { defaultValue: "Adjust the input above and try again." })}</p>
       <p className="mt-1 text-xs text-muted-foreground">
         Also visible in the{" "}
         <Link className="text-primary hover:underline" to={appTabHref(connectionId, "activity")}>
@@ -1165,7 +1166,7 @@ const TERMINAL_PHASES: ReadonlySet<ToolConnectionTestCallStatus["phase"]> = new 
   "expired",
 ]);
 
-/** Compact "Where" line from the redacted parameter snapshot: `key: value` pairs. */
+/** Compact t("pages.apps.testPanel.where", { defaultValue: "Where" }) line from the redacted parameter snapshot: `key: value` pairs. */
 function formatWhere(parameters: Record<string, unknown> | null | undefined): string | null {
   if (!parameters) return null;
   const parts: string[] = [];
@@ -1247,11 +1248,11 @@ function AskFirstResult({
     phase === "running"
       ? "Approved · running"
       : phase === "denied"
-        ? "Denied — see Review for why"
+        ? t("pages.apps.testPanel.denied", { defaultValue: "Denied — see Review for why" })
         : phase === "cancelled"
-          ? "Cancelled"
+          ? t("pages.apps.testPanel.cancelled", { defaultValue: "Cancelled" })
           : phase === "expired"
-            ? "Expired — send it again"
+            ? t("pages.apps.testPanel.expired", { defaultValue: "Expired — send it again" })
             : `Waiting · ${relTime(requestedAt)}`;
   const settled = phase === "denied" || phase === "cancelled" || phase === "expired";
 
@@ -1259,23 +1260,23 @@ function AskFirstResult({
     <div className="rounded-md border border-amber-500/40 bg-amber-500/5 p-4">
       <div className="flex items-center gap-2">
         <ShieldQuestion className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-        <span className="text-sm font-medium text-foreground">Sent for your OK.</span>
+        <span className="text-sm font-medium text-foreground">{t("pages.apps.testPanel.sentForOk", { defaultValue: "Sent for your OK." })}</span>
       </div>
       <p className="mt-0.5 text-xs text-muted-foreground">{outcome.agentName} needs your approval before this runs.</p>
 
       <dl className="mt-3 space-y-1.5 text-sm">
         <div className="flex gap-3">
-          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Action</dt>
+          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.action", { defaultValue: "Action" })}</dt>
           <dd className="text-foreground">{entry.title ?? entry.toolName}</dd>
         </div>
         {where && (
           <div className="flex gap-3">
-            <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Where</dt>
+            <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.where", { defaultValue: "Where" })}</dt>
             <dd className="break-words text-foreground">{where}</dd>
           </div>
         )}
         <div className="flex gap-3">
-          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">Status</dt>
+          <dt className="w-16 shrink-0 text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.status", { defaultValue: "Status" })}</dt>
           <dd className={cn("flex items-center gap-1.5 text-foreground", settled && "text-muted-foreground")}>
             {phase === "running" && <Loader2 className="h-3 w-3 animate-spin" />}
             {statusLabel}
@@ -1295,11 +1296,11 @@ function AskFirstResult({
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button asChild size="sm" variant="outline">
-          <Link to={appTabHref(connectionId, "review")}>Open Review tab</Link>
+          <Link to={appTabHref(connectionId, "review")}>{t("pages.apps.testPanel.openReviewTab", { defaultValue: "Open Review tab" })}</Link>
         </Button>
         {phase === "waiting" && actionRequestId && selectedCompanyId && (
           <Button size="sm" variant="ghost" onClick={() => cancel.mutate()} disabled={cancel.isPending}>
-            {cancel.isPending ? "Cancelling…" : "Cancel this request"}
+            {cancel.isPending ? t("pages.apps.testPanel.cancelling", { defaultValue: "Cancelling…" }) : t("pages.apps.testPanel.cancelRequest", { defaultValue: "Cancel this request" })}
           </Button>
         )}
       </div>
@@ -1338,9 +1339,9 @@ function OffExplanation({
   const allOff = allAgents.every((a) => decisionOf(a) === "off");
 
   const whyBody = entry.status === "quarantined"
-    ? "This action is new and hasn't been turned on yet."
+    ? t("pages.apps.testPanel.newAction", { defaultValue: "This action is new and hasn't been turned on yet." })
     : allOff
-      ? "An admin set it to Off for all agents using this app."
+      ? t("pages.apps.testPanel.adminOff", { defaultValue: "An admin set it to Off for all agents using this app." })
       : `${agent.name}'s access profile sets this action to Off.`;
 
   // "Last changed by {Actor} · {relativeTime}" — only the access config carries
@@ -1362,7 +1363,7 @@ function OffExplanation({
           <Ban className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />
           <div className="text-sm text-muted-foreground">
             <p className="font-medium text-foreground">{title} is off for {agent.name}.</p>
-            <p className="mt-0.5">It won't run here, and it won't run from a task either.</p>
+            <p className="mt-0.5">{t("pages.apps.testPanel.wontRun", { defaultValue: "It won't run here, and it won't run from a task either." })}</p>
             <p className="mt-2">
               Want to test it? Turn it on for {agent.name} in{" "}
               <Link className="font-medium text-primary hover:underline" to={appTabHref(connectionId, "permissions")}>
@@ -1373,13 +1374,13 @@ function OffExplanation({
           </div>
         </div>
         <Button asChild size="sm">
-          <Link to={permHref}>Open Permissions →</Link>
+          <Link to={permHref}>{t("pages.apps.testPanel.openPermissions", { defaultValue: "Open Permissions →" })}</Link>
         </Button>
         <p className="text-xs text-muted-foreground">No call will be made — this action is off for {agent.name}.</p>
       </div>
 
       <aside className="rounded-md border border-border bg-card p-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Why this is off</p>
+        <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.apps.testPanel.whyOff", { defaultValue: "Why this is off" })}</p>
         <p className="mt-1.5 text-xs text-muted-foreground">{whyBody}</p>
         {auditHint && <p className="mt-1.5 text-(length:--text-micro) text-muted-foreground">{auditHint}</p>}
         {otherSettings.length > 0 && (
@@ -1396,7 +1397,7 @@ function OffExplanation({
         )}
         {tryAgents.length > 0 && (
           <div className="mt-3">
-            <p className="text-(length:--text-micro) font-medium text-muted-foreground">Try as a different agent:</p>
+            <p className="text-(length:--text-micro) font-medium text-muted-foreground">{t("pages.apps.testPanel.tryDifferentAgent", { defaultValue: "Try as a different agent:" })}</p>
             <div className="mt-1 flex flex-wrap gap-1.5">
               {tryAgents.slice(0, 4).map((other) => (
                 <button
@@ -1437,25 +1438,25 @@ export function errorHints(message: string, reasonCode: string | null | undefine
   const haystack = `${reasonCode ?? ""} ${message}`.toUpperCase();
   if (haystack.includes("NOT_FOUND")) {
     return [
-      "Double-check the ID or name you entered — pick it from a dropdown if one is offered.",
-      "Make sure this agent has access to that resource in the connected account.",
+      t("pages.apps.testPanel.notFoundHint", { defaultValue: "Double-check the ID or name you entered — pick it from a dropdown if one is offered." }),
+      t("pages.apps.testPanel.permissionHint", { defaultValue: "Make sure this agent has access to that resource in the connected account." }),
     ];
   }
   if (haystack.includes("PERMISSION") || haystack.includes("FORBIDDEN") || haystack.includes("UNAUTHORIZED")) {
     return [
-      "The connected account may not have permission for this action.",
-      "Reconnect the app from Setup if its access was recently changed.",
+      t("pages.apps.testPanel.forbiddenHint", { defaultValue: "The connected account may not have permission for this action." }),
+      t("pages.apps.testPanel.reconnectHint", { defaultValue: "Reconnect the app from Setup if its access was recently changed." }),
     ];
   }
   if (haystack.includes("INVALID_ARGUMENT") || haystack.includes("INVALID") || haystack.includes("BAD_REQUEST")) {
     return [
-      "Check the field formats above — a value may be the wrong type or shape.",
+      t("pages.apps.testPanel.invalidHint", { defaultValue: "Check the field formats above — a value may be the wrong type or shape." }),
       "Open “More options” to confirm any advanced fields are filled in correctly.",
     ];
   }
   if (haystack.includes("RATE_LIMIT") || haystack.includes("RESOURCE_EXHAUSTED") || haystack.includes("429")) {
-    return ["The app is rate-limiting calls right now — wait a moment and run it again."];
+    return [t("pages.apps.testPanel.rateLimitHint", { defaultValue: "The app is rate-limiting calls right now — wait a moment and run it again." })];
   }
   // Locked generic fallback (copy-spec decision #2).
-  return ["Check the inputs above and try again."];
+  return [t("pages.apps.testPanel.badRequestHint", { defaultValue: "Check the inputs above and try again." })];
 }
