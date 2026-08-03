@@ -15,8 +15,9 @@ use staple_data::{
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoProjectRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -90,6 +91,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let workspaces_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let labels_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let issue_structure_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -116,6 +123,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
+        labels: Arc::new(TursoLabelRepository::new(labels_db)),
+        issue_structure: Arc::new(TursoIssueStructureRepository::new(issue_structure_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
@@ -2801,4 +2810,121 @@ async fn environments_and_workspaces() {
     // ReferenceNotFound is not reached because company scope passes for the
     // board; the workspace repo rejects the foreign project).
     assert!(status == StatusCode::UNPROCESSABLE_ENTITY || status == StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn issue_structure_extensions() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "Structured").await;
+
+    // Labels.
+    let (status, label) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/labels"),
+        json!({ "name": "bug", "color": "#dc2626" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(label["name"], "bug");
+    let label_id = label["id"].as_str().unwrap().to_owned();
+
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/labels"),
+        json!({ "name": "bug", "color": "#000" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    let (status, attached) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/labels"),
+        json!({ "labelId": label_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(attached["labelId"], label_id);
+
+    let (_, labels) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/issues/{issue_id}/labels"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(labels.as_array().unwrap().len(), 1);
+
+    // Thread interaction.
+    let (status, interaction) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/thread-interactions"),
+        json!({ "kind": "review_request", "payload": { "reviewer": "u1" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(interaction["status"], "pending");
+
+    // Read state upsert.
+    let (status, read) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/issues/{issue_id}/read-state"),
+        json!({ "userId": "u1", "lastReadAt": "2026-08-03T00:00:00.000Z" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(read["lastReadAt"], "2026-08-03T00:00:00.000Z");
+
+    // Approval link.
+    let (_, approval) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({ "type": "hire_agent", "payload": {} }),
+    )
+    .await;
+    let approval_id = approval["id"].as_str().unwrap().to_owned();
+    let (status, linked) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/approvals"),
+        json!({ "approvalId": approval_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(linked["approvalId"], approval_id);
+
+    // Execution decision.
+    let (status, decision) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/execution-decisions"),
+        json!({ "stageId": "s1", "stageType": "review", "outcome": "approved", "body": "ok" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(decision["outcome"], "approved");
+
+    // Detach label.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/issues/{issue_id}/labels/{label_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (_, labels) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/issues/{issue_id}/labels"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(labels.as_array().unwrap().len(), 0);
 }
