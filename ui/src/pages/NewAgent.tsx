@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { t } from "../i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "@/lib/router";
 import { useCompany } from "../context/CompanyContext";
@@ -118,15 +119,15 @@ export function NewAgent() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Agents", href: "/agents" },
-      { label: "New Agent" },
+      { label: t("pages.newAgent.agents", { defaultValue: "Agents" }), href: "/agents" },
+      { label: t("pages.newAgent.newAgent", { defaultValue: "New Agent" }) },
     ]);
   }, [setBreadcrumbs]);
 
   useEffect(() => {
     if (isFirstAgent) {
-      if (!name) setName("CEO");
-      if (!title) setTitle("CEO");
+      if (!name) setName(t("pages.newAgent.ceo", { defaultValue: "CEO" }));
+      if (!title) setTitle(t("pages.newAgent.ceo", { defaultValue: "CEO" }));
     }
   }, [isFirstAgent]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -149,7 +150,7 @@ export function NewAgent() {
       navigate(agentUrl(result.agent));
     },
     onError: (error) => {
-      setFormError(error instanceof Error ? error.message : "Failed to create agent");
+      setFormError(error instanceof Error ? error.message : t("pages.newAgent.createFailed", { defaultValue: "Failed to create agent" }));
     },
   });
 
@@ -163,7 +164,7 @@ export function NewAgent() {
     setFormError(null);
     if (configValues.adapterType === "opencode_local") {
       if (!isValidOpenCodeModelId(configValues.model)) {
-        setFormError("OpenCode requires an explicit model in provider/model format.");
+        setFormError(t("pages.newAgent.opencodeModelRequired", { defaultValue: "OpenCode requires an explicit model in provider/model format." }));
         return;
       }
     }
@@ -210,7 +211,7 @@ export function NewAgent() {
   return (
     <div className="mx-auto max-w-2xl space-y-6">
       <div>
-        <h1 className="text-lg font-semibold">New Agent</h1>
+        <h1 className="text-lg font-semibold">{t("pages.newAgent.newAgent", { defaultValue: "New Agent" })}</h1>
         <p className="text-sm text-muted-foreground mt-1">
           Advanced agent configuration
         </p>
@@ -221,7 +222,7 @@ export function NewAgent() {
         <div className="px-4 pt-4 pb-2">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Agent name"
+            placeholder={t("pages.newAgent.agentName", { defaultValue: "Agent name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -232,7 +233,7 @@ export function NewAgent() {
         <div className="px-4 pb-2">
           <input
             className="w-full bg-transparent outline-none text-sm text-muted-foreground placeholder:text-muted-foreground/40"
-            placeholder="Title (e.g. VP of Engineering)"
+            placeholder={t("pages.newAgent.titlePlaceholder", { defaultValue: "Title (e.g. VP of Engineering)" })}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
@@ -308,7 +309,7 @@ export function NewAgent() {
         <div className="border-t border-border px-4 py-4">
           <div className="space-y-3">
             <div>
-              <h2 className="text-sm font-medium">Company skills</h2>
+              <h2 className="text-sm font-medium">{t("pages.newAgent.companySkills", { defaultValue: "Company skills" })}</h2>
               <p className="mt-1 text-xs text-muted-foreground">
                 Optional skills from the company library. Built-in Paperclip runtime skills are added automatically.
               </p>
@@ -345,7 +346,7 @@ export function NewAgent() {
         {/* Footer */}
         <div className="border-t border-border px-4 py-3">
           {isFirstAgent && (
-            <p className="text-xs text-muted-foreground mb-2">This will be the CEO</p>
+            <p className="text-xs text-muted-foreground mb-2">{t("pages.newAgent.thisWillBeCeo", { defaultValue: "This will be the CEO" })}</p>
           )}
           {formError && (
             <p className="text-xs text-destructive mb-2">{formError}</p>
@@ -371,14 +372,14 @@ export function NewAgent() {
                   disabled={testAgentState.disabled}
                   onClick={() => testAgentAction?.()}
                 >
-                  {testAgentState.pending ? "Testing..." : "Test Agent"}
+                  {testAgentState.pending ? t("pages.newAgent.testing", { defaultValue: "Testing..." }) : t("pages.newAgent.testAgent", { defaultValue: "Test Agent" })}
                 </Button>
                 <Button
                   size="sm"
                   disabled={!name.trim() || createAgent.isPending}
                   onClick={handleSubmit}
                 >
-                  {createAgent.isPending ? "Creating…" : "Create agent"}
+                  {createAgent.isPending ? t("pages.newAgent.creating", { defaultValue: "Creating…" }) : t("pages.newAgent.createAgent", { defaultValue: "Create agent" })}
                 </Button>
               </div>
             </div>
