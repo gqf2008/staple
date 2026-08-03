@@ -123,4 +123,35 @@ body {
 .list li { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
 
 .empty { color: var(--color-muted-foreground); padding: var(--space-4); }
+
+form.inline-form { display: flex; gap: var(--space-2); align-items: center; margin: var(--space-2) 0; }
+
+input[type="text"], textarea, select {
+  font: inherit;
+  padding: var(--space-2);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-card);
+  color: var(--color-foreground);
+}
+
+button {
+  font: inherit;
+  padding: var(--space-2) var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  cursor: pointer;
+  transition: opacity var(--motion-duration-fast) var(--motion-ease-base);
+}
+
+button:hover { opacity: 0.9; }
+
+button.secondary { background: var(--color-card); color: var(--color-foreground); }
+button.destructive { background: var(--color-destructive); color: var(--color-primary-foreground); }
+
+.meta-row { color: var(--color-muted-foreground); font-size: var(--font-size-sm); }
+
+section { margin-bottom: var(--space-8); }
 "#;

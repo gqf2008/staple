@@ -2,4 +2,5 @@
 
 pub mod layout;
 pub mod pages;
+pub mod routes;
 pub mod styles;
