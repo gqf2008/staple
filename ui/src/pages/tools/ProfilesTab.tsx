@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertTriangle, Layers, Plus, Pencil, Trash2, Link2, ShieldCheck } from "lucide-react";
 import type {
@@ -59,19 +60,19 @@ import {
 } from "./shared";
 
 const SELECTOR_TYPES: Array<{ value: ToolProfileEntrySelectorType; label: string }> = [
-  { value: "tool_name", label: "Tool name" },
-  { value: "risk_level", label: "Risk level" },
-  { value: "application", label: "Application" },
-  { value: "connection", label: "Connection" },
-  { value: "catalog_entry", label: "Catalog entry ID" },
+  { value: "tool_name", label: t("pages.tools.profiles.toolName", { defaultValue: "Tool name" }) },
+  { value: "risk_level", label: t("pages.tools.profiles.riskLevel", { defaultValue: "Risk level" }) },
+  { value: "application", label: t("pages.tools.profiles.application", { defaultValue: "Application" }) },
+  { value: "connection", label: t("pages.tools.profiles.connection", { defaultValue: "Connection" }) },
+  { value: "catalog_entry", label: t("pages.tools.profiles.catalogEntryId", { defaultValue: "Catalog entry ID" }) },
 ];
 
 const TARGET_TYPES: Array<{ value: ToolProfileBindingTargetType; label: string }> = [
-  { value: "company", label: "Company" },
-  { value: "agent", label: "Agent" },
-  { value: "project", label: "Project" },
-  { value: "routine", label: "Routine" },
-  { value: "issue", label: "Issue ID" },
+  { value: "company", label: t("pages.tools.profiles.company", { defaultValue: "Company" }) },
+  { value: "agent", label: t("pages.tools.profiles.agent", { defaultValue: "Agent" }) },
+  { value: "project", label: t("pages.tools.profiles.project", { defaultValue: "Project" }) },
+  { value: "routine", label: t("pages.tools.profiles.routine", { defaultValue: "Routine" }) },
+  { value: "issue", label: t("pages.tools.profiles.issueId", { defaultValue: "Issue ID" }) },
 ];
 
 const RISK_LEVELS: ToolRiskLevel[] = ["read", "write", "destructive", "low", "medium", "high", "critical"];
@@ -155,7 +156,7 @@ function bindingLabel(
     routinesById: Map<string, string>;
   },
 ) {
-  if (targetType === "company") return targetId === labels.companyId ? "Company" : targetId;
+  if (targetType === "company") return targetId === labels.companyId ? t("pages.tools.profiles.company", { defaultValue: "Company" }) : targetId;
   if (targetType === "agent") return labels.agentsById.get(targetId) ?? targetId;
   if (targetType === "project") return labels.projectsById.get(targetId) ?? targetId;
   if (targetType === "routine") return labels.routinesById.get(targetId) ?? targetId;
@@ -377,7 +378,7 @@ function EntryFields({
   return (
     <div className="grid gap-3 sm:grid-cols-(--gtc-60)">
       <div className="space-y-1.5">
-        <Label>Selector</Label>
+        <Label>{t("pages.tools.profiles.selector", { defaultValue: "Selector" })}</Label>
         <Select value={selectorType} onValueChange={(value) => setSelectorType(value as ToolProfileEntrySelectorType)}>
           <SelectTrigger>
             <SelectValue />
@@ -392,23 +393,23 @@ function EntryFields({
         </Select>
       </div>
       <div className="space-y-1.5">
-        <Label>Effect</Label>
+        <Label>{t("pages.tools.profiles.effect", { defaultValue: "Effect" })}</Label>
         <Select value={effect} onValueChange={(value) => setEffect(value as ToolProfileEntryEffect)}>
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="include">Include</SelectItem>
-            <SelectItem value="exclude">Exclude</SelectItem>
+            <SelectItem value="include">{t("pages.tools.profiles.include", { defaultValue: "Include" })}</SelectItem>
+            <SelectItem value="exclude">{t("pages.tools.profiles.exclude", { defaultValue: "Exclude" })}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       {selectorType === "application" ? (
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Application</Label>
+          <Label>{t("pages.tools.profiles.application", { defaultValue: "Application" })}</Label>
           <Select value={applicationId} onValueChange={setApplicationId}>
             <SelectTrigger>
-              <SelectValue placeholder="Select an application" />
+              <SelectValue placeholder={t("pages.tools.profiles.selectApplication", { defaultValue: "Select an application" })} />
             </SelectTrigger>
             <SelectContent>
               {applications.map((app) => (
@@ -422,10 +423,10 @@ function EntryFields({
       ) : null}
       {selectorType === "connection" ? (
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Connection</Label>
+          <Label>{t("pages.tools.profiles.connection", { defaultValue: "Connection" })}</Label>
           <Select value={connectionId} onValueChange={setConnectionId}>
             <SelectTrigger>
-              <SelectValue placeholder="Select a connection" />
+              <SelectValue placeholder={t("pages.tools.profiles.selectConnection", { defaultValue: "Select a connection" })} />
             </SelectTrigger>
             <SelectContent>
               {connections.map((conn) => (
@@ -439,19 +440,19 @@ function EntryFields({
       ) : null}
       {selectorType === "catalog_entry" ? (
         <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="catalog-entry-id">Catalog entry ID</Label>
+          <Label htmlFor="catalog-entry-id">{t("pages.tools.profiles.catalogEntryId", { defaultValue: "Catalog entry ID" })}</Label>
           <Input id="catalog-entry-id" value={catalogEntryId} onChange={(event) => setCatalogEntryId(event.target.value)} />
         </div>
       ) : null}
       {selectorType === "tool_name" ? (
         <div className="space-y-1.5 sm:col-span-2">
-          <Label htmlFor="tool-name">Tool name</Label>
+          <Label htmlFor="tool-name">{t("pages.tools.profiles.toolName", { defaultValue: "Tool name" })}</Label>
           <Input id="tool-name" value={toolName} onChange={(event) => setToolName(event.target.value)} placeholder="e.g. send_email or slack.list_*" />
         </div>
       ) : null}
       {selectorType === "risk_level" ? (
         <div className="space-y-1.5 sm:col-span-2">
-          <Label>Risk level</Label>
+          <Label>{t("pages.tools.profiles.riskLevel", { defaultValue: "Risk level" })}</Label>
           <Select value={riskLevel} onValueChange={(value) => setRiskLevel(value as ToolRiskLevel)}>
             <SelectTrigger>
               <SelectValue />
@@ -483,10 +484,10 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-4">
       <div className="space-y-1.5">
-        <Label>Agent</Label>
+        <Label>{t("pages.tools.profiles.agent", { defaultValue: "Agent" })}</Label>
         <Select value={agentId} onValueChange={setAgentId}>
           <SelectTrigger>
-            <SelectValue placeholder="Select an agent" />
+            <SelectValue placeholder={t("pages.tools.profiles.selectAgent", { defaultValue: "Select an agent" })} />
           </SelectTrigger>
           <SelectContent>
             {agentOptions.map((agent) => (
@@ -502,14 +503,14 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
           Pick an agent to see what it can use right now.
         </div>
       ) : effective.isLoading ? (
-        <LoadingState label="Checking access..." />
+        <LoadingState label={t("pages.tools.profiles.checkingAccess", { defaultValue: "Checking access..." })} />
       ) : effective.error ? (
         <ErrorState error={effective.error} onRetry={() => effective.refetch()} />
       ) : (
         <div className="min-h-0 space-y-5 overflow-y-auto pr-1">
           <div className="space-y-2">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-semibold text-foreground">Can use</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.canUse", { defaultValue: "Can use" })}</h3>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {(effective.data?.allowedToolNames ?? []).length} tools
               </span>
@@ -527,7 +528,7 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
             )}
           </div>
           <div className="space-y-2">
-            <h3 className="text-sm font-semibold text-foreground">Access profiles</h3>
+            <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.title", { defaultValue: "Access profiles" })}</h3>
             {(effective.data?.profiles ?? []).length === 0 ? (
               <div className="rounded-lg border border-dashed border-border px-4 py-5 text-sm text-muted-foreground">
                 No active profile applies to this agent.
@@ -538,7 +539,7 @@ export function EffectiveAgentPanel({ companyId, agentOptions }: { companyId: st
                   <div key={profile.id} className="flex items-center justify-between gap-3 px-3 py-2.5">
                     <span className="min-w-0 truncate text-sm font-medium text-foreground">{profile.name}</span>
                     {profile.summary.isCompanyDefault ? (
-                      <Badge variant="secondary">Company default</Badge>
+                      <Badge variant="secondary">{t("pages.tools.profiles.companyDefault", { defaultValue: "Company default" })}</Badge>
                     ) : null}
                   </div>
                 ))}
@@ -575,7 +576,7 @@ function AllowList({ rows, catalogLoading }: { rows: AllowListRow[]; catalogLoad
   return (
     <div className="space-y-2">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <h4 className="text-sm font-semibold text-foreground">Allow list</h4>
+        <h4 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.allowList", { defaultValue: "Allow list" })}</h4>
         <p className="text-xs text-muted-foreground">
           {rows.length} tool{rows.length === 1 ? "" : "s"}
           {explicitCount > 0 ? ` · ${explicitCount} explicit` : ""}
@@ -586,8 +587,8 @@ function AllowList({ rows, catalogLoading }: { rows: AllowListRow[]; catalogLoad
       {rows.length === 0 ? (
         <div className="rounded-md border border-dashed border-border px-3 py-6 text-center text-sm text-muted-foreground">
           {catalogLoading
-            ? "Resolving allowed tools…"
-            : "No tools resolved for this profile. Add an include selector or refresh the tool catalog."}
+            ? t("pages.tools.profiles.resolvingTools", { defaultValue: "Resolving allowed tools…" })
+            : t("pages.tools.profiles.noToolsResolved", { defaultValue: "No tools resolved for this profile. Add an include selector or refresh the tool catalog." })}
         </div>
       ) : (
         <Card>
@@ -595,11 +596,11 @@ function AllowList({ rows, catalogLoading }: { rows: AllowListRow[]; catalogLoad
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                  <th className="px-3 py-2.5 font-medium">Tool</th>
-                  <th className="px-3 py-2.5 font-medium">Application</th>
-                  <th className="px-3 py-2.5 font-medium">Capabilities</th>
-                  <th className="px-3 py-2.5 font-medium">Risk</th>
-                  <th className="px-3 py-2.5 font-medium">Source</th>
+                  <th className="px-3 py-2.5 font-medium">{t("pages.tools.profiles.tool", { defaultValue: "Tool" })}</th>
+                  <th className="px-3 py-2.5 font-medium">{t("pages.tools.profiles.application", { defaultValue: "Application" })}</th>
+                  <th className="px-3 py-2.5 font-medium">{t("pages.tools.profiles.capabilities", { defaultValue: "Capabilities" })}</th>
+                  <th className="px-3 py-2.5 font-medium">{t("pages.tools.profiles.risk", { defaultValue: "Risk" })}</th>
+                  <th className="px-3 py-2.5 font-medium">{t("pages.tools.profiles.source", { defaultValue: "Source" })}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -736,10 +737,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       setSelectedId(created.id);
       resetProfileForm();
       resetEntryForm();
-      pushToast({ title: "Profile created", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.profileCreated", { defaultValue: "Profile created" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not create profile",
+      title: t("pages.tools.profiles.profileCreateFailed", { defaultValue: "Could not create profile" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -752,10 +753,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       invalidateProfiles();
       setEditProfile(null);
       resetProfileForm();
-      pushToast({ title: "Profile updated", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.profileUpdated", { defaultValue: "Profile updated" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not update profile",
+      title: t("pages.tools.profiles.profileUpdateFailed", { defaultValue: "Could not update profile" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -768,10 +769,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       invalidateProfiles();
       setEntryProfile(null);
       resetEntryForm();
-      pushToast({ title: "Entry added", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.entryAdded", { defaultValue: "Entry added" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not add entry",
+      title: t("pages.tools.profiles.entryAddFailed", { defaultValue: "Could not add entry" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -781,10 +782,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
     mutationFn: (entryId: string) => toolsApi.deleteProfileEntry(entryId),
     onSuccess: () => {
       invalidateProfiles();
-      pushToast({ title: "Entry removed", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.entryRemoved", { defaultValue: "Entry removed" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not remove entry",
+      title: t("pages.tools.profiles.entryRemoveFailed", { defaultValue: "Could not remove entry" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -798,10 +799,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       setBindProfileFor(null);
       setTargetType("agent");
       setPriority("100");
-      pushToast({ title: "Profile bound", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.profileBound", { defaultValue: "Profile bound" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not bind profile",
+      title: t("pages.tools.profiles.bindFailed", { defaultValue: "Could not bind profile" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -815,10 +816,10 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
     }) => toolsApi.unbindProfile(companyId, profileId, { targetType, targetId }),
     onSuccess: () => {
       invalidateProfiles();
-      pushToast({ title: "Binding removed", tone: "success" });
+      pushToast({ title: t("pages.tools.profiles.bindingRemoved", { defaultValue: "Binding removed" }), tone: "success" });
     },
     onError: (error) => pushToast({
-      title: "Could not remove binding",
+      title: t("pages.tools.profiles.bindingRemoveFailed", { defaultValue: "Could not remove binding" }),
       body: error instanceof ApiError ? error.message : String(error),
       tone: "error",
     }),
@@ -886,7 +887,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       riskLevel,
     });
     if (!entry) {
-      pushToast({ title: "Entry target required", tone: "error" });
+      pushToast({ title: t("pages.tools.profiles.entryTargetRequired", { defaultValue: "Entry target required" }), tone: "error" });
       return;
     }
     addEntry.mutate({ profileId: entryProfile.id, input: entry });
@@ -903,7 +904,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       issueId: targetIssueId,
     });
     if (!targetId) {
-      pushToast({ title: "Binding target required", tone: "error" });
+      pushToast({ title: t("pages.tools.profiles.bindingTargetRequired", { defaultValue: "Binding target required" }), tone: "error" });
       return;
     }
     bind.mutate({
@@ -919,7 +920,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-4">
       <ToolsPageHeader
-        title="Access profiles"
+        title={t("pages.tools.profiles.title", { defaultValue: "Access profiles" })}
         description="Reusable bundles of allowed applications, connections, and tools, assignable to agents, projects, routines, or issues."
         actions={
           <Button size="sm" onClick={() => setCreateOpen(true)}>
@@ -934,9 +935,9 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       {list.length === 0 ? (
         <EmptyState
           icon={Layers}
-          message="No access profiles yet"
-          description="Create a profile to group tool selectors, then bind it to the company or a specific agent."
-          action="New profile"
+          message={t("pages.tools.profiles.noProfiles", { defaultValue: "No access profiles yet" })}
+          description={t("pages.tools.profiles.noProfilesHint", { defaultValue: "Create a profile to group tool selectors, then bind it to the company or a specific agent." })}
+          action={t("pages.tools.profiles.newProfile", { defaultValue: "New profile" })}
           onAction={() => setCreateOpen(true)}
         />
       ) : (
@@ -1019,7 +1020,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>{editProfile ? "Edit profile" : "New profile"}</DialogTitle>
+            <DialogTitle>{editProfile ? t("pages.tools.profiles.editProfile", { defaultValue: "Edit profile" }) : t("pages.tools.profiles.newProfile", { defaultValue: "New profile" })}</DialogTitle>
             <DialogDescription>
               Profile rules are enforced by the tool gateway policy service.
             </DialogDescription>
@@ -1027,7 +1028,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
           <div className="space-y-3">
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label htmlFor="profile-name">Name</Label>
+                <Label htmlFor="profile-name">{t("pages.tools.profiles.name", { defaultValue: "Name" })}</Label>
                 <Input
                   id="profile-name"
                   value={name}
@@ -1035,46 +1036,46 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
                     setName(event.target.value);
                     if (!editProfile && !profileKey.trim()) setProfileKey(slugifyProfileKey(event.target.value));
                   }}
-                  placeholder="Engineering write tools"
+                  placeholder={t("pages.tools.profiles.namePlaceholder", { defaultValue: "Engineering write tools" })}
                 />
               </div>
               <div className="space-y-1.5">
-                <Label htmlFor="profile-key">Key</Label>
+                <Label htmlFor="profile-key">{t("pages.tools.profiles.key", { defaultValue: "Key" })}</Label>
                 <Input id="profile-key" value={profileKey} onChange={(event) => setProfileKey(event.target.value)} />
               </div>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="profile-description">Description</Label>
+              <Label htmlFor="profile-description">{t("pages.tools.profiles.description", { defaultValue: "Description" })}</Label>
               <Textarea
                 id="profile-description"
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Optional context for reviewers."
+                placeholder={t("pages.tools.profiles.descriptionPlaceholder", { defaultValue: "Optional context for reviewers." })}
               />
             </div>
             <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-1.5">
-                <Label>Default action</Label>
+                <Label>{t("pages.tools.profiles.defaultAction", { defaultValue: "Default action" })}</Label>
                 <Select value={defaultAction} onValueChange={(value) => setDefaultAction(value as ToolProfileDefaultAction)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="deny">Deny unless included</SelectItem>
-                    <SelectItem value="allow">Allow unless excluded</SelectItem>
+                    <SelectItem value="deny">{t("pages.tools.profiles.denyUnlessIncluded", { defaultValue: "Deny unless included" })}</SelectItem>
+                    <SelectItem value="allow">{t("pages.tools.profiles.allowUnlessExcluded", { defaultValue: "Allow unless excluded" })}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
               <div className="space-y-1.5">
-                <Label>Status</Label>
+                <Label>{t("pages.tools.profiles.status", { defaultValue: "Status" })}</Label>
                 <Select value={status} onValueChange={(value) => setStatus(value as ToolProfileStatus)}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="disabled">Disabled</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
+                    <SelectItem value="active">{t("pages.tools.profiles.active", { defaultValue: "Active" })}</SelectItem>
+                    <SelectItem value="disabled">{t("pages.tools.profiles.disabled", { defaultValue: "Disabled" })}</SelectItem>
+                    <SelectItem value="archived">{t("pages.tools.profiles.archived", { defaultValue: "Archived" })}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1110,7 +1111,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
               Cancel
             </Button>
             <Button disabled={!name.trim() || createProfile.isPending || updateProfile.isPending} onClick={saveProfile}>
-              {editProfile ? "Save" : createProfile.isPending ? "Creating..." : "Create"}
+              {editProfile ? t("pages.tools.profiles.save", { defaultValue: "Save" }) : createProfile.isPending ? t("pages.tools.profiles.creating", { defaultValue: "Creating..." }) : t("pages.tools.profiles.create", { defaultValue: "Create" })}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -1124,7 +1125,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       }}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Add entry</DialogTitle>
+            <DialogTitle>{t("pages.tools.profiles.addEntry", { defaultValue: "Add entry" })}</DialogTitle>
             <DialogDescription>{entryProfile?.name}</DialogDescription>
           </DialogHeader>
           <EntryFields
@@ -1146,7 +1147,7 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
             connections={connectionOptions}
           />
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEntryProfile(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setEntryProfile(null)}>{t("pages.tools.profiles.cancel", { defaultValue: "Cancel" })}</Button>
             <Button disabled={addEntry.isPending} onClick={saveEntry}>
               Add entry
             </Button>
@@ -1159,12 +1160,12 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
       }}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Bind profile</DialogTitle>
+            <DialogTitle>{t("pages.tools.profiles.bindProfile", { defaultValue: "Bind profile" })}</DialogTitle>
             <DialogDescription>{bindProfileFor?.name}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3">
             <div className="space-y-1.5">
-              <Label>Target type</Label>
+              <Label>{t("pages.tools.profiles.targetType", { defaultValue: "Target type" })}</Label>
               <Select value={targetType} onValueChange={(value) => setTargetType(value as ToolProfileBindingTargetType)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -1180,9 +1181,9 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
             </div>
             {targetType === "agent" ? (
               <div className="space-y-1.5">
-                <Label>Agent</Label>
+                <Label>{t("pages.tools.profiles.agent", { defaultValue: "Agent" })}</Label>
                 <Select value={targetAgentId} onValueChange={setTargetAgentId}>
-                  <SelectTrigger><SelectValue placeholder="Select an agent" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("pages.tools.profiles.selectAgent", { defaultValue: "Select an agent" })} /></SelectTrigger>
                   <SelectContent>
                     {agentOptions.map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
                   </SelectContent>
@@ -1191,9 +1192,9 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
             ) : null}
             {targetType === "project" ? (
               <div className="space-y-1.5">
-                <Label>Project</Label>
+                <Label>{t("pages.tools.profiles.project", { defaultValue: "Project" })}</Label>
                 <Select value={targetProjectId} onValueChange={setTargetProjectId}>
-                  <SelectTrigger><SelectValue placeholder="Select a project" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("pages.tools.profiles.selectProject", { defaultValue: "Select a project" })} /></SelectTrigger>
                   <SelectContent>
                     {projectOptions.map((project) => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}
                   </SelectContent>
@@ -1202,9 +1203,9 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
             ) : null}
             {targetType === "routine" ? (
               <div className="space-y-1.5">
-                <Label>Routine</Label>
+                <Label>{t("pages.tools.profiles.routine", { defaultValue: "Routine" })}</Label>
                 <Select value={targetRoutineId} onValueChange={setTargetRoutineId}>
-                  <SelectTrigger><SelectValue placeholder="Select a routine" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder={t("pages.tools.profiles.selectRoutine", { defaultValue: "Select a routine" })} /></SelectTrigger>
                   <SelectContent>
                     {routineOptions.map((routine) => <SelectItem key={routine.id} value={routine.id}>{routine.title}</SelectItem>)}
                   </SelectContent>
@@ -1213,17 +1214,17 @@ export function ProfilesTab({ companyId }: { companyId: string }) {
             ) : null}
             {targetType === "issue" ? (
               <div className="space-y-1.5">
-                <Label htmlFor="target-issue-id">Issue ID</Label>
+                <Label htmlFor="target-issue-id">{t("pages.tools.profiles.issueId", { defaultValue: "Issue ID" })}</Label>
                 <Input id="target-issue-id" value={targetIssueId} onChange={(event) => setTargetIssueId(event.target.value)} />
               </div>
             ) : null}
             <div className="space-y-1.5">
-              <Label htmlFor="profile-priority">Priority</Label>
+              <Label htmlFor="profile-priority">{t("pages.tools.profiles.priority", { defaultValue: "Priority" })}</Label>
               <Input id="profile-priority" type="number" min={0} max={10000} value={priority} onChange={(event) => setPriority(event.target.value)} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setBindProfileFor(null)}>Cancel</Button>
+            <Button variant="outline" onClick={() => setBindProfileFor(null)}>{t("pages.tools.profiles.cancel", { defaultValue: "Cancel" })}</Button>
             <Button disabled={bind.isPending} onClick={saveBinding}>
               Bind
             </Button>
@@ -1311,10 +1312,10 @@ function ProfileDetail({
 
         {/* Targets */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-foreground">Targets</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.targets", { defaultValue: "Targets" })}</h4>
           <div className="flex flex-wrap gap-2">
             {profile.bindings.length === 0 ? (
-              <span className="text-sm text-muted-foreground">No targets bound.</span>
+              <span className="text-sm text-muted-foreground">{t("pages.tools.profiles.noTargets", { defaultValue: "No targets bound." })}</span>
             ) : profile.bindings.map((binding) => (
               <span key={binding.id} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
                 <Badge variant="outline">{binding.targetType}</Badge>
@@ -1335,7 +1336,7 @@ function ProfileDetail({
 
         {/* Effective scope summary */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-foreground">Effective scope</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.effectiveScope", { defaultValue: "Effective scope" })}</h4>
           <div className="flex flex-wrap gap-2 text-xs">
             <span className="rounded-md border border-border px-2 py-1 text-muted-foreground">
               Default <span className="font-medium text-foreground">{profile.defaultAction}</span>
@@ -1352,10 +1353,10 @@ function ProfileDetail({
 
         {/* Selectors (entry management) */}
         <div className="space-y-2">
-          <h4 className="text-sm font-semibold text-foreground">Selectors</h4>
+          <h4 className="text-sm font-semibold text-foreground">{t("pages.tools.profiles.selectors", { defaultValue: "Selectors" })}</h4>
           <div className="flex flex-wrap gap-2">
             {profile.entries.length === 0 ? (
-              <span className="text-sm text-muted-foreground">No selectors.</span>
+              <span className="text-sm text-muted-foreground">{t("pages.tools.profiles.noSelectors", { defaultValue: "No selectors." })}</span>
             ) : profile.entries.map((entry) => (
               <span key={entry.id} className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs">
                 <Badge variant={entry.effect === "include" ? "secondary" : "destructive"}>{entry.effect}</Badge>

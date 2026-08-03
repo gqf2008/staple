@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ChevronRight, Loader2, RotateCw, Server, Square } from "lucide-react";
 import type {
@@ -57,9 +58,9 @@ function rowStatusFor(slot: ToolRuntimeSlot, connection: ToolConnection | null):
 }
 
 const STATUS_WORD: Record<RowStatus, string> = {
-  working: "Working",
-  attention: "Needs attention",
-  off: "Off",
+  working: t("pages.tools.runtime.working", { defaultValue: "Working" }),
+  attention: t("pages.tools.runtime.needsAttention", { defaultValue: "Needs attention" }),
+  off: t("pages.tools.runtime.off", { defaultValue: "Off" }),
 };
 
 /** Filled dot (working) / triangle (needs attention) / hollow dot (off). */
@@ -87,20 +88,20 @@ function formatTypicalLatency(ms: number | null | undefined): string {
 
 /** How the slot runs, in plain words. */
 function howItRuns(slot: ToolRuntimeSlot): string {
-  return slot.runtimeKind === "local_stdio" ? "Runs on this machine" : "Connects over the internet";
+  return slot.runtimeKind === "local_stdio" ? t("pages.tools.runtime.runsLocally", { defaultValue: "Runs on this machine" }) : t("pages.tools.runtime.connectsRemote", { defaultValue: "Connects over the internet" });
 }
 
 /** Humanize the owner scope into a plain phrase. */
 function scopeLabel(scope: string | null | undefined): string {
   switch (scope) {
     case "company":
-      return "Whole company";
+      return t("pages.tools.runtime.wholeCompany", { defaultValue: "Whole company" });
     case "project":
     case "project_workspace":
-      return "This project";
+      return t("pages.tools.runtime.thisProject", { defaultValue: "This project" });
     case "execution_workspace":
     case "issue":
-      return "This task";
+      return t("pages.tools.runtime.thisTask", { defaultValue: "This task" });
     case "agent":
       return "A single agent";
     default:
@@ -110,66 +111,66 @@ function scopeLabel(scope: string | null | undefined): string {
 
 /** Plain-words trust tier — quarantined local code reads as such; remote is provider-side. */
 function trustTierLabel(slot: ToolRuntimeSlot): string {
-  if (slot.runtimeKind !== "local_stdio") return "Provider-verified";
+  if (slot.runtimeKind !== "local_stdio") return t("pages.tools.runtime.providerVerified", { defaultValue: "Provider-verified" });
   const quarantined =
     slot.status === "failed" ||
     slot.status === "error" ||
     slot.healthStatus === "error" ||
     slot.healthStatus === "unhealthy";
-  return quarantined ? "Quarantined" : "Trusted (runs locally)";
+  return quarantined ? t("pages.tools.runtime.quarantined", { defaultValue: "Quarantined" }) : t("pages.tools.runtime.trustedLocal", { defaultValue: "Trusted (runs locally)" });
 }
 
 /**
  * Plain-language translation for each supervisor alert. The runbook/severity
- * vocabulary stays out of these — it lives in the card's "Technical details".
+ * vocabulary stays out of these — it lives in the card's t("pages.tools.runtime.technicalDetails", { defaultValue: "Technical details" }).
  * `action` picks the one suggested button: restart the failing app, or a link to
  * the surface where the admin resolves it.
  */
 type AlertAction = "restart" | "reviewApps" | "reviewActivity";
 const ALERT_COPY: Record<string, { title: string; body: (a: ToolRuntimeAlertRecommendation) => string; action: AlertAction }> = {
   mcp_runtime_stuck_starting_slot: {
-    title: "An app is stuck starting up",
-    body: () => "It began starting but never came online. Restarting usually clears this.",
+    title: t("pages.tools.runtime.stuckStarting", { defaultValue: "An app is stuck starting up" }),
+    body: () => t("pages.tools.runtime.stuckStartingDesc", { defaultValue: "It began starting but never came online. Restarting usually clears this." }),
     action: "restart",
   },
   mcp_runtime_stuck_running_slot: {
-    title: "An app stopped responding",
-    body: () => "The process is still running but isn't answering. Restarting usually clears this.",
+    title: t("pages.tools.runtime.stoppedResponding", { defaultValue: "An app stopped responding" }),
+    body: () => t("pages.tools.runtime.stoppedRespondingDesc", { defaultValue: "The process is still running but isn't answering. Restarting usually clears this." }),
     action: "restart",
   },
   mcp_runtime_high_timeout_rate: {
-    title: "Apps are responding slowly",
+    title: t("pages.tools.runtime.respondingSlowly", { defaultValue: "Apps are responding slowly" }),
     body: (a) => `Some actions are timing out (${a.observed.toLowerCase()}). Check the apps involved or try again shortly.`,
     action: "reviewActivity",
   },
   mcp_runtime_high_error_rate: {
-    title: "Apps are failing more than usual",
+    title: t("pages.tools.runtime.failingMore", { defaultValue: "Apps are failing more than usual" }),
     body: (a) => `Recent actions failed after they were allowed (${a.observed.toLowerCase()}).`,
     action: "reviewActivity",
   },
   mcp_runtime_capacity_deferrals_repeated: {
-    title: "Too many apps running at once",
+    title: t("pages.tools.runtime.tooManyApps", { defaultValue: "Too many apps running at once" }),
     body: (a) => `Some actions had to wait for a free slot (${a.observed.toLowerCase()}).`,
     action: "reviewActivity",
   },
   mcp_runtime_restart_storm: {
-    title: "An app keeps restarting",
+    title: t("pages.tools.runtime.keepsRestarting", { defaultValue: "An app keeps restarting" }),
     body: (a) => `It has restarted repeatedly (${a.observed.toLowerCase()}). It may be misconfigured or offline.`,
     action: "restart",
   },
   mcp_runtime_connection_health_degraded: {
-    title: "An app needs reconnecting",
+    title: t("pages.tools.runtime.needsReconnecting", { defaultValue: "An app needs reconnecting" }),
     body: () => "A connected app isn't healthy. Open it to check the key or reconnect.",
     action: "reviewApps",
   },
   mcp_runtime_missing_secret_failures: {
-    title: "An app is missing a key",
+    title: t("pages.tools.runtime.missingKey", { defaultValue: "An app is missing a key" }),
     body: () => "A saved key couldn't be found, so some actions failed. Reconnect the app to fix it.",
     action: "reviewApps",
   },
   mcp_runtime_audit_write_failures: {
-    title: "Activity logging hit a problem",
-    body: () => "Some actions may not have been recorded. This needs an administrator to look into it.",
+    title: t("pages.tools.runtime.loggingProblem", { defaultValue: "Activity logging hit a problem" }),
+    body: () => t("pages.tools.runtime.loggingProblemDesc", { defaultValue: "Some actions may not have been recorded. This needs an administrator to look into it." }),
     action: "reviewActivity",
   },
 };
@@ -234,12 +235,12 @@ function LivePill() {
           Live
         </span>
       </TooltipTrigger>
-      <TooltipContent>Updates automatically every 15 seconds.</TooltipContent>
+      <TooltipContent>{t("pages.tools.runtime.autoUpdateHint", { defaultValue: "Updates automatically every 15 seconds." })}</TooltipContent>
     </Tooltip>
   );
 }
 
-/** Card-level "Technical details" / row-level expander toggle. */
+/** Card-level t("pages.tools.runtime.technicalDetails", { defaultValue: "Technical details" }) / row-level expander toggle. */
 function Disclosure({ open, label }: { open: boolean; label: string }) {
   return (
     <span className="inline-flex items-center gap-1 text-xs text-muted-foreground">
@@ -282,10 +283,10 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
     mutationFn: (slotId: string) => toolsApi.stopRuntimeSlot(companyId, slotId),
     onSuccess: () => {
       invalidateRuntime();
-      pushToast({ title: "App stopped", tone: "success" });
+      pushToast({ title: t("pages.tools.runtime.appStopped", { defaultValue: "App stopped" }), tone: "success" });
     },
     onError: (err) =>
-      pushToast({ title: "Stop failed", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+      pushToast({ title: t("pages.tools.runtime.stopFailed", { defaultValue: "Stop failed" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
     onSettled: () => setConfirm(null),
   });
 
@@ -293,10 +294,10 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
     mutationFn: (slotId: string) => toolsApi.restartRuntimeSlot(companyId, slotId),
     onSuccess: () => {
       invalidateRuntime();
-      pushToast({ title: "App restarted", tone: "success" });
+      pushToast({ title: t("pages.tools.runtime.appRestarted", { defaultValue: "App restarted" }), tone: "success" });
     },
     onError: (err) =>
-      pushToast({ title: "Restart failed", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+      pushToast({ title: t("pages.tools.runtime.restartFailed", { defaultValue: "Restart failed" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
     onSettled: () => setConfirm(null),
   });
 
@@ -346,29 +347,29 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-5">
       <div className="flex items-start justify-between gap-3">
-        <ToolsPageHeader title="Health" description="How your apps are doing right now." />
+        <ToolsPageHeader title={t("pages.tools.runtime.health", { defaultValue: "Health" })} description={t("pages.tools.runtime.healthHint", { defaultValue: "How your apps are doing right now." })} />
         <LivePill />
       </div>
 
       {/* Summary strip — plain words; ops vocabulary lives in tooltips. */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <SummaryCard
-          label="Apps running"
-          value={totalCount === 0 ? "None" : `${workingCount} of ${totalCount}`}
+          label={t("pages.tools.runtime.appsRunning", { defaultValue: "Apps running" })}
+          value={totalCount === 0 ? t("pages.tools.runtime.none", { defaultValue: "None" }) : `${workingCount} of ${totalCount}`}
           note={
             totalCount === 0
-              ? "Apps start when an agent first needs them"
+              ? t("pages.tools.runtime.startOnDemand", { defaultValue: "Apps start when an agent first needs them" })
               : attentionCount > 0
                 ? `${attentionCount} need${attentionCount === 1 ? "s" : ""} attention`
-                : "All working"
+                : t("pages.tools.runtime.allWorking", { defaultValue: "All working" })
           }
         />
         <SummaryCard
-          label="Typical response time"
+          label={t("pages.tools.runtime.responseTime", { defaultValue: "Typical response time" })}
           value={formatTypicalLatency(metrics?.averageToolLatencyMsLastHour)}
           note={
             metrics?.averageToolLatencyMsLastHour == null
-              ? "No calls in the last hour"
+              ? t("pages.tools.runtime.noCalls", { defaultValue: "No calls in the last hour" })
               : (metrics?.timeoutRateLastHour ?? 0) >= 10
                 ? "slower than usual"
                 : "across all apps"
@@ -376,9 +377,9 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
           detail={`Slowest 5% (P95): ${formatTypicalLatency(metrics?.p95ToolLatencyMsLastHour)} · timeout rate ${metrics?.timeoutRateLastHour ?? 0}%`}
         />
         <SummaryCard
-          label="Errors in the last hour"
+          label={t("pages.tools.runtime.errorsLastHour", { defaultValue: "Errors in the last hour" })}
           value={String(errors)}
-          note={errors === 0 ? "None" : "across your apps"}
+          note={errors === 0 ? t("pages.tools.runtime.none", { defaultValue: "None" }) : "across your apps"}
           detail={`${metrics?.toolFailuresLastHour ?? 0} failed · ${metrics?.toolTimeoutsLastHour ?? 0} timed out · ${metrics?.capacityDeferralsLastHour ?? 0} waited for capacity`}
         />
       </div>
@@ -403,11 +404,11 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
                   </Button>
                 ) : action === "reviewApps" ? (
                   <Button size="sm" asChild>
-                    <Link to="/apps/attention">Review apps</Link>
+                    <Link to="/apps/attention">{t("pages.tools.runtime.reviewApps", { defaultValue: "Review apps" })}</Link>
                   </Button>
                 ) : (
                   <Button size="sm" asChild>
-                    <Link to="/apps/advanced/audit">Review activity</Link>
+                    <Link to="/apps/advanced/audit">{t("pages.tools.runtime.reviewActivity", { defaultValue: "Review activity" })}</Link>
                   </Button>
                 )}
                 <button
@@ -415,17 +416,17 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
                   className="text-left"
                   onClick={() => setOpenAlertDetails((s) => ({ ...s, [alert.name]: !detailsOpen }))}
                 >
-                  <Disclosure open={detailsOpen} label="Technical details" />
+                  <Disclosure open={detailsOpen} label={t("pages.tools.runtime.technicalDetails", { defaultValue: "Technical details" })} />
                 </button>
               </div>
               {detailsOpen ? (
                 <dl className="grid grid-cols-1 gap-x-8 gap-y-2 rounded-md bg-muted/40 p-3 text-xs sm:grid-cols-2">
-                  <Fact label="Alert" value={<span className="font-mono">{alert.name}</span>} />
-                  <Fact label="Severity" value={alert.severity} />
-                  <Fact label="Threshold" value={alert.threshold} />
-                  <Fact label="Observed" value={alert.observed} />
-                  <Fact label="First responder" value={alert.firstResponderAction} />
-                  <Fact label="Runbook" value={<span className="font-mono">{alert.runbookSection || health.data?.runbookPath}</span>} />
+                  <Fact label={t("pages.tools.runtime.alert", { defaultValue: "Alert" })} value={<span className="font-mono">{alert.name}</span>} />
+                  <Fact label={t("pages.tools.runtime.severity", { defaultValue: "Severity" })} value={alert.severity} />
+                  <Fact label={t("pages.tools.runtime.threshold", { defaultValue: "Threshold" })} value={alert.threshold} />
+                  <Fact label={t("pages.tools.runtime.observed", { defaultValue: "Observed" })} value={alert.observed} />
+                  <Fact label={t("pages.tools.runtime.firstResponder", { defaultValue: "First responder" })} value={alert.firstResponderAction} />
+                  <Fact label={t("pages.tools.runtime.runbook", { defaultValue: "Runbook" })} value={<span className="font-mono">{alert.runbookSection || health.data?.runbookPath}</span>} />
                 </dl>
               ) : null}
             </CardContent>
@@ -437,23 +438,23 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
       {totalCount === 0 ? (
         <EmptyState
           icon={Server}
-          message="No apps running right now"
+          message={t("pages.tools.runtime.noAppsRunning", { defaultValue: "No apps running right now" })}
           description="Apps that run on this machine start automatically the first time an agent needs them. Apps that connect over the internet don't use a local process."
         />
       ) : (
         <Card className="py-0">
           <CardContent className="px-0 py-0">
             <div className="px-5 pb-1 pt-4">
-              <h3 className="text-base font-bold text-foreground">Running apps</h3>
-              <p className="text-xs text-muted-foreground">Click a row to see how the connection is wired up.</p>
+              <h3 className="text-base font-bold text-foreground">{t("pages.tools.runtime.runningApps", { defaultValue: "Running apps" })}</h3>
+              <p className="text-xs text-muted-foreground">{t("pages.tools.runtime.rowHint", { defaultValue: "Click a row to see how the connection is wired up." })}</p>
             </div>
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border text-left text-xs font-medium text-muted-foreground">
-                  <th className="px-5 py-2.5">App</th>
-                  <th className="px-3 py-2.5">Status</th>
-                  <th className="px-3 py-2.5">Last used</th>
-                  <th className="px-5 py-2.5 text-right">Actions</th>
+                  <th className="px-5 py-2.5">{t("pages.tools.runtime.app", { defaultValue: "App" })}</th>
+                  <th className="px-3 py-2.5">{t("pages.tools.runtime.status", { defaultValue: "Status" })}</th>
+                  <th className="px-3 py-2.5">{t("pages.tools.runtime.lastUsed", { defaultValue: "Last used" })}</th>
+                  <th className="px-5 py-2.5 text-right">{t("pages.tools.runtime.actions", { defaultValue: "Actions" })}</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -560,7 +561,7 @@ function RuntimeRowView({
               Restart
             </Button>
           ) : (
-            <span className="text-xs text-muted-foreground">Runs on the provider's side</span>
+            <span className="text-xs text-muted-foreground">{t("pages.tools.runtime.runsProviderSide", { defaultValue: "Runs on the provider's side" })}</span>
           )}
         </td>
       </tr>
@@ -568,12 +569,12 @@ function RuntimeRowView({
         <tr className="bg-muted/40">
           <td colSpan={4} className="px-5 py-4">
             <dl className="grid grid-cols-1 gap-x-8 gap-y-3 sm:grid-cols-3">
-              <Fact label="Slot key" value={<span className="font-mono text-xs">{slot.slotKey ?? slot.commandTemplateKey ?? slot.id}</span>} />
-              <Fact label="How it runs" value={howItRuns(slot)} />
-              <Fact label="Process ID" value={slot.processId ?? "—"} />
-              <Fact label="Scope" value={scopeLabel(slot.ownerScopeType)} />
-              <Fact label="Trust tier" value={trustTierLabel(slot)} />
-              <Fact label="Started" value={<RelativeTime value={slot.lastStartedAt ?? slot.startedAt} />} />
+              <Fact label={t("pages.tools.runtime.slotKey", { defaultValue: "Slot key" })} value={<span className="font-mono text-xs">{slot.slotKey ?? slot.commandTemplateKey ?? slot.id}</span>} />
+              <Fact label={t("pages.tools.runtime.howItRuns", { defaultValue: "How it runs" })} value={howItRuns(slot)} />
+              <Fact label={t("pages.tools.runtime.processId", { defaultValue: "Process ID" })} value={slot.processId ?? "—"} />
+              <Fact label={t("pages.tools.runtime.scope", { defaultValue: "Scope" })} value={scopeLabel(slot.ownerScopeType)} />
+              <Fact label={t("pages.tools.runtime.trustTier", { defaultValue: "Trust tier" })} value={trustTierLabel(slot)} />
+              <Fact label={t("pages.tools.runtime.started", { defaultValue: "Started" })} value={<RelativeTime value={slot.lastStartedAt ?? slot.startedAt} />} />
             </dl>
             {slot.lastError ? (
               <p className="mt-3 text-xs text-destructive">Last error: {slot.lastError}</p>
@@ -595,7 +596,7 @@ function RuntimeRowView({
                   This app runs on the provider's side — there's nothing to stop or restart here.
                 </p>
               ) : (
-                <p className="text-xs text-muted-foreground">This app is off. It will start again when an agent needs it.</p>
+                <p className="text-xs text-muted-foreground">{t("pages.tools.runtime.appOffHint", { defaultValue: "This app is off. It will start again when an agent needs it." })}</p>
               )}
             </div>
           </td>
@@ -622,7 +623,7 @@ function ConfirmDialog({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>
-            {isRestart ? "Restart" : "Stop"} {target?.name}?
+            {isRestart ? t("pages.tools.runtime.restart", { defaultValue: "Restart" }) : t("pages.tools.runtime.stop", { defaultValue: "Stop" })} {target?.name}?
           </DialogTitle>
         </DialogHeader>
         <div className="space-y-2 text-sm text-foreground">
@@ -632,7 +633,7 @@ function ConfirmDialog({
                 Anything in progress will stop. Agents using {target?.name} right now will see a Failed result on
                 their action.
               </p>
-              <p className="text-xs text-muted-foreground">Restart usually takes 2–3 seconds.</p>
+              <p className="text-xs text-muted-foreground">{t("pages.tools.runtime.restartHint", { defaultValue: "Restart usually takes 2–3 seconds." })}</p>
             </>
           ) : (
             <>
@@ -651,7 +652,7 @@ function ConfirmDialog({
           </Button>
           <Button onClick={onConfirm} disabled={pending}>
             {pending ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-            {isRestart ? "Restart" : "Stop"}
+            {isRestart ? t("pages.tools.runtime.restart", { defaultValue: "Restart" }) : t("pages.tools.runtime.stop", { defaultValue: "Stop" })}
           </Button>
         </DialogFooter>
       </DialogContent>
