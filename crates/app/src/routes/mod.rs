@@ -3,6 +3,7 @@
 use topcoat::router::path_param;
 
 pub mod activity;
+pub mod adapters;
 pub mod approvals;
 pub mod assets;
 pub mod auth;

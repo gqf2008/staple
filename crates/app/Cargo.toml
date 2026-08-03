@@ -6,6 +6,7 @@ edition.workspace = true
 license.workspace = true
 
 [dependencies]
+staple-adapters = { path = "../adapters" }
 staple-data = { path = "../data" }
 staple-domain = { path = "../domain" }
 http = "1"
