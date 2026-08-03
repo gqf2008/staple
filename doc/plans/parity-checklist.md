@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-03（routines #54、权限矩阵 #55、访问与运营 #56、插件生态 #57、agent runtime #62、决策桌 #63、managed checkout #64、Postgres 迁移源 #66、UI 完整功能 #65 完成）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成：#52–#57、#62–#66；UI 全页面 + i18n 全量 en/zh-CN/zh-TW）。
 
 ## 使用方式
 
@@ -43,6 +43,7 @@
 | **P2 扩展：插件生态** | 插件注册/配置/状态/实体/作业/日志/webhook、database namespaces + migration ledger、company settings、managed resources | ✅ 完成 | `plugins` + `plugin_runtime` 仓库（迁移 0014）；issue #57；注册→配置→运行→日志全链路测试 |
 | **P2 UI：看板** | 公司/项目/issue 列表 | ✅ 完成 | `ui/pages.rs` + 令牌层 |
 | **P2 UI：issue 详情** | 属性/评论/文档/附件/work products | ✅ 完成 | `ui/pages.rs` issue_detail |
+| **P2 UI：agents/inbox/决策桌/访问/成本/例行/密钥/技能/实例设置** | agents 列表/详情、收件箱、决策桌、公司访问（成员/邀请/加入申请/授权）、成本、例行任务、密钥、技能、实例设置（角色/board keys/CLI 挑战） | ✅ 完成 | `pages.rs` + `ui/routes.rs` 表单路由；issue #65；release smoke 覆盖全部新页面 |
 | **P2 UI：搜索/看板/设置** | 任务搜索、看板列 + 状态移动、设置页（公司/预算/密钥/技能） | ✅ 完成 | `pages.rs` board/search/settings + `ui/routes.rs` 表单；issue #65；release smoke 覆盖页面渲染 |
 | **P2 UI：审批流** | 发起/审批/拒绝 | ✅ 完成 | `ui/pages.rs` approvals + 表单路由 |
 | **P2 UI：审计视图** | 审计日志 | ✅ 完成 | `ui/pages.rs` activity |
@@ -54,7 +55,7 @@
 
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
-| **UI 国际化（i18n）** | 上游已合入 zh-CN/zh-TW 全量 sweep + 多语言 locale（`ui/src/i18n/locales/*.json`，约 2100 键）；Rust/Topcoat UI 已有 en + zh-CN 轻量 i18n 层（`crates/app/src/i18n.rs`，`?lang=` 切换，6 个看板页面全量接入，issue #50/PR #51） | ✅ 完成（zh-TW 与完整键集为后续增量） |
+| **UI 国际化（i18n）** | 上游 10172 键/语言 locale；Rust `crates/app/src/i18n.rs` 直接嵌入 en/zh-CN/zh-TW 全量键集（`crates/app/locales/*.json`），`?lang=` 三语切换，本地键 fallback | ✅ 完成（#50 + #65；上游其余 35 种语言可按需嵌入） |
 
 ## 参考镜像同步登记
 

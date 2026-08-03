@@ -42,6 +42,40 @@ pub struct AgentBudgetRecord {
     pub reports_to: Option<String>,
 }
 
+/// A full agent row (list/detail surface).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentRecord {
+    /// Agent id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Name.
+    pub name: String,
+    /// Role.
+    pub role: String,
+    /// Title.
+    pub title: Option<String>,
+    /// Icon.
+    pub icon: Option<String>,
+    /// Status.
+    pub status: String,
+    /// Manager agent id.
+    pub reports_to: Option<String>,
+    /// Adapter type.
+    pub adapter_type: String,
+    /// Monthly budget in cents.
+    pub budget_monthly_cents: i64,
+    /// Monthly spending in cents.
+    pub spent_monthly_cents: i64,
+    /// Pause reason.
+    pub pause_reason: Option<String>,
+    /// ISO 8601 last heartbeat.
+    pub last_heartbeat_at: Option<String>,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
 /// Agent repository errors.
 #[derive(Debug, Error)]
 pub enum AgentError {
@@ -75,6 +109,37 @@ pub trait AgentRepository: Send + Sync {
     ///
     /// Returns [`AgentError`] on database failure.
     async fn company_of(&self, agent_id: &str) -> Result<Option<String>, AgentError>;
+
+    /// Lists agents for a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AgentError`] on database failure.
+    async fn list(&self, company_id: &str) -> Result<Vec<AgentRecord>, AgentError>;
+
+    /// Gets one agent (company-scoped).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AgentError`] on database failure.
+    async fn get(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+    ) -> Result<Option<AgentRecord>, AgentError>;
+
+    /// Updates an agent's status and pause reason.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AgentError`] on database failure.
+    async fn update_status(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+        status: &str,
+        pause_reason: Option<Option<String>>,
+    ) -> Result<Option<AgentRecord>, AgentError>;
 
     /// Sets an agent's monthly budget (company-scoped).
     ///
@@ -142,6 +207,91 @@ impl AgentRepository for TursoAgentRepository {
         Ok(helpers::row_company(&conn, "agents", agent_id).await?)
     }
 
+    async fn list(&self, company_id: &str) -> Result<Vec<AgentRecord>, AgentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, name, role, title, icon, status, reports_to,
+                        adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
+                        last_heartbeat_at, created_at
+                 FROM agents WHERE company_id = ?1 ORDER BY name",
+                libsql::params![company_id],
+            )
+            .await?;
+        let mut agents = Vec::new();
+        while let Some(row) = rows.next().await? {
+            agents.push(row_to_agent(&row)?);
+        }
+        Ok(agents)
+    }
+
+    async fn get(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+    ) -> Result<Option<AgentRecord>, AgentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, name, role, title, icon, status, reports_to,
+                        adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
+                        last_heartbeat_at, created_at
+                 FROM agents WHERE company_id = ?1 AND id = ?2",
+                libsql::params![company_id, agent_id],
+            )
+            .await?;
+        match rows.next().await? {
+            Some(row) => Ok(Some(row_to_agent(&row)?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn update_status(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+        status: &str,
+        pause_reason: Option<Option<String>>,
+    ) -> Result<Option<AgentRecord>, AgentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut values: Vec<libsql::Value> = Vec::new();
+        values.push(libsql::Value::from(status));
+        let mut sets = vec!["status = ?1".to_owned()];
+        if let Some(reason) = pause_reason {
+            sets.push("pause_reason = ?2".to_owned());
+            values.push(
+                reason
+                    .map(libsql::Value::from)
+                    .unwrap_or(libsql::Value::Null),
+            );
+        }
+        sets.push("paused_at = CASE WHEN ?1 IN ('paused', 'terminated') THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE NULL END".to_owned());
+        sets.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')".to_owned());
+        let company_param = values.len() + 1;
+        let id_param = values.len() + 2;
+        values.push(libsql::Value::from(company_id.to_owned()));
+        values.push(libsql::Value::from(agent_id.to_owned()));
+        let sql = format!(
+            "UPDATE agents SET {} WHERE company_id = ?{company_param} AND id = ?{id_param}",
+            sets.join(", ")
+        );
+        let updated = conn.execute(&sql, values).await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, name, role, title, icon, status, reports_to,
+                        adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
+                        last_heartbeat_at, created_at
+                 FROM agents WHERE company_id = ?1 AND id = ?2",
+                libsql::params![company_id, agent_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("agent exists");
+        Ok(Some(row_to_agent(&row)?))
+    }
+
     async fn set_budget(
         &self,
         company_id: &str,
@@ -175,6 +325,25 @@ impl AgentRepository for TursoAgentRepository {
         let row = rows.next().await?.expect("agent was just updated");
         Ok(Some(row_to_budget(&row)?))
     }
+}
+
+fn row_to_agent(row: &libsql::Row) -> Result<AgentRecord, libsql::Error> {
+    Ok(AgentRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        name: helpers::row_text(row, 2)?.expect("name"),
+        role: helpers::row_text(row, 3)?.expect("role"),
+        title: helpers::row_text(row, 4)?,
+        icon: helpers::row_text(row, 5)?,
+        status: helpers::row_text(row, 6)?.expect("status"),
+        reports_to: helpers::row_text(row, 7)?,
+        adapter_type: helpers::row_text(row, 8)?.expect("adapter_type"),
+        budget_monthly_cents: helpers::row_i64(row, 9)?,
+        spent_monthly_cents: helpers::row_i64(row, 10)?,
+        pause_reason: helpers::row_text(row, 11)?,
+        last_heartbeat_at: helpers::row_text(row, 12)?,
+        created_at: helpers::row_text(row, 13)?.expect("created_at"),
+    })
 }
 
 #[cfg(test)]
@@ -239,5 +408,33 @@ mod tests {
         assert!(repo.set_budget("c1", "missing", 1).await.unwrap().is_none());
         let err = repo.set_budget("c2", "a1", 1).await.unwrap_err();
         assert!(matches!(err, AgentError::CompanyNotFound));
+    }
+
+    #[tokio::test]
+    async fn list_get_update_status() {
+        let (_dir, repo) = repo().await;
+        let agents = repo.list("c1").await.unwrap();
+        assert_eq!(agents.len(), 3);
+        let leaf = repo.get("c1", "a3").await.unwrap().unwrap();
+        assert_eq!(leaf.name, "Leaf");
+
+        let paused = repo
+            .update_status("c1", "a3", "paused", Some(Some("budget".to_owned())))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(paused.status, "paused");
+        assert_eq!(paused.pause_reason.as_deref(), Some("budget"));
+
+        let resumed = repo
+            .update_status("c1", "a3", "active", Some(None))
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(resumed.status, "active");
+        assert!(resumed.pause_reason.is_none());
+
+        // Cross-company get is not found.
+        assert!(repo.get("c2", "a1").await.unwrap().is_none());
     }
 }

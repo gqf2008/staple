@@ -329,6 +329,15 @@ async fn core_business_flow_smoke() {
             "Core task",
         ),
         (format!("/companies/{company_id}/settings"), "settings"),
+        (format!("/companies/{company_id}/agents"), "Agents"),
+        (format!("/companies/{company_id}/inbox"), "Inbox"),
+        (format!("/companies/{company_id}/decision-desk"), "Decision"),
+        (format!("/companies/{company_id}/access"), "Access"),
+        (format!("/companies/{company_id}/costs"), "Costs"),
+        (format!("/companies/{company_id}/routines"), "Routines"),
+        (format!("/companies/{company_id}/secrets"), "Secrets"),
+        (format!("/companies/{company_id}/skills"), "Skills"),
+        ("/instance/settings".to_string(), "Instance"),
     ] {
         let request = Request::builder()
             .method(Method::GET)

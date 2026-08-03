@@ -17,7 +17,7 @@ pub use migrations::{
 pub use repositories::helpers::sha256_hex;
 pub use repositories::{
     ActivityEntry, ActivityError, ActivityRepository, AgentApiKeyRecord, AgentBudgetRecord,
-    AgentCostRow, AgentError, AgentHierarchyRow, AgentPrincipal, AgentRepository,
+    AgentCostRow, AgentError, AgentHierarchyRow, AgentPrincipal, AgentRecord, AgentRepository,
     AgentRuntimeError, AgentRuntimeRepository, AgentRuntimeStateRecord, AgentTaskSessionRecord,
     AgentWakeupRequestRecord, ApiKeyError, ApiKeyRepository, ApprovalDecision, ApprovalError,
     ApprovalRecord, ApprovalRepository, AssetError, AssetRecord, AssetRepository,
