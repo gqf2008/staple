@@ -7,11 +7,13 @@ use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
     SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
-    TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoPermissionGrantRepository,
+    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPreferenceRepository,
     TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
 };
@@ -27,6 +29,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let companies_db = open(&db_config).await?;
     let agents_db = open(&db_config).await?;
     let permission_grants_db = open(&db_config).await?;
+    let memberships_db = open(&db_config).await?;
+    let invites_db = open(&db_config).await?;
+    let board_keys_db = open(&db_config).await?;
+    let budget_policies_db = open(&db_config).await?;
+    let preferences_db = open(&db_config).await?;
     let goals_db = open(&db_config).await?;
     let projects_db = open(&db_config).await?;
     let issues_db = open(&db_config).await?;
@@ -56,6 +63,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(agents_db)),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
+        memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
+        invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
+        budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
+        preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
         issues: Arc::new(TursoIssueRepository::new(issues_db)),

@@ -11,11 +11,13 @@ use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
-    TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoPermissionGrantRepository,
+    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPreferenceRepository,
     TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
@@ -37,6 +39,21 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let permission_grants_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let memberships_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let invites_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let board_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let budget_policies_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let preferences_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let goals_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -114,6 +131,11 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(agents_db)),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
+        memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
+        invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
+        budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
+        preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
         issues: Arc::new(TursoIssueRepository::new(issues_db)),
@@ -3353,4 +3375,327 @@ async fn permission_grants_scoped_assignment_inbox_and_budget() {
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn access_and_operations_full_flow() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'One', 'worker', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO assets (id, company_id, provider, object_key, content_type, byte_size, sha256)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'local', 'logo.png', 'image/png', 100, 'abc')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Memberships -----------------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/memberships",
+        json!({ "principalType": "agent", "principalId": "11111111-1111-1111-1111-111111111111", "membershipRole": "operator" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let membership_id = body["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/memberships",
+        json!({ "principalType": "agent", "principalId": "99999999-9999-9999-9999-999999999999" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    let (status, memberships) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/memberships",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(memberships.as_array().unwrap().len(), 1);
+
+    let (status, body) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/memberships/{membership_id}"),
+        json!({ "status": "inactive", "membershipRole": null }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "inactive");
+
+    // Instance roles ---------------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/instance/user-roles",
+        json!({ "userId": "u-board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let role_id = body["id"].as_str().unwrap().to_owned();
+    let (status, roles) = send_json(&app, Method::GET, "/api/instance/user-roles", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(roles.as_array().unwrap().len(), 1);
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/instance/user-roles/{role_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    // Invites + join requests ------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/invites",
+        json!({ "allowedJoinTypes": "both" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let invite_id = body["invite"]["id"].as_str().unwrap().to_owned();
+    let token = body["token"].as_str().unwrap().to_owned();
+    assert!(token.starts_with("inv-"));
+
+    // Board API key (authenticates as board) --------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/board-api-keys",
+        json!({ "userId": "u-board", "name": "ci" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let board_key = body["plaintext"].as_str().unwrap().to_owned();
+    assert!(board_key.starts_with("bk-"));
+    let board_key_id = body["key"]["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c1/issues",
+        None,
+        Some(&board_key),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/invites",
+        Some(r#"{"allowedJoinTypes":"human"}"#),
+        Some(&board_key),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // Revoked board key -> 401.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/board-api-keys/{board_key_id}/revoke"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c1/issues",
+        None,
+        Some(&board_key),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+
+    // CLI auth challenge -----------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/cli-auth-challenges",
+        json!({ "command": "paperclip login", "pendingKeyName": "cli-session" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let challenge_id = body["challenge"]["id"].as_str().unwrap().to_owned();
+    let secret = body["secret"].as_str().unwrap().to_owned();
+    assert!(secret.starts_with("chal-"));
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cli-auth-challenges/{challenge_id}/approve"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body["boardApiKeyId"].is_string());
+    // Challenge is single-use.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cli-auth-challenges/{challenge_id}/approve"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Join request via invite + approve creates agent -----------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/invites/{invite_id}/join-requests"),
+        json!({
+            "requestType": "agent",
+            "agentName": "Helper",
+            "adapterType": "cli",
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let join_request_id = body["joinRequest"]["id"].as_str().unwrap().to_owned();
+    assert!(body["claimSecret"].is_string());
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/join-requests/{join_request_id}/approve"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "approved");
+    assert!(body["createdAgentId"].is_string());
+
+    // Budget policies + incidents --------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/budget-policies",
+        json!({
+            "scopeType": "company",
+            "scopeId": "c1",
+            "windowKind": "calendar_month_utc",
+            "amount": 100000,
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let policy_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/budget-incidents",
+        json!({
+            "policyId": policy_id,
+            "scopeType": "company",
+            "scopeId": "c1",
+            "windowKind": "calendar_month_utc",
+            "windowStart": "2026-08-01T00:00:00.000Z",
+            "windowEnd": "2026-08-31T23:59:59.999Z",
+            "thresholdType": "hard_stop",
+            "amountLimit": 100000,
+            "amountObserved": 110000,
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let incident_id = body["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/budget-incidents/{incident_id}/resolve"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, incidents) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/budget-incidents",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(incidents.as_array().unwrap()[0]["status"], "resolved");
+
+    // Sidebar preferences -----------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        "/api/companies/c1/sidebar-preferences",
+        json!({ "userId": "u1", "projectOrder": ["p2", "p1"] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/sidebar-preferences?userId=u1",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["projectOrder"][0], "p2");
+
+    // Company logo ------------------------------------------------------------
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        "/api/companies/c1/logo",
+        json!({ "assetId": "22222222-2222-2222-2222-222222222222" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["assetId"], "22222222-2222-2222-2222-222222222222");
+    let (status, _) = send_json(&app, Method::GET, "/api/companies/c1/logo", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(&app, Method::DELETE, "/api/companies/c1/logo", json!({})).await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send_json(&app, Method::GET, "/api/companies/c1/logo", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Cleanup: delete membership + revoke invite (cross-company 404) ---------
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/c1/memberships/{membership_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/c1/invites/{invite_id}/revoke"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        "/api/companies/c2/memberships/does-not-exist",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

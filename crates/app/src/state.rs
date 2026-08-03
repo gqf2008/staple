@@ -4,11 +4,13 @@ use std::sync::Arc;
 
 use staple_data::{
     ActivityRepository, AgentRepository, ApiKeyRepository, ApprovalRepository, AssetRepository,
-    CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
-    EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
-    IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
-    LabelRepository, PermissionGrantRepository, ProjectRepository, RoutineRepository,
-    SecretRepository, SkillRepository, WorkProductRepository, WorkspaceRepository,
+    BoardKeyRepository, BudgetPolicyRepository, CompanyRepository, CostRepository,
+    DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectRepository,
+    GoalRepository, HeartbeatRepository, InviteRepository, IssueCommentRepository,
+    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
+    MembershipRepository, PermissionGrantRepository, PreferenceRepository, ProjectRepository,
+    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -23,6 +25,16 @@ pub struct AppState {
     pub agents: Arc<dyn AgentRepository>,
     /// Principal permission grants repository.
     pub permission_grants: Arc<dyn PermissionGrantRepository>,
+    /// Company memberships / instance roles repository.
+    pub memberships: Arc<dyn MembershipRepository>,
+    /// Invites / join requests repository.
+    pub invites: Arc<dyn InviteRepository>,
+    /// Board API keys / CLI auth challenges repository.
+    pub board_keys: Arc<dyn BoardKeyRepository>,
+    /// Budget policies / incidents repository.
+    pub budget_policies: Arc<dyn BudgetPolicyRepository>,
+    /// Sidebar preferences / company logos repository.
+    pub preferences: Arc<dyn PreferenceRepository>,
     /// Goals repository.
     pub goals: Arc<dyn GoalRepository>,
     /// Projects repository.

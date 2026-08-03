@@ -49,11 +49,22 @@ pub async fn request_log(cx: &mut CxBuilder, body: Body, next: Next<'_>) -> Resu
     match bearer {
         Some(plaintext) => {
             let state = topcoat::context::app_context::<AppState>(cx);
-            match state.api_keys.authenticate(plaintext).await {
-                Ok(agent) => {
-                    cx.insert(Principal::Agent(agent));
+            let authenticated = if plaintext.starts_with("bk-") {
+                match state.board_keys.authenticate(plaintext).await {
+                    Ok(key) => Some(Principal::BoardKey(key)),
+                    Err(_) => None,
                 }
-                Err(_) => {
+            } else {
+                match state.api_keys.authenticate(plaintext).await {
+                    Ok(agent) => Some(Principal::Agent(agent)),
+                    Err(_) => None,
+                }
+            };
+            match authenticated {
+                Some(principal) => {
+                    cx.insert(principal);
+                }
+                None => {
                     let response = crate::error::ApiError::unauthorized("Invalid API key")
                         .into_json_response();
                     return Ok(response);

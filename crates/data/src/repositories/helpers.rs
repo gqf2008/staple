@@ -103,3 +103,12 @@ pub async fn execute_update(
     );
     conn.execute(&sql, values).await
 }
+
+/// SHA-256 hex digest of `input` (used for invite tokens, board keys, and
+/// CLI challenge secrets).
+#[must_use]
+pub fn sha256_hex(input: &str) -> String {
+    use sha2::{Digest, Sha256};
+    let digest = Sha256::digest(input.as_bytes());
+    digest.iter().map(|byte| format!("{byte:02x}")).collect()
+}

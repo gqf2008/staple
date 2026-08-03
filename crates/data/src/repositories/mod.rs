@@ -9,6 +9,8 @@ pub mod agents;
 pub mod api_keys;
 pub mod approvals;
 pub mod assets;
+pub mod board_keys;
+pub mod budget_policies;
 pub mod companies;
 pub mod costs;
 pub mod decision_desk;
@@ -17,13 +19,16 @@ pub mod environments;
 pub mod external_objects;
 pub mod goals;
 pub mod heartbeat_runs;
-mod helpers;
+pub mod helpers;
+pub mod invites;
 pub mod issue_comments;
 pub mod issue_relations;
 pub mod issue_structure;
 pub mod issues;
 pub mod labels;
+pub mod memberships;
 pub mod permission_grants;
+pub mod preferences;
 pub mod projects;
 pub mod routines;
 pub mod secrets;
@@ -48,6 +53,14 @@ pub use approvals::{
 pub use assets::{
     AssetError, AssetRecord, AssetRepository, IssueAttachmentRecord, NewAsset, NewIssueAttachment,
     TursoAssetRepository,
+};
+pub use board_keys::{
+    BoardApiKeyRecord, BoardKeyError, BoardKeyRepository, CliAuthChallengeRecord, NewBoardApiKey,
+    NewCliAuthChallenge, TursoBoardKeyRepository,
+};
+pub use budget_policies::{
+    BudgetIncidentRecord, BudgetPolicyError, BudgetPolicyRecord, BudgetPolicyRepository,
+    NewBudgetIncident, NewBudgetPolicy, TursoBudgetPolicyRepository,
 };
 pub use companies::{
     CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,
@@ -77,6 +90,10 @@ pub use heartbeat_runs::{
     CompleteHeartbeatRun, HeartbeatError, HeartbeatRepository, HeartbeatRunRecord, NewHeartbeatRun,
     TursoHeartbeatRepository,
 };
+pub use invites::{
+    InviteError, InviteRecord, InviteRepository, JoinRequestRecord, NewInvite, NewJoinRequest,
+    TursoInviteRepository,
+};
 pub use issue_comments::{
     IssueCommentError, IssueCommentRecord, IssueCommentRepository, NewIssueComment,
     TursoIssueCommentRepository,
@@ -97,9 +114,17 @@ pub use issues::{
 pub use labels::{
     IssueLabelRecord, LabelError, LabelRecord, LabelRepository, NewLabel, TursoLabelRepository,
 };
+pub use memberships::{
+    CompanyMembershipRecord, InstanceUserRoleRecord, MembershipError, MembershipRepository,
+    NewCompanyMembership, NewInstanceUserRole, TursoMembershipRepository,
+};
 pub use permission_grants::{
     NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,
     TursoPermissionGrantRepository,
+};
+pub use preferences::{
+    CompanyLogoRecord, PreferenceError, PreferenceRepository, SidebarPreferenceRecord,
+    TursoPreferenceRepository,
 };
 pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,

@@ -1,0 +1,10 @@
+DROP TABLE IF EXISTS company_logos;
+DROP TABLE IF EXISTS company_user_sidebar_preferences;
+DROP TABLE IF EXISTS budget_incidents;
+DROP TABLE IF EXISTS budget_policies;
+DROP TABLE IF EXISTS cli_auth_challenges;
+DROP TABLE IF EXISTS board_api_keys;
+DROP TABLE IF EXISTS join_requests;
+DROP TABLE IF EXISTS invites;
+DROP TABLE IF EXISTS instance_user_roles;
+DROP TABLE IF EXISTS company_memberships;
