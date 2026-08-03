@@ -40,6 +40,12 @@ pub async fn request_log(cx: &mut CxBuilder, body: Body, next: Next<'_>) -> Resu
             if error.downcast_ref::<RedirectError>().is_some() {
                 return Err(error);
             }
+            // Application errors carry their own JSON rendering.
+            if let Some(api_error) = error.downcast_ref::<crate::error::ApiError>() {
+                let status = api_error.status;
+                log(status, &method, &path, start);
+                return Ok(api_error.into_json_response());
+            }
             let status = error_status(&error);
             log(status, &method, &path, start);
             return Ok(json_response(status, &error_message(status, &error)));

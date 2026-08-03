@@ -203,8 +203,9 @@ async fn migrate_down_rolls_back_and_can_reapply() {
         .unwrap();
     migrate(&db).await.unwrap();
 
+    let migration_count = load_migrations("migrations").unwrap().len();
     let rolled_back = migrate_down(&db, 0).await.unwrap();
-    assert_eq!(rolled_back.len(), 1);
+    assert_eq!(rolled_back.len(), migration_count);
 
     let conn = connect_conn(&db).await;
     let names = table_names(&conn).await;
@@ -212,7 +213,7 @@ async fn migrate_down_rolls_back_and_can_reapply() {
 
     // Reapply: up must work again from a clean slate.
     let applied = migrate(&db).await.unwrap();
-    assert_eq!(applied.len(), 1);
+    assert_eq!(applied.len(), migration_count);
 }
 
 #[tokio::test]

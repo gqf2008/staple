@@ -1,4 +1,4 @@
-//! API routes.
+//! Health check route.
 
 use serde::Serialize;
 use topcoat::{

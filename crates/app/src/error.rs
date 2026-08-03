@@ -12,9 +12,10 @@ use topcoat::{
 };
 
 /// An API error with an HTTP status code and a JSON body.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ApiError {
-    status: StatusCode,
+    /// HTTP status code.
+    pub(crate) status: StatusCode,
     message: String,
     details: Option<Value>,
 }
@@ -77,10 +78,10 @@ impl ApiError {
     }
 
     /// Renders the error as `{"error": "...", "details": ...}`.
-    pub fn into_json_response(self) -> Response {
-        let mut body = json!({ "error": self.message });
-        if let Some(details) = self.details {
-            body["details"] = details;
+    pub fn into_json_response(&self) -> Response {
+        let mut body = json!({ "error": self.message.clone() });
+        if let Some(details) = &self.details {
+            body["details"] = details.clone();
         }
         let bytes = serde_json::to_vec(&body).expect("JSON serialization cannot fail");
         Response::builder()
@@ -88,6 +89,20 @@ impl ApiError {
             .header("Content-Type", "application/json")
             .body(Body::from(bytes))
             .expect("valid response construction")
+    }
+}
+
+impl std::fmt::Display for ApiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.message)
+    }
+}
+
+impl std::error::Error for ApiError {}
+
+impl From<topcoat::router::error::BadRequestError> for ApiError {
+    fn from(_: topcoat::router::error::BadRequestError) -> Self {
+        Self::bad_request("Invalid company id")
     }
 }
 
