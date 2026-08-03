@@ -96,6 +96,85 @@ pub async fn export(source: &str) -> Result<Snapshot> {
     Ok(snapshot)
 }
 
+/// Exports all tables from a Postgres database into the same snapshot shape
+/// as [`export`] (row-level, FK-safe order). Runs on a blocking thread.
+pub async fn export_postgres(source: &str) -> Result<Snapshot> {
+    let url = source.to_owned();
+    tokio::task::spawn_blocking(move || -> Result<Snapshot> {
+        let mut client =
+            postgres::Client::connect(&url, postgres::NoTls).context("connecting to Postgres")?;
+        let mut snapshot = Snapshot::new();
+        for table in TABLE_ORDER {
+            let rows = client
+                .query(&format!("SELECT * FROM {table} ORDER BY id"), &[])
+                .with_context(|| format!("selecting from {table}"))?;
+            let mut table_rows = Vec::new();
+            for row in &rows {
+                let mut map = Map::new();
+                for (idx, column) in row.columns().iter().enumerate() {
+                    map.insert(
+                        column.name().to_owned(),
+                        pg_row_value(row, idx, column.type_().name()),
+                    );
+                }
+                table_rows.push(map);
+            }
+            snapshot.insert((*table).to_owned(), table_rows);
+        }
+        Ok(snapshot)
+    })
+    .await
+    .context("Postgres export task panicked")?
+}
+
+/// Converts one Postgres cell into the snapshot JSON representation.
+fn pg_row_value(row: &postgres::Row, idx: usize, type_name: &str) -> Value {
+    match type_name {
+        "bool" => match row.try_get::<_, bool>(idx) {
+            Ok(value) => Value::Bool(value),
+            Err(_) => Value::Null,
+        },
+        "int2" | "int4" | "int8" | "oid" => match row.try_get::<_, i64>(idx) {
+            Ok(value) => Value::Number(value.into()),
+            Err(_) => Value::Null,
+        },
+        "float4" | "float8" => match row.try_get::<_, f64>(idx) {
+            Ok(value) => serde_json::Number::from_f64(value)
+                .map(Value::Number)
+                .unwrap_or(Value::Null),
+            Err(_) => Value::Null,
+        },
+        "numeric" => match row.try_get::<_, String>(idx) {
+            Ok(value) => Value::String(value),
+            Err(_) => match row.try_get::<_, f64>(idx) {
+                Ok(value) => serde_json::Number::from_f64(value)
+                    .map(Value::Number)
+                    .unwrap_or(Value::Null),
+                Err(_) => Value::Null,
+            },
+        },
+        "json" | "jsonb" => match row.try_get::<_, serde_json::Value>(idx) {
+            Ok(value) => value,
+            Err(_) => match row.try_get::<_, String>(idx) {
+                Ok(value) => Value::String(value),
+                Err(_) => Value::Null,
+            },
+        },
+        "bytea" => match row.try_get::<_, Vec<u8>>(idx) {
+            Ok(value) => Value::String(String::from_utf8_lossy(&value).into_owned()),
+            Err(_) => Value::Null,
+        },
+        "uuid" => match row.try_get::<_, uuid::Uuid>(idx) {
+            Ok(value) => Value::String(value.to_string()),
+            Err(_) => Value::Null,
+        },
+        _ => match row.try_get::<_, String>(idx) {
+            Ok(value) => Value::String(value),
+            Err(_) => Value::Null,
+        },
+    }
+}
+
 /// Imports a snapshot into a Turso database, running migrations first.
 pub async fn import(target: &str, snapshot: &Snapshot) -> Result<HashMap<String, usize>> {
     let db = open_local(target).await?;
@@ -112,9 +191,36 @@ pub async fn import(target: &str, snapshot: &Snapshot) -> Result<HashMap<String,
 
     let mut counts = HashMap::new();
     for table in TABLE_ORDER {
+        // Only insert columns the target schema actually defines; snapshot
+        // columns that are schema drift are skipped so a richer source (for
+        // example Postgres with newer upstream columns) can still import.
+        // Column info: name -> (notnull, has_default). Used to skip NULL
+        // values for columns the target schema can default itself.
+        let mut target_columns = std::collections::HashMap::<String, (bool, bool)>::new();
+        let mut info = conn
+            .query(&format!("PRAGMA table_info({table})"), ())
+            .await?;
+        while let Some(row) = info.next().await? {
+            let notnull: bool = row.get::<i64>(3)? != 0;
+            let dflt: Option<String> = row.get(4)?;
+            target_columns.insert(row.get::<String>(1)?, (notnull, dflt.is_some()));
+        }
         let rows = snapshot.get(*table).cloned().unwrap_or_default();
         for row in &rows {
-            let columns: Vec<&String> = row.keys().collect();
+            let columns: Vec<&String> = row
+                .keys()
+                .filter(|column| {
+                    target_columns
+                        .get(column.as_str())
+                        .map(|(notnull, has_default)| {
+                            // Keep the column unless it is NULL and the target
+                            // schema can supply its own default.
+                            let is_null = row.get(*column).is_none() || row[*column].is_null();
+                            !(is_null && (*has_default || *notnull))
+                        })
+                        .unwrap_or(false)
+                })
+                .collect();
             let placeholders: Vec<String> = (1..=columns.len()).map(|i| format!("?{i}")).collect();
             let sql = format!(
                 "INSERT INTO {table} ({}) VALUES ({})",
