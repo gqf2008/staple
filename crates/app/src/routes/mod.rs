@@ -8,6 +8,7 @@ pub mod companies;
 pub mod documents;
 pub mod goals;
 pub mod health;
+pub mod heartbeat;
 pub mod issues;
 pub mod projects;
 pub mod relations;

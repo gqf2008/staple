@@ -106,6 +106,10 @@ pub async fn open(config: &DbConfig) -> Result<Database, DataError> {
 /// cannot be applied.
 pub async fn connect(db: &Database) -> Result<Connection, DataError> {
     let conn = db.connect()?;
+    // SQLite returns SQLITE_BUSY immediately by default when another
+    // connection holds a conflicting lock; wait briefly instead so concurrent
+    // heartbeat transactions serialize cleanly.
+    conn.busy_timeout(std::time::Duration::from_secs(5))?;
     conn.execute("PRAGMA foreign_keys = ON", ()).await?;
     Ok(conn)
 }

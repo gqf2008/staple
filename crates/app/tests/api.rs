@@ -10,13 +10,21 @@ use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, TursoAssetRepository, TursoCompanyRepository, TursoDocumentRepository,
-    TursoGoalRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, TursoWorkProductRepository, migrate, open,
+    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
+    TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
 async fn test_state() -> AppState {
+    test_state_with_db().await.0
+}
+
+async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let dir = tempfile::tempdir().unwrap();
+    let seed_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     let companies_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
@@ -44,11 +52,14 @@ async fn test_state() -> AppState {
     let work_products_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let heartbeat_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
     std::mem::forget(dir);
-    AppState {
+    let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
@@ -59,7 +70,9 @@ async fn test_state() -> AppState {
         relations: Arc::new(TursoIssueRelationRepository::new(relations_db)),
         storage: LocalStorage::new(uploads),
         work_products: Arc::new(TursoWorkProductRepository::new(work_products_db)),
-    }
+        heartbeat: Arc::new(TursoHeartbeatRepository::new(heartbeat_db)),
+    };
+    (state, seed_db)
 }
 
 async fn send(
@@ -1115,4 +1128,252 @@ async fn work_product_validation_failure_returns_422() {
     .await;
     assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
     assert_eq!(body["error"], "Validation error");
+}
+
+#[tokio::test]
+async fn heartbeat_run_lifecycle_and_lock() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier, status)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'T', 1, 'ALPHA-1', 'in_progress')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Start -> 201, running.
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "invocationSource": "manual", "issueId": "22222222-2222-2222-2222-222222222222" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(run["status"], "running");
+    let run_id = run["id"].as_str().unwrap().to_owned();
+
+    // Concurrent start on the same issue -> 409.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "invocationSource": "manual", "issueId": "22222222-2222-2222-2222-222222222222" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+    assert!(
+        body["error"]
+            .as_str()
+            .unwrap()
+            .contains("already checked out")
+    );
+
+    // Observe.
+    let (status, observed) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/heartbeat-runs/{run_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(observed["status"], "running");
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/heartbeat-runs",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Complete -> releases the lock, another run can start.
+    let (status, completed) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/complete"),
+        json!({ "status": "succeeded" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(completed["status"], "succeeded");
+
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "invocationSource": "manual", "issueId": "22222222-2222-2222-2222-222222222222" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+}
+
+#[tokio::test]
+async fn heartbeat_failure_attribution_and_cancel() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Infrastructure failure attribution.
+    let (_, run) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "invocationSource": "manual" }),
+    )
+    .await;
+    let run_id = run["id"].as_str().unwrap().to_owned();
+    let (status, completed) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/complete"),
+        json!({ "status": "failed", "error": "clone failed", "errorKind": "infrastructure" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(completed["errorKind"], "infrastructure");
+    assert_eq!(completed["error"], "clone failed");
+
+    // Cancel.
+    let (_, run) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "invocationSource": "manual" }),
+    )
+    .await;
+    let run_id = run["id"].as_str().unwrap().to_owned();
+    let (status, cancelled) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/cancel"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(cancelled["status"], "cancelled");
+
+    // Invalid completion status -> 422.
+    let (_, run) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111" }),
+    )
+    .await;
+    let run_id = run["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/complete"),
+        json!({ "status": "bogus" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[tokio::test]
+async fn watchdog_authorization_via_api() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'root', 1, 'ALPHA-1'),
+                ('33333333-3333-3333-3333-333333333333', 'c1', 'child', 2, 'ALPHA-2'),
+                ('44444444-4444-4444-4444-444444444444', 'c1', 'outside', 3, 'ALPHA-3')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "UPDATE issues SET parent_id = '22222222-2222-2222-2222-222222222222' WHERE id = '33333333-3333-3333-3333-333333333333'",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Watchdog run scoped to i1.
+    let (_, run) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/heartbeat-runs",
+        json!({
+            "agentId": "11111111-1111-1111-1111-111111111111",
+            "invocationSource": "scheduler",
+            "contextSnapshot": { "kind": "task_watchdog", "watchedIssueId": "22222222-2222-2222-2222-222222222222" }
+        }),
+    )
+    .await;
+    let run_id = run["id"].as_str().unwrap().to_owned();
+
+    // Child in subtree -> allowed.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/watchdog-actions"),
+        json!({ "issueId": "33333333-3333-3333-3333-333333333333", "action": "update_status" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["allowed"], true);
+
+    // Outside the subtree -> 403.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/heartbeat-runs/{run_id}/watchdog-actions"),
+        json!({ "issueId": "44444444-4444-4444-4444-444444444444", "action": "update_status" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert!(body["error"].as_str().unwrap().contains("not authorized"));
 }
