@@ -4,9 +4,10 @@ use std::sync::Arc;
 
 use staple_data::{
     ActivityRepository, ApiKeyRepository, ApprovalRepository, AssetRepository, CompanyRepository,
-    CostRepository, DecisionRepository, DocumentRepository, ExternalObjectRepository,
-    GoalRepository, HeartbeatRepository, IssueCommentRepository, IssueRelationRepository,
-    IssueRepository, ProjectRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    CostRepository, DecisionRepository, DocumentRepository, EnvironmentRepository,
+    ExternalObjectRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
+    IssueRelationRepository, IssueRepository, ProjectRepository, SecretRepository, SkillRepository,
+    WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -53,6 +54,10 @@ pub struct AppState {
     pub external_objects: Arc<dyn ExternalObjectRepository>,
     /// Skills repository.
     pub skills: Arc<dyn SkillRepository>,
+    /// Environments repository.
+    pub environments: Arc<dyn EnvironmentRepository>,
+    /// Workspaces repository.
+    pub workspaces: Arc<dyn WorkspaceRepository>,
     /// Adapter registry.
     pub adapters: Arc<AdapterRegistry>,
     /// Plugin load diagnostics.

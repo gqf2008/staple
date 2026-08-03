@@ -12,6 +12,7 @@ pub mod companies;
 pub mod costs;
 pub mod decision_desk;
 pub mod documents;
+pub mod environments;
 pub mod external_objects;
 pub mod goals;
 pub mod heartbeat_runs;
@@ -23,6 +24,7 @@ pub mod projects;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
+pub mod workspaces;
 
 pub use activity::{
     ActivityEntry, ActivityError, ActivityRepository, NewActivity, TursoActivityRepository,
@@ -53,6 +55,10 @@ pub use decision_desk::{
 pub use documents::{
     DocumentError, DocumentRecord, DocumentRepository, NewIssueDocument, TursoDocumentRepository,
     UpdateIssueDocument,
+};
+pub use environments::{
+    EnvironmentError, EnvironmentRecord, EnvironmentRepository, NewEnvironment,
+    TursoEnvironmentRepository,
 };
 pub use external_objects::{
     ExternalObjectError, ExternalObjectRecord, ExternalObjectRepository, NewExternalObject,
@@ -87,4 +93,9 @@ pub use skills::{NewSkill, SkillError, SkillRecord, SkillRepository, TursoSkillR
 pub use work_products::{
     NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
     WorkProductRecord, WorkProductRepository,
+};
+pub use workspaces::{
+    ExecutionWorkspaceRecord, NewExecutionWorkspace, NewProjectWorkspace, NewRuntimeService,
+    NewWorkspaceOperation, ProjectWorkspaceRecord, RuntimeServiceRecord, TursoWorkspaceRepository,
+    WorkspaceError, WorkspaceOperationRecord, WorkspaceRepository,
 };

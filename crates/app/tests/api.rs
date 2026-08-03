@@ -12,10 +12,11 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, migrate, open,
+    TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
+    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -83,6 +84,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let skills_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let environments_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let workspaces_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -107,6 +114,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
+        environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
+        workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
@@ -2637,4 +2646,159 @@ async fn ui_internationalization_zh_cn_and_switcher() {
     assert!(html.contains("/companies/"));
     // zh-CN page must not contain the untranslated English nav strings.
     assert!(!html.contains(">Companies<"));
+}
+
+#[tokio::test]
+async fn environments_and_workspaces() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let (_, project) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "P" }),
+    )
+    .await;
+    let project_id = project["id"].as_str().unwrap().to_owned();
+
+    // Environments (board): ensure-local + create + list + duplicate.
+    let (status, local) = send_json(
+        &app,
+        Method::POST,
+        "/api/environments/ensure-local",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(local["driver"], "local");
+
+    let (status, created_env) = send_json(
+        &app,
+        Method::POST,
+        "/api/environments",
+        json!({ "name": "prod", "driver": "remote", "config": { "region": "cn" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created_env["status"], "active");
+
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/environments",
+        json!({ "name": "prod" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    let (status, list) = send_json(&app, Method::GET, "/api/environments", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 2);
+
+    // Project workspace.
+    let (status, pw) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/project-workspaces"),
+        json!({ "projectId": project_id, "name": "main", "isPrimary": true }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(pw["isPrimary"], true);
+    let pw_id = pw["id"].as_str().unwrap().to_owned();
+
+    // Execution workspace.
+    let (status, ew) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/execution-workspaces"),
+        json!({
+            "projectId": project_id,
+            "projectWorkspaceId": pw_id,
+            "mode": "ephemeral",
+            "strategyType": "checkout",
+            "name": "run-ws"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(ew["status"], "active");
+    let ew_id = ew["id"].as_str().unwrap().to_owned();
+
+    // Runtime service + operation.
+    let (status, service) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/runtime-services"),
+        json!({
+            "executionWorkspaceId": ew_id,
+            "scopeType": "execution_workspace",
+            "scopeId": ew_id,
+            "serviceName": "vite",
+            "lifecycle": "ephemeral",
+            "command": "npm run dev",
+            "port": 5173,
+            "provider": "local"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(service["port"], 5173);
+
+    let (status, operation) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/workspace-operations"),
+        json!({ "executionWorkspaceId": ew_id, "phase": "setup", "command": "git clone" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(operation["status"], "running");
+
+    // Lists.
+    let (_, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/project-workspaces"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    let (_, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/execution-workspaces"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    let (_, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/runtime-services"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    let (_, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/workspace-operations"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Cross-company reference rejected (project of another company).
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c2/project-workspaces",
+        json!({ "projectId": project_id, "name": "x" }),
+    )
+    .await;
+    // c2 does not exist -> the project reference check fails (422 via
+    // ReferenceNotFound is not reached because company scope passes for the
+    // board; the workspace repo rejects the foreign project).
+    assert!(status == StatusCode::UNPROCESSABLE_ENTITY || status == StatusCode::NOT_FOUND);
 }

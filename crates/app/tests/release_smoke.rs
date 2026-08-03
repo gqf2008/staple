@@ -11,10 +11,11 @@ use staple_app::{router, state::AppState};
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
+    TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
+    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
     TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, migrate, open,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, TursoWorkspaceRepository,
+    migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -129,6 +130,16 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         skills: Arc::new(TursoSkillRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        environments: Arc::new(TursoEnvironmentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        workspaces: Arc::new(TursoWorkspaceRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
