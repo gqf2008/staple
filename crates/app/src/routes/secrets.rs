@@ -11,6 +11,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::require_board,
     dto::{CompanySecretDto, SecretVersionDto},
     error::ApiError,
     routes::CompanyId,
@@ -142,6 +143,7 @@ pub async fn get_secret(cx: &Cx) -> Result<Json<CompanySecretDto>, ApiError> {
 /// plaintext value (board-only surface until #28).
 #[route(GET "/api/companies/{company_id}/secrets/{name}/value")]
 pub async fn get_secret_value(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    require_board(cx)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let name = path_param::<Name>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
@@ -162,6 +164,7 @@ pub async fn rotate_secret(
     cx: &Cx,
     Json(body): Json<RotateSecretRequest>,
 ) -> Result<Json<CompanySecretDto>, ApiError> {
+    require_board(cx)?;
     if body.value.is_empty() {
         return Err(ApiError::unprocessable(
             "Validation error",
@@ -195,6 +198,7 @@ pub async fn rollback_secret(
     cx: &Cx,
     Json(body): Json<RollbackSecretRequest>,
 ) -> Result<Json<CompanySecretDto>, ApiError> {
+    require_board(cx)?;
     if body.version < 1 {
         return Err(ApiError::unprocessable(
             "Validation error",
@@ -240,6 +244,7 @@ pub async fn list_secret_versions(cx: &Cx) -> Result<Json<Vec<SecretVersionDto>>
 /// `DELETE /api/companies/{companyId}/secrets/{name}` — deletes a secret.
 #[route(DELETE "/api/companies/{company_id}/secrets/{name}")]
 pub async fn delete_secret(cx: &Cx) -> Result<StatusCode, ApiError> {
+    require_board(cx)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let name = path_param::<Name>(cx)?.to_string();
     let state = app_context::<AppState>(cx);

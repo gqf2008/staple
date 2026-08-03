@@ -9,11 +9,11 @@ use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
-    TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository, TursoGoalRepository,
-    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository,
-    TursoWorkProductRepository, migrate, open,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
+    TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoProjectRepository, TursoSecretRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -69,6 +69,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let secret_cipher = SecretCipher::load_or_create(dir.path().join("master.key")).unwrap();
+    let api_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -89,6 +92,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         approvals: Arc::new(TursoApprovalRepository::new(approvals_db)),
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
+        api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
     };
     (state, seed_db)
 }
@@ -1925,4 +1929,143 @@ async fn secret_validation_and_audit() {
         .map(|entry| entry["action"].as_str().unwrap())
         .collect();
     assert!(actions.contains(&"secret.created"));
+}
+
+async fn send_with_auth(
+    router: &Router,
+    method: Method,
+    path: &str,
+    body: Option<&str>,
+    bearer: Option<&str>,
+) -> (StatusCode, String) {
+    let mut builder = Request::builder().method(method).uri(path);
+    if body.is_some() {
+        builder = builder.header(CONTENT_TYPE, "application/json");
+    }
+    if let Some(token) = bearer {
+        builder = builder.header("Authorization", format!("Bearer {token}"));
+    }
+    let request = builder
+        .body(Body::from(body.unwrap_or_default().to_owned()))
+        .unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, response_body) = response.into_parts();
+    let bytes = to_bytes(response_body, usize::MAX).await.unwrap();
+    (status, String::from_utf8(bytes.to_vec()).unwrap())
+}
+
+#[tokio::test]
+async fn three_identity_permission_matrix() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Board creates an API key for the agent.
+    let (status, key_body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-api-keys",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "name": "dev" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let plaintext = key_body["plaintext"].as_str().unwrap().to_owned();
+    assert!(plaintext.starts_with("sk-"));
+    // Hash stored, not plaintext.
+    assert_ne!(key_body["key"]["keyHash"], plaintext);
+
+    // 1. Unauthenticated: invalid bearer -> 401 JSON.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c1/issues",
+        None,
+        Some("sk-invalid"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+    assert!(body.contains("Invalid API key"));
+
+    // 2. Agent: own company allowed.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c1/issues",
+        None,
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // 3. Agent: cross-company access -> 403.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c2/issues",
+        None,
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert!(body.contains("cannot access another company"));
+
+    // 4. Agent: board-only action (create company) -> 403.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies",
+        Some(r#"{"name":"Sneaky"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    // 5. Agent: board-only budget action -> 403.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/budget",
+        Some(r#"{"budgetMonthlyCents":9999}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    // 6. Board: everything still works.
+    let (status, _) = send_json(&app, Method::GET, "/api/companies/c1/issues", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+
+    // 7. Revoke -> agent key becomes invalid (401).
+    let key_id = key_body["key"]["id"].as_str().unwrap().to_owned();
+    send_json(
+        &app,
+        Method::POST,
+        &format!("/api/agent-api-keys/{key_id}/revoke"),
+        json!({}),
+    )
+    .await;
+    let (status, _) = send_with_auth(
+        &app,
+        Method::GET,
+        "/api/companies/c1/issues",
+        None,
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
 }

@@ -10,7 +10,8 @@ use topcoat::{
 };
 
 use crate::{
-    audit::log_activity, dto::CompanyDto, error::ApiError, routes::CompanyId, state::AppState,
+    audit::log_activity, auth::require_board, dto::CompanyDto, error::ApiError, routes::CompanyId,
+    state::AppState,
 };
 
 /// Largest allowed attachment size in bytes (upstream constant).
@@ -174,6 +175,7 @@ pub async fn create_company(
     cx: &Cx,
     Json(body): Json<CreateCompanyRequest>,
 ) -> Result<(StatusCode, Json<CompanyDto>), ApiError> {
+    require_board(cx)?;
     validate_create(&body)?;
     let state = app_context::<AppState>(cx);
     let company = state
@@ -201,6 +203,7 @@ pub async fn create_company(
 /// `GET /api/companies` — lists all companies.
 #[route(GET "/api/companies")]
 pub async fn list_companies(cx: &Cx) -> Result<Json<Vec<CompanyDto>>, ApiError> {
+    require_board(cx)?;
     let state = app_context::<AppState>(cx);
     let companies = state
         .companies
@@ -243,6 +246,7 @@ pub async fn update_company(
     cx: &Cx,
     Json(body): Json<UpdateCompanyRequest>,
 ) -> Result<Json<CompanyDto>, ApiError> {
+    require_board(cx)?;
     validate_update(&body)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);

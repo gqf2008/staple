@@ -5,6 +5,7 @@
 //! boundaries at the SQL level.
 
 pub mod activity;
+pub mod api_keys;
 pub mod approvals;
 pub mod assets;
 pub mod companies;
@@ -22,6 +23,10 @@ pub mod work_products;
 
 pub use activity::{
     ActivityEntry, ActivityError, ActivityRepository, NewActivity, TursoActivityRepository,
+};
+pub use api_keys::{
+    AgentApiKeyRecord, AgentPrincipal, ApiKeyError, ApiKeyRepository, NewAgentApiKey,
+    TursoApiKeyRepository,
 };
 pub use approvals::{
     ApprovalDecision, ApprovalError, ApprovalRecord, ApprovalRepository, NewApproval,

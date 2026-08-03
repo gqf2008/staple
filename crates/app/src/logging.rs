@@ -21,7 +21,10 @@ use topcoat::{
     },
 };
 
-/// Wraps every request: structured logging plus JSON error normalization.
+use crate::{auth::Principal, state::AppState};
+
+/// Wraps every request: authentication, structured logging, and JSON error
+/// normalization.
 #[layer("/")]
 pub async fn request_log(cx: &mut CxBuilder, body: Body, next: Next<'_>) -> Result<Response> {
     let parts = cx.get::<http::request::Parts>();
@@ -32,6 +35,35 @@ pub async fn request_log(cx: &mut CxBuilder, body: Body, next: Next<'_>) -> Resu
         .map(|parts| parts.uri.path().to_owned())
         .unwrap_or_else(|| "-".to_owned());
     let start = Instant::now();
+
+    // Authentication: resolve the bearer key into a principal. Requests
+    // without credentials act as the board (local-implicit mode).
+    let bearer = parts
+        .and_then(|parts| {
+            parts
+                .headers
+                .get(header::AUTHORIZATION)
+                .and_then(|value| value.to_str().ok())
+        })
+        .and_then(|value| value.strip_prefix("Bearer "));
+    match bearer {
+        Some(plaintext) => {
+            let state = topcoat::context::app_context::<AppState>(cx);
+            match state.api_keys.authenticate(plaintext).await {
+                Ok(agent) => {
+                    cx.insert(Principal::Agent(agent));
+                }
+                Err(_) => {
+                    let response = crate::error::ApiError::unauthorized("Invalid API key")
+                        .into_json_response();
+                    return Ok(response);
+                }
+            }
+        }
+        None => {
+            cx.insert(Principal::Board);
+        }
+    }
 
     let response = match next.run(cx, body).await {
         Ok(response) => response,

@@ -11,6 +11,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::enforce_company_scope,
     dto::IssueDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -193,6 +194,7 @@ fn validate_update(body: &UpdateIssueRequest) -> Result<(), ApiError> {
 #[route(GET "/api/companies/{company_id}/issues")]
 pub async fn list_issues(cx: &Cx) -> Result<Json<Vec<IssueDto>>, ApiError> {
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
     let state = app_context::<AppState>(cx);
     let issues = state
         .issues
@@ -210,6 +212,7 @@ pub async fn create_issue(
 ) -> Result<(StatusCode, Json<IssueDto>), ApiError> {
     validate_create(&body)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
     let state = app_context::<AppState>(cx);
     let issue = state
         .issues

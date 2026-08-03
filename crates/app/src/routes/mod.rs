@@ -5,6 +5,7 @@ use topcoat::router::path_param;
 pub mod activity;
 pub mod approvals;
 pub mod assets;
+pub mod auth;
 pub mod comments;
 pub mod companies;
 pub mod costs;

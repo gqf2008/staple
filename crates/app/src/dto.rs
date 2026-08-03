@@ -799,3 +799,40 @@ impl From<staple_data::SecretVersionRecord> for SecretVersionDto {
         }
     }
 }
+
+/// Agent API key metadata (never the plaintext).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AgentApiKeyDto {
+    /// Key id.
+    pub id: String,
+    /// Agent id.
+    pub agent_id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Display name.
+    pub name: String,
+    /// Key hash (for verification only).
+    pub key_hash: String,
+    /// ISO 8601 last use time.
+    pub last_used_at: Option<String>,
+    /// ISO 8601 revocation time.
+    pub revoked_at: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::AgentApiKeyRecord> for AgentApiKeyDto {
+    fn from(record: staple_data::AgentApiKeyRecord) -> Self {
+        Self {
+            id: record.id,
+            agent_id: record.agent_id,
+            company_id: record.company_id,
+            name: record.name,
+            key_hash: record.key_hash,
+            last_used_at: record.last_used_at,
+            revoked_at: record.revoked_at,
+            created_at: record.created_at,
+        }
+    }
+}
