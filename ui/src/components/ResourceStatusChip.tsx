@@ -1,4 +1,5 @@
 import { Badge } from "@/components/ui/badge";
+import { t } from "../i18n";
 import { cn } from "@/lib/utils";
 import { brandChipBadge, type BrandChipColor } from "@/lib/status-colors";
 
@@ -33,39 +34,39 @@ interface VariantSpec {
 }
 
 const VARIANTS: Record<ResourceStatusVariant, VariantSpec> = {
-  ready: { color: "green", glyph: "●", label: "Ready", title: "Materialized and matches the shipped default" },
-  needs_setup: { color: "amber", glyph: "⚠", label: "Needs setup", title: "Present but not usable yet" },
-  missing: { color: "amber", glyph: "⚠", label: "Missing", title: "Expected resource absent; reconcile will recreate it" },
-  error: { color: "red", glyph: "✕", label: "Error", title: "Failed to load or reconcile" },
+  ready: { color: "green", glyph: "●", label: t("components.resourceStatusChip.ready", { defaultValue: "Ready" }), title: t("components.resourceStatusChip.readyDesc", { defaultValue: "Materialized and matches the shipped default" }) },
+  needs_setup: { color: "amber", glyph: "⚠", label: t("components.resourceStatusChip.needsSetup", { defaultValue: "Needs setup" }), title: t("components.resourceStatusChip.needsSetupDesc", { defaultValue: "Present but not usable yet" }) },
+  missing: { color: "amber", glyph: "⚠", label: t("components.resourceStatusChip.missing", { defaultValue: "Missing" }), title: "Expected resource absent; reconcile will recreate it" },
+  error: { color: "red", glyph: "✕", label: t("components.resourceStatusChip.error", { defaultValue: "Error" }), title: t("components.resourceStatusChip.errorDesc", { defaultValue: "Failed to load or reconcile" }) },
   update_available: {
     color: "blue",
     glyph: "↑",
-    label: "Update available",
-    title: "Unedited — a newer shipped default can be applied",
+    label: t("components.resourceStatusChip.updateAvailable", { defaultValue: "Update available" }),
+    title: t("components.resourceStatusChip.updateDesc", { defaultValue: "Unedited — a newer shipped default can be applied" }),
   },
   drifted: {
     color: "gray",
     glyph: "✎",
-    label: "Drifted",
+    label: t("components.resourceStatusChip.drifted", { defaultValue: "Drifted" }),
     title: "You've edited this; your changes are kept, not overwritten",
   },
   schedule_off: {
     color: "gray",
     glyph: "◌",
-    label: "Schedule off",
-    title: "No background work runs until you enable it — costs zero tokens",
+    label: t("components.resourceStatusChip.scheduleOff", { defaultValue: "Schedule off" }),
+    title: t("components.resourceStatusChip.scheduleOffDesc", { defaultValue: "No background work runs until you enable it — costs zero tokens" }),
   },
-  schedule_on: { color: "green", glyph: "●", label: "Weekly", title: "Runs on the weekly schedule" },
+  schedule_on: { color: "green", glyph: "●", label: t("components.resourceStatusChip.weekly", { defaultValue: "Weekly" }), title: t("components.resourceStatusChip.weeklyDesc", { defaultValue: "Runs on the weekly schedule" }) },
   pending_approval: {
     color: "amber",
     glyph: "⚠",
-    label: "Pending approval",
-    title: "Waiting on board hire approval before it can run",
+    label: t("components.resourceStatusChip.pendingApproval", { defaultValue: "Pending approval" }),
+    title: t("components.resourceStatusChip.pendingApprovalDesc", { defaultValue: "Waiting on board hire approval before it can run" }),
   },
   proposal_pending: {
     color: "blue",
     glyph: "↑",
-    label: "Proposal pending",
+    label: t("components.resourceStatusChip.proposalPending", { defaultValue: "Proposal pending" }),
     title: "A proposed update is waiting for your review",
   },
 };

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   AlertCircle,
@@ -50,7 +51,7 @@ interface ImportSkillsFromProjectDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   companyId: string;
-  /** Opens the legacy "Import from path or URL" dialog (empty-state fallback). */
+  /** Opens the legacy t("pages.skills.importFromProject.title", { defaultValue: "Import from path or URL" }) dialog (empty-state fallback). */
   onImportFromPath?: () => void;
 }
 
@@ -216,7 +217,7 @@ function readableErrorMessage(error: unknown): string {
     return error.message || `Request failed: ${error.status}`;
   }
   if (error instanceof Error) return error.message;
-  return "Unexpected error";
+  return t("pages.skills.importFromProject.unexpectedError", { defaultValue: "Unexpected error" });
 }
 
 export function isGrantError(error: unknown): boolean {
@@ -341,7 +342,7 @@ export function ImportSkillsFromProjectDialog({
 
   const importMutation = useMutation({
     mutationFn: () => {
-      if (!selectedProject) throw new Error("No project selected.");
+      if (!selectedProject) throw new Error(t("pages.skills.importFromProject.noProject", { defaultValue: "No project selected." }));
       const selectionInput = Array.from(selection.values());
       return companySkillsApi.scanProjects(companyId, {
         projectIds: [selectedProject.id],
@@ -358,17 +359,17 @@ export function ImportSkillsFromProjectDialog({
       const importedCount = result.imported.length;
       toast.pushToast({
         tone: importedCount > 0 ? "success" : "warn",
-        title: importedCount > 0 ? "Skills imported" : "Nothing imported",
+        title: importedCount > 0 ? t("pages.skills.importFromProject.skillsImported", { defaultValue: "Skills imported" }) : t("pages.skills.importFromProject.nothingImported", { defaultValue: "Nothing imported" }),
         body:
           importedCount > 0
             ? `${importedCount} skill${importedCount === 1 ? "" : "s"} imported as references from ${selectedProject?.name ?? "the project"}.`
-            : "No skills were imported.",
+            : t("pages.skills.importFromProject.noSkillsImported", { defaultValue: "No skills were imported." }),
       });
     },
     onError: (error) => {
       toast.pushToast({
         tone: "error",
-        title: "Import failed",
+        title: t("pages.skills.importFromProject.importFailed", { defaultValue: "Import failed" }),
         body: readableErrorMessage(error),
       });
     },
@@ -470,7 +471,7 @@ export function ImportSkillsFromProjectDialog({
             type="button"
             className="rounded-sm text-muted-foreground opacity-70 transition-opacity hover:opacity-100"
             onClick={handleClose}
-            aria-label="Close import dialog"
+            aria-label={t("pages.skills.importFromProject.closeDialog", { defaultValue: "Close import dialog" })}
           >
             <X className="h-4 w-4" />
           </button>
@@ -607,16 +608,16 @@ function PickProjectStep({
           <Input
             value={filter}
             onChange={(event) => onFilterChange(event.target.value)}
-            placeholder="Filter projects"
+            placeholder={t("pages.skills.importFromProject.filterProjects", { defaultValue: "Filter projects" })}
             className="pl-7 text-xs"
-            aria-label="Filter projects"
+            aria-label={t("pages.skills.importFromProject.filterProjects", { defaultValue: "Filter projects" })}
             data-testid="project-filter"
           />
         </div>
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto">
         {loading ? (
-          <div className="p-6 text-center text-sm text-muted-foreground">Loading projects…</div>
+          <div className="p-6 text-center text-sm text-muted-foreground">{t("pages.skills.importFromProject.loadingProjects", { defaultValue: "Loading projects…" })}</div>
         ) : error ? (
           <div
             className="m-5 flex items-start gap-3 rounded-md border border-destructive/40 bg-destructive/10 p-4 text-sm text-destructive"
@@ -626,7 +627,7 @@ function PickProjectStep({
             <div>{readableErrorMessage(error)}</div>
           </div>
         ) : totalProjects === 0 ? (
-          <EmptyState icon={Layers} message="This company has no projects yet." />
+          <EmptyState icon={Layers} message={t("pages.skills.importFromProject.noProjects", { defaultValue: "This company has no projects yet." })} />
         ) : projects.length === 0 ? (
           <EmptyState icon={Search} message={`No projects match "${filter}".`} />
         ) : (
@@ -755,7 +756,7 @@ function SelectStep({
             )}
           </div>
           <p className="text-base font-semibold">
-            {grant ? "You can't import skills here" : "Scan failed"}
+            {grant ? t("pages.skills.importFromProject.cannotImport", { defaultValue: "You can't import skills here" }) : t("pages.skills.importFromProject.scanFailed", { defaultValue: "Scan failed" })}
           </p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {grant
@@ -782,10 +783,10 @@ function SelectStep({
           <div className="mx-auto mb-4 w-fit bg-muted/50 p-4">
             <FolderSearch className="h-10 w-10 text-muted-foreground/50" />
           </div>
-          <p className="text-base font-semibold">No skills found</p>
+          <p className="text-base font-semibold">{t("pages.skills.importFromProject.noSkillsFound", { defaultValue: "No skills found" })}</p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             None of the well-known skill folders in this project's workspaces contain a{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-xs">SKILL.md</code>. We searched{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-xs">{t("pages.skills.importFromProject.skillMd", { defaultValue: "SKILL.md" })}</code>. We searched{" "}
             {HIGHLIGHTED_SCAN_FOLDERS.join(", ")} and {APPROX_TOTAL_SCAN_FOLDERS -
               HIGHLIGHTED_SCAN_FOLDERS.length}{" "}
             other agent-harness folders.
@@ -816,9 +817,9 @@ function SelectStep({
           <Input
             value={filter}
             onChange={(event) => onFilterChange(event.target.value)}
-            placeholder="Search discovered skills…"
+            placeholder={t("pages.skills.importFromProject.searchSkills", { defaultValue: "Search discovered skills…" })}
             className="h-8 pl-8 text-xs"
-            aria-label="Search discovered skills"
+            aria-label={t("pages.skills.importFromProject.searchAria", { defaultValue: "Search discovered skills" })}
           />
         </div>
       </div>
@@ -960,7 +961,7 @@ function ResultStep({ result }: ResultStepProps) {
         <div className="flex items-start gap-3 rounded-md border border-emerald-500/30 bg-emerald-500/5 p-3">
           <Link2 className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400" />
           <div className="text-xs leading-relaxed text-muted-foreground">
-            <span className="font-medium text-foreground">No files were copied.</span> These skills
+            <span className="font-medium text-foreground">{t("pages.skills.importFromProject.noFilesCopied", { defaultValue: "No files were copied." })}</span> These skills
             reference the files in the project workspace — editing them in Skill Studio saves
             directly back to those files.
           </div>

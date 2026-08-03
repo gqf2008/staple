@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "../../../i18n";
 import type { ToolCatalogEntry, ToolConnection } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -67,7 +68,7 @@ function OAuthConnectionSection({
   disabled: boolean;
   onStart: () => void;
 }) {
-  const providerName = isSmokeLabFixture ? "Smoke OAuth" : "OAuth";
+  const providerName = isSmokeLabFixture ? t("pages.appSetupPanel.smokeOAuth", { defaultValue: "Smoke OAuth" }) : t("pages.appSetupPanel.oauth", { defaultValue: "OAuth" });
   return (
     <section className="rounded-xl border border-border bg-card px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -77,12 +78,12 @@ function OAuthConnectionSection({
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {connected
-              ? "Sign in again to replace this connection's OAuth session."
-              : "Open the provider's consent page to finish connecting this app."}
+              ? t("pages.appSetupPanel.reSignInHint", { defaultValue: "Sign in again to replace this connection's OAuth session." })
+              : t("pages.appSetupPanel.consentHint", { defaultValue: "Open the provider's consent page to finish connecting this app." })}
           </p>
         </div>
         <Button type="button" disabled={disabled} onClick={onStart}>
-          {connected ? "Reconnect" : `Connect with ${providerName}`}
+          {connected ? t("pages.appSetupPanel.reconnect", { defaultValue: "Reconnect" }) : `Connect with ${providerName}`}
         </Button>
       </div>
     </section>
@@ -116,7 +117,7 @@ function GoogleSheetsAllowlistSection({
   return (
     <section className="rounded-xl border border-border bg-card px-5 py-4">
       <div>
-        <h2 className="text-sm font-bold text-foreground">Sheets agents can use</h2>
+        <h2 className="text-sm font-bold text-foreground">{t("pages.appSetupPanel.sheetsAgentsCanUse", { defaultValue: "Sheets agents can use" })}</h2>
         <p className="mt-0.5 text-sm text-muted-foreground">
           Agents can only use the sheets listed here.
         </p>
@@ -124,7 +125,7 @@ function GoogleSheetsAllowlistSection({
 
       <div className="mt-4 space-y-2">
         {ids.length === 0 ? (
-          <div className="text-sm text-muted-foreground">No sheets are connected yet.</div>
+          <div className="text-sm text-muted-foreground">{t("pages.appSetupPanel.noSheets", { defaultValue: "No sheets are connected yet." })}</div>
         ) : (
           ids.map((id) => {
             const sheetUrl = googleSheetsUrlForId(id);
@@ -136,7 +137,7 @@ function GoogleSheetsAllowlistSection({
                   rel="noreferrer"
                   className="min-w-0 flex-1 text-sm font-medium text-foreground underline-offset-2 hover:underline"
                 >
-                  <span className="block truncate">Open sheet</span>
+                  <span className="block truncate">{t("pages.appSetupPanel.openSheet", { defaultValue: "Open sheet" })}</span>
                   <span className="block truncate font-mono text-xs font-normal text-muted-foreground">
                     {sheetUrl}
                   </span>
@@ -149,7 +150,7 @@ function GoogleSheetsAllowlistSection({
                   size="sm"
                   variant="outline"
                   disabled={disabled || ids.length <= 1}
-                  title={ids.length <= 1 ? "Add another sheet before removing this one." : undefined}
+                  title={ids.length <= 1 ? t("pages.appSetupPanel.sheetRequired", { defaultValue: "Add another sheet before removing this one." }) : undefined}
                   onClick={() => saveIds(ids.filter((current) => current !== id))}
                 >
                   Remove
@@ -177,11 +178,11 @@ function GoogleSheetsAllowlistSection({
           onClick={() => {
             const parsed = parseGoogleSheetIds(draft);
             if (parsed.ids.length === 0) {
-              setError("Paste a Google Sheets link.");
+              setError(t("pages.appSetupPanel.pasteSheetsLink", { defaultValue: "Paste a Google Sheets link." }));
               return;
             }
             if (parsed.invalidCount > 0) {
-              setError("That doesn't look like a Google Sheets link.");
+              setError(t("pages.appSetupPanel.invalidSheetsLink", { defaultValue: "That doesn't look like a Google Sheets link." }));
               return;
             }
             saveIds(Array.from(new Set([...ids, ...parsed.ids])));
@@ -211,16 +212,16 @@ export function AppLifecycleSection({
       <div className="flex items-center justify-between gap-4">
         <div>
           <h2 className="text-sm font-bold text-foreground">
-            {enabled ? "Agents can use this app" : "This app is paused"}
+            {enabled ? t("pages.appSetupPanel.agentsCanUse", { defaultValue: "Agents can use this app" }) : t("pages.appSetupPanel.appPaused", { defaultValue: "This app is paused" })}
           </h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
             {enabled
-              ? "Pause it to stop every agent from using its actions."
-              : "Resume it when agents should be able to use its actions again."}
+              ? t("pages.appSetupPanel.pauseHint", { defaultValue: "Pause it to stop every agent from using its actions." })
+              : t("pages.appSetupPanel.resumeHint", { defaultValue: "Resume it when agents should be able to use its actions again." })}
           </p>
         </div>
         <ToggleSwitch
-          aria-label={enabled ? "Pause this app" : "Resume this app"}
+          aria-label={enabled ? t("pages.appSetupPanel.pauseApp", { defaultValue: "Pause this app" }) : t("pages.appSetupPanel.resumeApp", { defaultValue: "Resume this app" })}
           checked={enabled}
           disabled={disabled}
           onCheckedChange={onToggle}
@@ -251,7 +252,7 @@ export function QuarantinePill({
         </div>
         <div className="flex items-center gap-2">
           <Button size="sm" variant="outline" onClick={() => setOpen((v) => !v)}>
-            {open ? "Hide" : "Review"}
+            {open ? t("pages.appSetupPanel.hide", { defaultValue: "Hide" }) : t("pages.appSetupPanel.review", { defaultValue: "Review" })}
           </Button>
           <Button size="sm" disabled={disabled} onClick={() => onTurnOn(entries.map((e) => e.id))}>
             Turn on all

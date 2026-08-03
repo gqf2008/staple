@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import { Link } from "@/lib/router";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, CheckCircle2, ChevronDown, Loader2, Search, Store, X } from "lucide-react";
@@ -294,11 +295,11 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
   const applicationLabel = useMemo(() => {
     switch (skillSnapshot?.mode) {
       case "persistent":
-        return "Kept in workspace";
+        return t("pages.agentSkillsTab.keptInWorkspace", { defaultValue: "Kept in workspace" });
       case "ephemeral":
-        return "Applied on next run";
+        return t("pages.agentSkillsTab.appliedNextRun", { defaultValue: "Applied on next run" });
       case "unsupported":
-        return "Tracked only";
+        return t("pages.agentSkillsTab.trackedOnly", { defaultValue: "Tracked only" });
       default:
         return null;
     }
@@ -311,12 +312,12 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
       typeof agent.adapterConfig.agent === "string" &&
       agent.adapterConfig.agent === "custom"
     ) {
-      return "Paperclip cannot manage skills for custom ACP commands yet.";
+      return t("pages.agentSkillsTab.customAcpUnsupported", { defaultValue: "Paperclip cannot manage skills for custom ACP commands yet." });
     }
     if (agent.adapterType === "openclaw_gateway") {
       return "Paperclip cannot manage OpenClaw skills here. Visit your OpenClaw instance to manage this agent's skills.";
     }
-    return "Paperclip cannot manage skills for this adapter yet. Manage them in the adapter directly.";
+    return t("pages.agentSkillsTab.adapterUnsupported", { defaultValue: "Paperclip cannot manage skills for this adapter yet. Manage them in the adapter directly." });
   }, [agent.adapterConfig.agent, agent.adapterType, unsupported]);
 
   const hasUnsavedChanges = !sameSkillSelection(skillDraft, lastSavedSkills);
@@ -415,9 +416,9 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search skills"
+                placeholder={t("pages.agentSkillsTab.searchSkills", { defaultValue: "Search skills" })}
                 className="h-8 w-full pl-8 sm:w-56"
-                aria-label="Search skills"
+                aria-label={t("pages.agentSkillsTab.searchSkills", { defaultValue: "Search skills" })}
               />
             </div>
             <Button asChild variant="outline" size="sm" className="shrink-0">
@@ -431,7 +432,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
 
         {syncSkills.isError ? (
           <p className="text-xs text-destructive">
-            {syncSkills.error instanceof Error ? syncSkills.error.message : "Failed to update skills"}
+            {syncSkills.error instanceof Error ? syncSkills.error.message : t("pages.agentSkillsTab.updateFailed", { defaultValue: "Failed to update skills" })}
           </p>
         ) : null}
       </div>
@@ -473,26 +474,26 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
         <EmptyLibraryCard />
       ) : (
         <div className="space-y-4">
-          <SkillSection title="Enabled on this agent" count={filteredEnabled.length}>
+          <SkillSection title={t("pages.agentSkillsTab.enabledOnAgent", { defaultValue: "Enabled on this agent" })} count={filteredEnabled.length}>
             {filteredEnabled.length > 0 ? (
               filteredEnabled.map((row) => renderRow(row, "enabled"))
             ) : (
               <SectionEmpty>
-                {search ? "No enabled skills match your search." : "No skills enabled on this agent yet."}
+                {search ? t("pages.agentSkillsTab.noEnabledMatch", { defaultValue: "No enabled skills match your search." }) : t("pages.agentSkillsTab.noEnabledSkills", { defaultValue: "No skills enabled on this agent yet." })}
               </SectionEmpty>
             )}
           </SkillSection>
 
-          <SkillSection title="Available from the library" count={filteredAvailable.length}>
+          <SkillSection title={t("pages.agentSkillsTab.availableFromLibrary", { defaultValue: "Available from the library" })} count={filteredAvailable.length}>
             {filteredAvailable.length > 0 ? (
               filteredAvailable.map((row) => renderRow(row, "available"))
             ) : (
               <SectionEmpty>
                 {search
-                  ? "No available skills match your search."
+                  ? t("pages.agentSkillsTab.noAvailableMatch", { defaultValue: "No available skills match your search." })
                   : libraryEmpty
-                    ? "Import skills into the company library to enable them here."
-                    : "Every library skill is enabled on this agent."}
+                    ? t("pages.agentSkillsTab.importToEnable", { defaultValue: "Import skills into the company library to enable them here." })
+                    : t("pages.agentSkillsTab.allLibraryEnabled", { defaultValue: "Every library skill is enabled on this agent." })}
               </SectionEmpty>
             )}
           </SkillSection>
@@ -518,7 +519,7 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
                       <AgentSkillRow key={row.key} variant="readonly" data={row} />
                     ))
                   ) : (
-                    <SectionEmpty>No detected skills match your search.</SectionEmpty>
+                    <SectionEmpty>{t("pages.agentSkillsTab.noDetectedMatch", { defaultValue: "No detected skills match your search." })}</SectionEmpty>
                   )}
                 </CollapsibleContent>
               </div>
@@ -604,7 +605,7 @@ function EmptyLibraryCard() {
     <div className="flex flex-col items-center gap-3 rounded-lg border border-dashed border-border px-6 py-10 text-center">
       <Store className="h-8 w-8 text-muted-foreground/60" />
       <div className="space-y-1">
-        <p className="text-sm font-medium text-foreground">No skills in the company library</p>
+        <p className="text-sm font-medium text-foreground">{t("pages.agentSkillsTab.noLibrarySkills", { defaultValue: "No skills in the company library" })}</p>
         <p className="text-xs text-muted-foreground">
           Install skills to the company, then enable them on this agent.
         </p>

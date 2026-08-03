@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "../i18n";
 import { MoreHorizontal, Play } from "lucide-react";
 import { Link } from "@/lib/router";
 import { AgentIcon } from "@/components/AgentIconPicker";
@@ -35,7 +36,7 @@ export type RoutineListRowItem = {
 };
 
 export function formatLastRunTimestamp(value: Date | string | null | undefined) {
-  if (!value) return "Never";
+  if (!value) return t("components.routineList.never", { defaultValue: "Never" });
   return new Date(value).toLocaleString();
 }
 
@@ -56,7 +57,7 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
   runningRoutineId,
   statusMutationRoutineId,
   href,
-  configureLabel = "Edit",
+  configureLabel = t("components.routineList.edit", { defaultValue: "Edit" }),
   managedByLabel,
   secondaryDetails,
   runNowButton = false,
@@ -145,11 +146,11 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
               className="h-2.5 w-2.5 shrink-0 rounded-sm"
               style={{ backgroundColor: project?.color ?? "var(--project-none)" }}
             />
-            <span>{routine.projectId ? (project?.name ?? "Unknown project") : "No project"}</span>
+            <span>{routine.projectId ? (project?.name ?? t("components.routineList.unknownProject", { defaultValue: "Unknown project" })) : t("components.routineList.noProject", { defaultValue: "No project" })}</span>
           </span>
           <span className="flex items-center gap-2">
             {agent?.icon ? <AgentIcon icon={agent.icon} className="h-3.5 w-3.5 shrink-0" /> : null}
-            <span>{routine.assigneeAgentId ? (agent?.name ?? "Unknown agent") : "No default agent"}</span>
+            <span>{routine.assigneeAgentId ? (agent?.name ?? t("components.routineList.unknownAgent", { defaultValue: "Unknown agent" })) : t("components.routineList.noDefaultAgent", { defaultValue: "No default agent" })}</span>
           </span>
           <span>
             {formatLastRunTimestamp(routine.lastRun?.triggeredAt)}
@@ -170,7 +171,7 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
             onClick={() => onRunNow(routine)}
           >
             <Play className="h-3.5 w-3.5" />
-            {runningRoutineId === routine.id ? "Running..." : "Run now"}
+            {runningRoutineId === routine.id ? t("components.routineList.running", { defaultValue: "Running..." }) : t("components.routineList.runNow", { defaultValue: "Run now" })}
           </Button>
         ) : null}
 
@@ -183,7 +184,7 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
             aria-label={enabled ? `Disable ${routine.title}` : `Enable ${routine.title}`}
           />
           <span className="w-12 text-xs text-muted-foreground">
-            {isArchived ? "Archived" : isDraft ? "Draft" : enabled ? "On" : "Off"}
+            {isArchived ? t("components.routineList.archived", { defaultValue: "Archived" }) : isDraft ? t("components.routineList.draft", { defaultValue: "Draft" }) : enabled ? "On" : t("components.routineList.off", { defaultValue: "Off" })}
           </span>
         </div>
 
@@ -201,7 +202,7 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
               disabled={runDisabled}
               onClick={() => onRunNow(routine)}
             >
-              {runningRoutineId === routine.id ? "Running..." : "Run now"}
+              {runningRoutineId === routine.id ? t("components.routineList.running", { defaultValue: "Running..." }) : t("components.routineList.runNow", { defaultValue: "Run now" })}
             </DropdownMenuItem>
             {extraMenuItems ? (
               <>
@@ -214,14 +215,14 @@ export function RoutineListRow<TRoutine extends RoutineListRowItem>({
               onClick={() => onToggleEnabled(routine, enabled)}
               disabled={isStatusPending || isArchived || disableToggle}
             >
-              {enabled ? "Pause" : "Enable"}
+              {enabled ? t("components.routineList.pause", { defaultValue: "Pause" }) : t("components.routineList.enable", { defaultValue: "Enable" })}
             </DropdownMenuItem>
             {!hideArchiveAction && onToggleArchived ? (
               <DropdownMenuItem
                 onClick={() => onToggleArchived(routine)}
                 disabled={isStatusPending}
               >
-                {routine.status === "archived" ? "Restore" : "Archive"}
+                {routine.status === "archived" ? t("components.routineList.restore", { defaultValue: "Restore" }) : t("components.routineList.archive", { defaultValue: "Archive" })}
               </DropdownMenuItem>
             ) : null}
           </DropdownMenuContent>
