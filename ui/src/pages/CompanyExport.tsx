@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import type {
   Agent,
@@ -401,8 +402,8 @@ function FrontmatterCard({
 // ── Client-side README generation ────────────────────────────────────
 
 const ROLE_LABELS: Record<string, string> = {
-  ceo: "CEO", cto: "CTO", cmo: "CMO", cfo: "CFO", coo: "COO",
-  vp: "VP", manager: "Manager", engineer: "Engineer", agent: "Agent",
+  ceo: t("pages.companyExport.ceo", { defaultValue: "CEO" }), cto: t("pages.companyExport.cto", { defaultValue: "CTO" }), cmo: t("pages.companyExport.cmo", { defaultValue: "CMO" }), cfo: t("pages.companyExport.cfo", { defaultValue: "CFO" }), coo: t("pages.companyExport.coo", { defaultValue: "COO" }),
+  vp: "VP", manager: t("pages.companyExport.manager", { defaultValue: "Manager" }), engineer: t("pages.companyExport.engineer", { defaultValue: "Engineer" }), agent: t("pages.companyExport.agent", { defaultValue: "Agent" }),
 };
 
 /**
@@ -444,10 +445,10 @@ function generateReadmeFromSelection(
   lines.push("");
 
   const counts: Array<[string, number]> = [];
-  if (agents.length > 0) counts.push(["Agents", agents.length]);
-  if (projects.length > 0) counts.push(["Projects", projects.length]);
-  if (skills.length > 0) counts.push(["Skills", skills.length]);
-  if (tasks.length > 0) counts.push(["Tasks", tasks.length]);
+  if (agents.length > 0) counts.push([t("pages.companyExport.agents", { defaultValue: "Agents" }), agents.length]);
+  if (projects.length > 0) counts.push([t("pages.companyExport.projects", { defaultValue: "Projects" }), projects.length]);
+  if (skills.length > 0) counts.push([t("pages.companyExport.skills", { defaultValue: "Skills" }), skills.length]);
+  if (tasks.length > 0) counts.push([t("pages.companyExport.tasks", { defaultValue: "Tasks" }), tasks.length]);
 
   if (counts.length > 0) {
     lines.push("| Content | Count |");
@@ -511,7 +512,7 @@ function ExportPreviewPane({
 }) {
   if (!selectedFile || content === null) {
     return (
-      <EmptyState icon={Package} message="Select a file to preview its contents." />
+      <EmptyState icon={Package} message={t("pages.companyExport.selectFile", { defaultValue: "Select a file to preview its contents." })} />
     );
   }
 
@@ -689,9 +690,9 @@ export function CompanyExport() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Settings", href: "/company/settings" },
-      { label: "Export" },
+      { label: selectedCompany?.name ?? t("pages.companyExport.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.companyExport.settings", { defaultValue: "Settings" }), href: "/company/settings" },
+      { label: t("pages.companyExport.export", { defaultValue: "Export" }) },
     ]);
   }, [selectedCompany?.name, setBreadcrumbs]);
 
@@ -730,8 +731,8 @@ export function CompanyExport() {
     onError: (err) => {
       pushToast({
         tone: "error",
-        title: "Export failed",
-        body: err instanceof Error ? err.message : "Failed to load export data.",
+        title: t("pages.companyExport.exportFailed", { defaultValue: "Export failed" }),
+        body: err instanceof Error ? err.message : t("pages.companyExport.loadFailed", { defaultValue: "Failed to load export data." }),
       });
     },
   });
@@ -748,15 +749,15 @@ export function CompanyExport() {
       downloadZip(result, resultCheckedFiles, result.files);
       pushToast({
         tone: "success",
-        title: "Export downloaded",
+        title: t("pages.companyExport.exportDownloaded", { defaultValue: "Export downloaded" }),
         body: `${resultCheckedFiles.size} file${resultCheckedFiles.size === 1 ? "" : "s"} exported as ${result.rootPath}.zip`,
       });
     },
     onError: (err) => {
       pushToast({
         tone: "error",
-        title: "Export failed",
-        body: err instanceof Error ? err.message : "Failed to build export package.",
+        title: t("pages.companyExport.exportFailed", { defaultValue: "Export failed" }),
+        body: err instanceof Error ? err.message : t("pages.companyExport.buildFailed", { defaultValue: "Failed to build export package." }),
       });
     },
   });
@@ -845,7 +846,7 @@ export function CompanyExport() {
 
     // Regenerate README.md based on checked selection
     if (typeof exportData.files["README.md"] === "string") {
-      const companyName = exportData.manifest.company?.name ?? selectedCompany?.name ?? "Company";
+      const companyName = exportData.manifest.company?.name ?? selectedCompany?.name ?? t("pages.companyExport.company", { defaultValue: "Company" });
       const companyDescription = exportData.manifest.company?.description ?? null;
       filtered["README.md"] = generateReadmeFromSelection(
         exportData.manifest,
@@ -946,7 +947,7 @@ export function CompanyExport() {
   }
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Package} message="Select a company to export." />;
+    return <EmptyState icon={Package} message={t("pages.companyExport.selectCompany", { defaultValue: "Select a company to export." })} />;
   }
 
   if (exportPreviewMutation.isPending && !exportData) {
@@ -954,7 +955,7 @@ export function CompanyExport() {
   }
 
   if (!exportData) {
-    return <EmptyState icon={Package} message="Loading export data..." />;
+    return <EmptyState icon={Package} message={t("pages.companyExport.loading", { defaultValue: "Loading export data..." })} />;
   }
 
   const previewContent = selectedFile
@@ -970,7 +971,7 @@ export function CompanyExport() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex flex-wrap items-center gap-4 text-sm">
             <span className="font-medium">
-              {selectedCompany?.name ?? "Company"} export
+              {selectedCompany?.name ?? t("pages.companyExport.company", { defaultValue: "Company" })} export
             </span>
             <span className="text-muted-foreground">
               Exporting {selectedCount.toLocaleString()} of {totalFiles.toLocaleString()} file{totalFiles === 1 ? "" : "s"}
@@ -989,7 +990,7 @@ export function CompanyExport() {
           >
             <Download className="mr-1.5 h-3.5 w-3.5" />
             {downloadMutation.isPending
-              ? "Building export..."
+              ? t("pages.companyExport.building", { defaultValue: "Building export..." })
               : `Export ${selectedCount.toLocaleString()} file${selectedCount === 1 ? "" : "s"}`}
           </Button>
         </div>
@@ -1007,7 +1008,7 @@ export function CompanyExport() {
       {/* Export fidelity: data the bundle will not carry */}
       {fidelityReport && fidelityReport.warnings.length > 0 && (
         <div className="mx-5 mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
-          <h3 className="mb-1.5 text-xs font-medium">Not included in this export</h3>
+          <h3 className="mb-1.5 text-xs font-medium">{t("pages.companyExport.notIncluded", { defaultValue: "Not included in this export" })}</h3>
           {fidelityReport.warnings.map((warning) => (
             <div
               key={warning.code}
@@ -1026,11 +1027,11 @@ export function CompanyExport() {
       <div className="grid gap-4 xl:h-(--sz-calc-30) xl:grid-cols-(--gtc-25) xl:gap-0">
         <aside className="flex max-h-(--sz-24rem) flex-col overflow-hidden border-b border-border xl:max-h-none xl:border-b-0 xl:border-r">
           <div className="border-b border-border px-4 py-3 shrink-0">
-            <h2 className="text-base font-semibold">Package files</h2>
+            <h2 className="text-base font-semibold">{t("pages.companyExport.packageFiles", { defaultValue: "Package files" })}</h2>
           </div>
           <div className="border-b border-border px-4 py-3 shrink-0">
-            <h3 className="mb-2 text-xs font-medium text-muted-foreground">What to include</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label="What to include">
+            <h3 className="mb-2 text-xs font-medium text-muted-foreground">{t("pages.companyExport.whatToInclude", { defaultValue: "What to include" })}</h3>
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label={t("pages.companyExport.whatToInclude", { defaultValue: "What to include" })}>
               {EXPORT_CATEGORY_ORDER.map((key) => {
                 const isAttachments = key === "attachments";
                 const disabled = isAttachments && !isAttachmentsCategoryEnabled(categories);
@@ -1071,7 +1072,7 @@ export function CompanyExport() {
                 type="text"
                 value={treeSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search files..."
+                placeholder={t("pages.companyExport.searchFiles", { defaultValue: "Search files..." })}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 data-page-search-target="true"
               />

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useInfiniteQuery } from "@tanstack/react-query";
 import { ArrowLeft, Check, Layers, Package, Search, X } from "lucide-react";
 import type { To } from "react-router-dom";
@@ -30,18 +31,18 @@ const ARTIFACTS_PAGE_SIZE = 30;
 const SEARCH_DEBOUNCE_MS = 250;
 
 export const ARTIFACT_KIND_FILTERS: { value: ArtifactKindFilter; label: string }[] = [
-  { value: "all", label: "All" },
-  { value: "image", label: "Images" },
-  { value: "video", label: "Videos" },
-  { value: "document", label: "Documents" },
-  { value: "text", label: "Text" },
-  { value: "file", label: "Files" },
+  { value: "all", label: t("pages.artifacts.all", { defaultValue: "All" }) },
+  { value: "image", label: t("pages.artifacts.images", { defaultValue: "Images" }) },
+  { value: "video", label: t("pages.artifacts.videos", { defaultValue: "Videos" }) },
+  { value: "document", label: t("pages.artifacts.documents", { defaultValue: "Documents" }) },
+  { value: "text", label: t("pages.artifacts.text", { defaultValue: "Text" }) },
+  { value: "file", label: t("pages.artifacts.files", { defaultValue: "Files" }) },
 ];
 
 export const ARTIFACT_GROUP_OPTIONS: { value: ArtifactGroupBy; label: string }[] = [
-  { value: "none", label: "None" },
-  { value: "task", label: "Task" },
-  { value: "parent_task", label: "Parent task" },
+  { value: "none", label: t("pages.artifacts.none", { defaultValue: "None" }) },
+  { value: "task", label: t("pages.artifacts.task", { defaultValue: "Task" }) },
+  { value: "parent_task", label: t("pages.artifacts.parentTask", { defaultValue: "Parent task" }) },
 ];
 
 const KIND_VALUES = new Set(ARTIFACT_KIND_FILTERS.map((filter) => filter.value));
@@ -58,7 +59,7 @@ function parseKind(value: string | null): ArtifactKindFilter {
 }
 
 export function artifactGroupByLabel(value: ArtifactGroupBy): string {
-  return ARTIFACT_GROUP_OPTIONS.find((option) => option.value === value)?.label ?? "None";
+  return ARTIFACT_GROUP_OPTIONS.find((option) => option.value === value)?.label ?? t("pages.artifacts.none", { defaultValue: "None" });
 }
 
 export function Artifacts() {
@@ -218,16 +219,16 @@ export function Artifacts() {
   useEffect(() => {
     if (viewingSelectedStack && selectedGroup) {
       setBreadcrumbs([
-        { label: "Artifacts", href: "/artifacts" },
+        { label: t("pages.artifacts.title", { defaultValue: "Artifacts" }), href: "/artifacts" },
         { label: `${selectedGroup.issue.identifier} · ${selectedGroup.title}` },
       ]);
     } else {
-      setBreadcrumbs([{ label: "Artifacts" }]);
+      setBreadcrumbs([{ label: t("pages.artifacts.title", { defaultValue: "Artifacts" }) }]);
     }
   }, [setBreadcrumbs, viewingSelectedStack, selectedGroup]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Package} message="Select a company to view artifacts." />;
+    return <EmptyState icon={Package} message={t("pages.artifacts.selectCompany", { defaultValue: "Select a company to view artifacts." })} />;
   }
 
   const showGroupCards = viewingStackList;
@@ -235,15 +236,15 @@ export function Artifacts() {
 
   const emptyMessage = showGroupCards
     ? searching
-      ? "No artifact stacks match this search."
-      : "No artifact stacks yet."
+      ? t("pages.artifacts.noStacksSearch", { defaultValue: "No artifact stacks match this search." })
+      : t("pages.artifacts.noStacks", { defaultValue: "No artifact stacks yet." })
     : searching
-      ? "No artifacts match this search."
+      ? t("pages.artifacts.noArtifactsSearch", { defaultValue: "No artifacts match this search." })
       : viewingSelectedStack
-        ? "No artifacts in this stack match the current filters."
+        ? t("pages.artifacts.noStackMatch", { defaultValue: "No artifacts in this stack match the current filters." })
         : kind === "all"
-          ? "No artifacts yet. Outputs attached to issues will appear here."
-          : "No artifacts of this type yet.";
+          ? t("pages.artifacts.noArtifacts", { defaultValue: "No artifacts yet. Outputs attached to issues will appear here." })
+          : t("pages.artifacts.noType", { defaultValue: "No artifacts of this type yet." });
 
   return (
     <div className="w-full max-w-6xl space-y-5">
@@ -253,15 +254,15 @@ export function Artifacts() {
           <Input
             value={draftQuery}
             onChange={(event) => setDraftQuery(event.currentTarget.value)}
-            placeholder="Search artifacts..."
-            aria-label="Search artifacts"
+            placeholder={t("pages.artifacts.searchPlaceholder", { defaultValue: "Search artifacts..." })}
+            aria-label={t("pages.artifacts.searchAria", { defaultValue: "Search artifacts" })}
             className="h-9 pl-9 pr-9 text-sm"
           />
           {draftQuery.length > 0 ? (
             <button
               type="button"
               onClick={() => setDraftQuery("")}
-              aria-label="Clear artifact search"
+              aria-label={t("pages.artifacts.clearSearch", { defaultValue: "Clear artifact search" })}
               className="absolute right-2 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
             >
               <X className="h-3.5 w-3.5" />
@@ -277,7 +278,7 @@ export function Artifacts() {
                 variant="outline"
                 size="icon"
                 aria-label={`Group artifacts (currently ${artifactGroupByLabel(groupBy)})`}
-                title="Group artifacts"
+                title={t("pages.artifacts.groupArtifacts", { defaultValue: "Group artifacts" })}
                 data-testid="artifact-group-control"
                 data-group-by={groupBy}
                 className={cn("h-8 w-8 shrink-0", grouping && "bg-accent")}
@@ -286,7 +287,7 @@ export function Artifacts() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuLabel>Group by</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("pages.artifacts.groupBy", { defaultValue: "Group by" })}</DropdownMenuLabel>
               {ARTIFACT_GROUP_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
@@ -302,7 +303,7 @@ export function Artifacts() {
             </DropdownMenuContent>
           </DropdownMenu>
 
-          <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label="Filter artifacts by type">
+          <div className="flex flex-wrap items-center gap-1.5" role="tablist" aria-label={t("pages.artifacts.filterByType", { defaultValue: "Filter artifacts by type" })}>
             {ARTIFACT_KIND_FILTERS.map((filter) => (
               <button
                 key={filter.value}
@@ -362,11 +363,11 @@ export function Artifacts() {
           </div>
           <div ref={loadMoreRef} className="flex min-h-10 items-center justify-center pb-2 text-xs text-muted-foreground">
             {isFetchingNextPage
-              ? "Loading more artifacts..."
+              ? t("pages.artifacts.loadingMore", { defaultValue: "Loading more artifacts..." })
               : hasNextPage
                 ? null
                 : isFetching
-                  ? "Updating artifacts..."
+                  ? t("pages.artifacts.updating", { defaultValue: "Updating artifacts..." })
                   : null}
           </div>
         </>

@@ -16,6 +16,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
+import { t } from "../i18n";
 import {
   CodeMirrorEditor,
   MDXEditor,
@@ -210,7 +211,7 @@ function isSafeMarkdownLinkUrl(url: string): boolean {
 function richEditorErrorMessage(error: unknown): string {
   if (error instanceof Error) return error.message;
   if (typeof error === "string") return error;
-  return "Rich editor failed to render";
+  return t("components.markdownEditor.renderFailed", { defaultValue: "Rich editor failed to render" });
 }
 
 /* ---- Mention detection helpers ---- */
@@ -259,23 +260,23 @@ const MAX_AUTOCOMPLETE_OPTIONS = 50;
 const MENTION_MENU_CARET_GAP = 10;
 
 const CODE_BLOCK_LANGUAGES: Record<string, string> = {
-  txt: "Text",
-  md: "Markdown",
-  js: "JavaScript",
-  jsx: "JavaScript (JSX)",
-  ts: "TypeScript",
-  tsx: "TypeScript (TSX)",
-  json: "JSON",
-  bash: "Bash",
-  sh: "Shell",
+  txt: t("components.markdownEditor.text", { defaultValue: "Text" }),
+  md: t("components.markdownEditor.markdown", { defaultValue: "Markdown" }),
+  js: t("components.markdownEditor.javascript", { defaultValue: "JavaScript" }),
+  jsx: t("components.markdownEditor.javascriptJsx", { defaultValue: "JavaScript (JSX)" }),
+  ts: t("components.markdownEditor.typescript", { defaultValue: "TypeScript" }),
+  tsx: t("components.markdownEditor.typescriptTsx", { defaultValue: "TypeScript (TSX)" }),
+  json: t("components.markdownEditor.json", { defaultValue: "JSON" }),
+  bash: t("components.markdownEditor.bash", { defaultValue: "Bash" }),
+  sh: t("components.markdownEditor.shell", { defaultValue: "Shell" }),
   python: "Python",
   go: "Go",
-  rust: "Rust",
-  sql: "SQL",
-  html: "HTML",
-  css: "CSS",
-  yaml: "YAML",
-  yml: "YAML",
+  rust: t("components.markdownEditor.rust", { defaultValue: "Rust" }),
+  sql: t("components.markdownEditor.sql", { defaultValue: "SQL" }),
+  html: t("components.markdownEditor.html", { defaultValue: "HTML" }),
+  css: t("components.markdownEditor.css", { defaultValue: "CSS" }),
+  yaml: t("components.markdownEditor.yaml", { defaultValue: "YAML" }),
+  yml: t("components.markdownEditor.yaml", { defaultValue: "YAML" }),
 };
 
 const FALLBACK_CODE_BLOCK_DESCRIPTOR: CodeBlockEditorDescriptor = {
@@ -777,7 +778,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         const activeElement = document.activeElement;
         if (activeElement === editable || editable.contains(activeElement)) return;
         if (isRichEditorDomEmpty(editable, editorValue, placeholder)) {
-          setRichEditorError("Rich editor failed to load content");
+          setRichEditorError(t("components.markdownEditor.loadFailed", { defaultValue: "Rich editor failed to load content" }));
         }
       }, 0);
     };
@@ -806,7 +807,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     const imageHandler = hasImageUpload
       ? async (file: File) => {
           const handler = imageUploadHandlerRef.current;
-          if (!handler) throw new Error("No image upload handler");
+          if (!handler) throw new Error(t("components.markdownEditor.noUploadHandler", { defaultValue: "No image upload handler" }));
           try {
             const src = await handler(file);
             setUploadError(null);
@@ -831,7 +832,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             }, 100);
             return src;
           } catch (err) {
-            const message = err instanceof Error ? err.message : "Image upload failed";
+            const message = err instanceof Error ? err.message : t("components.markdownEditor.uploadFailed", { defaultValue: "Image upload failed" });
             setUploadError(message);
             throw err;
           }
@@ -1133,7 +1134,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
   }, [handleAutocompletePress]);
 
   function hasFilePayload(evt: DragEvent<HTMLDivElement>) {
-    return Array.from(evt.dataTransfer?.types ?? []).includes("Files");
+    return Array.from(evt.dataTransfer?.types ?? []).includes(t("components.markdownEditor.files", { defaultValue: "Files" }));
   }
 
   const canDropFile = fileDropTarget === "editor" && Boolean(imageUploadHandler || onDropFile);
@@ -1141,7 +1142,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     const clipboard = event.clipboardData;
     if (!clipboard || !ref.current) return;
     const types = new Set(Array.from(clipboard.types));
-    if (types.has("Files") || types.has("text/html")) return;
+    if (types.has(t("components.markdownEditor.files", { defaultValue: "Files" })) || types.has("text/html")) return;
     if (isSelectionInsideCodeLikeElement(containerRef.current)) return;
 
     const rawText = clipboard.getData("text/plain");
@@ -1174,7 +1175,7 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
         )}
       >
         <div className="flex items-start justify-between gap-3 px-3 pt-2 text-xs text-muted-foreground">
-          <p>Rich editor unavailable for this markdown. Showing raw source instead.</p>
+          <p>{t("components.markdownEditor.editorUnavailable", { defaultValue: "Rich editor unavailable for this markdown. Showing raw source instead." })}</p>
           <button
             type="button"
             className="shrink-0 underline underline-offset-2 hover:text-foreground"
