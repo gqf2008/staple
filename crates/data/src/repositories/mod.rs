@@ -4,16 +4,36 @@
 //! company-scoped, and the schema's composite foreign keys enforce company
 //! boundaries at the SQL level.
 
+pub mod assets;
 pub mod companies;
+pub mod documents;
 pub mod goals;
 mod helpers;
+pub mod issue_comments;
+pub mod issue_relations;
 pub mod issues;
 pub mod projects;
 
+pub use assets::{
+    AssetError, AssetRecord, AssetRepository, IssueAttachmentRecord, NewAsset, NewIssueAttachment,
+    TursoAssetRepository,
+};
 pub use companies::{
     CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,
 };
+pub use documents::{
+    DocumentError, DocumentRecord, DocumentRepository, NewIssueDocument, TursoDocumentRepository,
+    UpdateIssueDocument,
+};
 pub use goals::{GoalError, GoalPatch, GoalRecord, GoalRepository, NewGoal, TursoGoalRepository};
+pub use issue_comments::{
+    IssueCommentError, IssueCommentRecord, IssueCommentRepository, NewIssueComment,
+    TursoIssueCommentRepository,
+};
+pub use issue_relations::{
+    IssueRelationError, IssueRelationRecord, IssueRelationRepository, NewIssueRelation,
+    TursoIssueRelationRepository,
+};
 pub use issues::{
     IssueError, IssuePatch, IssueRecord, IssueRepository, NewIssue, TursoIssueRepository,
     allowed_status_transition,

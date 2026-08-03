@@ -13,9 +13,15 @@ pub use migrations::{
     MigrateError, Migration, load_migrations, migrate, migrate_conn, migrate_down,
 };
 pub use repositories::{
-    CompanyPatch, CompanyRecord, CompanyRepository, GoalError, GoalPatch, GoalRecord,
-    GoalRepository, IssueError, IssuePatch, IssueRecord, IssueRepository, NewCompany, NewGoal,
-    NewIssue, NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository, RepoError,
-    TursoCompanyRepository, TursoGoalRepository, TursoIssueRepository, TursoProjectRepository,
-    allowed_status_transition, companies, goals, issues, projects,
+    AssetError, AssetRecord, AssetRepository, CompanyPatch, CompanyRecord, CompanyRepository,
+    DocumentError, DocumentRecord, DocumentRepository, GoalError, GoalPatch, GoalRecord,
+    GoalRepository, IssueAttachmentRecord, IssueCommentError, IssueCommentRecord,
+    IssueCommentRepository, IssueError, IssuePatch, IssueRecord, IssueRelationError,
+    IssueRelationRecord, IssueRelationRepository, IssueRepository, NewAsset, NewCompany, NewGoal,
+    NewIssue, NewIssueAttachment, NewIssueComment, NewIssueDocument, NewIssueRelation, NewProject,
+    ProjectError, ProjectPatch, ProjectRecord, ProjectRepository, RepoError, TursoAssetRepository,
+    TursoCompanyRepository, TursoDocumentRepository, TursoGoalRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoProjectRepository, UpdateIssueDocument, allowed_status_transition, assets, companies,
+    documents, goals, issue_comments, issue_relations, issues, projects,
 };

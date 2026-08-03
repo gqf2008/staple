@@ -2,11 +2,15 @@
 
 use topcoat::router::path_param;
 
+pub mod assets;
+pub mod comments;
 pub mod companies;
+pub mod documents;
 pub mod goals;
 pub mod health;
 pub mod issues;
 pub mod projects;
+pub mod relations;
 
 /// Shared `{id}` path parameter (goals, projects, and future resources).
 #[path_param(error = bad_request("Invalid id"))]
