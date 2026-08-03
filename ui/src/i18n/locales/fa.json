@@ -4497,6 +4497,43 @@
       "client": "Client",
       "requestedAccess": "Requested access",
       "requestedCompany": "Requested company"
+    },
+    "newGatewayDialog": {
+      "newGateway": "New gateway",
+      "gatewayCreated": "Gateway created",
+      "createFailed": "Gateway was not created",
+      "namePlaceholder": "CTO agents",
+      "loadingProfiles": "Loading profiles…",
+      "chooseProfile": "Choose a profile",
+      "descHint": "Who this endpoint is for and when it should be rotated.",
+      "creating": "Creating…",
+      "createGateway": "Create gateway",
+      "name": "Name",
+      "accessProfile": "Access profile",
+      "description": "Description (optional)"
+    },
+    "agentToolsTab": {
+      "installedForAllHint": "Installed from the app page for every agent. Remove the all-agents install there.",
+      "installedHint": "Loaded into this agent's runtime context.",
+      "installedForAll": "Installed for all",
+      "installed": "Installed",
+      "permittedOnly": "Permitted only",
+      "notPermitted": "Not permitted",
+      "deniedTools": "Denied tools (suppressed)",
+      "resolving": "Resolving effective access…",
+      "effectiveAccess": "Effective access",
+      "installedApps": "Installed apps",
+      "saving": "Saving...",
+      "saveFailed": "Could not save",
+      "unsavedChanges": "Unsaved changes",
+      "saved": "Saved",
+      "allowedTools": "Allowed tools",
+      "tool": "Tool",
+      "capability": "Capability",
+      "risk": "Risk",
+      "source": "Source",
+      "loadingPolicies": "Loading policies…",
+      "checkingTools": "Checking tools…"
     }
   },
   "status": {
@@ -6723,6 +6760,124 @@
       "oneShot": "One-shot",
       "deny": "Deny",
       "fail": "Fail"
+    },
+    "actionCard": {
+      "coder": "Coder",
+      "prevHash": "Previous catalog hash",
+      "currHash": "Current catalog hash",
+      "application": "Application",
+      "connection": "Connection",
+      "catalog": "Catalog",
+      "payload": "Payload",
+      "hashChanged": "Re-issue the request before approving — the catalog hash changed.",
+      "catalogChanged": "Catalog changed since this request was signed.",
+      "input": "Input",
+      "whyAsking": "Why I'm asking"
+    },
+    "commandPalette": {
+      "placeholder": "Search tasks, agents, projects...",
+      "noResults": "No results found.",
+      "search": "Search",
+      "quickFilters": "Quick filters",
+      "projects": "Projects",
+      "actions": "Actions",
+      "pages": "Pages",
+      "tasks": "Tasks",
+      "agents": "Agents"
+    },
+    "agentMultiSelect": {
+      "placeholder": "Select agent…",
+      "noAgents": "No agents yet.",
+      "filterAgents": "Filter agents",
+      "selectAgents": "Select agents",
+      "noneSelected": "No agents selected",
+      "saving": "Saving…",
+      "save": "Save",
+      "done": "Done",
+      "noMatches": "No matches."
+    },
+    "activityCharts": {
+      "succeeded": "Succeeded",
+      "recovered": "Recovered",
+      "failed": "Failed",
+      "other": "Other",
+      "todo": "To Do",
+      "inProgress": "In Progress",
+      "inReview": "In Review",
+      "done": "Done",
+      "cancelled": "Cancelled",
+      "backlog": "Backlog",
+      "noRuns": "No runs yet",
+      "noTasks": "No tasks"
+    },
+    "liveUpdates": {
+      "system": "System",
+      "board": "Board",
+      "someone": "Someone",
+      "agent": "Agent",
+      "viewInbox": "View inbox",
+      "viewAgent": "View agent",
+      "viewRun": "View run",
+      "wsClosedEarly": "WebSocket closed before connection established"
+    },
+    "forkSkillDialog": {
+      "editCopy": "Edit a copy",
+      "editingCopy": "Editing a copy",
+      "copyCreateFailed": "Couldn't create a copy",
+      "forkFailed": "The fork request failed.",
+      "createCopy": "Create copy",
+      "agentsRunCopy": "These agents will run your copy instead of the original.",
+      "agentsKeepOriginal": "These agents keep running the original — your copy won't change what they do.",
+      "switchToCopy": "Switch these agents to the copy",
+      "createAnother": "Create another copy",
+      "alreadyHaveCopy": "You already have a copy"
+    },
+    "secretPicker": {
+      "upOneFolder": "Up one folder",
+      "browseSecrets": "Browse secrets",
+      "missingSecret": "Missing secret",
+      "current": "Current",
+      "recentlyUsed": "Recently used",
+      "allSecrets": "All secrets",
+      "selectPlaceholder": "Select secret…",
+      "searchPlaceholder": "Search secrets…",
+      "noMatches": "No matching secrets",
+      "createNew": "Create new secret…"
+    },
+    "standaloneBrowser": {
+      "paperclip": "Paperclip",
+      "linkCopied": "Link copied",
+      "sharingUnavailable": "Sharing is unavailable",
+      "shareFailed": "Share failed",
+      "openInBrowserHint": "Try opening the page in your browser.",
+      "refresh": "Refresh",
+      "share": "Share",
+      "openInBrowser": "Open in Browser"
+    },
+    "productivityReviewBadge": {
+      "noCommentStreak": "No-comment streak",
+      "longActiveDuration": "Long active duration",
+      "highChurn": "High churn",
+      "open": "Open",
+      "inProgress": "In progress",
+      "inReview": "In review",
+      "productivityReview": "Productivity review",
+      "underReview": "Under review",
+      "reviewOpen": "Productivity review open",
+      "triggerLabel": "Trigger:",
+      "streakLabel": "No-comment streak:",
+      "reviewLabel": "Review:"
+    },
+    "markdownBody": {
+      "copyFailed": "Copy failed",
+      "copiedExcl": "Copied!",
+      "copy": "Copy",
+      "unwrapLines": "Unwrap lines",
+      "wrapLines": "Wrap lines",
+      "copyCode": "Copy code",
+      "mermaidFailed": "Failed to render Mermaid diagram.",
+      "mermaidRendering": "Rendering Mermaid diagram...",
+      "scrollableTable": "Scrollable table"
     }
   }
 }

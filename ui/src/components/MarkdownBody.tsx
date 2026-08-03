@@ -1,4 +1,5 @@
 import { isValidElement, memo, useCallback, useEffect, useId, useMemo, useRef, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Check, Copy, ExternalLink, Github, WrapText } from "lucide-react";
 import Markdown, { defaultUrlTransform, type Components, type Options } from "react-markdown";
@@ -585,8 +586,8 @@ function CodeBlock({
     }, 1500);
   }, [children]);
 
-  const copyLabel = failed ? "Copy failed" : copied ? "Copied!" : "Copy";
-  const wrapLabel = wrapLines ? "Unwrap lines" : "Wrap lines";
+  const copyLabel = failed ? t("components.markdownBody.copyFailed", { defaultValue: "Copy failed" }) : copied ? t("components.markdownBody.copiedExcl", { defaultValue: "Copied!" }) : t("components.markdownBody.copy", { defaultValue: "Copy" });
+  const wrapLabel = wrapLines ? t("components.markdownBody.unwrapLines", { defaultValue: "Unwrap lines" }) : t("components.markdownBody.wrapLines", { defaultValue: "Wrap lines" });
 
   return (
     <div className="paperclip-markdown-codeblock" data-wrap-lines={wrapLines || undefined}>
@@ -633,7 +634,7 @@ function CodeBlock({
         <button
           type="button"
           onClick={handleCopy}
-          aria-label="Copy code"
+          aria-label={t("components.markdownBody.copyCode", { defaultValue: "Copy code" })}
           title={copyLabel}
           className="paperclip-markdown-codeblock-action paperclip-markdown-codeblock-copy"
           style={codeBlockActionStyle}
@@ -680,7 +681,7 @@ function MermaidDiagramBlock({ source, darkMode }: { source: string; darkMode: b
         const message =
           err instanceof Error && err.message
             ? err.message
-            : "Failed to render Mermaid diagram.";
+            : t("components.markdownBody.mermaidFailed", { defaultValue: "Failed to render Mermaid diagram." });
         setError(message);
       });
 
@@ -696,7 +697,7 @@ function MermaidDiagramBlock({ source, darkMode }: { source: string; darkMode: b
       ) : (
         <>
           <p className={cn("paperclip-mermaid-status", error && "paperclip-mermaid-status-error")}>
-            {error ? `Unable to render Mermaid diagram: ${error}` : "Rendering Mermaid diagram..."}
+            {error ? `Unable to render Mermaid diagram: ${error}` : t("components.markdownBody.mermaidRendering", { defaultValue: "Rendering Mermaid diagram..." })}
           </p>
           <pre className="paperclip-mermaid-source">
             <code className="language-mermaid">{source}</code>
@@ -786,7 +787,7 @@ function MarkdownBodyImpl({
       </blockquote>
     ),
     table: ({ node: _node, style: tableStyle, children: tableChildren, ...tableProps }) => (
-      <div className="paperclip-markdown-table-scroll" role="region" aria-label="Scrollable table" tabIndex={0}>
+      <div className="paperclip-markdown-table-scroll" role="region" aria-label={t("components.markdownBody.scrollableTable", { defaultValue: "Scrollable table" })} tabIndex={0}>
         <table {...tableProps} style={tableStyle as React.CSSProperties | undefined}>
           {tableChildren}
         </table>

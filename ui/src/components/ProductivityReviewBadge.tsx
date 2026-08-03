@@ -1,4 +1,5 @@
 import { Eye } from "lucide-react";
+import { t } from "../i18n";
 import type { IssueProductivityReview } from "@paperclipai/shared";
 import { Link } from "../lib/router";
 import { cn } from "../lib/utils";
@@ -6,24 +7,24 @@ import { createIssueDetailPath } from "../lib/issueDetailBreadcrumb";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 
 const TRIGGER_LABELS: Record<string, string> = {
-  no_comment_streak: "No-comment streak",
-  long_active_duration: "Long active duration",
-  high_churn: "High churn",
+  no_comment_streak: t("components.productivityReviewBadge.noCommentStreak", { defaultValue: "No-comment streak" }),
+  long_active_duration: t("components.productivityReviewBadge.longActiveDuration", { defaultValue: "Long active duration" }),
+  high_churn: t("components.productivityReviewBadge.highChurn", { defaultValue: "High churn" }),
 };
 
 const REVIEW_STATUS_LABELS: Record<string, string> = {
-  todo: "Open",
-  in_progress: "In progress",
-  in_review: "In review",
+  todo: t("components.productivityReviewBadge.open", { defaultValue: "Open" }),
+  in_progress: t("components.productivityReviewBadge.inProgress", { defaultValue: "In progress" }),
+  in_review: t("components.productivityReviewBadge.inReview", { defaultValue: "In review" }),
   blocked: "Blocked",
-  backlog: "Open",
+  backlog: t("components.productivityReviewBadge.open", { defaultValue: "Open" }),
 };
 
 export function productivityReviewTriggerLabel(
   trigger: IssueProductivityReview["trigger"],
 ): string {
-  if (!trigger) return "Productivity review";
-  return TRIGGER_LABELS[trigger] ?? "Productivity review";
+  if (!trigger) return t("components.productivityReviewBadge.productivityReview", { defaultValue: "Productivity review" });
+  return TRIGGER_LABELS[trigger] ?? t("components.productivityReviewBadge.productivityReview", { defaultValue: "Productivity review" });
 }
 
 export function ProductivityReviewBadge({
@@ -52,23 +53,23 @@ export function ProductivityReviewBadge({
           aria-label={`Under review · productivity review ${reviewIdentifier} (${label})`}
         >
           <Eye className="h-3 w-3" aria-hidden />
-          {hideLabel ? null : <span>Under review</span>}
+          {hideLabel ? null : <span>{t("components.productivityReviewBadge.underReview", { defaultValue: "Under review" })}</span>}
         </Link>
       </TooltipTrigger>
       <TooltipContent>
         <div className="space-y-1 text-xs">
-          <div className="font-semibold">Productivity review open</div>
+          <div className="font-semibold">{t("components.productivityReviewBadge.reviewOpen", { defaultValue: "Productivity review open" })}</div>
           <div>
-            <span className="text-muted-foreground">Trigger:</span> {label}
+            <span className="text-muted-foreground">{t("components.productivityReviewBadge.triggerLabel", { defaultValue: "Trigger:" })}</span> {label}
           </div>
           {typeof review.noCommentStreak === "number" && review.noCommentStreak > 0 ? (
             <div>
-              <span className="text-muted-foreground">No-comment streak:</span>{" "}
+              <span className="text-muted-foreground">{t("components.productivityReviewBadge.streakLabel", { defaultValue: "No-comment streak:" })}</span>{" "}
               {review.noCommentStreak} runs
             </div>
           ) : null}
           <div>
-            <span className="text-muted-foreground">Review:</span> {reviewIdentifier} ({statusLabel})
+            <span className="text-muted-foreground">{t("components.productivityReviewBadge.reviewLabel", { defaultValue: "Review:" })}</span> {reviewIdentifier} ({statusLabel})
           </div>
         </div>
       </TooltipContent>

@@ -8,6 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useQuery, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
+import { t } from "../i18n";
 import { createCoalescingQueryClient, createInvalidationBatcher } from "../lib/query-invalidation-batcher";
 import { patchRunStatusInList, removeRunFromList } from "../lib/live-runs-cache";
 import type { Agent, Issue, IssueComment, LiveEvent } from "@paperclipai/shared";
@@ -140,11 +141,11 @@ function resolveActorLabel(
   if (actorType === "agent" && actorId) {
     return resolveAgentName(queryClient, companyId, actorId) ?? `Agent ${shortId(actorId)}`;
   }
-  if (actorType === "system") return "System";
+  if (actorType === "system") return t("components.liveUpdates.system", { defaultValue: "System" });
   if (actorType === "user" && actorId) {
-    return resolveUserName(queryClient, companyId, actorId) ?? "Board";
+    return resolveUserName(queryClient, companyId, actorId) ?? t("components.liveUpdates.board", { defaultValue: "Board" });
   }
-  return "Someone";
+  return t("components.liveUpdates.someone", { defaultValue: "Someone" });
 }
 
 interface IssueToastContext {
@@ -775,13 +776,13 @@ function buildJoinRequestToast(
   if (action !== "join.requested" && action !== "join.request_replayed") return null;
 
   const requestType = readString(details?.requestType);
-  const label = requestType === "agent" ? "Agent" : "Someone";
+  const label = requestType === "agent" ? t("components.liveUpdates.agent", { defaultValue: "Agent" }) : t("components.liveUpdates.someone", { defaultValue: "Someone" });
 
   return {
     title: `${label} wants to join`,
     body: "A new join request is waiting for approval.",
     tone: "info",
-    action: { label: "View inbox", href: "/inbox/mine" },
+    action: { label: t("components.liveUpdates.viewInbox", { defaultValue: "View inbox" }), href: "/inbox/mine" },
     dedupeKey: `join-request:${entityId}`,
   };
 }
@@ -811,7 +812,7 @@ function buildAgentStatusToast(
     title,
     body,
     tone,
-    action: { label: "View agent", href: `/agents/${agentId}` },
+    action: { label: t("components.liveUpdates.viewAgent", { defaultValue: "View agent" }), href: `/agents/${agentId}` },
     dedupeKey: `agent-status:${agentId}:${status}`,
   };
 }
@@ -848,7 +849,7 @@ function buildRunStatusToast(
     body,
     tone,
     ttlMs: status === "succeeded" ? 5000 : 7000,
-    action: { label: "View run", href: `/agents/${agentId}/runs/${runId}` },
+    action: { label: t("components.liveUpdates.viewRun", { defaultValue: "View run" }), href: `/agents/${agentId}/runs/${runId}` },
     dedupeKey: `run-status:${runId}:${status}`,
   };
 }
@@ -1428,7 +1429,7 @@ export function LiveUpdatesProvider({ children }: { children: ReactNode }) {
 
     // Delay initial connect slightly so React StrictMode's double-invoke
     // cleanup fires before the WebSocket is created, avoiding the
-    // "WebSocket closed before connection established" dev-mode error.
+    // t("components.liveUpdates.wsClosedEarly", { defaultValue: "WebSocket closed before connection established" }) dev-mode error.
     const connectTimer = window.setTimeout(connect, 0);
 
     return () => {

@@ -4497,6 +4497,43 @@
       "client": "用戶端",
       "requestedAccess": "已請求存取",
       "requestedCompany": "請求的公司"
+    },
+    "newGatewayDialog": {
+      "newGateway": "新閘道",
+      "gatewayCreated": "閘道已建立",
+      "createFailed": "閘道未建立",
+      "namePlaceholder": "CTO 智慧體",
+      "loadingProfiles": "正在載入設定檔…",
+      "chooseProfile": "選擇設定檔",
+      "descHint": "此端點的用途及應何時輪換。",
+      "creating": "正在建立…",
+      "createGateway": "建立閘道",
+      "name": "名稱",
+      "accessProfile": "存取設定檔",
+      "description": "描述（選用）"
+    },
+    "agentToolsTab": {
+      "installedForAllHint": "從應用頁面向每個智慧體安裝。請在那裡移除全智慧體安裝。",
+      "installedHint": "已載入到此智慧體的執行階段內容。",
+      "installedForAll": "已為全部安裝",
+      "installed": "已安裝",
+      "permittedOnly": "僅允許",
+      "notPermitted": "不允許",
+      "deniedTools": "被拒絕的工具（已抑制）",
+      "resolving": "正在解析生效存取…",
+      "effectiveAccess": "生效存取",
+      "installedApps": "已安裝的應用",
+      "saving": "正在儲存…",
+      "saveFailed": "無法儲存",
+      "unsavedChanges": "未儲存的變更",
+      "saved": "已儲存",
+      "allowedTools": "允許的工具",
+      "tool": "工具",
+      "capability": "能力",
+      "risk": "風險",
+      "source": "來源",
+      "loadingPolicies": "正在載入策略…",
+      "checkingTools": "正在檢查工具…"
     }
   },
   "status": {
@@ -6723,6 +6760,124 @@
       "oneShot": "一次性",
       "deny": "拒絕",
       "fail": "失敗"
+    },
+    "actionCard": {
+      "coder": "編碼者",
+      "prevHash": "之前的目錄雜湊",
+      "currHash": "目前目錄雜湊",
+      "application": "應用",
+      "connection": "連線",
+      "catalog": "目錄",
+      "payload": "負載",
+      "hashChanged": "核准前請重新發起請求 — 目錄雜湊已變更。",
+      "catalogChanged": "自此請求簽章以來目錄已變更。",
+      "input": "輸入",
+      "whyAsking": "我為什麼請求"
+    },
+    "commandPalette": {
+      "placeholder": "搜尋任務、智慧體、專案...",
+      "noResults": "找不到結果。",
+      "search": "搜尋",
+      "quickFilters": "快速篩選",
+      "projects": "專案",
+      "actions": "操作",
+      "pages": "頁面",
+      "tasks": "任務",
+      "agents": "智慧體"
+    },
+    "agentMultiSelect": {
+      "placeholder": "選擇智慧體…",
+      "noAgents": "暫無智慧體。",
+      "filterAgents": "篩選智慧體",
+      "selectAgents": "選擇智慧體",
+      "noneSelected": "未選擇智慧體",
+      "saving": "正在儲存…",
+      "save": "儲存",
+      "done": "完成",
+      "noMatches": "無相符。"
+    },
+    "activityCharts": {
+      "succeeded": "成功",
+      "recovered": "已恢復",
+      "failed": "失敗",
+      "other": "其他",
+      "todo": "待辦",
+      "inProgress": "進行中",
+      "inReview": "審核中",
+      "done": "已完成",
+      "cancelled": "已取消",
+      "backlog": "待辦",
+      "noRuns": "暫無執行",
+      "noTasks": "無任務"
+    },
+    "liveUpdates": {
+      "system": "系統",
+      "board": "董事會",
+      "someone": "某人",
+      "agent": "智慧體",
+      "viewInbox": "檢視收件匣",
+      "viewAgent": "檢視智慧體",
+      "viewRun": "檢視執行",
+      "wsClosedEarly": "WebSocket 在建立連線前已關閉"
+    },
+    "forkSkillDialog": {
+      "editCopy": "編輯副本",
+      "editingCopy": "正在編輯副本",
+      "copyCreateFailed": "無法建立副本",
+      "forkFailed": "Fork 請求失敗。",
+      "createCopy": "建立副本",
+      "agentsRunCopy": "這些智慧體將執行你的副本而非原版。",
+      "agentsKeepOriginal": "這些智慧體繼續執行原版 — 你的副本不會改變它們的行為。",
+      "switchToCopy": "將這些智慧體切換到副本",
+      "createAnother": "再建立一個副本",
+      "alreadyHaveCopy": "你已有一個副本"
+    },
+    "secretPicker": {
+      "upOneFolder": "上一層資料夾",
+      "browseSecrets": "瀏覽金鑰",
+      "missingSecret": "缺失金鑰",
+      "current": "目前",
+      "recentlyUsed": "最近使用",
+      "allSecrets": "所有金鑰",
+      "selectPlaceholder": "選擇金鑰…",
+      "searchPlaceholder": "搜尋金鑰…",
+      "noMatches": "沒有相符的金鑰",
+      "createNew": "建立新金鑰…"
+    },
+    "standaloneBrowser": {
+      "paperclip": "Paperclip",
+      "linkCopied": "連結已複製",
+      "sharingUnavailable": "分享無法使用",
+      "shareFailed": "分享失敗",
+      "openInBrowserHint": "請嘗試在瀏覽器中開啟頁面。",
+      "refresh": "重新整理",
+      "share": "分享",
+      "openInBrowser": "在瀏覽器中開啟"
+    },
+    "productivityReviewBadge": {
+      "noCommentStreak": "無評論連續",
+      "longActiveDuration": "長時間活躍",
+      "highChurn": "高變動",
+      "open": "未關閉",
+      "inProgress": "進行中",
+      "inReview": "審核中",
+      "productivityReview": "生產力評審",
+      "underReview": "評審中",
+      "reviewOpen": "生產力評審已開啟",
+      "triggerLabel": "觸發條件：",
+      "streakLabel": "無評論連續：",
+      "reviewLabel": "評審："
+    },
+    "markdownBody": {
+      "copyFailed": "複製失敗",
+      "copiedExcl": "已複製！",
+      "copy": "複製",
+      "unwrapLines": "取消換行",
+      "wrapLines": "換行",
+      "copyCode": "複製程式碼",
+      "mermaidFailed": "渲染 Mermaid 圖表失敗。",
+      "mermaidRendering": "正在渲染 Mermaid 圖表...",
+      "scrollableTable": "可捲動表格"
     }
   }
 }

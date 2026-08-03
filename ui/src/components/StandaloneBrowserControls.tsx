@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import { ExternalLink, RefreshCw, Share2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
@@ -68,18 +69,18 @@ export function StandaloneBrowserControls({ mobile }: { mobile: boolean }) {
     const url = window.location.href;
     try {
       if (navigator.share) {
-        await navigator.share({ title: document.title || "Paperclip", url });
+        await navigator.share({ title: document.title || t("components.standaloneBrowser.paperclip", { defaultValue: "Paperclip" }), url });
         return;
       }
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(url);
-        toastActions?.pushToast({ title: "Link copied", tone: "success" });
+        toastActions?.pushToast({ title: t("components.standaloneBrowser.linkCopied", { defaultValue: "Link copied" }), tone: "success" });
         return;
       }
-      toastActions?.pushToast({ title: "Sharing is unavailable", body: url, tone: "warn" });
+      toastActions?.pushToast({ title: t("components.standaloneBrowser.sharingUnavailable", { defaultValue: "Sharing is unavailable" }), body: url, tone: "warn" });
     } catch (error) {
       if (error instanceof DOMException && error.name === "AbortError") return;
-      toastActions?.pushToast({ title: "Share failed", body: "Try opening the page in your browser.", tone: "error" });
+      toastActions?.pushToast({ title: t("components.standaloneBrowser.shareFailed", { defaultValue: "Share failed" }), body: t("components.standaloneBrowser.openInBrowserHint", { defaultValue: "Try opening the page in your browser." }), tone: "error" });
     }
   }, [toastActions]);
 
@@ -91,13 +92,13 @@ export function StandaloneBrowserControls({ mobile }: { mobile: boolean }) {
 
   return (
     <div className="flex h-10 items-center justify-end gap-1 border-b border-border bg-background/95 px-3 backdrop-blur supports-[backdrop-filter]:bg-background/85">
-      <ControlButton label="Refresh" onClick={refresh}>
+      <ControlButton label={t("components.standaloneBrowser.refresh", { defaultValue: "Refresh" })} onClick={refresh}>
         <RefreshCw className="h-4 w-4" />
       </ControlButton>
-      <ControlButton label="Share" onClick={share}>
+      <ControlButton label={t("components.standaloneBrowser.share", { defaultValue: "Share" })} onClick={share}>
         <Share2 className="h-4 w-4" />
       </ControlButton>
-      <ControlButton label="Open in Browser" onClick={openInBrowser}>
+      <ControlButton label={t("components.standaloneBrowser.openInBrowser", { defaultValue: "Open in Browser" })} onClick={openInBrowser}>
         <ExternalLink className="h-4 w-4" />
       </ControlButton>
     </div>

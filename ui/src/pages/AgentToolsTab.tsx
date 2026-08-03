@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { HelpCircle, PackageCheck } from "lucide-react";
 import type {
@@ -94,7 +95,7 @@ function InstalledAppsSection({
     <section className="rounded-lg border border-border bg-card">
       <div className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-3 py-2.5">
         <div>
-          <h3 className="text-sm font-semibold text-foreground">Installed apps</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("pages.agentToolsTab.installedApps", { defaultValue: "Installed apps" })}</h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             Installed apps load tools into {agentName}'s context on every run. Permitted-only apps do not add context cost.
           </p>
@@ -132,13 +133,13 @@ function InstalledAppsSection({
                       <span className="flex flex-wrap items-center gap-2">
                         <span className="truncate text-sm font-medium text-foreground">{connection.name}</span>
                         <InstallBadge installed={checked} installedForAll={installedForAll} permitted={permitted} />
-                        {rowPending ? <span className="text-xs text-muted-foreground">Saving...</span> : null}
+                        {rowPending ? <span className="text-xs text-muted-foreground">{t("pages.agentToolsTab.saving", { defaultValue: "Saving..." })}</span> : null}
                       </span>
                       <span className="mt-0.5 block text-xs text-muted-foreground">
                         {installedForAll
-                          ? "Installed from the app page for every agent. Remove the all-agents install there."
+                          ? t("pages.agentToolsTab.installedForAllHint", { defaultValue: "Installed from the app page for every agent. Remove the all-agents install there." })
                           : checked
-                            ? "Loaded into this agent's runtime context."
+                            ? t("pages.agentToolsTab.installedHint", { defaultValue: "Loaded into this agent's runtime context." })
                             : INSTALLED_HINT}
                       </span>
                     </span>
@@ -179,7 +180,7 @@ function InstallBadge({
   installedForAll: boolean;
   permitted: boolean;
 }) {
-  const label = installed ? (installedForAll ? "Installed for all" : "Installed") : permitted ? "Permitted only" : "Not permitted";
+  const label = installed ? (installedForAll ? t("pages.agentToolsTab.installedForAll", { defaultValue: "Installed for all" }) : t("pages.agentToolsTab.installed", { defaultValue: "Installed" })) : permitted ? t("pages.agentToolsTab.permittedOnly", { defaultValue: "Permitted only" }) : t("pages.agentToolsTab.notPermitted", { defaultValue: "Not permitted" });
   return (
     <span
       className={cn(
@@ -202,10 +203,10 @@ function InstallSaveStatusChip({
   unsaved: boolean;
   error: boolean;
 }) {
-  if (pending) return <span className="text-xs text-muted-foreground">Saving...</span>;
-  if (error) return <span className="text-xs text-destructive">Could not save</span>;
-  if (unsaved) return <span className="text-xs text-muted-foreground">Unsaved changes</span>;
-  return <span className="text-xs text-muted-foreground">Saved</span>;
+  if (pending) return <span className="text-xs text-muted-foreground">{t("pages.agentToolsTab.saving", { defaultValue: "Saving..." })}</span>;
+  if (error) return <span className="text-xs text-destructive">{t("pages.agentToolsTab.saveFailed", { defaultValue: "Could not save" })}</span>;
+  if (unsaved) return <span className="text-xs text-muted-foreground">{t("pages.agentToolsTab.unsavedChanges", { defaultValue: "Unsaved changes" })}</span>;
+  return <span className="text-xs text-muted-foreground">{t("pages.agentToolsTab.saved", { defaultValue: "Saved" })}</span>;
 }
 
 const POLICY_EFFECT_LABEL: Record<string, string> = {
@@ -346,7 +347,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
   }, [connectionList, installDraft, syncInstall.isPending, syncInstall.mutate]);
 
   // The effective endpoint returns the *allowed* slice of the catalog. To show
-  // "Denied tools (suppressed)" we need the full company catalog, which is only
+  // t("pages.agentToolsTab.deniedTools", { defaultValue: "Denied tools (suppressed)" }) we need the full company catalog, which is only
   // exposed per-connection — same aggregation the Applications tab uses.
   const catalogQueries = useQueries({
     queries: connectionList.map((connection) => ({
@@ -417,7 +418,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
   const profiles = effective.data?.profiles ?? [];
   const catalogLoading = catalogQueries.some((q) => q.isLoading);
 
-  if (effective.isLoading) return <ToolsLoadingState label="Resolving effective access…" />;
+  if (effective.isLoading) return <ToolsLoadingState label={t("pages.agentToolsTab.resolving", { defaultValue: "Resolving effective access…" })} />;
   if (effective.error) {
     return <ToolsErrorState error={effective.error} onRetry={() => effective.refetch()} />;
   }
@@ -429,7 +430,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
     <div className="space-y-4">
       <EnforcementBanner
         tone="info"
-        title="Effective access"
+        title={t("pages.agentToolsTab.effectiveAccess", { defaultValue: "Effective access" })}
         body={
           <>
             This is exactly the tool set Paperclip will accept for{" "}
@@ -462,7 +463,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
         <div className="lg:col-span-2">
           <div className="rounded-lg border border-border">
             <div className="flex items-center justify-between gap-2 border-b border-border px-3 py-2.5">
-              <h3 className="text-sm font-semibold text-foreground">Allowed tools</h3>
+              <h3 className="text-sm font-semibold text-foreground">{t("pages.agentToolsTab.allowedTools", { defaultValue: "Allowed tools" })}</h3>
               <span className="text-xs text-muted-foreground tabular-nums">
                 {allowedTools.length} {allowedTools.length === 1 ? "tool" : "tools"}
               </span>
@@ -475,10 +476,10 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-border text-left text-xs text-muted-foreground">
-                    <th className="px-3 py-2 font-medium">Tool</th>
-                    <th className="px-3 py-2 font-medium">Capability</th>
-                    <th className="px-3 py-2 font-medium">Risk</th>
-                    <th className="px-3 py-2 font-medium">Source</th>
+                    <th className="px-3 py-2 font-medium">{t("pages.agentToolsTab.tool", { defaultValue: "Tool" })}</th>
+                    <th className="px-3 py-2 font-medium">{t("pages.agentToolsTab.capability", { defaultValue: "Capability" })}</th>
+                    <th className="px-3 py-2 font-medium">{t("pages.agentToolsTab.risk", { defaultValue: "Risk" })}</th>
+                    <th className="px-3 py-2 font-medium">{t("pages.agentToolsTab.source", { defaultValue: "Source" })}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-border">
@@ -565,7 +566,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
                 Active policies
               </div>
               {policiesQuery.isLoading ? (
-                <p className="text-xs text-muted-foreground">Loading policies…</p>
+                <p className="text-xs text-muted-foreground">{t("pages.agentToolsTab.loadingPolicies", { defaultValue: "Loading policies…" })}</p>
               ) : governingPolicies.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   No enabled policy currently mutates this agent's allow list.
@@ -601,7 +602,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
                 Unavailable tools
               </div>
               {catalogLoading ? (
-                <p className="text-xs text-muted-foreground">Checking tools…</p>
+                <p className="text-xs text-muted-foreground">{t("pages.agentToolsTab.checkingTools", { defaultValue: "Checking tools…" })}</p>
               ) : deniedTools.length === 0 ? (
                 <p className="text-xs text-muted-foreground">
                   Every known tool this agent could name is allowed.

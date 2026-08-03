@@ -4497,6 +4497,43 @@
       "client": "客户端",
       "requestedAccess": "已请求访问",
       "requestedCompany": "请求的公司"
+    },
+    "newGatewayDialog": {
+      "newGateway": "新网关",
+      "gatewayCreated": "网关已创建",
+      "createFailed": "网关未创建",
+      "namePlaceholder": "CTO 智能体",
+      "loadingProfiles": "正在加载配置文件…",
+      "chooseProfile": "选择配置文件",
+      "descHint": "此端点的用途及应何时轮换。",
+      "creating": "正在创建…",
+      "createGateway": "创建网关",
+      "name": "名称",
+      "accessProfile": "访问配置文件",
+      "description": "描述（可选）"
+    },
+    "agentToolsTab": {
+      "installedForAllHint": "从应用页面向每个智能体安装。请在那里移除全智能体安装。",
+      "installedHint": "已加载到此智能体的运行时上下文。",
+      "installedForAll": "已为全部安装",
+      "installed": "已安装",
+      "permittedOnly": "仅允许",
+      "notPermitted": "不允许",
+      "deniedTools": "被拒绝的工具（已抑制）",
+      "resolving": "正在解析生效访问…",
+      "effectiveAccess": "生效访问",
+      "installedApps": "已安装的应用",
+      "saving": "正在保存…",
+      "saveFailed": "无法保存",
+      "unsavedChanges": "未保存的更改",
+      "saved": "已保存",
+      "allowedTools": "允许的工具",
+      "tool": "工具",
+      "capability": "能力",
+      "risk": "风险",
+      "source": "来源",
+      "loadingPolicies": "正在加载策略…",
+      "checkingTools": "正在检查工具…"
     }
   },
   "status": {
@@ -6723,6 +6760,124 @@
       "oneShot": "一次性",
       "deny": "拒绝",
       "fail": "失败"
+    },
+    "actionCard": {
+      "coder": "编码者",
+      "prevHash": "之前的目录哈希",
+      "currHash": "当前目录哈希",
+      "application": "应用",
+      "connection": "连接",
+      "catalog": "目录",
+      "payload": "载荷",
+      "hashChanged": "批准前请重新发起请求 — 目录哈希已更改。",
+      "catalogChanged": "自此请求签名以来目录已更改。",
+      "input": "输入",
+      "whyAsking": "我为什么请求"
+    },
+    "commandPalette": {
+      "placeholder": "搜索任务、智能体、项目...",
+      "noResults": "未找到结果。",
+      "search": "搜索",
+      "quickFilters": "快捷筛选",
+      "projects": "项目",
+      "actions": "操作",
+      "pages": "页面",
+      "tasks": "任务",
+      "agents": "智能体"
+    },
+    "agentMultiSelect": {
+      "placeholder": "选择智能体…",
+      "noAgents": "暂无智能体。",
+      "filterAgents": "筛选智能体",
+      "selectAgents": "选择智能体",
+      "noneSelected": "未选择智能体",
+      "saving": "正在保存…",
+      "save": "保存",
+      "done": "完成",
+      "noMatches": "无匹配。"
+    },
+    "activityCharts": {
+      "succeeded": "成功",
+      "recovered": "已恢复",
+      "failed": "失败",
+      "other": "其他",
+      "todo": "待办",
+      "inProgress": "进行中",
+      "inReview": "审核中",
+      "done": "已完成",
+      "cancelled": "已取消",
+      "backlog": "待办",
+      "noRuns": "暂无运行",
+      "noTasks": "无任务"
+    },
+    "liveUpdates": {
+      "system": "系统",
+      "board": "董事会",
+      "someone": "某人",
+      "agent": "智能体",
+      "viewInbox": "查看收件箱",
+      "viewAgent": "查看智能体",
+      "viewRun": "查看运行",
+      "wsClosedEarly": "WebSocket 在建立连接前已关闭"
+    },
+    "forkSkillDialog": {
+      "editCopy": "编辑副本",
+      "editingCopy": "正在编辑副本",
+      "copyCreateFailed": "无法创建副本",
+      "forkFailed": "Fork 请求失败。",
+      "createCopy": "创建副本",
+      "agentsRunCopy": "这些智能体将运行你的副本而非原版。",
+      "agentsKeepOriginal": "这些智能体继续运行原版 — 你的副本不会改变它们的行为。",
+      "switchToCopy": "将这些智能体切换到副本",
+      "createAnother": "再创建一个副本",
+      "alreadyHaveCopy": "你已有一个副本"
+    },
+    "secretPicker": {
+      "upOneFolder": "上一级文件夹",
+      "browseSecrets": "浏览密钥",
+      "missingSecret": "缺失密钥",
+      "current": "当前",
+      "recentlyUsed": "最近使用",
+      "allSecrets": "全部密钥",
+      "selectPlaceholder": "选择密钥…",
+      "searchPlaceholder": "搜索密钥…",
+      "noMatches": "没有匹配的密钥",
+      "createNew": "创建新密钥…"
+    },
+    "standaloneBrowser": {
+      "paperclip": "Paperclip",
+      "linkCopied": "链接已复制",
+      "sharingUnavailable": "分享不可用",
+      "shareFailed": "分享失败",
+      "openInBrowserHint": "请尝试在浏览器中打开页面。",
+      "refresh": "刷新",
+      "share": "分享",
+      "openInBrowser": "在浏览器中打开"
+    },
+    "productivityReviewBadge": {
+      "noCommentStreak": "无评论连续",
+      "longActiveDuration": "长时间活跃",
+      "highChurn": "高变动",
+      "open": "未关闭",
+      "inProgress": "进行中",
+      "inReview": "审核中",
+      "productivityReview": "生产力评审",
+      "underReview": "评审中",
+      "reviewOpen": "生产力评审已开启",
+      "triggerLabel": "触发条件：",
+      "streakLabel": "无评论连续：",
+      "reviewLabel": "评审："
+    },
+    "markdownBody": {
+      "copyFailed": "复制失败",
+      "copiedExcl": "已复制！",
+      "copy": "复制",
+      "unwrapLines": "取消换行",
+      "wrapLines": "换行",
+      "copyCode": "复制代码",
+      "mermaidFailed": "渲染 Mermaid 图表失败。",
+      "mermaidRendering": "正在渲染 Mermaid 图表...",
+      "scrollableTable": "可滚动表格"
     }
   }
 }
