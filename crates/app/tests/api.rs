@@ -7,19 +7,29 @@ use http::{Method, Request, header::CONTENT_TYPE};
 use serde_json::{Value, json};
 use staple_app::router;
 use staple_app::state::AppState;
-use staple_data::{DbConfig, TursoCompanyRepository, migrate, open};
+use staple_data::{
+    DbConfig, TursoCompanyRepository, TursoGoalRepository, TursoProjectRepository, migrate, open,
+};
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
 async fn test_state() -> AppState {
     let dir = tempfile::tempdir().unwrap();
-    let db = open(&DbConfig::local(dir.path().join("test.db")))
+    let companies_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
-    migrate(&db).await.unwrap();
+    let goals_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let projects_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    migrate(&companies_db).await.unwrap();
     // Keep the temp dir alive for the lifetime of the test process.
     std::mem::forget(dir);
     AppState {
-        companies: Arc::new(TursoCompanyRepository::new(db)),
+        companies: Arc::new(TursoCompanyRepository::new(companies_db)),
+        goals: Arc::new(TursoGoalRepository::new(goals_db)),
+        projects: Arc::new(TursoProjectRepository::new(projects_db)),
     }
 }
 
@@ -248,4 +258,279 @@ async fn company_create_malformed_json_returns_json_400() {
         body.contains("\"error\"") && body.to_lowercase().contains("bad request"),
         "unexpected body: {body}"
     );
+}
+
+async fn create_company_via(app: &Router, name: &str) -> String {
+    let (status, body) =
+        send_json(app, Method::POST, "/api/companies", json!({ "name": name })).await;
+    assert_eq!(status, StatusCode::CREATED);
+    body["id"].as_str().unwrap().to_owned()
+}
+
+#[tokio::test]
+async fn goal_crud_flow() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // Create -> 201.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({ "title": "Growth", "level": "team", "status": "active" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created["title"], "Growth");
+    assert_eq!(created["level"], "team");
+    assert_eq!(created["status"], "active");
+    let goal_id = created["id"].as_str().unwrap().to_owned();
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Get by id.
+    let (status, fetched) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/goals/{goal_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(fetched["title"], "Growth");
+
+    // Patch.
+    let (status, updated) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/goals/{goal_id}"),
+        json!({ "status": "achieved", "description": null }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(updated["status"], "achieved");
+    assert_eq!(updated["description"], Value::Null);
+
+    // Delete -> 204, then 404.
+    let (status, _) = send(&app, Method::DELETE, &format!("/api/goals/{goal_id}"), None).await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/goals/{goal_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(body, json!({ "error": "Goal not found" }));
+}
+
+#[tokio::test]
+async fn goal_hierarchy_constraints_are_enforced() {
+    let app = router(test_state().await);
+    let company_a = create_company_via(&app, "Alpha").await;
+    let company_b = create_company_via(&app, "Beta").await;
+
+    // Parent in another company is rejected with 422.
+    let (_, parent) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_a}/goals"),
+        json!({ "title": "Parent" }),
+    )
+    .await;
+    let parent_id = parent["id"].as_str().unwrap().to_owned();
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_b}/goals"),
+        json!({ "title": "Child", "parentId": parent_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(body["details"][0]["path"][0], "parentId");
+    assert_eq!(
+        body["details"][0]["message"],
+        "Parent goal belongs to a different company"
+    );
+}
+
+#[tokio::test]
+async fn goal_validation_failure_returns_422() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({ "title": "", "level": "bogus" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(body["error"], "Validation error");
+    let paths: Vec<&str> = body["details"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|item| item["path"][0].as_str().unwrap())
+        .collect();
+    assert!(paths.contains(&"title"));
+    assert!(paths.contains(&"level"));
+}
+
+#[tokio::test]
+async fn project_crud_flow() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // Goal for linking.
+    let (_, goal) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({ "title": "Growth" }),
+    )
+    .await;
+    let goal_id = goal["id"].as_str().unwrap().to_owned();
+
+    // Create -> 201.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "Ship", "goalId": goal_id, "status": "planned" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created["name"], "Ship");
+    assert_eq!(created["goalId"], goal_id);
+    let project_id = created["id"].as_str().unwrap().to_owned();
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Get.
+    let (status, _fetched) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/projects/{project_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Patch.
+    let (status, updated) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/projects/{project_id}"),
+        json!({ "status": "in_progress", "description": "now" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(updated["status"], "in_progress");
+
+    // Delete -> 204.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/projects/{project_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+}
+
+#[tokio::test]
+async fn project_hierarchy_constraints_are_enforced() {
+    let app = router(test_state().await);
+    let company_a = create_company_via(&app, "Alpha").await;
+    let company_b = create_company_via(&app, "Beta").await;
+
+    let (_, goal) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_a}/goals"),
+        json!({ "title": "G" }),
+    )
+    .await;
+    let goal_id = goal["id"].as_str().unwrap().to_owned();
+
+    // Cross-company goal link is rejected with 422.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_b}/projects"),
+        json!({ "name": "P", "goalId": goal_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(body["details"][0]["path"][0], "goalId");
+    assert_eq!(
+        body["details"][0]["message"],
+        "Goal belongs to a different company"
+    );
+}
+
+#[tokio::test]
+async fn project_404s() {
+    let app = router(test_state().await);
+    let (status, body) = send_json(&app, Method::GET, "/api/projects/missing", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(body, json!({ "error": "Project not found" }));
+
+    let (status, body) = send_json(
+        &app,
+        Method::PATCH,
+        "/api/projects/missing",
+        json!({ "name": "x" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    assert_eq!(body, json!({ "error": "Project not found" }));
+}
+
+#[tokio::test]
+async fn delete_referenced_goal_returns_409() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let (_, goal) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({ "title": "G" }),
+    )
+    .await;
+    let goal_id = goal["id"].as_str().unwrap().to_owned();
+
+    // Link a project to the goal, then deletion must conflict.
+    send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "P", "goalId": goal_id }),
+    )
+    .await;
+
+    let (status, body) = send(&app, Method::DELETE, &format!("/api/goals/{goal_id}"), None).await;
+    assert_eq!(status, StatusCode::CONFLICT);
+    assert_eq!(body, r#"{"error":"Goal is referenced by other records"}"#);
 }

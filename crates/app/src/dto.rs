@@ -82,3 +82,92 @@ impl From<CompanyRecord> for CompanyDto {
         }
     }
 }
+
+/// Goal resource, matching the upstream goal JSON shape.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoalDto {
+    /// Goal id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Title.
+    pub title: String,
+    /// Optional description.
+    pub description: Option<String>,
+    /// `company | team | agent | task`.
+    pub level: String,
+    /// Parent goal id.
+    pub parent_id: Option<String>,
+    /// Owning agent id.
+    pub owner_agent_id: Option<String>,
+    /// `planned | active | achieved | cancelled`.
+    pub status: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::GoalRecord> for GoalDto {
+    fn from(record: staple_data::GoalRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            title: record.title,
+            description: record.description,
+            level: record.level,
+            parent_id: record.parent_id,
+            owner_agent_id: record.owner_agent_id,
+            status: record.status,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
+/// Project resource, matching the upstream project JSON shape.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectDto {
+    /// Project id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Linked goal id.
+    pub goal_id: Option<String>,
+    /// Name.
+    pub name: String,
+    /// Optional description.
+    pub description: Option<String>,
+    /// `backlog | planned | in_progress | completed | cancelled`.
+    pub status: String,
+    /// Lead agent id.
+    pub lead_agent_id: Option<String>,
+    /// Target date.
+    pub target_date: Option<String>,
+    /// Environment bindings.
+    pub env: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::ProjectRecord> for ProjectDto {
+    fn from(record: staple_data::ProjectRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            goal_id: record.goal_id,
+            name: record.name,
+            description: record.description,
+            status: record.status,
+            lead_agent_id: record.lead_agent_id,
+            target_date: record.target_date,
+            env: record.env,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}

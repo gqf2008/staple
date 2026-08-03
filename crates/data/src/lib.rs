@@ -13,6 +13,8 @@ pub use migrations::{
     MigrateError, Migration, load_migrations, migrate, migrate_conn, migrate_down,
 };
 pub use repositories::{
-    CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,
-    companies,
+    CompanyPatch, CompanyRecord, CompanyRepository, GoalError, GoalPatch, GoalRecord,
+    GoalRepository, NewCompany, NewGoal, NewProject, ProjectError, ProjectPatch, ProjectRecord,
+    ProjectRepository, RepoError, TursoCompanyRepository, TursoGoalRepository,
+    TursoProjectRepository, companies, goals, projects,
 };

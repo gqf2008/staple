@@ -2338,6 +2338,7 @@ dependencies = [
  "topcoat",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]
