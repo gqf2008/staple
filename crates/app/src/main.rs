@@ -3,10 +3,11 @@ use std::{error::Error, sync::Arc};
 use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
-    TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository,
-    TursoCostRepository, TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoWorkProductRepository, migrate, open,
+    SecretCipher, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
+    TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository,
+    TursoWorkProductRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -30,7 +31,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let costs_db = open(&db_config).await?;
     let approvals_db = open(&db_config).await?;
     let activity_db = open(&db_config).await?;
+    let secrets_db = open(&db_config).await?;
     migrate(&companies_db).await?;
+    let secret_cipher = SecretCipher::load_or_create(default_key_path())
+        .map_err(|error| Box::<dyn Error>::from(error.to_string()))?;
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
@@ -46,6 +50,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         costs: Arc::new(TursoCostRepository::new(costs_db)),
         approvals: Arc::new(TursoApprovalRepository::new(approvals_db)),
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
+        secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;

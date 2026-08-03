@@ -5,7 +5,8 @@ use std::sync::Arc;
 use staple_data::{
     ActivityRepository, ApprovalRepository, AssetRepository, CompanyRepository, CostRepository,
     DocumentRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, ProjectRepository, WorkProductRepository,
+    IssueRelationRepository, IssueRepository, ProjectRepository, SecretRepository,
+    WorkProductRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -41,4 +42,6 @@ pub struct AppState {
     pub approvals: Arc<dyn ApprovalRepository>,
     /// Activity log repository.
     pub activity: Arc<dyn ActivityRepository>,
+    /// Secrets repository.
+    pub secrets: Arc<dyn SecretRepository>,
 }

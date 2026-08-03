@@ -9,10 +9,11 @@ use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
-    DbConfig, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
     TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository, TursoGoalRepository,
     TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, TursoWorkProductRepository, migrate, open,
+    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository,
+    TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -64,6 +65,10 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let activity_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let secrets_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let secret_cipher = SecretCipher::load_or_create(dir.path().join("master.key")).unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -83,6 +88,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         costs: Arc::new(TursoCostRepository::new(costs_db)),
         approvals: Arc::new(TursoApprovalRepository::new(approvals_db)),
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
+        secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
     };
     (state, seed_db)
 }
@@ -1737,4 +1743,186 @@ async fn mutating_apis_write_audit_log() {
             .iter()
             .all(|entry| entry["companyId"] == company_id)
     );
+}
+
+#[tokio::test]
+async fn secret_lifecycle_rotation_rollback_and_redaction() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // Create -> 201, version 1.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets"),
+        json!({ "name": "github_token", "value": "ghp_v1_secret" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created["name"], "github_token");
+    assert_eq!(created["latestVersion"], 1);
+    assert_eq!(created["provider"], "local_encrypted");
+
+    // Duplicate -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets"),
+        json!({ "name": "github_token", "value": "x" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Value readback.
+    let (status, value) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets/github_token/value"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(value["value"], "ghp_v1_secret");
+
+    // Rotate -> v2.
+    let (status, rotated) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets/github_token/rotate"),
+        json!({ "value": "ghp_v2_secret" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(rotated["latestVersion"], 2);
+    let (_, value) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets/github_token/value"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(value["value"], "ghp_v2_secret");
+
+    // Versions.
+    let (status, versions) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets/github_token/versions"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(versions.as_array().unwrap().len(), 2);
+
+    // Rollback to v1 -> value is v1 again, version 3.
+    let (status, rolled) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets/github_token/rollback"),
+        json!({ "version": 1 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(rolled["latestVersion"], 3);
+    let (_, value) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets/github_token/value"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(value["value"], "ghp_v1_secret");
+
+    // Redact: transcript containing the value is masked.
+    let (status, redacted) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/redact"),
+        json!({
+            "text": "agent output: ghp_v1_secret was used",
+            "names": ["github_token"]
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        !redacted["redacted"]
+            .as_str()
+            .unwrap()
+            .contains("ghp_v1_secret")
+    );
+    assert!(redacted["redacted"].as_str().unwrap().contains("***"));
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+    // Values never leak in list responses.
+    assert!(!list.to_string().contains("ghp_v1_secret"));
+
+    // Delete -> 204, then 404.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/secrets/github_token"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/secrets/github_token"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn secret_validation_and_audit() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // Empty name/value -> 422.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets"),
+        json!({ "name": "", "value": "" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // A successful creation is audited.
+    send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/secrets"),
+        json!({ "name": "aws_key", "value": "AKIA123" }),
+    )
+    .await;
+
+    // Audit entries exist.
+    let (status, activity) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/activity"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let actions: Vec<&str> = activity
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["action"].as_str().unwrap())
+        .collect();
+    assert!(actions.contains(&"secret.created"));
 }
