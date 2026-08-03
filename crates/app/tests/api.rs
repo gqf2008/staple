@@ -10,13 +10,13 @@ use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoPermissionGrantRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -31,6 +31,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let companies_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let agents_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let permission_grants_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let goals_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -106,6 +112,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     std::mem::forget(dir);
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
+        agents: Arc::new(TursoAgentRepository::new(agents_db)),
+        permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
         issues: Arc::new(TursoIssueRepository::new(issues_db)),
@@ -3042,4 +3050,307 @@ async fn routines_lifecycle() {
     // Missing routine -> 404.
     let (status, _) = send_json(&app, Method::GET, "/api/routines/missing", json!({})).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn permission_grants_scoped_assignment_inbox_and_budget() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type, reports_to)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'root', 'manager', 'cli', NULL),
+                ('22222222-2222-2222-2222-222222222222', 'c1', 'leaf', 'worker', 'cli',
+                 '11111111-1111-1111-1111-111111111111'),
+                ('33333333-3333-3333-3333-333333333333', 'c1', 'other', 'worker', 'cli', NULL)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO projects (id, company_id, name) VALUES
+         ('44444444-4444-4444-4444-444444444444', 'c1', 'P1'),
+         ('55555555-5555-5555-5555-555555555555', 'c1', 'P2')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Board creates an API key for the leaf agent.
+    let (status, key_body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-api-keys",
+        json!({ "agentId": "22222222-2222-2222-2222-222222222222", "name": "leaf" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let plaintext = key_body["plaintext"].as_str().unwrap().to_owned();
+
+    // Grant management is board-only.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/permission-grants",
+        Some(r#"{"principalType":"agent","principalId":"22222222-2222-2222-2222-222222222222","permissionKey":"tasks:assign_scope","scope":{"projectId":"44444444-4444-4444-4444-444444444444"}}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+
+    // Board creates a scoped assignment grant (project P1 only).
+    let (status, grant_body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/permission-grants",
+        json!({
+            "principalType": "agent",
+            "principalId": "22222222-2222-2222-2222-222222222222",
+            "permissionKey": "tasks:assign_scope",
+            "scope": { "projectId": "44444444-4444-4444-4444-444444444444" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let grant_id = grant_body["id"].as_str().unwrap().to_owned();
+
+    // Invalid permission key -> 422.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/permission-grants",
+        json!({
+            "principalType": "agent",
+            "principalId": "22222222-2222-2222-2222-222222222222",
+            "permissionKey": "nope:unknown",
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // Leaf may assign inside P1.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/issues",
+        Some(r#"{"title":"in P1","projectId":"44444444-4444-4444-4444-444444444444","assigneeAgentId":"22222222-2222-2222-2222-222222222222"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let issue_in_p1: serde_json::Value = serde_json::from_str(&body).unwrap();
+    let issue_in_p1_id = issue_in_p1["id"].as_str().unwrap().to_owned();
+
+    // Leaf may NOT assign inside P2: generic denial without scope details.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/issues",
+        Some(r#"{"title":"in P2","projectId":"55555555-5555-5555-5555-555555555555","assigneeAgentId":"22222222-2222-2222-2222-222222222222"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert!(!body.contains("55555555-5555-5555-5555-555555555555"));
+
+    // Creating an issue without assignment stays allowed.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/issues",
+        Some(r#"{"title":"no assignee","projectId":"55555555-5555-5555-5555-555555555555"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let issue_in_p2_no_assignee = serde_json::from_str::<serde_json::Value>(&body).unwrap();
+    let issue_in_p2_no_assignee_id = issue_in_p2_no_assignee["id"].as_str().unwrap().to_owned();
+
+    // Reassignment through PATCH is also constrained: assigning an issue in
+    // P2 is outside the project-scoped grant.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::PATCH,
+        &format!("/api/issues/{issue_in_p2_no_assignee_id}"),
+        Some(r#"{"assigneeAgentId":"22222222-2222-2222-2222-222222222222"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN, "body: {body}");
+    // Same-project reassignment in P1 is allowed (grant constrains projects).
+    let (status, body) = send_with_auth(
+        &app,
+        Method::PATCH,
+        &format!("/api/issues/{issue_in_p1_id}"),
+        Some(r#"{"assigneeAgentId":"33333333-3333-3333-3333-333333333333"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+
+    // A broad tasks:assign grant overrides the scoped restriction.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/permission-grants",
+        json!({
+            "principalType": "agent",
+            "principalId": "22222222-2222-2222-2222-222222222222",
+            "permissionKey": "tasks:assign",
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/issues",
+        Some(r#"{"title":"in P2 again","projectId":"55555555-5555-5555-5555-555555555555","assigneeAgentId":"22222222-2222-2222-2222-222222222222"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // inbox:manage: without a grant the default-open policy allows archive.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_in_p1_id}/archive"),
+        Some(r#"{"userId":"u-1"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Board grants inbox:manage scoped to u-1 only.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/permission-grants",
+        json!({
+            "principalType": "agent",
+            "principalId": "22222222-2222-2222-2222-222222222222",
+            "permissionKey": "inbox:manage",
+            "scope": { "userIds": ["u-1"] }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    // Uncovered user -> 403 with generic message.
+    let (status, body) = send_with_auth(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_in_p1_id}/unarchive"),
+        Some(r#"{"userId":"u-2"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    assert!(!body.contains("u-2"));
+    // Covered user -> 200.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_in_p1_id}/unarchive"),
+        Some(r#"{"userId":"u-1"}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Subordinate budgets: leaf is not a manager -> cannot set other's budget.
+    let (status, _) = send_with_auth(
+        &app,
+        Method::PATCH,
+        "/api/agents/33333333-3333-3333-3333-333333333333/budgets",
+        Some(r#"{"budgetMonthlyCents":100}"#),
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    // Root may set leaf's budget (leaf is in root's subtree).
+    let (status, key_root) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-api-keys",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "name": "root" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let root_plaintext = key_root["plaintext"].as_str().unwrap().to_owned();
+    let (status, body) = send_with_auth(
+        &app,
+        Method::PATCH,
+        "/api/agents/22222222-2222-2222-2222-222222222222/budgets",
+        Some(r#"{"budgetMonthlyCents":5000}"#),
+        Some(&root_plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(
+        serde_json::from_str::<serde_json::Value>(&body).unwrap()["budgetMonthlyCents"],
+        5000
+    );
+    // Root may NOT set other's budget (not in subtree).
+    let (status, _) = send_with_auth(
+        &app,
+        Method::PATCH,
+        "/api/agents/33333333-3333-3333-3333-333333333333/budgets",
+        Some(r#"{"budgetMonthlyCents":200}"#),
+        Some(&root_plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::FORBIDDEN);
+    // Board may set any agent budget.
+    let (status, body) = send_json(
+        &app,
+        Method::PATCH,
+        "/api/agents/33333333-3333-3333-3333-333333333333/budgets",
+        json!({ "budgetMonthlyCents": 200 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["budgetMonthlyCents"], 200);
+
+    // List grants and delete one (board-only, cross-company delete -> 404).
+    let (status, grants) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/permission-grants",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let keys: Vec<&str> = grants
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|grant| grant["permissionKey"].as_str().unwrap())
+        .collect();
+    assert!(keys.contains(&"tasks:assign_scope"));
+    assert!(keys.contains(&"tasks:assign"));
+    assert!(keys.contains(&"inbox:manage"));
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        "/api/companies/c2/permission-grants/does-not-exist",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/c1/permission-grants/{grant_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
 }

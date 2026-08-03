@@ -4,6 +4,7 @@ use topcoat::router::path_param;
 
 pub mod activity;
 pub mod adapters;
+pub mod agents;
 pub mod approvals;
 pub mod assets;
 pub mod auth;
@@ -18,6 +19,7 @@ pub mod health;
 pub mod heartbeat;
 pub mod issue_structure;
 pub mod issues;
+pub mod permission_grants;
 pub mod projects;
 pub mod relations;
 pub mod routines;
@@ -33,6 +35,10 @@ pub(crate) struct Id(String);
 /// Shared `{company_id}` path parameter.
 #[path_param(error = bad_request("Invalid company id"))]
 pub(crate) struct CompanyId(String);
+
+/// `{agent_id}` path parameter (agent-scoped routes).
+#[path_param(error = bad_request("Invalid agent id"))]
+pub(crate) struct AgentId(String);
 
 /// Whether a string looks like a UUID (upstream validators use `z.uuid()`).
 #[must_use]
