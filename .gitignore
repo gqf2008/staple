@@ -73,3 +73,4 @@ tests/storybook-visual/playwright-report/
 # Rust
 target/
 **/target/
+**/data/checkouts/
