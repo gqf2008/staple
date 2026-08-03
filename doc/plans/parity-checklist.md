@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成：#52–#57、#62–#66；UI 全页面 + i18n 全量 en/zh-CN/zh-TW）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成 + 内建 scheduler：wake 调度 / routine cron 触发 / 决策桌 sweeper 定时执行）。
 
 ## 使用方式
 
@@ -24,21 +24,21 @@
 | **P0 执行控制面：heartbeat** | 发起/观察/取消/恢复、原子 checkout、执行锁 | ✅ 完成 | `routes/heartbeat.rs`；并发互斥测试 |
 | **P0 执行控制面：watchdog** | §9.9 授权契约（子树、排除 task_watchdog 分支） | ✅ 完成 | `watchdog_authorized` + 测试 |
 | **P0 执行控制面：失败归因** | infrastructure vs agent | ✅ 完成 | `error_kind` 列 + 测试 |
-| **P0 执行控制面：recovery issue** | recovery actions、wake 调度 | ✅ 完成 | `agent_runtime` 仓库（迁移 0015）；issue #62；recovery 状态机 + wake 入队/消费测试 |
+| **P0 执行控制面：recovery issue** | recovery actions、wake 调度 | ✅ 完成 | `agent_runtime` 仓库（迁移 0015）；issue #62；内建 scheduler 周期领取 wake → heartbeat run（`scheduler.rs`） |
 | **P1 身份与安全：认证** | board 会话、agent API keys（哈希、吊销）、公司边界 | ✅ 完成 | `auth.rs`、`api_keys.rs`；三身份权限测试 |
 | **P1 身份与安全：权限矩阵** | §9 权限矩阵（scoped grants、tasks:assign_scope、inbox:manage、manager-subtree 子预算） | ✅ 完成 | `principal_permission_grants`（迁移 0012）+ `permissions.rs` 评估器 + 路由；issue #55（成员/实例角色等由 #56 覆盖） |
 | **P1 治理：预算/成本** | cost_events、聚合、硬停自动暂停 | ✅ 完成 | `costs.rs`；耗尽暂停 + 重置恢复测试 |
 | **P1 治理：审批门** | approvals §8.3 状态机、审批门 | ✅ 完成 | `approvals.rs`；budget override 门测试 |
 | **P1 治理：审计** | activity_log 全量 mutating 动作 | ✅ 完成 | `activity.rs` + 全路由接入 |
 | **P1 治理：密钥** | company_secrets 版本化、加密、redaction | ✅ 完成 | `secrets.rs`、`secrets/` cipher；加密静态断言 + redact |
-| **P2 治理扩展：决策桌** | queues/items/triage + triage 历史/retention/sweeper/通知 outbox | ✅ 完成 | `decision_desk.rs`（迁移 0006 + 0016）；issue #63；retention 归档/恢复 + 通知去重 + 90 天 sweeper |
+| **P2 治理扩展：决策桌** | queues/items/triage + triage 历史/retention/sweeper/通知 outbox | ✅ 完成 | `decision_desk.rs`（迁移 0006 + 0016）；issue #63；内建 scheduler 每日定时跑 90 天 sweeper（`scheduler.rs`） |
 | **P2 治理扩展：skills** | 公司技能库 + 策略评估器 | ✅ 完成 | `skills.rs` 纯评估器 + repository（迁移 0008） |
 | **P2 治理扩展：inbox** | 归档/恢复、注意力排序 | ✅ 完成 | `set_hidden`/`list_inbox`；排序为更新时间倒序 |
 | **P2 治理扩展：external objects** | 关联 + 状态刷新 | ✅ 完成 | `external_objects.rs`（迁移 0007） |
 | **P2 扩展：environments + 执行工作区** | environments 池、project/execution workspaces、runtime services、workspace operations | ✅ 完成 | `environments.rs` + `workspaces.rs`（迁移 0009）；issue #52/PR #67 |
 | **P2 扩展：issue 结构增强** | labels、issue 线程、已读状态、审批链接、执行决策 | ✅ 完成 | `labels.rs` + `issue_structure.rs`（迁移 0010）；issue #53/PR #68 |
 | **P2 扩展：访问与运营** | company memberships、instance roles、invites/join requests、board API keys、CLI auth challenges、budget policies/incidents、sidebar preferences、company logos | ✅ 完成 | `memberships`/`invites`/`board_keys`/`budget_policies`/`preferences` 仓库（迁移 0013）；issue #56；board key 认证（`bk-`）接入 auth 层 |
-| **P2 扩展：routines** | 例行任务定义 + 追加式修订 + 触发器（manual/cron/webhook）+ 运行 | ✅ 完成 | `routines.rs`（迁移 0011）；issue #54/PR #69；cron 实际调度留给 scheduler |
+| **P2 扩展：routines** | 例行任务定义 + 追加式修订 + 触发器（manual/cron/webhook）+ 运行 | ✅ 完成 | `routines.rs`（迁移 0011）；issue #54/PR #69；内建 scheduler 按 cron 表达式触发（`scheduler.rs`） |
 | **P2 扩展：managed checkout / git 凭据** | 服务端 clone/fetch + company secret 凭据注入 + redaction | ✅ 完成 | `git.rs`（迁移 0017）；issue #64；真实本地仓库 materialize 测试 + 凭据 redact 测试 |
 | **P2 扩展：插件生态** | 插件注册/配置/状态/实体/作业/日志/webhook、database namespaces + migration ledger、company settings、managed resources | ✅ 完成 | `plugins` + `plugin_runtime` 仓库（迁移 0014）；issue #57；注册→配置→运行→日志全链路测试 |
 | **P2 UI：看板** | 公司/项目/issue 列表 | ✅ 完成 | `ui/pages.rs` + 令牌层 |

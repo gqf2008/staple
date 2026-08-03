@@ -13,6 +13,7 @@ pub mod i18n;
 pub mod logging;
 pub mod permissions;
 pub mod routes;
+pub mod scheduler;
 pub mod state;
 pub mod storage;
 pub mod ui;

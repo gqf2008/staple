@@ -106,6 +106,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         plugin_reports: load_plugin_reports(),
     };
 
+    tokio::spawn(staple_app::scheduler::run(state.clone()));
+
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
     tracing::info!(host = %config.host, port = config.port, "staple listening");
 

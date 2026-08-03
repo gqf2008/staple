@@ -4550,3 +4550,157 @@ async fn managed_checkout_materializes_with_secret_and_redacts() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn scheduler_wakeup_routine_cron_and_sweep() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type, status)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'One', 'worker', 'cli', 'active')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'T', 1, 'ALPHA-1')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // 1. Queued wakeup for the active agent.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-wakeup-requests",
+        json!({
+            "agentId": "11111111-1111-1111-1111-111111111111",
+            "source": "scheduler",
+            "reason": "timeout",
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let wakeup_id = body["id"].as_str().unwrap().to_owned();
+
+    // 2. Active routine with an every-minute cron trigger.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/routines",
+        json!({ "title": "Nightly" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let routine_id = body["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({ "scheduleKind": "cron", "scheduleExpr": "* * * * *" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // 3. Old triage row eligible for the 90-day sweep.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/decision-triage",
+        json!({ "sourceKind": "issue", "sourceId": "i-old" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let triage_id = body["id"].as_str().unwrap().to_owned();
+    conn.execute(
+        &format!(
+            "UPDATE decision_triage SET updated_at = datetime('now', '-100 days') WHERE id = '{triage_id}'"
+        ),
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Run one scheduler tick.
+    let config = staple_app::scheduler::config_from_env();
+    let mut last_sweep: Option<String> = None;
+    staple_app::scheduler::tick(&state, &config, &mut last_sweep)
+        .await
+        .unwrap();
+
+    // Wakeup finished and a heartbeat run was created.
+    let (_, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/agent-wakeup-requests",
+        json!({}),
+    )
+    .await;
+    let wakeup = body
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|w| w["id"] == wakeup_id)
+        .unwrap();
+    assert_eq!(wakeup["status"], "finished");
+    assert!(wakeup["runId"].is_string());
+    // Verify the scheduler-created heartbeat run via SQL.
+    let mut rows = conn
+        .query(
+            "SELECT COUNT(*) FROM heartbeat_runs WHERE company_id = 'c1' AND invocation_source = 'scheduler'",
+            (),
+        )
+        .await
+        .unwrap();
+    let row = rows.next().await.unwrap().unwrap();
+    assert_eq!(row.get::<i64>(0).unwrap(), 1);
+
+    // Routine run created by the cron trigger.
+    let (_, runs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/runs"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(runs.as_array().unwrap().len(), 1);
+
+    // Sweep archived the old triage.
+    let (_, retention) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/decision-retention",
+        json!({}),
+    )
+    .await;
+    assert!(
+        retention
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|r| r["sourceId"] == "i-old" && r["archived"] == true)
+    );
+
+    // A second tick does not double-fire the routine (lastTriggeredAt gate).
+    staple_app::scheduler::tick(&state, &config, &mut last_sweep)
+        .await
+        .unwrap();
+    let (_, runs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/runs"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(runs.as_array().unwrap().len(), 1);
+}
