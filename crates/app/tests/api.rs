@@ -2367,3 +2367,121 @@ async fn board_ui_pages_render() {
     let (status, _) = send(&app, Method::GET, "/companies/missing", None).await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
+
+async fn send_form(
+    router: &Router,
+    method: Method,
+    path: &str,
+    body: &str,
+) -> (StatusCode, String) {
+    let request = Request::builder()
+        .method(method)
+        .uri(path)
+        .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(Body::from(body.to_owned()))
+        .unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, response_body) = response.into_parts();
+    let bytes = to_bytes(response_body, usize::MAX).await.unwrap();
+    (status, String::from_utf8(bytes.to_vec()).unwrap())
+}
+
+#[tokio::test]
+async fn issue_detail_approvals_and_activity_pages() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "Detail task").await;
+
+    // Issue detail page: attributes, empty sections.
+    let (status, html) = send(&app, Method::GET, &format!("/issues/{issue_id}"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Detail task"));
+    assert!(html.contains("Comments"));
+    assert!(html.contains("Documents"));
+    assert!(html.contains("Attachments"));
+    assert!(html.contains("Work products"));
+    assert!(html.contains("Add a comment"));
+
+    // Comment form POST -> redirect back, comment appears.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/issues/{issue_id}/comments/ui"),
+        "body=from+the+board",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (_, html) = send(&app, Method::GET, &format!("/issues/{issue_id}"), None).await;
+    assert!(html.contains("from the board"));
+
+    // Approvals page: request form + create via UI + approve via UI.
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/approvals"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Request"));
+    assert!(html.contains("hire_agent"));
+
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/companies/{company_id}/approvals/ui"),
+        "type=hire_agent&payload=%7B%7D",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/approvals"),
+        None,
+    )
+    .await;
+    assert!(html.contains("pending"));
+    assert!(html.contains("Approve"));
+    assert!(html.contains("Reject"));
+
+    // Approve the first pending approval via the UI route.
+    let (_, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({}),
+    )
+    .await;
+    let approval_id = list[0]["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/approvals/{approval_id}/decide/ui"),
+        "decision=approved",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/approvals"),
+        None,
+    )
+    .await;
+    assert!(html.contains("approved"));
+
+    // Activity page renders audit entries.
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/activity"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Audit log"));
+    assert!(html.contains("company.created"));
+    assert!(html.contains("comment.created"));
+}
