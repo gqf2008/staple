@@ -2,7 +2,12 @@
 
 use std::sync::Arc;
 
-use staple_data::{CompanyRepository, GoalRepository, IssueRepository, ProjectRepository};
+use staple_data::{
+    AssetRepository, CompanyRepository, DocumentRepository, GoalRepository, IssueCommentRepository,
+    IssueRelationRepository, IssueRepository, ProjectRepository,
+};
+
+use crate::storage::LocalStorage;
 
 /// Application-wide dependencies for route handlers.
 #[derive(Clone)]
@@ -15,4 +20,14 @@ pub struct AppState {
     pub projects: Arc<dyn ProjectRepository>,
     /// Issues repository.
     pub issues: Arc<dyn IssueRepository>,
+    /// Issue comments repository.
+    pub comments: Arc<dyn IssueCommentRepository>,
+    /// Documents repository.
+    pub documents: Arc<dyn DocumentRepository>,
+    /// Assets repository.
+    pub assets: Arc<dyn AssetRepository>,
+    /// Issue relations (blockers) repository.
+    pub relations: Arc<dyn IssueRelationRepository>,
+    /// Local disk attachment storage.
+    pub storage: LocalStorage,
 }

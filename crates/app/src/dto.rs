@@ -256,3 +256,176 @@ impl From<staple_data::IssueRecord> for IssueDto {
         }
     }
 }
+
+/// Issue comment resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IssueCommentDto {
+    /// Comment id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Issue id.
+    pub issue_id: String,
+    /// Author agent id.
+    pub author_agent_id: Option<String>,
+    /// Author user id.
+    pub author_user_id: Option<String>,
+    /// Comment body.
+    pub body: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::IssueCommentRecord> for IssueCommentDto {
+    fn from(record: staple_data::IssueCommentRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            issue_id: record.issue_id,
+            author_agent_id: record.author_agent_id,
+            author_user_id: record.author_user_id,
+            body: record.body,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
+/// Document resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentDto {
+    /// Document id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Title.
+    pub title: Option<String>,
+    /// Format.
+    pub format: String,
+    /// Latest body.
+    pub latest_body: String,
+    /// Latest revision number.
+    pub latest_revision_number: i64,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::DocumentRecord> for DocumentDto {
+    fn from(record: staple_data::DocumentRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            title: record.title,
+            format: record.format,
+            latest_body: record.latest_body,
+            latest_revision_number: record.latest_revision_number,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}
+
+/// Asset resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AssetDto {
+    /// Asset id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Provider.
+    pub provider: String,
+    /// Object key.
+    pub object_key: String,
+    /// Content type.
+    pub content_type: String,
+    /// Size in bytes.
+    pub byte_size: i64,
+    /// SHA-256.
+    pub sha256: String,
+    /// Original filename.
+    pub original_filename: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::AssetRecord> for AssetDto {
+    fn from(record: staple_data::AssetRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            provider: record.provider,
+            object_key: record.object_key,
+            content_type: record.content_type,
+            byte_size: record.byte_size,
+            sha256: record.sha256,
+            original_filename: record.original_filename,
+            created_at: record.created_at,
+        }
+    }
+}
+
+/// Issue attachment resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IssueAttachmentDto {
+    /// Attachment id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Issue id.
+    pub issue_id: String,
+    /// Asset id.
+    pub asset_id: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::IssueAttachmentRecord> for IssueAttachmentDto {
+    fn from(record: staple_data::IssueAttachmentRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            issue_id: record.issue_id,
+            asset_id: record.asset_id,
+            created_at: record.created_at,
+        }
+    }
+}
+
+/// Issue relation (blocker) resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IssueRelationDto {
+    /// Relation id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Blocking issue id.
+    pub issue_id: String,
+    /// Blocked issue id.
+    pub related_issue_id: String,
+    /// Relation type.
+    pub r#type: String,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::IssueRelationRecord> for IssueRelationDto {
+    fn from(record: staple_data::IssueRelationRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            issue_id: record.issue_id,
+            related_issue_id: record.related_issue_id,
+            r#type: record.r#type,
+            created_at: record.created_at,
+        }
+    }
+}

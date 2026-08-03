@@ -9,6 +9,7 @@ pub mod error;
 pub mod logging;
 pub mod routes;
 pub mod state;
+pub mod storage;
 
 use topcoat::router::{Router, RouterBuilderDiscoverExt};
 
