@@ -22,6 +22,7 @@ pub mod relations;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
+pub mod workspaces;
 
 /// Shared `{id}` path parameter (goals, projects, and future resources).
 #[path_param(error = bad_request("Invalid id"))]
