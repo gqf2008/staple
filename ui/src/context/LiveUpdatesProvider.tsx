@@ -833,7 +833,7 @@ function buildRunStatusToast(
   const statusLabel =
     status === "succeeded" ? "succeeded"
       : status === "failed" ? "failed"
-        : status === "timed_out" ? "timed out"
+        : status === "timed_out" ? t("components.runTranscript.timedOut")
           : "cancelled";
   const title = `${name} run ${statusLabel}`;
 

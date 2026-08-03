@@ -4,22 +4,22 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 
 const SURFACES = [
   {
-    title: "Inference ledger",
-    description: "Request-scoped usage and billed runs from cost_events.",
+    title: t("pages.costs.inferenceLedger"),
+    description: t("ui.components.accountingmodelcard.request-scoped-usage-billed"),
     icon: Database,
     points: ["tokens + billed dollars", "provider, biller, model", "subscription and overage aware"],
     tone: "from-sky-500/12 via-sky-500/6 to-transparent",
   },
   {
-    title: "Finance ledger",
-    description: "Account-level charges that are not one prompt-response pair.",
+    title: t("pages.costs.financeLedger"),
+    description: t("ui.components.accountingmodelcard.account-level-charges-not"),
     icon: ReceiptText,
     points: ["top-ups, refunds, fees", "Bedrock provisioned or training charges", "credit expiries and adjustments"],
     tone: "from-amber-500/14 via-amber-500/6 to-transparent",
   },
   {
-    title: "Live quotas",
-    description: "Provider or biller windows that can stop traffic in real time.",
+    title: t("ui.components.accountingmodelcard.live-quotas"),
+    description: t("ui.components.accountingmodelcard.provider-biller-windows-can"),
     icon: Gauge,
     points: ["provider quota windows", "biller credit systems", "errors surfaced directly"],
     tone: "from-emerald-500/14 via-emerald-500/6 to-transparent",

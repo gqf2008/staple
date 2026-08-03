@@ -481,7 +481,7 @@ function DivergenceDiagnosis({
 function contentionLabel(contention: WorkspaceContention): string {
   return (
     contention.claimedByIssueIdentifier ??
-    (contention.claimedByIssueId ? `issue ${contention.claimedByIssueId.slice(0, 8)}` : "another task")
+    (contention.claimedByIssueId ? `issue ${contention.claimedByIssueId.slice(0, 8)}` : t("ui.components.issuerecoveryactioncard.another-task"))
   );
 }
 

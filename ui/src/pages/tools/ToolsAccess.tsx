@@ -54,11 +54,11 @@ export function ToolsAccess() {
   useEffect(() => {
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
+      { label: t("nav.apps"), href: "/apps" },
       ...(advanced
-        ? [{ label: "Advanced setup" }]
+        ? [{ label: t("app.advancedSetup") }]
         : [
-            { label: "Advanced setup", href: advancedTabHref("run-your-own") },
+            { label: t("app.advancedSetup"), href: advancedTabHref("run-your-own") },
             { label: tabLabel ?? "Developer tools" },
           ]),
     ]);

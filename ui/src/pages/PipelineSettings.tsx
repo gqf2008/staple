@@ -223,13 +223,13 @@ const STAGE_KIND_OPTIONS: Array<{
   {
     value: "working",
     label: t("pages.pipelineSettings.working", { defaultValue: "Working" }),
-    description: "Items wait here while work happens. An agent or a person moves them forward.",
+    description: t("ui.pages.pipelinesettings.items-wait-here-while"),
     icon: Hammer,
   },
   {
     value: "review",
     label: t("pages.pipelineSettings.review", { defaultValue: "Review" }),
-    description: "Someone has to approve before items leave. Use this when a person or an agent has to say yes or no.",
+    description: t("ui.pages.pipelinesettings.someone-has-approve-before"),
     icon: BadgeCheck,
   },
   {
@@ -2040,7 +2040,7 @@ export function PipelineSettings() {
       pipelinesApi.update(pipelineId!, { enforceTransitions }),
     onSuccess: async () => {
       await refreshPipeline();
-      pushToast({ title: "Transition rules updated", tone: "success" });
+      pushToast({ title: t("ui.pages.pipelinesettings.transition-rules-updated"), tone: "success" });
     },
     onError: (error) => {
       setStrictTransitionsEnabled(pipeline?.enforceTransitions ?? false);

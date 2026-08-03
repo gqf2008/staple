@@ -3949,7 +3949,8 @@
       "mine": "我的",
       "recent": "最近",
       "unread": "未讀",
-      "all": "全部"
+      "all": "全部",
+      "blocked": "已阻塞"
     },
     "cliAuth": {
       "challengeInvalid": "挑戰無效或已過期。",
@@ -6079,7 +6080,8 @@
       "proposal": "提案",
       "cancel": "取消",
       "view": "檢視",
-      "reviewProposal": "審查提案"
+      "reviewProposal": "審查提案",
+      "disableScheduleBody": "Paperclip 将停止未来计划的反思教练运行。“手动运行一次”仍然可用。"
     },
     "decisionTraining": {
       "hint": "你當時怎麼想的、哪些訊號重要、你決定做什麼以及為什麼…",
@@ -7224,6 +7226,15 @@
       "alwaysAllow": "始終允許",
       "whatBetter": "哪些方面可以更好？",
       "feedbackPreference": "儲存你的意見回饋分享偏好"
+    },
+    "feedCard": {
+      "system": "系统",
+      "board": "董事会",
+      "unknown": "未知"
+    },
+    "themeToggle": {
+      "switchToLight": "切换到浅色模式",
+      "switchToDark": "切换到深色模式"
     }
   },
   "priorities": {
@@ -7244,7 +7255,8 @@
       },
       "codex-local": {
         "config-fields": {
-          "optional-override-codex-acp": "可选的 Codex ACP 服务器命令覆盖。默认为包本地的 codex-acp 二进制。"
+          "optional-override-codex-acp": "可选的 Codex ACP 服务器命令覆盖。默认为包本地的 codex-acp 二进制。",
+          "fast-mode-will-passed": "快速模式将对此手动模型透传。如果 Codex 拒绝它，请关闭该开关。"
         }
       },
       "gemini-local": {
@@ -7278,14 +7290,18 @@
         "payload-template-json": "负载模板 JSON"
       },
       "schema-config-fields": {
-        "use-quot": "使用 &quot;",
-        "quot-custom-value-press": "&quot; as custom value (press Enter)"
+        "use-quot": "使用 \"",
+        "quot-custom-value-press": "\" as custom value (press Enter)"
       }
     },
     "components": {
       "accountingmodelcard": {
         "accounting-model": "核算模型",
-        "paperclip-now-separates-request": "Paperclip 现在将请求级推理用量与账户级财务事件分开。\n          当计费方是 OpenRouter、Cloudflare、Bedrock 或其他中间商时，这能保持提供商报告的真实性。"
+        "paperclip-now-separates-request": "Paperclip 现在将请求级推理用量与账户级财务事件分开。\n          当计费方是 OpenRouter、Cloudflare、Bedrock 或其他中间商时，这能保持提供商报告的真实性。",
+        "request-scoped-usage-billed": "请求级用量和来自 cost_events 的计费运行。",
+        "account-level-charges-not": "不属于单次提示-响应对的账户级费用。",
+        "live-quotas": "实时配额",
+        "provider-biller-windows-can": "可能实时停止流量的提供商或计费方窗口。"
       },
       "activeagentspanel": {
         "more-active-recent-run": "更多活跃/最近运行"
@@ -7293,7 +7309,8 @@
       "activityfeed": {
         "updates": "更新到",
         "live-activity-from-your": "来自你智能体的实时活动",
-        "show-all-activity": "显示所有活动"
+        "show-all-activity": "显示所有活动",
+        "other": "__other__"
       },
       "agentactionbuttons": {
         "pause-anyway": "仍然暂停",
@@ -7324,7 +7341,8 @@
         "hint": "提示：",
         "used-when-run-requests": "当运行请求 cheap 配置时使用（例如例程摘要）。主模型保持不变。",
         "no-explicit-cheap-model": "未选择明确的 cheap 模型 — 运行时回退到",
-        "no-cheap-model-selected": "未选择 cheap 模型且适配器没有默认值。Cheap 通道的运行将在主模型上继续，并附带回退说明。"
+        "no-cheap-model-selected": "未选择 cheap 模型且适配器没有默认值。Cheap 通道的运行将在主模型上继续，并附带回退说明。",
+        "modelreasoningeffort": "modelReasoningEffort"
       },
       "agentsecretaccesseditor": {
         "env-var": "环境变量",
@@ -7364,7 +7382,9 @@
         "view-issue": "查看 issue",
         "snooze": "稍后提醒",
         "snooze-until": "稍后提醒至…",
-        "request-revision": "请求修订"
+        "request-revision": "请求修订",
+        "hour": "1 小时",
+        "hours": "4 小时"
       },
       "billerspendcard": {
         "period-spend": "周期支出",
@@ -7373,7 +7393,9 @@
         "upstream-providers": "上游提供商"
       },
       "blockedinboxview": {
-        "couldn-load-blocked-tab": "无法加载“已阻塞”标签页。",
+        "couldn-load-blocked-tab": {
+          "2": "无法加载“已阻塞”标签页。"
+        },
         "other-inbox-tabs-still": "其他收件箱标签页仍然可用。",
         "no-work-stopped": "没有工作被停止。",
         "tasks-need-decision-recovery": "需要决策、恢复或外部操作的任务将出现在这里。",
@@ -7393,7 +7415,10 @@
         "signed": "已登录为",
         "wrong-account": "账户不对？",
         "switch-account": "切换账户",
-        "no-admin-has-claimed-alt": "还没有管理员认领此实例。立即认领以成为第一位管理员并开始引导。"
+        "no-admin-has-claimed-alt": "还没有管理员认领此实例。立即认领以成为第一位管理员并开始引导。",
+        "someone-else-has-already": "其他人已经认领了此实例。",
+        "your-session-expired-sign": "你的会话已过期。请重新登录以认领此实例。",
+        "we-couldn-reach-server": "无法访问服务器。请稍后再试。"
       },
       "breadcrumbbar": {
         "open-sidebar": "打开侧边栏"
@@ -7412,7 +7437,9 @@
       },
       "caseactivityfeed": {
         "activity-filter": "活动筛选",
-        "all-activity": "所有活动",
+        "all-activity": {
+          "2": "所有活动"
+        },
         "no-events-match-filter": "没有事件匹配此筛选条件。"
       },
       "caseattachmentsgallery": {
@@ -7464,8 +7491,8 @@
         "no-quick-task-matches": "没有快速任务匹配。按下",
         "search-all": "搜索全部",
         "keep-typing-refine": "或继续输入以细化。",
-        "ldquo": "&ldquo;",
-        "rdquo": "&rdquo;",
+        "ldquo": "“",
+        "rdquo": "”",
         "open-full-search": "打开完整搜索",
         "create-new-task": "创建新任务",
         "open-file-issue": "在此 issue 中打开文件…",
@@ -7478,7 +7505,9 @@
         "lease": "租约",
         "failure": "失败：",
         "timeline": "时间线（",
-        "queued-comments": "排队评论（"
+        "queued-comments": "排队评论（",
+        "requested-follow-up": "请求了跟进",
+        "updated-task": "更新了此任务"
       },
       "companyswitcher": {
         "manage-companies": "管理公司"
@@ -7491,7 +7520,8 @@
         "adapter-needs-command-endpoint": "此适配器需要命令或端点字段才能运行。现在配置内置行，然后从完整智能体配置中完成这些字段。",
         "monthly-budget-optional": "月度预算（可选）",
         "leave-blank-no-cap": "留空表示无上限。",
-        "not-now": "暂不"
+        "not-now": "暂不",
+        "failed-configure-built-agent": "配置内置智能体失败。"
       },
       "decisioncard": {
         "proposed": "由以下提出",
@@ -7507,7 +7537,8 @@
         "decision-window-closed": "决策窗口已关闭",
         "decision-was-withdrawn-proposer": "该决策已被提议人在响应前撤回。",
         "dismissed-no-effects-were": "已关闭 — 未运行任何效果。",
-        "some-effects-may-already": "某些效果可能已经应用。在要求提议人重新提议之前，请先查看结果。"
+        "some-effects-may-already": "某些效果可能已经应用。在要求提议人重新提议之前，请先查看结果。",
+        "new-issue": "一个新 issue"
       },
       "decisiontrainingdrawer": {
         "decision-can-trained-isn": "该决策无法训练——它没有锚定到某个 issue。",
@@ -7527,7 +7558,9 @@
         "finish": "以完成",
         "auto-restart-will-trigger": "实例空闲时将触发自动重启",
         "pnpm-dev-once": "pnpm dev:once",
-        "after-active-work-safe": "在活跃工作可安全中断之后"
+        "after-active-work-safe": "在活跃工作可安全中断之后",
+        "restart-paperclip-now": "现在重启 Paperclip？",
+        "failed-request-restart": "请求重启失败"
       },
       "documentannotationlayer": {
         "open-annotation-thread": "打开批注线程",
@@ -7649,7 +7682,9 @@
         "still-blocked": "仍被以下阻塞",
         "stalled-review": "评审停滞",
         "ultimately-waiting": "最终等待",
-        "but-chain-stalled-review-alt": "，但链在评审中停滞，没有明确的下一步。解决下方的停滞评审，或将它们移除为阻塞项。"
+        "but-chain-stalled-review-alt": "，但链在评审中停滞，没有明确的下一步。解决下方的停滞评审，或将它们移除为阻塞项。",
+        "linked-task": "关联任务",
+        "linked-tasks": "关联任务"
       },
       "issuechatthread": {
         "paused-new-runs-will": "已暂停。在智能体恢复之前不会启动新的运行。",
@@ -7664,7 +7699,8 @@
         "go-back": "返回",
         "send-anyway": "仍然发送",
         "jump-latest": "跳转到最新",
-        "legacy-recovery-task-newer": "旧版恢复任务。较新的恢复操作位于源任务上"
+        "legacy-recovery-task-newer": "旧版恢复任务。较新的恢复操作位于源任务上",
+        "deferred-wake": "⏸ 延迟唤醒"
       },
       "issuecolumns": {
         "desktop-task-rows": "桌面任务行",
@@ -7726,7 +7762,7 @@
         "repair-workspace": "修复工作区",
         "lossless-no-reason-required": "这是无损的——无需原因。你的未提交更改会被提交到一条全新的救援分支上，然后恢复记录的分支以便任务继续。实时分支保持原样。",
         "left-untouched": "（保持原样）",
-        "lt-timestamp-gt": "&lt;timestamp&gt;",
+        "lt-timestamp-gt": "<timestamp>",
         "unassigned-pick-one-wake": "未分配 — 选择一个以唤醒",
         "returns": "→ 返回到：",
         "times": "超时",
@@ -7735,7 +7771,8 @@
         "reconcile-forward-amp-continue": "向前对账并继续",
         "creates-fresh-copy-task": "基于实时分支在隔离的 git worktree 上创建此任务的全新副本。\n                    你当前的工作区及其提交保持原样。",
         "recovery-observing-without-interrupting": "恢复正在观察而不中断实时运行。",
-        "card-stays-open-until": "卡片保持打开状态，直到记录明确的决策。"
+        "card-stays-open-until": "卡片保持打开状态，直到记录明确的决策。",
+        "another-task": "另一个任务"
       },
       "issuereferenceactivitysummary": {
         "added-references": "已添加引用",
@@ -7753,7 +7790,7 @@
       },
       "issuerow": {
         "blocked-parked-work-least": "被停放的工作阻塞——至少有一个已分配的阻塞项在积压中，不会唤醒其负责人。",
-        "middot": "&middot;"
+        "middot": "·"
       },
       "issuerunledger": {
         "latest-active-run-has": "最近一次活跃运行已静默",
@@ -7772,7 +7809,11 @@
         "paperclip-will-retry-automatically": ". Paperclip 将自动重试。"
       },
       "issuesiblingnavigation": {
-        "sub-task-navigation": "子任务导航"
+        "sub-task-navigation": "子任务导航",
+        "previous": "上一个",
+        "next": "下一个",
+        "previous-sub-task": "上一个子任务",
+        "next-sub-task": "下一个子任务"
       },
       "issuethreadinteractioncard": {
         "child-task": "子任务",
@@ -7824,7 +7865,8 @@
         "proposed": "由以下提出",
         "resolved": "由以下解决",
         "approved-alt": "已批准 ·",
-        "reason-required-alt": "需要原因才能"
+        "reason-required-alt": "需要原因才能",
+        "approval-window-closed-auto": "批准窗口已关闭 · 随时会自动拒绝"
       },
       "issueworkspacecard": {
         "environment": "环境：",
@@ -7836,7 +7878,9 @@
       },
       "issueslist": {
         "showing-up": "显示最多",
-        "matches-refine-search-narrow": "个匹配。细化搜索以进一步缩小范围。"
+        "matches-refine-search-narrow": "个匹配。细化搜索以进一步缩小范围。",
+        "board-me-human-local": "board me human local-board",
+        "unassigned": "__unassigned"
       },
       "jsonschemaform": {
         "hide-raw-value-input": "隐藏原始值输入",
@@ -7874,7 +7918,7 @@
       },
       "newagentdialog": {
         "add-new-agent": "添加新智能体",
-        "times": "&times;",
+        "times": "×",
         "ask-leader-propose-hire": "让领导者提议雇佣，自己配置运行时，\n                  或向外部智能体发送引导提示。",
         "ask-ceo-create-new": "请 CEO 创建新智能体",
         "configure-runtime-manually": "手动配置运行时",
@@ -7885,10 +7929,11 @@
         "optional-message-agent": "给智能体的可选消息",
         "agent-invites-create-join": "智能体邀请会先创建加入请求。公司管理员仍会先批准请求，智能体才能认领其 API 密钥。",
         "agent-onboarding-prompt": "智能体引导提示",
-        "send-prompt-external-agent": "将此提示发送给应加入此公司的外部智能体。"
+        "send-prompt-external-agent": "将此提示发送给应加入此公司的外部智能体。",
+        "type-what-kind-agent": "（在此输入你想要什么样的智能体）"
       },
       "newgoaldialog": {
-        "rsaquo": "&rsaquo;"
+        "rsaquo": "›"
       },
       "newissuedialog": {
         "optional": "（可选）",
@@ -7970,7 +8015,8 @@
         "retry": "并重试。",
         "we-ll-create-first": "我们将为以下创建第一个任务",
         "take-you-dashboard": "并带你去仪表盘。",
-        "can-produce-content-fast-alt": "例如：无法在多个渠道上快速产出足够的内容"
+        "can-produce-content-fast-alt": "例如：无法在多个渠道上快速产出足够的内容",
+        "no-opencode-models-discovered": "未发现 OpenCode 模型。运行 `opencode models` 并认证提供商。"
       },
       "opencodelogoicon": {
         "opencode": "OpenCode"
@@ -7980,7 +8026,8 @@
       },
       "pathinstructionsmodal": {
         "paste-absolute-path": "粘贴绝对路径（例如",
-        "into-input-field": "）到输入字段中。"
+        "into-input-field": "）到输入字段中。",
+        "macos": "macOS"
       },
       "pendingdecisionstrip": {
         "review-decisions": "在“决策”中查看 →"
@@ -8010,7 +8057,7 @@
       },
       "projectproperties": {
         "saving": "保存中",
-        "rdquo": "&rdquo;?",
+        "rdquo": "”?",
         "all-goals-linked": "所有目标已关联。",
         "applied-all-runs-tasks": "应用于此项目中任务的所有运行。键冲突时项目值覆盖智能体环境变量。",
         "repo-identifies-source-truth": "仓库标识事实来源。本地文件夹是智能体编写代码的默认位置。",
@@ -8088,7 +8135,8 @@
         "field-changes": "字段更改",
         "description-diff": "描述差异",
         "restore-rev": "恢复修订",
-        "new-revision": "作为新修订"
+        "new-revision": "作为新修订",
+        "trigger-enabled-state-was": "触发器启用状态已从快照恢复。新的 webhook 密钥可在上方横幅中获取。"
       },
       "routinerunvariablesdialog": {
         "choose-agent-optional-project": "为这一次运行选择智能体和可选项目。例程默认值已预填且不会被更改。",
@@ -8137,7 +8185,9 @@
         "same-name-reused-across": "在标题和指令中复用的相同名称被视为同一个变量。",
         "built-variables": "内置变量",
         "these-filled-automatically-no": "这些会自动填充 — 无需设置，它们不会出现在\n                变量列表中。",
-        "placeholder": "占位符"
+        "placeholder": "占位符",
+        "current-date-yyyy-mm": "例程运行时（UTC）的当前日期，格式为 YYYY-MM-DD。",
+        "human-readable-date-time": "例程运行时（UTC）的人类可读日期和时间。"
       },
       "scheduleeditor": {
         "five-fields-minute-hour": "五个字段：分钟 小时 日 月 星期",
@@ -8158,7 +8208,10 @@
       },
       "sidebaraccountmenu": {
         "open-account-menu": "打开账户菜单",
-        "paperclip": "Paperclip v"
+        "paperclip": "Paperclip v",
+        "signed": "已登录",
+        "local-workspace-board": "本地工作区董事会",
+        "account": "账户"
       },
       "sidebarcompanymenu": {
         "switch-company": "切换公司"
@@ -8277,7 +8330,8 @@
           "into-folders-keep-things": "到文件夹中以保持整洁。",
           "create-your-first-folder": "创建你的第一个文件夹",
           "new-folder": "新建文件夹…",
-          "folder-won-deleted-they": "此文件夹中的内容不会被删除。它们将移到“未归档”。"
+          "folder-won-deleted-they": "此文件夹中的内容不会被删除。它们将移到“未归档”。",
+          "var-folder-color-slate": "var(--folder-color-slate)"
         },
         "skillfoldertree": {
           "new-subfolder": "新建子文件夹",
@@ -8322,7 +8376,9 @@
           "blocked": "被阻塞",
           "blocking": "正在阻塞",
           "add-sub-task": "Add sub-task",
-          "view-workspace": "View workspace"
+          "view-workspace": "View workspace",
+          "override-adapter-options": "Override · adapter options",
+          "fires-next-tick": "· fires on next tick"
         },
         "issuepropertiesartifactstab": {
           "no-artifacts-yet-attachments": "还没有工件。附件和工作产物将出现在这里。"
@@ -8331,6 +8387,9 @@
           "remove-blocker": "Remove blocker?",
           "blocker-task": "作为此任务的阻塞项。",
           "remove-blocker-alt": "Remove blocker"
+        },
+        "external-object-rows": {
+          "hover-underline-focus-visible": "hover:underline focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring"
         }
       },
       "routine-sections": {
@@ -8345,7 +8404,9 @@
           "save-now-paperclip-will": "立即保存。Paperclip 之后不会再显示该密钥值。",
           "add-schedule-trigger-gate": "添加计划触发器以根据活动门控运行。Webhook、手动和 API 触发始终运行。",
           "preview-assumes-previous-run": "预览假定下次触发时上一次运行仍在进行。显示的时间",
-          "no-enabled-schedule-trigger": "没有可预览的已启用计划触发器。在“触发器”中添加计划，以查看此策略如何处理即将到来的触发。"
+          "no-enabled-schedule-trigger": "没有可预览的已启用计划触发器。在“触发器”中添加计划，以查看此策略如何处理即将到来的触发。",
+          "catch-up-missed-schedule": "Catch up missed schedule windows after recovery; sub-hourly schedules are combined into one catch-up run, slower schedules replay each missed window up to a cap.",
+          "scheduled-tick-only-run": "On a scheduled tick, only run if something happened since the last run that finished. Lets a watcher-style routine stay asleep while the system is settled instead of burning tokens."
         }
       },
       "search": {
@@ -8364,7 +8425,9 @@
       "skill-studio": {
         "agentsusingskilldialog": {
           "agents-using": "Agents using",
-          "behind-latest": "behind latest"
+          "behind-latest": "behind latest",
+          "agent-uses": "agent uses",
+          "agents-use": "agents use"
         },
         "forkskilldialog": {
           "edit-copy": "Edit a copy of",
@@ -8377,12 +8440,14 @@
           "forked-from": "派生自",
           "skill-lives": "此技能位于",
           "saves-write-project-working": "。\n          保存会写入项目工作树且不会被提交。",
-          "edit-copy-instead": "改为编辑副本"
+          "edit-copy-instead": "改为编辑副本",
+          "original-skill": "原始技能"
         }
       },
       "task-chat": {
         "taskchatcomposer": {
-          "send-enter": "Send (⌘+Enter)"
+          "send-enter": "Send (⌘+Enter)",
+          "agent": "智能体"
         },
         "taskchatplanview": {
           "rev": "· rev"
@@ -8405,7 +8470,11 @@
         "worktimelinechart": {
           "kicked-off": "kicked off by:",
           "drag-left-edge-resize": "拖动左边缘以调整可见范围",
-          "drag-right-edge-resize": "拖动右边缘以调整可见范围"
+          "drag-right-edge-resize": "拖动右边缘以调整可见范围",
+          "var-color-muted": "var(--color-muted)",
+          "var-color-card": "var(--color-card)",
+          "dashed-handoff-retry-changes": "虚线交接：重试或请求更改",
+          "solid-handoff-delegation-assignment": "实线交接：委派或分配"
         }
       },
       "transcript": {
@@ -8417,6 +8486,47 @@
       "ui": {
         "breadcrumb": {
           "more": "More"
+        }
+      },
+      "appconnectionsidebar": {
+        "none": "__none__"
+      },
+      "feedcard": {
+        "needs-approval": "需要批准",
+        "requested-approval": "请求了批准",
+        "wants-hire": "想雇佣"
+      },
+      "issuedocumentannotations": {
+        "new-comments-disabled-while": "预览历史修订时禁用新评论。",
+        "resolve-document-conflict-before": "添加新评论前先解决文档冲突。",
+        "save-draft-anchor-new": "保存草稿以锚定新评论。",
+        "document-has-no-saved": "文档还没有保存的修订。"
+      },
+      "resourcestatuschip": {
+        "expected-resource-absent-reconcile": "预期资源缺失；对账将重新创建它",
+        "you-ve-edited-your": "你已编辑此内容；你的更改会被保留，不会被覆盖",
+        "proposed-update-waiting-your": "有一个建议的更新等待你评审"
+      },
+      "runworkspacerecoverysurface": {
+        "fresh-isolated-re-issue": "已创建全新的隔离重新分发。"
+      },
+      "sidebarnavitem": {
+        "attention-needed": "需要注意"
+      },
+      "sidebarsection": {
+        "opacity-group-hover-sidebar": "opacity-0 group-hover/sidebar-section:opacity-100 group-focus-within/sidebar-section:opacity-100"
+      },
+      "statusicon": {
+        "blocker-needs": "阻塞项需要",
+        "blockers-need": "阻塞项需要"
+      },
+      "workspacefilelink": {
+        "workspace-browser": "workspace browser",
+        "file-viewer": "file viewer"
+      },
+      "access": {
+        "modebadge": {
+          "local-trusted": "Local trusted"
         }
       }
     },
@@ -8471,7 +8581,7 @@
         "agent-instructions": "# 智能体指令",
         "back-runs": "Back to runs",
         "behalf": "On behalf of",
-        "rarr": "&rarr;",
+        "rarr": "→",
         "duration": "Duration:",
         "login-url": "登录 URL：",
         "exit-code": "Exit code",
@@ -8567,7 +8677,8 @@
       "casedetail": {
         "create": "创建 “",
         "back-cases": "← 返回案例",
-        "attachments": "附件（"
+        "attachments": "附件（",
+        "labels-none": "- 标签：无"
       },
       "cases": {
         "desktop-case-rows": "桌面案例行",
@@ -8622,7 +8733,8 @@
       "companyexport": {
         "binary-asset-preview-not": "此文件类型不支持二进制资源预览。",
         "exporting": "正在导出",
-        "show-more-tasks": "显示更多任务（"
+        "show-more-tasks": "显示更多任务（",
+        "readme-md": "README.md"
       },
       "companyimport": {
         "renames": "重命名",
@@ -8715,7 +8827,8 @@
         "paste-local-path-github": "粘贴本地路径、GitHub URL 或 `skills.sh` 命令",
         "look-repositories-skill-md": "查找包含 `SKILL.md` 的仓库，然后将仓库 URL 粘贴到这里。",
         "installed-alt": "已安装（",
-        "paste-local-path-github-alt": "粘贴本地路径、GitHub URL 或 `skills.sh` 命令以将技能导入此公司。"
+        "paste-local-path-github-alt": "粘贴本地路径、GitHub URL 或 `skills.sh` 命令以将技能导入此公司。",
+        "paperclip-could-not-validate": "Paperclip 无法将此技能验证为 Agent Skills markdown。自行承担安装风险。"
       },
       "costs": {
         "all-billers": "所有计费方",
@@ -8728,7 +8841,8 @@
         "live-agent-runs": "实时智能体运行",
         "active-runs-first-followed": "先显示运行中的任务，其次是最新完成的运行。",
         "active-recent": "活跃 / 最近",
-        "no-active-recent-agent": "没有活跃或最近的智能体运行。"
+        "no-active-recent-agent": "没有活跃或最近的智能体运行。",
+        "live-runs": "实时运行"
       },
       "designguide": {
         "every-component-style-pattern": "Paperclip 中使用的每个组件、样式和模式。",
@@ -8888,14 +9002,16 @@
         "linked-issue-reached-terminal": "关联的 issue 在写入摘要之前达到终止状态。",
         "compact-variant-embedding-inside": "用于嵌入对话框和弹窗的紧凑变体。",
         "derived-lifecycle-chip-amber": "用于注意状态的派生生命周期徽章（琥珀色）。生命周期徽章独立于\n          智能体状态词汇，仅显示在",
-        "lt-builtinagentgate-agentkey-gt": "&lt;BuiltInAgentGate agentKey&gt;",
+        "lt-builtinagentgate-agentkey-gt": "<BuiltInAgentGate agentKey>",
         "pageskeleton": "PageSkeleton",
         "emptystate": "EmptyState",
         "inlinebanner": "InlineBanner",
         "render-loading-setup-pending": "用于渲染依赖内置智能体的功能的加载 / 设置 /\n          待批准 / 暂停 / 就绪状态。",
         "installed-alt": "已安装 · N",
         "optional-alt": "以及一个可选",
-        "panel-alt": "面板 C"
+        "panel-alt": "面板 C",
+        "github-token": "GITHUB_TOKEN",
+        "db-connection": "DB_CONNECTION"
       },
       "executionworkspacedetail": {
         "routines-use-workspace-specific": "使用工作区特定变量的例程可以针对此执行工作区运行。",
@@ -8991,7 +9107,8 @@
         "invite-may-expired-revoked": "此邀请可能已过期、被吊销或已被使用。",
         "you-apos-ve-been": "你已被邀请加入 Paperclip",
         "invite-will-create-approval": "此邀请将为新智能体创建审批请求：",
-        "already-have-account": "我已有账户"
+        "already-have-account": "我已有账户",
+        "email": "那个邮箱"
       },
       "inviteuxlab": {
         "invite-will-create-approval": "此邀请将为 Acme Robotics 中的新智能体创建审批请求。",
@@ -9059,7 +9176,8 @@
         "reason-optional": "原因（可选）",
         "wake-affected-agents": "唤醒受影响的智能体（",
         "understand-will-cancel": "我了解这将取消",
-        "retry-preview": "重试预览"
+        "retry-preview": "重试预览",
+        "run-stopped-task-update": "运行已停止；任务更新失败"
       },
       "joinrequestqueue": {
         "review-human-agent-join": "在混合收件箱流之外查看人工和智能体加入请求。此队列使用与内联收件箱卡片相同的批准变更。",
@@ -9075,7 +9193,11 @@
       "notfound": {
         "requested-path": "请求的路径：",
         "open-dashboard": "打开仪表盘",
-        "go-home": "返回首页"
+        "go-home": "返回首页",
+        "not-found": "未找到",
+        "company-not-found": "未找到公司",
+        "page-not-found": "未找到页面",
+        "route-does-not-exist": "此路由不存在。"
       },
       "orgchart": {
         "import-company": "导入公司",
@@ -9117,7 +9239,10 @@
         "from-pipeline-connected-stage": "来自此管道。关联的阶段转换将被移除。",
         "only-stage-deletion-succeeds": "这是唯一的阶段。只有在其没有条目时才能删除。",
         "archiving-hides-pipeline-from": "归档会从日常视图中隐藏此管道。其阶段和条目会被保留，之后可以恢复。",
-        "confirm": "确认"
+        "confirm": "确认",
+        "items-wait-here-while": "条目在此等待，同时工作进行。由智能体或人来移动它们。",
+        "someone-has-approve-before": "条目离开前必须有人批准。当人或智能体必须说“是”或“否”时使用。",
+        "transition-rules-updated": "转换规则已更新"
       },
       "pipelines": {
         "review": "to review",
@@ -9167,7 +9292,9 @@
         "arrow-keys-move": "或箭头键移动，",
         "enter": "输入",
         "opens-item": "打开条目，",
-        "patterns-from-review-decisions": "来自评审决策和手动移动的模式，用通俗语言呈现。"
+        "patterns-from-review-decisions": "来自评审决策和手动移动的模式，用通俗语言呈现。",
+        "hr-ago": "1 小时前",
+        "builtfor": "builtFor"
       },
       "pluginmanager": {
         "enter-npm-package-name": "输入要安装的插件的 npm 包名。",
@@ -9226,7 +9353,11 @@
         "pnpm-install-pnpm-dev": "pnpm install && pnpm dev",
         "paperclip-derives-services-jobs": "Paperclip 从此 JSON 派生服务和任务。优先编辑命名命令；将原始 JSON 用于高级生命周期、端口、就绪或环境设置。",
         "execution-workspaces-inherit-config": "执行工作区继承此配置，除非它们覆盖它。旧版 `services` 数组仍然有效，但 `commands` 同时支持服务和任务。",
-        "long-running-services-stay": "长时间运行的服务在此保持监管，而一次性任务按需针对此工作区运行。执行工作区继承此配置，除非它们覆盖它。"
+        "long-running-services-stay": "长时间运行的服务在此保持监管，而一次性任务按需针对此工作区运行。执行工作区继承此配置，除非它们覆盖它。",
+        "local-path-paperclip-can": "Paperclip 可以直接使用的本地路径。",
+        "local-folder-without-git": "没有 git 语义的本地文件夹。",
+        "repo-url-optional-refs": "带可选引用和本地检出的仓库 URL。",
+        "hosted-workspace-tracked-external": "通过外部引用跟踪的托管工作区。"
       },
       "responsibleuserdenialuxlab": {
         "codexcoder": "由 CodexCoder",
@@ -9253,18 +9384,33 @@
         "denial-state-responsible-user-alt": "4 · 拒绝状态 — 责任人不可用"
       },
       "routinedetail": {
-        "skip-section": "跳转到章节"
+        "skip-section": "跳转到章节",
+        "title": "标题",
+        "description": "描述",
+        "project": "项目",
+        "default-agent": "默认智能体",
+        "priority": "优先级",
+        "concurrency-policy": "并发策略",
+        "catch-up-policy": "追赶策略",
+        "advanced-run-policy": "高级运行策略",
+        "activity-gate-scope": "活动门控范围",
+        "variables": "变量",
+        "secrets": "密钥"
       },
       "routines": {
         "recurring-work-definitions-materialize": "可复现为可审计执行任务的周期性工作定义。",
         "filed": "归档于",
         "after-creation-paperclip-takes": "创建后，Paperclip 会直接带你到触发器设置。草稿例程保持暂停，直到你添加默认智能体。",
-        "new-routine-folder": "在此文件夹中新建例程"
+        "new-routine-folder": "在此文件夹中新建例程",
+        "paperclip-routines-view": "paperclip:routines-view"
       },
       "runtranscriptuxlab": {
         "compact-live-transcript-stream": "issue 详情页的紧凑实时转录流。",
         "built-from-real-paperclip": "基于真实的 Paperclip 开发运行构建，然后经过净化，确保没有密钥、本地路径或环境细节进入夹具。",
-        "controls": "控件"
+        "controls": "控件",
+        "long-form-run-page": "带 `Nice | Raw` 切换的长格式运行页面，以及最具可检查性的转录视图。",
+        "issue-detail-live-run": "issue 详情实时运行组件，专为不离开任务页面跟踪活跃运行而优化。",
+        "active-agents-dashboard-card": "活跃智能体仪表盘卡片，专为紧凑扫描调整，同时保持相同的转录语言。"
       },
       "search": {
         "try": "试试",
@@ -9279,7 +9425,7 @@
         "your-input-filters-still": "你的输入和筛选条件仍然保留，因此你可以重试或回退到任务筛选。",
         "open-tasks-filter-view": "打开任务筛选视图",
         "searching-ldquo": "正在搜索 “",
-        "rdquo": "&rdquo;…",
+        "rdquo": "”…",
         "no-results-ldquo": "没有 “",
         "we-couldn-find-match": "在以下位置找不到匹配项",
         "try-widening-scope-rephrasing": ". 尝试扩大范围或重新表述你的\n          查询。",
@@ -9380,7 +9526,9 @@
           "these-credentials-only-you": "这些是只有你提供的凭据。每个值只属于你 — 当你作为运行的责任人时使用 — 并且永远不会展示给任何人，包括管理员。",
           "required-secret": "必需密钥",
           "failed-load-your-secrets": "加载你的密钥失败：",
-          "clear-my-value": "清除我的值"
+          "clear-my-value": "清除我的值",
+          "value-cleared": "值已清除",
+          "could-not-clear-value": "无法清除值"
         },
         "setmyusersecretdialog": {
           "value-yours-only-used": "This value is yours only. It is used when you are the user responsible for a run that\n                needs",
@@ -9399,7 +9547,9 @@
           "removes-definition": "这将移除定义",
           "whole-company-existing-member": "for\n              the whole company. Existing member values become unreferenced. This cannot be undone.",
           "coverage": "覆盖率："
-        }
+        },
+        "paperclip-resolves-provider-reference": "Paperclip 解析此提供商引用，并可以通过“更新值”向它写入新值。",
+        "binding": "1 个绑定"
       },
       "skillstudio": {
         "create-editable-company-skill": "创建一个可在公司内编辑的共享技能。",
@@ -9462,7 +9612,8 @@
           "keep-eye-id-cloud": "关注 ID 和 Cloud 项目。告诉我服务是否在线，如果不在线，给出使其上线所需的确切三个操作。",
           "examples": "示例",
           "runs-card-setup-updates": "运行此卡片的设置和更新。除非应由另一个智能体拥有，否则保持默认。",
-          "create-card": "创建卡片"
+          "create-card": "创建卡片",
+          "could-not-create-card": "无法创建卡片。"
         },
         "statuscarddetaildrawer": {
           "latest": "· 最新",
@@ -9481,7 +9632,8 @@
         "statuscardsettingsform": {
           "after-last-change-max": "上次更改后 · 最多",
           "updates-hour": "更新/小时",
-          "no-cap": "无上限"
+          "no-cap": "无上限",
+          "new-issue-matches-query": "新 issue 匹配查询 · issue 离开查询"
         },
         "statuscardtile": {
           "refresh-now": "立即刷新",
@@ -9520,14 +9672,14 @@
         "use": "使用",
         "detailsdefaultopen": "detailsDefaultOpen",
         "comments-where": "评论位置",
-        "authortype-quot-system-quot": "authorType === &quot;system&quot;",
+        "authortype-quot-system-quot": "authorType === \"system\"",
         "presentation-kind-quot-system": "presentation.kind === \"system_notice\"",
         "should-render-systemnotice-row": "should render as a SystemNotice row at full content width — never inside an",
         "issuechatusermessage": "IssueChatUserMessage",
         "assistant-bubble": "或助手气泡。",
         "details-button-has": "“详情”按钮有",
         "wired-panel-id-container": "连接到面板 ID。容器暴露",
-        "role-quot-status-quot": "role=&quot;status&quot;",
+        "role-quot-status-quot": "role=\"status\"",
         "text": "和一个",
         "equal-visible-tone-label": "equal to the visible tone label so screen readers announce tone with text.",
         "existing-comments-without": "没有",
@@ -9615,7 +9767,8 @@
           "app-doesn-exist-anymore": "此应用已不存在。",
           "last-error": "上次错误：",
           "reconnect-app-edit-who": "重新连接此应用，以编辑谁可以使用它以及哪些操作需要人工先行审批。",
-          "previous-setup-retained-reconnect": "重新连接时保留之前的设置，但在应用恢复在线之前访问控制保持只读。"
+          "previous-setup-retained-reconnect": "重新连接时保留之前的设置，但在应用恢复在线之前访问控制保持只读。",
+          "couldn-remove-app": "无法移除应用"
         },
         "appsconnect": {
           "token-part-url-paperclip": "令牌是 URL 的一部分。Paperclip 安全地存储它，并在启用操作前检查连接。",
@@ -9655,7 +9808,9 @@
           "tick-agents-should-load": "勾选应加载",
           "every-run": "每次运行。",
           "ready": "已就绪。",
-          "text": "开启 ·"
+          "text": "开启 ·",
+          "couldn-connect": "无法连接",
+          "couldn-finish-setup": "无法完成设置"
         },
         "appsreview": {
           "select-company-review-approvals": "选择一家公司来审查批准。",
@@ -9679,11 +9834,13 @@
         "reviewqueuecard": {
           "asked": "· 已询问",
           "agent-wants-run-action": "智能体想运行此操作。它可能改变内容，所以我们先征求你的意见。",
-          "allow-once": "允许一次"
+          "allow-once": "允许一次",
+          "couldn-save": "无法保存"
         },
         "app-detail": {
           "activitypanel": {
-            "while-working": "处理以下内容时"
+            "while-working": "处理以下内容时",
+            "action": "一个操作"
           },
           "advancedpanel": {
             "your-key-stored-securely": "你的密钥已安全存储。如果它停止工作或你已轮换它，请替换它。",
@@ -9748,7 +9905,8 @@
             "want-test-turn": "想测试它？为以下开启",
             "set-allowed-ask-first": "— 将其设为“允许”或“先询问”。",
             "no-call-will-made": "不会发起调用 — 此操作对以下关闭",
-            "other-agents-using": "其他使用中的智能体"
+            "other-agents-using": "其他使用中的智能体",
+            "approved-running": "已批准 · 运行中"
           }
         },
         "gateways": {
@@ -9759,7 +9917,7 @@
             "pick-how-you-ll": "选择如何将你的客户端指向此网关。",
             "raw-url": "原始 URL",
             "authenticate": "使用以下认证",
-            "authorization-bearer-lt-token": "Authorization: Bearer &lt;token&gt;",
+            "authorization-bearer-lt-token": "Authorization: Bearer <token>",
             "over-streamable-http": "通过流式 HTTP。",
             "mint-token": "在",
             "tab-then-paste-where": "标签页，然后将其粘贴到\n                  片段所示的位置",
@@ -9820,6 +9978,10 @@
           "connect-your-own-tool": "连接你自己的工具",
           "paste-url-from-custom": "粘贴自定义或自托管 MCP 服务器的 URL，在启用前审查其操作。",
           "developer-tools-advanced": "开发者工具（高级）"
+        },
+        "appdetail": {
+          "action-needs": "操作需要",
+          "actions-need": "操作需要"
         }
       },
       "audit": {
@@ -9828,7 +9990,8 @@
           "audit-view-agent-actions": "audit:view_agent_actions",
           "permission-view": "查看权限。",
           "everything-your-agents-did": "你的智能体所做的一切，最新在前 — 每一行是一个记录的操作，并标注\n              负责人。点击进入任务或运行查看完整上下文。",
-          "recorded-paperclip-entries-can": "由 Paperclip 记录 — 条目无法编辑。敏感值永远不会存储。"
+          "recorded-paperclip-entries-can": "由 Paperclip 记录 — 条目无法编辑。敏感值永远不会存储。",
+          "user": "一个用户"
         }
       },
       "skills": {
@@ -9900,7 +10063,9 @@
           "back-rules": "返回规则",
           "turn-off": "关闭",
           "no-remembered-approvals-yet": "还没有记住的批准。",
-          "remembered": "已记住"
+          "remembered": "已记住",
+          "one-action": "一个操作",
+          "block-destructive-actions-everywhere": "全局阻止破坏性操作"
         },
         "profilestab": {
           "send-email-slack-list": "例如：send_email 或 slack.list_*",
@@ -9999,7 +10164,8 @@
             "also-copy-assignments": "也复制分配？"
           },
           "profiledetailroute": {
-            "select-company-profile": "选择公司和配置。"
+            "select-company-profile": "选择公司和配置。",
+            "profile-detail": "配置详情"
           },
           "profilewizard": {
             "save-amp-finish-later": "保存并稍后完成",
@@ -10030,12 +10196,20 @@
             "risky": "（有风险）",
             "match-tools-name-pattern": "按名称模式、风险级别或特定工具 ID 匹配工具。这些在\n          上述选择之上运行。",
             "add-rule": "添加规则"
+          },
+          "profileactiondialog": {
+            "profile-company-default-reassign": "此配置是公司默认配置。删除前请先将公司默认配置重新分配给另一个配置。"
           }
         },
         "shared": {
           "could-not-load-view": "无法加载此视图",
-          "tracked": "跟踪于"
+          "tracked": "跟踪于",
+          "require-approval": "需要批准",
+          "rate-limited": "速率受限"
         }
+      },
+      "myissues": {
+        "my-tasks": "我的任务"
       }
     },
     "plugins": {
@@ -10044,6 +10218,11 @@
         "could-not-resolve-launcher": ": 无法解析启动器目标 “",
         "plugin-launchers-unavailable": "插件启动器不可用："
       }
+    },
+    "builtinAgents": {
+      "reflectionCoach": "反思教练",
+      "summarizer": "摘要器",
+      "hermes": "Hermes"
     }
   }
 }

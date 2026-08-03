@@ -73,10 +73,10 @@ function orderProjectWorkspaceTabItems(items: OrderedProjectWorkspaceTabItem[]) 
 }
 
 const SOURCE_TYPE_OPTIONS: Array<{ value: ProjectWorkspaceSourceType; label: string; description: string }> = [
-  { value: "local_path", label: t("pages.projectWorkspaceDetail.localGit", { defaultValue: "Local git checkout" }), description: "A local path Paperclip can use directly." },
-  { value: "non_git_path", label: t("pages.projectWorkspaceDetail.localNonGit", { defaultValue: "Local non-git path" }), description: "A local folder without git semantics." },
-  { value: "git_repo", label: t("pages.projectWorkspaceDetail.remoteGit", { defaultValue: "Remote git repo" }), description: "A repo URL with optional refs and local checkout." },
-  { value: "remote_managed", label: t("pages.projectWorkspaceDetail.remoteManaged", { defaultValue: "Remote-managed workspace" }), description: "A hosted workspace tracked by external reference." },
+  { value: "local_path", label: t("pages.projectWorkspaceDetail.localGit", { defaultValue: "Local git checkout" }), description: t("ui.pages.projectworkspacedetail.local-path-paperclip-can") },
+  { value: "non_git_path", label: t("pages.projectWorkspaceDetail.localNonGit", { defaultValue: "Local non-git path" }), description: t("ui.pages.projectworkspacedetail.local-folder-without-git") },
+  { value: "git_repo", label: t("pages.projectWorkspaceDetail.remoteGit", { defaultValue: "Remote git repo" }), description: t("ui.pages.projectworkspacedetail.repo-url-optional-refs") },
+  { value: "remote_managed", label: t("pages.projectWorkspaceDetail.remoteManaged", { defaultValue: "Remote-managed workspace" }), description: t("ui.pages.projectworkspacedetail.hosted-workspace-tracked-external") },
 ];
 
 const VISIBILITY_OPTIONS: Array<{ value: ProjectWorkspaceVisibility; label: string }> = [

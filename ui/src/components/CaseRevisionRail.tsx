@@ -15,7 +15,7 @@ import { Diff } from "lucide-react";
 
 /** Author + via-issue attribution line for a revision. */
 function RevisionByline({ revision }: { revision: CaseDocumentRevision }) {
-  const author = revision.actorAgentName ?? (revision.createdByUserId ? "User" : "System");
+  const author = revision.actorAgentName ?? (revision.createdByUserId ? t("components.issueChatThread.user") : t("components.activityFeed.system"));
   return (
     <span className="flex flex-wrap items-center gap-x-1 text-(length:--text-micro) text-muted-foreground">
       <span>{author}</span>

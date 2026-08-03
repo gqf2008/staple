@@ -199,7 +199,7 @@ function ActorGlyph({
   }
 
   const stroke = "var(--color-foreground)";
-  const fill = actor.type === "system" ? "var(--color-muted)" : "var(--color-card)";
+  const fill = actor.type === "system" ? t("ui.components.timeline.worktimelinechart.var-color-muted") : t("ui.components.timeline.worktimelinechart.var-color-card");
   const label = shortLabel(actor.name);
 
   if (actor.type === "user" && actor.avatar) {
@@ -453,8 +453,8 @@ export function WorkTimelineChart({
     const related = layout.connectors.filter((c) => c.sourceRunId === bar.span.runId || c.targetRunId === bar.span.runId);
     if (related.length === 0) return null;
     return related.some((c) => c.dashed)
-      ? "dashed handoff: retry or changes requested"
-      : "solid handoff: delegation or assignment";
+      ? t("ui.components.timeline.worktimelinechart.dashed-handoff-retry-changes")
+      : t("ui.components.timeline.worktimelinechart.solid-handoff-delegation-assignment");
   };
 
   const showTooltip = (evt: React.MouseEvent, bar: PositionedBar) => {

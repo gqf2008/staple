@@ -32,7 +32,7 @@ const ALL = "__all";
 /** Outcome chip vocabulary (spec §4C / §5): Allowed · Blocked · Asked first · Failed · Waiting. */
 const OUTCOME_META: Record<ToolAuditOutcome, { label: string; status: string }> = {
   allowed: { label: t("pages.tools.audit.allowed", { defaultValue: "Allowed" }), status: "allowed" },
-  blocked: { label: "Blocked", status: "denied" },
+  blocked: { label: t("pages.inbox2.blocked"), status: "denied" },
   asked_first: { label: t("pages.tools.audit.askedFirst", { defaultValue: "Asked first" }), status: "require-approval" },
   waiting: { label: t("pages.tools.audit.waiting", { defaultValue: "Waiting" }), status: "deferred" },
   failed: { label: t("pages.tools.audit.failed", { defaultValue: "Failed" }), status: "failed" },
@@ -42,7 +42,7 @@ const OUTCOME_META: Record<ToolAuditOutcome, { label: string; status: string }> 
 const OUTCOME_FILTERS: { value: string; label: string }[] = [
   { value: ALL, label: t("pages.tools.audit.allOutcomes", { defaultValue: "All outcomes" }) },
   { value: "allowed", label: t("pages.tools.audit.allowed", { defaultValue: "Allowed" }) },
-  { value: "blocked", label: "Blocked" },
+  { value: "blocked", label: t("pages.inbox2.blocked") },
   { value: "asked_first", label: t("pages.tools.audit.askedFirst", { defaultValue: "Asked first" }) },
   { value: "waiting", label: t("pages.tools.audit.waiting", { defaultValue: "Waiting" }) },
   { value: "failed", label: t("pages.tools.audit.failed", { defaultValue: "Failed" }) },

@@ -614,7 +614,7 @@ export function OnboardingWizard() {
         if (!discoveredModels.some((entry) => entry.id === selectedModelId)) {
           setError(
             discoveredModels.length === 0
-              ? "No OpenCode models discovered. Run `opencode models` and authenticate providers."
+              ? t("ui.components.onboardingwizard.no-opencode-models-discovered")
               : `Configured OpenCode model is unavailable: ${selectedModelId}`
           );
           return;

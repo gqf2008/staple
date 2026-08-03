@@ -388,7 +388,7 @@ export function BuiltInBundlePanel({
                   ? onDisableSchedule && (
                     <ConfirmActionButton
                       title={t("components.builtInBundle.disableConfirm", { defaultValue: "Disable the weekly schedule?" })}
-                      body="Paperclip will stop future scheduled Reflection Coach runs. Manual Run once remains available."
+                      body={t("components.builtInBundle.disableScheduleBody")}
                       triggerLabel={t("components.builtInBundle.disableSchedule", { defaultValue: "Disable schedule" })}
                       confirmLabel={t("components.builtInBundle.disableSchedule", { defaultValue: "Disable schedule" })}
                       pending={routineActionPending === "disable"}

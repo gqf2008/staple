@@ -27,26 +27,26 @@ import {
 const inviteRoleOptions = [
   {
     value: "viewer",
-    label: "Viewer",
-    description: "Can view company work and follow along.",
+    label: t("pages.companyInvites.viewer"),
+    description: t("pages.companyInvites.viewerDesc"),
     gets: "View-only company membership.",
   },
   {
     value: "operator",
-    label: "Operator",
-    description: "Recommended for people who need to help run work without managing access.",
+    label: t("pages.companyInvites.operator"),
+    description: t("pages.companyInvites.operatorDesc"),
     gets: "Can assign tasks.",
   },
   {
     value: "admin",
-    label: "Admin",
-    description: "Recommended for operators who need to invite people, create agents, and approve joins.",
+    label: t("pages.companyInvites.admin"),
+    description: t("pages.companyInvites.adminDesc"),
     gets: "Can create agents, invite users, assign tasks, and approve join requests.",
   },
   {
     value: "owner",
-    label: "Owner",
-    description: "Full company access, including membership management.",
+    label: t("components.issueRecoveryAction.owner"),
+    description: t("pages.companyInvites.ownerDesc"),
     gets: "Everything in Admin, plus managing members.",
   },
 ] as const;

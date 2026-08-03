@@ -90,7 +90,7 @@ export function ExecutionParticipantPicker({
     updatePolicy(next);
   };
 
-  const label = stageType === "review" ? "Reviewers" : "Approvers";
+  const label = stageType === "review" ? t("components.issueProperties.reviewers") : t("components.issueProperties.approvers");
   const Icon = stageType === "review" ? Eye : ShieldCheck;
 
   return (

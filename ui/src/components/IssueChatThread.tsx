@@ -1440,7 +1440,7 @@ function IssueChatUserMessage({
   const sourceTrust = isSourceTrustMetadata(custom.sourceTrust) ? custom.sourceTrust : null;
   const followUpRequested = custom.followUpRequested === true;
   const queueReason = typeof custom.queueReason === "string" ? custom.queueReason : null;
-  const queueBadgeLabel = queueReason === "hold" ? "\u23f8 Deferred wake" : t("components.issueChatThread.queued", { defaultValue: "Queued" });
+  const queueBadgeLabel = queueReason === "hold" ? t("ui.components.issuechatthread.deferred-wake") : t("components.issueChatThread.queued", { defaultValue: "Queued" });
   const pending = custom.clientStatus === "pending";
   const deleted = Boolean(custom.deletedAt);
   const queueTargetRunId = typeof custom.queueTargetRunId === "string" ? custom.queueTargetRunId : null;

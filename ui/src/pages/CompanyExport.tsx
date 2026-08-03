@@ -719,7 +719,7 @@ export function CompanyExport() {
       } else {
         // Default to README.md if present, otherwise fall back to first file
         const defaultFile = "README.md" in result.files
-          ? "README.md"
+          ? t("ui.pages.companyexport.readme-md")
           : Object.keys(result.files)[0];
         if (defaultFile) {
           selectFile(defaultFile, true);

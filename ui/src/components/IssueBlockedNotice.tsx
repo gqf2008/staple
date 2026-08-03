@@ -60,7 +60,7 @@ function SuccessfulRunRetryNowControl({
     : null;
   const relative = dueAtIso ? formatMonitorOffset(dueAtIso) : null;
   const scheduleLabel = relative === "now"
-    ? "due now"
+    ? t("components.issueMonitorBanner.dueNow")
     : relative
       ? `scheduled ${relative}`
       : "scheduled";
@@ -379,7 +379,7 @@ export function IssueBlockedNotice({
       ? { issueId, scheduledRetry }
       : null;
 
-  const blockerLabel = blockers.length === 1 ? "the linked task" : "the linked tasks";
+  const blockerLabel = blockers.length === 1 ? t("ui.components.issueblockednotice.linked-task") : t("ui.components.issueblockednotice.linked-tasks");
   const terminalBlockers = blockers
     .flatMap((blocker) => blocker.terminalBlockers ?? [])
     .filter((blocker, index, all) => all.findIndex((candidate) => candidate.id === blocker.id) === index);

@@ -57,7 +57,7 @@ export function AgentsUsingSkillBadge({
 }) {
   const [open, setOpen] = useState(false);
   const count = skill.usedByAgents.length;
-  const label = `${count} ${count === 1 ? "agent uses" : "agents use"} this skill`;
+  const label = `${count} ${count === 1 ? t("ui.components.skill-studio.agentsusingskilldialog.agent-uses") : t("ui.components.skill-studio.agentsusingskilldialog.agents-use")} this skill`;
 
   return (
     <>

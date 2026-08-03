@@ -364,7 +364,7 @@ export function Routines() {
   });
   const routineViewStateKey = selectedCompanyId
     ? `paperclip:routines-view:${selectedCompanyId}`
-    : "paperclip:routines-view";
+    : t("ui.pages.routines.paperclip-routines-view");
   const [routineViewState, setRoutineViewState] = useState<RoutineViewState>(() => getRoutineViewState(routineViewStateKey));
   const folderSelection = normalizeFolderSelection(searchParams.get("folder"));
 

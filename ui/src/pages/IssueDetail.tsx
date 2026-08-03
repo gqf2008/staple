@@ -2383,7 +2383,7 @@ export function IssueDetail() {
       const runWasStopped = didRunCancelBeforeStatusUpdateFail(err);
       pushToast({
         title: runWasStopped
-          ? "Run stopped; task update failed"
+          ? t("ui.pages.issuedetail.run-stopped-task-update")
           : status === "done" ? t("pages.issueDetail.stopDoneFailed", { defaultValue: "Stop and done failed" }) : t("pages.issueDetail.stopCancelFailed", { defaultValue: "Stop and cancel failed" }),
         body: err instanceof Error ? err.message : t("pages.issueDetail.stopUpdateFailedBody", { defaultValue: "Unable to stop the run and update the task" }),
         tone: "error",
@@ -3793,7 +3793,7 @@ export function IssueDetail() {
         title: t("pages.issueDetail.reissueCreated", { defaultValue: "Isolated re-issue created" }),
         body: created.identifier
           ? `${created.identifier} will run on a fresh isolated workspace.`
-          : "A fresh isolated re-issue was created.",
+          : t("ui.components.runworkspacerecoverysurface.fresh-isolated-re-issue"),
         tone: "success",
       });
       if (created.identifier) {

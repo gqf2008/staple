@@ -68,7 +68,7 @@ export function CreateStatusCardDialog({
       ]);
       close();
     },
-    onError: (err) => setError(err instanceof Error ? err.message : "Could not create the card."),
+    onError: (err) => setError(err instanceof Error ? err.message : t("ui.pages.statuscards.createstatuscarddialog.could-not-create-card")),
   });
 
   return (

@@ -36,7 +36,7 @@ type TriggerKey = keyof StatusCardRefreshPolicy["triggers"];
 
 const TRIGGER_ROWS: { key: TriggerKey; label: string; noisy?: boolean }[] = [
   { key: "statusTransitions", label: t("pages.statusCardSettings.changeBlocked", { defaultValue: "Became blocked / needs review / done / cancelled" }) },
-  { key: "membershipChanges", label: "New issue matches the query · issue leaves the query" },
+  { key: "membershipChanges", label: t("ui.pages.statuscards.statuscardsettingsform.new-issue-matches-query") },
   { key: "humanComments", label: t("pages.statusCardSettings.changeComments", { defaultValue: "Human comments" }) },
   { key: "assigneeChanges", label: t("pages.statusCardSettings.changeAssignee", { defaultValue: "Assignee changes" }) },
   { key: "anyUpdate", label: t("pages.statusCardSettings.changeAny", { defaultValue: "Any update at all (noisy — includes in-progress churn)" }), noisy: true },

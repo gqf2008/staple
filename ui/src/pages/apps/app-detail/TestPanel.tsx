@@ -1234,7 +1234,7 @@ function AskFirstResult({
   const where = formatWhere(status?.parameters);
   const statusLabel =
     phase === "running"
-      ? "Approved · running"
+      ? t("ui.pages.apps.app-detail.testpanel.approved-running")
       : phase === "denied"
         ? t("pages.apps.testPanel.denied", { defaultValue: "Denied — see Review for why" })
         : phase === "cancelled"

@@ -171,7 +171,7 @@ export function humanizeEvent(
     : agentName ?? t("pages.appActivityPanel.anAgent", { defaultValue: "An agent" });
   // The raw gateway tool name is prefixed (e.g. `mcp.app-gallery-link-…:kv-set`);
   // humanize it to t("pages.appActivityPanel.kvSet", { defaultValue: "Kv Set" }) to match the cross-app Activity view (PAP-11105).
-  const action = event.toolName ? humanizeConnectionDisplayName(event.toolName) : "an action";
+  const action = event.toolName ? humanizeConnectionDisplayName(event.toolName) : t("ui.pages.apps.app-detail.activitypanel.action");
   switch (event.eventType) {
     case "call_completed":
       return {
@@ -260,7 +260,7 @@ function numberFrom(value: unknown): number {
 }
 
 function lower(who: string): string {
-  return who === t("pages.appActivityPanel.anAgent", { defaultValue: "An agent" }) ? "an agent" : who;
+  return who === t("pages.appActivityPanel.anAgent", { defaultValue: "An agent" }) ? t("pages.appActivityPanel.anAgent") : who;
 }
 
 function dotColor(event: ToolCallEvent): string {

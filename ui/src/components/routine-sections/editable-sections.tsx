@@ -65,7 +65,7 @@ const catchUpPolicyOptions = [
   {
     value: "enqueue_missed_with_cap",
     title: t("components.routineSections.enqueueMissedCap", { defaultValue: "Enqueue missed with cap" }),
-    description: "Catch up missed schedule windows after recovery; sub-hourly schedules are combined into one catch-up run, slower schedules replay each missed window up to a cap.",
+    description: t("ui.components.routine-sections.editable-sections.catch-up-missed-schedule"),
   },
 ];
 
@@ -79,7 +79,7 @@ const activityGatePolicyOptions = [
     value: "require_external_activity",
     title: t("components.routineSections.skipNoActivity", { defaultValue: "Skip when there's been no activity since the last run" }),
     description:
-      "On a scheduled tick, only run if something happened since the last run that finished. Lets a watcher-style routine stay asleep while the system is settled instead of burning tokens.",
+      t("ui.components.routine-sections.editable-sections.scheduled-tick-only-run"),
   },
 ];
 

@@ -174,7 +174,7 @@ function executionRow(
       return {
         key: execution.id,
         status: "executed",
-        summary: `Created ${created ? issueLabel(created, createdId!) : "a new issue"}`,
+        summary: `Created ${created ? issueLabel(created, createdId!) : t("ui.components.decisioncard.new-issue")}`,
         link: created ?? targetRef,
       };
     }

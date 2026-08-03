@@ -15,9 +15,9 @@ export function ProfileDetailRoute() {
   useEffect(() => {
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: "Profile detail" },
+      { label: t("nav.apps"), href: "/apps" },
+      { label: t("pages.tools.profiles.title"), href: advancedTabHref("profiles") },
+      { label: t("ui.pages.tools.profiles.profiledetailroute.profile-detail") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name]);

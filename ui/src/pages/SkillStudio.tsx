@@ -2642,7 +2642,7 @@ function RunTemplateAdvancedPanel({
       title: template.name,
       description: template.description,
       builtIn: template.builtIn,
-      searchText: [template.name, template.description ?? "", template.builtIn ? "built in" : "custom"].join(" "),
+      searchText: [template.name, template.description ?? "", template.builtIn ? t("pages.skillStudio.builtIn") : "custom"].join(" "),
     });
     const builtIn = templates.filter((template) => template.builtIn).map(toOption);
     const custom = templates.filter((template) => !template.builtIn).map(toOption);

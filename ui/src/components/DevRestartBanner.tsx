@@ -54,7 +54,7 @@ export function DevRestartBanner({ devServer }: { devServer?: DevServerHealthSta
     const warning =
       currentDevServer.activeRunCount > 0
         ? `Restart Paperclip now? This may interrupt ${activeRunLabel}.`
-        : "Restart Paperclip now?";
+        : t("ui.components.devrestartbanner.restart-paperclip-now");
     if (!window.confirm(warning)) return;
 
     setRestartPending(true);
@@ -62,7 +62,7 @@ export function DevRestartBanner({ devServer }: { devServer?: DevServerHealthSta
       await healthApi.requestDevServerRestart();
     } catch (error) {
       setRestartPending(false);
-      window.alert(error instanceof Error ? error.message : "Failed to request restart");
+      window.alert(error instanceof Error ? error.message : t("ui.components.devrestartbanner.failed-request-restart"));
     }
   }
 

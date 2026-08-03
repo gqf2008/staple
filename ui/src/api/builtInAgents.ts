@@ -1,3 +1,4 @@
+import { localizeBuiltInAgentName } from "../i18n";
 import type { Agent, Approval } from "@paperclipai/shared";
 import { api } from "./client";
 
@@ -136,7 +137,30 @@ export const BUILT_IN_AGENT_PAUSED_CODE = "built_in_agent_paused";
 
 export const builtInAgentsApi = {
   list: (companyId: string) =>
-    api.get<BuiltInAgentState[]>(`/companies/${companyId}/built-in-agents`),
+    api.get<BuiltInAgentState[]>(`/companies/${companyId}/built-in-agents`).then((data) => {
+      if (!Array.isArray(data)) return data;
+      return data.map((entry) => ({
+        ...entry,
+        displayName: localizeBuiltInAgentName(entry.definition.displayName),
+        definition: entry.definition
+          ? {
+              ...entry.definition,
+              displayName: localizeBuiltInAgentName(entry.definition.displayName),
+              bundle: entry.definition.bundle
+                ? {
+                    ...entry.definition.bundle,
+                    skill: entry.definition.bundle.skill
+                      ? { ...entry.definition.bundle.skill, displayName: localizeBuiltInAgentName(entry.definition.bundle.skill.displayName) }
+                      : entry.definition.bundle.skill,
+                    routine: entry.definition.bundle.routine
+                      ? { ...entry.definition.bundle.routine, title: localizeBuiltInAgentName(entry.definition.bundle.routine.title) }
+                      : entry.definition.bundle.routine,
+                  }
+                : entry.definition.bundle,
+            }
+          : entry.definition,
+      }));
+    }),
   provision: (companyId: string, key: string, input: BuiltInAgentProvisionInput = {}) =>
     api.post<BuiltInAgentState>(`/companies/${companyId}/built-in-agents/${key}/provision`, input),
   /**

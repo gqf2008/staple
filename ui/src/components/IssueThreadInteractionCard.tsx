@@ -379,7 +379,7 @@ function formatToolActionCountdown(expiresAt: string, nowMs: number): {
   if (Number.isNaN(expiresMs)) return null;
   const remainingMs = expiresMs - nowMs;
   if (remainingMs <= 0) {
-    return { text: "Approval window closed · auto-declines any moment", urgent: true };
+    return { text: t("ui.components.issuethreadinteractioncard.approval-window-closed-auto"), urgent: true };
   }
   const minutes = Math.ceil(remainingMs / 60000);
   return {

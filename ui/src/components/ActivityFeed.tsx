@@ -557,7 +557,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
     // Group by issue entityId
     const groups = new Map<string, FeedItem[]>();
     for (const item of visibleItems) {
-      const key = "type" in item ? item.entityId : (item.entityType === "issue" ? item.entityId : "__other__");
+      const key = "type" in item ? item.entityId : (item.entityType === "issue" ? item.entityId : t("ui.components.activityfeed.other"));
       const existing = groups.get(key) ?? [];
       existing.push(item);
       groups.set(key, existing);

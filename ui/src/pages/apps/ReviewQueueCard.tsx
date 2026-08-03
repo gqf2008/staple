@@ -185,7 +185,7 @@ function failToast(
   error: unknown,
 ) {
   pushToast({
-    title: "Couldn’t save that",
+    title: t("ui.pages.apps.reviewqueuecard.couldn-save"),
     body: error instanceof Error ? error.message : t("pages.reviewQueueCard.tryAgain", { defaultValue: "Please try again." }),
     tone: "error",
   });

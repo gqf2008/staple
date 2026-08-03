@@ -98,7 +98,7 @@ const LIVENESS_COPY: Record<RunLivenessState, LivenessCopy> = {
     description: t("components.issueRunLedger.emptyResponseDesc", { defaultValue: "Run finished without useful output." }),
   },
   blocked: {
-    label: "Blocked",
+    label: t("pages.inbox2.blocked"),
     tone: "border-yellow-500/30 bg-yellow-500/10 text-yellow-700 dark:text-yellow-300",
     description: t("components.issueRunLedger.blockerDeclared", { defaultValue: "Run or task declared a blocker." }),
   },

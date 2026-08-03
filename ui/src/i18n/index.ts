@@ -71,6 +71,20 @@ void i18n.use(initReactI18next).init(i18nextOptions).catch((error: unknown) => {
   console.error("Failed to initialize i18next", error);
 });
 
+const BUILTIN_AGENT_NAME_KEYS: Record<string, string> = {
+  "Reflection Coach": "ui.builtinAgents.reflectionCoach",
+  "Summarizer": "ui.builtinAgents.summarizer",
+};
+
+/**
+ * Localize server-provided built-in agent display names (the server seeds
+ * English stock names; the UI maps them through locale resources).
+ */
+export function localizeBuiltInAgentName(name: string): string {
+  const key = BUILTIN_AGENT_NAME_KEYS[name];
+  return key ? i18n.t(key) : name;
+}
+
 export function t(key: string, options: TOptions = {}) {
   return i18n.t(key, options);
 }

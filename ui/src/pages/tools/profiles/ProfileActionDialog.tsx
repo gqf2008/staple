@@ -49,7 +49,7 @@ export function ProfileActionDialog({
     delete: {
       title: t("pages.tools.profileActionDialog.deleteProfile", { defaultValue: "Delete profile" }),
       body: defaultDeleteBlocked
-        ? "This profile is the company default. Reassign the company default to another profile before deleting it."
+        ? t("ui.pages.tools.profiles.profileactiondialog.profile-company-default-reassign")
         : `This permanently deletes the profile and removes ${profile.summary.assignmentCount} ${profile.summary.assignmentCount === 1 ? "assignment" : "assignments"}.`,
       confirm: t("pages.tools.profileActionDialog.delete", { defaultValue: "Delete" }),
       action: onDelete,

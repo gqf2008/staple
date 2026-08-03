@@ -111,7 +111,7 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
   }
 
   const filterLabel = active.size === 0
-    ? "All activity"
+    ? t("ui.components.caseactivityfeed.all-activity.2")
     : active.size === 1
       ? EVENT_LABEL[[...active][0]!] ?? [...active][0]!
       : `${active.size} filters`;

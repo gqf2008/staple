@@ -158,7 +158,7 @@ export function TaskChatComposer({
   const assigneeValue = pendingAssignee ?? currentAssigneeValue;
   const assigneeLabel =
     reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? t("components.taskChatComposer.unassigned", { defaultValue: "Unassigned" });
-  const assigneeName = assigneeLabel === t("components.taskChatComposer.unassigned", { defaultValue: "Unassigned" }) ? "the agent" : assigneeLabel;
+  const assigneeName = assigneeLabel === t("components.taskChatComposer.unassigned", { defaultValue: "Unassigned" }) ? t("ui.components.task-chat.taskchatcomposer.agent") : assigneeLabel;
   const effectivePlaceholder = placeholder ?? modePlaceholder(pendingMode, assigneeName);
 
   function insertReference(name: string, url: string, asImage: boolean) {

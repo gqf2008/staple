@@ -576,7 +576,7 @@ function formatPipelineActivity(value: string | Date | null) {
   const diffMinutes = Math.round(diffSeconds / 60);
   if (diffMinutes < 60) return `${diffMinutes} min ago`;
   const diffHours = Math.round(diffMinutes / 60);
-  if (diffHours < 24) return diffHours === 1 ? "1 hr ago" : `${diffHours} hr ago`;
+  if (diffHours < 24) return diffHours === 1 ? t("ui.pages.pipelines.hr-ago") : `${diffHours} hr ago`;
   const diffDays = Math.round(diffHours / 24);
   if (diffDays === 1) return "yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;

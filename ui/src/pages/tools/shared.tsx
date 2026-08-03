@@ -92,12 +92,12 @@ function decisionToStatusKey(decision: string): { key: string; label: string } {
       return { key: "block", label: "block" };
     case "require_approval":
     case "requires_approval":
-      return { key: "require-approval", label: "require approval" };
+      return { key: "require-approval", label: t("ui.pages.tools.shared.require-approval") };
     case "redact":
     case "redacted":
       return { key: "redacted", label: "redacted" };
     case "rate_limited":
-      return { key: "rate-limit", label: "rate limited" };
+      return { key: "rate-limit", label: t("ui.pages.tools.shared.rate-limited") };
     case "defer":
     case "deferred":
       return { key: "deferred", label: "deferred" };

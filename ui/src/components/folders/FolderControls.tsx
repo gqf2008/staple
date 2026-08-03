@@ -101,7 +101,7 @@ export function FolderSwatch({
 }) {
   const backgroundColor = color
     ? (FOLDER_COLOR_VALUES[color] ?? color)
-    : "var(--folder-color-slate)";
+    : t("ui.components.folders.foldercontrols.var-folder-color-slate");
   return (
     <span
       aria-hidden="true"

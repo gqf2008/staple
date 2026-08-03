@@ -122,7 +122,7 @@ function ExternalObjectPropertyValue({ group }: { group: IssueExternalObjectGrou
   const className = cn(
     "inline-flex min-w-0 max-w-full items-center gap-1.5 text-sm no-underline",
     externalObjectPropertyTone(group),
-    pill.url ? "hover:underline focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring" : "",
+    pill.url ? t("ui.components.issue-properties.external-object-rows.hover-underline-focus-visible") : "",
   );
 
   if (pill.url) {

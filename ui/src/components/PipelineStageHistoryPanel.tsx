@@ -64,8 +64,8 @@ export function PipelineStageHistoryPanel({
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to restore revision",
-        body: error instanceof Error ? error.message : "Paperclip could not restore the revision.",
+        title: t("components.routineHistory.restoreFailed"),
+        body: error instanceof Error ? error.message : t("components.routineHistory.restoreFailedBody"),
         tone: "error",
       });
     },

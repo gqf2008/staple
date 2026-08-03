@@ -142,7 +142,7 @@ export function BlockedInboxView({
 
   if (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't load the Blocked tab.";
+      error instanceof Error ? error.message : t("ui.components.blockedinboxview.couldn-load-blocked-tab.2");
     return (
       <div
         data-testid="blocked-inbox-error"

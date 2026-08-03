@@ -160,7 +160,7 @@ const codexThinkingEffortOptions = [
   { id: "low", label: t("components.agentConfigForm.low", { defaultValue: "Low" }) },
   { id: "medium", label: t("components.agentConfigForm.medium", { defaultValue: "Medium" }) },
   { id: "high", label: t("components.agentConfigForm.high", { defaultValue: "High" }) },
-  { id: "xhigh", label: "X-High" },
+  { id: "xhigh", label: t("priorities.xhigh") },
 ] as const;
 
 const openCodeThinkingEffortOptions = [
@@ -169,7 +169,7 @@ const openCodeThinkingEffortOptions = [
   { id: "low", label: t("components.agentConfigForm.low", { defaultValue: "Low" }) },
   { id: "medium", label: t("components.agentConfigForm.medium", { defaultValue: "Medium" }) },
   { id: "high", label: t("components.agentConfigForm.high", { defaultValue: "High" }) },
-  { id: "xhigh", label: "X-High" },
+  { id: "xhigh", label: t("priorities.xhigh") },
   { id: "max", label: t("components.agentConfigForm.max", { defaultValue: "Max" }) },
 ] as const;
 
@@ -794,7 +794,7 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
 
   const thinkingEffortKey =
     adapterType === "codex_local"
-      ? "modelReasoningEffort"
+      ? t("ui.components.agentconfigform.modelreasoningeffort")
       : adapterType === "cursor"
         ? "mode"
         : adapterType === "opencode_local"

@@ -50,18 +50,18 @@ function displayIdentity(session: AuthSession) {
 function claimErrorCopy(error: BootstrapPendingPageProps["claimError"]) {
   if (error?.status === 409) {
     return {
-      title: "Someone else has already claimed this instance.",
+      title: t("ui.components.bootstrappendingpage.someone-else-has-already"),
       body: "Refresh to sign in, or ask the existing admin to invite you from Instance settings -> Access.",
     };
   }
   if (error?.status === 401) {
     return {
-      title: "Your session expired. Sign in again to claim this instance.",
+      title: t("ui.components.bootstrappendingpage.your-session-expired-sign"),
       body: "",
     };
   }
   return {
-    title: "We couldn't reach the server. Try again in a moment.",
+    title: t("ui.components.bootstrappendingpage.we-couldn-reach-server"),
     body: "",
   };
 }

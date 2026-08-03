@@ -588,7 +588,7 @@ export function IssueProperties({
         assigneeOverrideThinkingEffort,
         assigneeOverrideChrome ? t("components.issueProperties.chrome", { defaultValue: "Chrome" }) : "",
       ].filter(Boolean);
-      const summary = details.length > 0 ? `Override · ${details.join(" · ")}` : "Override · adapter options";
+      const summary = details.length > 0 ? `Override · ${details.join(" · ")}` : t("ui.components.issue-properties.issueproperties.override-adapter-options");
       return (
         <span
           className="min-w-0 truncate text-sm"
@@ -1059,8 +1059,8 @@ export function IssueProperties({
       : t("components.issueProperties.none", { defaultValue: "None" });
   const monitorSecondary = monitorNextCheckAt
     ? monitorIsDueNow
-      ? "checking momentarily…"
-      : `${formatMonitorAbsolute(monitorNextCheckAt, {}, monitorNow)}${monitorIsOverdue ? " · fires on next tick" : monitorAttemptCount > 0 ? ` · Attempt ${monitorAttemptCount}` : ""}`
+      ? t("components.issueMonitorBanner.checkingMomentarily")
+      : `${formatMonitorAbsolute(monitorNextCheckAt, {}, monitorNow)}${monitorIsOverdue ? t("ui.components.issue-properties.issueproperties.fires-next-tick") : monitorAttemptCount > 0 ? ` · Attempt ${monitorAttemptCount}` : ""}`
     : monitorState?.status === "cleared"
       ? [
           monitorLastTriggeredAt ? `last checked ${timeAgo(monitorLastTriggeredAt)}` : null,

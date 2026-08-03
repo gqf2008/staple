@@ -229,7 +229,7 @@ export function AppsConnect() {
         : null;
       const oauthRequired = details?.code === "oauth_challenge";
       pushToast({
-        title: oauthRequired ? t("pages.appsConnect.signInRequired", { defaultValue: "Sign-in required" }) : "Couldn’t connect",
+        title: oauthRequired ? t("pages.appsConnect.signInRequired", { defaultValue: "Sign-in required" }) : t("ui.pages.apps.appsconnect.couldn-connect"),
         body: oauthRequired
           ? t("pages.appsConnect.signInSoon", { defaultValue: "This app needs you to sign in - coming soon." })
           : error instanceof Error
@@ -269,7 +269,7 @@ export function AppsConnect() {
     onSuccess: () => setAppStep("success"),
     onError: (error) => {
       pushToast({
-        title: "Couldn’t finish setup",
+        title: t("ui.pages.apps.appsconnect.couldn-finish-setup"),
         body: error instanceof Error ? error.message : t("pages.appsConnect.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });

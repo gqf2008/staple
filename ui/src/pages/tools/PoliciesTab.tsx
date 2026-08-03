@@ -91,7 +91,7 @@ const CAPABILITY_OPTIONS: Array<{ value: ToolRiskLevel; label: string; sentence:
 ];
 const OUTCOMES: Array<{ value: BuilderPolicyType; label: string }> = [
   { value: "allow", label: t("pages.tools.policies.allow", { defaultValue: "Allow" }) },
-  { value: "block", label: "Block" },
+  { value: "block", label: t("pages.tools.wizardToolsStep.block") },
   { value: "require_approval", label: t("pages.tools.policies.askFirst", { defaultValue: "Ask first" }) },
   { value: "rate_limit", label: t("pages.tools.policies.limit", { defaultValue: "Limit" }) },
 ];
@@ -314,7 +314,7 @@ function policySentence(
   else if (tools.length > 1) uses = `${tools.length} specific actions`;
   else if (catalogEntryIds.length === 1) {
     const tool = catalogById.get(catalogEntryIds[0]!);
-    uses = tool ? tool.title || toolDisplayName(tool.toolName, catalogByToolName) : "one action";
+    uses = tool ? tool.title || toolDisplayName(tool.toolName, catalogByToolName) : t("ui.pages.tools.policiestab.one-action");
   }
   else if (catalogEntryIds.length > 1) uses = `${catalogEntryIds.length} specific actions`;
   else if (appIds.length === 1) uses = maps.application.get(appIds[0]!) ?? "one app";
@@ -763,8 +763,8 @@ function RuleBuilder({
 function StarterCards({ onStart }: { onStart: (form: PolicyFormState) => void }) {
   const starters = [
     {
-      title: "Block destructive actions everywhere",
-      form: emptyPolicyForm({ policyType: "block", usesMode: "capability", riskLevel: "destructive", name: "Block destructive actions everywhere" }),
+      title: t("ui.pages.tools.policiestab.block-destructive-actions-everywhere"),
+      form: emptyPolicyForm({ policyType: "block", usesMode: "capability", riskLevel: "destructive", name: t("ui.pages.tools.policiestab.block-destructive-actions-everywhere") }),
     },
     {
       title: t("pages.tools.policies.askFirstActions", { defaultValue: "Ask first before selected actions" }),

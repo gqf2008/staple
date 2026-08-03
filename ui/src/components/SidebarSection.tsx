@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { Link } from "@/lib/router";
 import { ChevronRight } from "lucide-react";
@@ -77,7 +78,7 @@ function SidebarSectionHeader({
   const labelClassName = "text-(length:--text-nano) font-medium uppercase tracking-widest font-mono text-muted-foreground/60";
   const headerControlVisibilityClassName = isMobile
     ? "opacity-100"
-    : "opacity-0 group-hover/sidebar-section:opacity-100 group-focus-within/sidebar-section:opacity-100";
+    : t("ui.components.sidebarsection.opacity-group-hover-sidebar");
   const caretClassName = cn(
     "h-3 w-3 shrink-0 text-muted-foreground/60 transition-all",
     headerControlVisibilityClassName,

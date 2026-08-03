@@ -66,8 +66,8 @@ function tomorrowMorningIso(): string {
 
 /** Snooze presets, resolved to a future ISO timestamp at click time. */
 const SNOOZE_PRESETS: ReadonlyArray<{ label: string; resolve: () => string }> = [
-  { label: "1 hour", resolve: () => new Date(Date.now() + HOUR_MS).toISOString() },
-  { label: "4 hours", resolve: () => new Date(Date.now() + 4 * HOUR_MS).toISOString() },
+  { label: t("ui.components.attentionqueuerow.hour"), resolve: () => new Date(Date.now() + HOUR_MS).toISOString() },
+  { label: t("ui.components.attentionqueuerow.hours"), resolve: () => new Date(Date.now() + 4 * HOUR_MS).toISOString() },
   { label: t("components.attentionQueueRow.tomorrowMorning", { defaultValue: "Tomorrow morning" }), resolve: tomorrowMorningIso },
   { label: t("components.attentionQueueRow.nextWeek", { defaultValue: "Next week" }), resolve: () => new Date(Date.now() + 7 * DAY_MS).toISOString() },
 ];

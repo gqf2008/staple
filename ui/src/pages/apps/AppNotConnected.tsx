@@ -95,7 +95,7 @@ export function AppNotConnected() {
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn’t remove the app",
+        title: t("ui.pages.apps.appnotconnected.couldn-remove-app"),
         body: error instanceof Error ? error.message : t("pages.appNotConnected.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });

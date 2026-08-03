@@ -144,7 +144,7 @@ export function ConfigureBuiltInAgentModal({
       onOpenChange(false);
     },
     onError: (err) => {
-      setError(err instanceof ApiError ? err.message : "Failed to configure the built-in agent.");
+      setError(err instanceof ApiError ? err.message : t("ui.components.configurebuiltinagentmodal.failed-configure-built-agent"));
     },
   });
 

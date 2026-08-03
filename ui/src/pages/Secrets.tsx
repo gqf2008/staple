@@ -350,7 +350,7 @@ function modeDescription(managedMode: SecretManagedMode, canWriteExternalValue =
     return t("pages.secrets.managedDesc", { defaultValue: "Paperclip owns create and rotation writes for this provider secret." });
   }
   return canWriteExternalValue
-    ? "Paperclip resolves this provider reference and can write new values to it via Update value."
+    ? t("ui.pages.secrets.paperclip-resolves-provider-reference")
     : t("pages.secrets.externalDesc", { defaultValue: "Paperclip resolves this provider reference but does not rotate the provider value." });
 }
 
@@ -4500,7 +4500,7 @@ function SecretDetailsTab({
   onViewUsage: () => void;
 }) {
   const bindingLabel = (secret.referenceCount ?? 0) === 1
-    ? "1 binding"
+    ? t("ui.pages.secrets.binding")
     : `${secret.referenceCount ?? 0} bindings`;
 
   return (

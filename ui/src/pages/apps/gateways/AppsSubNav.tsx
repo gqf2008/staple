@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 type SubNavKey = "connected" | "gateways" | "activity";
 
 const ITEMS: { key: SubNavKey; label: string; href: string }[] = [
-  { key: "connected", label: "Connected", href: "/apps" },
-  { key: "gateways", label: "Gateways", href: "/apps/gateways" },
-  { key: "activity", label: "Activity", href: "/activity" },
+  { key: "connected", label: t("pages.appDetail.connected"), href: "/apps" },
+  { key: "gateways", label: t("pages.gatewayDetail.gateways"), href: "/apps/gateways" },
+  { key: "activity", label: t("nav.activity"), href: "/activity" },
 ];
 
 /**

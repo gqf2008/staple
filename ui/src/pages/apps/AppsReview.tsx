@@ -21,8 +21,8 @@ export function AppsReview() {
   useEffect(() => {
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Review" },
+      { label: t("nav.apps"), href: "/apps" },
+      { label: t("components.appsSidebar.review") },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name]);

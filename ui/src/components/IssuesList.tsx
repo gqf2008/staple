@@ -978,7 +978,7 @@ export function IssuesList({
         id: `user:${currentUserId}`,
         label: currentUserId === "local-board" ? t("components.issuesList.board", { defaultValue: "Board" }) : t("components.issuesList.me", { defaultValue: "Me" }),
         kind: "user",
-        searchText: currentUserId === "local-board" ? "board me human local-board" : `me board human ${currentUserId}`,
+        searchText: currentUserId === "local-board" ? t("ui.components.issueslist.board-me-human-local") : `me board human ${currentUserId}`,
       });
     }
 
@@ -1274,7 +1274,7 @@ export function IssuesList({
     // assignee
     const groups = groupBy(
       filtered,
-      (issue) => issue.assigneeAgentId ?? (issue.assigneeUserId ? `__user:${issue.assigneeUserId}` : "__unassigned"),
+      (issue) => issue.assigneeAgentId ?? (issue.assigneeUserId ? `__user:${issue.assigneeUserId}` : t("ui.components.issueslist.unassigned")),
     );
     return Object.keys(groups).map((key) => ({
       key,

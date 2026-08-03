@@ -304,7 +304,7 @@ export function AppDetail() {
       pushToast({
         title: `Found ${result.discoveredCount} ${result.discoveredCount === 1 ? "action" : "actions"}`,
         body: result.quarantinedCount > 0
-          ? `${result.quarantinedCount} new ${result.quarantinedCount === 1 ? "action needs" : "actions need"} your OK.`
+          ? `${result.quarantinedCount} new ${result.quarantinedCount === 1 ? t("ui.pages.apps.appdetail.action-needs") : t("ui.pages.apps.appdetail.actions-need")} your OK.`
           : undefined,
         tone: "success",
       });

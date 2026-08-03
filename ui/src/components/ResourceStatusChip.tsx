@@ -36,7 +36,7 @@ interface VariantSpec {
 const VARIANTS: Record<ResourceStatusVariant, VariantSpec> = {
   ready: { color: "green", glyph: "●", label: t("components.resourceStatusChip.ready", { defaultValue: "Ready" }), title: t("components.resourceStatusChip.readyDesc", { defaultValue: "Materialized and matches the shipped default" }) },
   needs_setup: { color: "amber", glyph: "⚠", label: t("components.resourceStatusChip.needsSetup", { defaultValue: "Needs setup" }), title: t("components.resourceStatusChip.needsSetupDesc", { defaultValue: "Present but not usable yet" }) },
-  missing: { color: "amber", glyph: "⚠", label: t("components.resourceStatusChip.missing", { defaultValue: "Missing" }), title: "Expected resource absent; reconcile will recreate it" },
+  missing: { color: "amber", glyph: "⚠", label: t("components.resourceStatusChip.missing", { defaultValue: "Missing" }), title: t("ui.components.resourcestatuschip.expected-resource-absent-reconcile") },
   error: { color: "red", glyph: "✕", label: t("components.resourceStatusChip.error", { defaultValue: "Error" }), title: t("components.resourceStatusChip.errorDesc", { defaultValue: "Failed to load or reconcile" }) },
   update_available: {
     color: "blue",
@@ -48,7 +48,7 @@ const VARIANTS: Record<ResourceStatusVariant, VariantSpec> = {
     color: "gray",
     glyph: "✎",
     label: t("components.resourceStatusChip.drifted", { defaultValue: "Drifted" }),
-    title: "You've edited this; your changes are kept, not overwritten",
+    title: t("ui.components.resourcestatuschip.you-ve-edited-your"),
   },
   schedule_off: {
     color: "gray",
@@ -67,7 +67,7 @@ const VARIANTS: Record<ResourceStatusVariant, VariantSpec> = {
     color: "blue",
     glyph: "↑",
     label: t("components.resourceStatusChip.proposalPending", { defaultValue: "Proposal pending" }),
-    title: "A proposed update is waiting for your review",
+    title: t("ui.components.resourcestatuschip.proposed-update-waiting-your"),
   },
 };
 

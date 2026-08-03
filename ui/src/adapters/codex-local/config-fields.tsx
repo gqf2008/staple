@@ -49,7 +49,7 @@ export function CodexLocalConfigFields({
   const fastModeSupported = isCodexLocalFastModeSupported(currentModel);
   const supportedModelsLabel = CODEX_LOCAL_FAST_MODE_SUPPORTED_MODELS.join(", ");
   const fastModeMessage = fastModeManualModel
-    ? "Fast mode will be passed through for this manual model. If Codex rejects it, turn the toggle off."
+    ? t("ui.adapters.codex-local.config-fields.fast-mode-will-passed")
     : fastModeSupported
       ? t("components.codexConfig.fastModeHint", { defaultValue: "Fast mode consumes credits/tokens much faster than standard Codex runs." })
       : `Fast mode currently only works on ${supportedModelsLabel} or manual model IDs. Paperclip will ignore this toggle until the model is switched.`;

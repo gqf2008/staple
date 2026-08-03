@@ -1034,7 +1034,7 @@ export function Inbox() {
         id: `user:${currentUserId}`,
         label: currentUserId === "local-board" ? t("pages.inbox.board", { defaultValue: "Board" }) : "Me",
         kind: "user",
-        searchText: currentUserId === "local-board" ? "board me human local-board" : `me board human ${currentUserId}`,
+        searchText: currentUserId === "local-board" ? t("ui.components.issueslist.board-me-human-local") : `me board human ${currentUserId}`,
       });
     }
 
@@ -2300,7 +2300,7 @@ export function Inbox() {
                 label: t("pages.inbox2.recent", { defaultValue: "Recent" }),
               },
               { value: "unread", label: t("pages.inbox2.unread", { defaultValue: "Unread" }) },
-              { value: "blocked", label: "Blocked" },
+              { value: "blocked", label: t("pages.inbox2.blocked") },
               { value: "all", label: t("pages.inbox2.all", { defaultValue: "All" }) },
             ]}
           />

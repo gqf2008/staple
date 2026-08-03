@@ -604,7 +604,7 @@ export function CaseDetail() {
       `- Key: ${currentCase.key ?? "none"}`,
       `- Type: ${currentCase.caseType}`,
       `- Status: ${STATUS_LABEL[currentCase.status]}`,
-      currentCase.labels.length > 0 ? `- Labels: ${currentCase.labels.map((label) => label.name).join(", ")}` : "- Labels: none",
+      currentCase.labels.length > 0 ? `- Labels: ${currentCase.labels.map((label) => label.name).join(", ")}` : t("ui.pages.casedetail.labels-none"),
     ].join("\n");
     void copyTextToClipboard(markdown).then(() => {
       setCopied(true);

@@ -162,7 +162,7 @@ export function RunWorkspaceRecoverySurface({ run }: { run: HeartbeatRun }) {
         title: t("components.runWorkspaceRecovery.reissueCreated", { defaultValue: "Isolated re-issue created" }),
         body: created.identifier
           ? `${created.identifier} will run on a fresh isolated workspace.`
-          : "A fresh isolated re-issue was created.",
+          : t("ui.components.runworkspacerecoverysurface.fresh-isolated-re-issue"),
         tone: "success",
       });
       if (created.identifier) {

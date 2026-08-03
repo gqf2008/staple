@@ -122,7 +122,7 @@ export function NewAgentDialog() {
     openNewIssue({
       assigneeAgentId: ceoAgent?.id,
       title: t("components.dialogs.newAgent.createNewAgent", { defaultValue: "Create a new agent" }),
-      description: "(type in what kind of agent you want here)",
+      description: t("ui.components.newagentdialog.type-what-kind-agent"),
     });
   }
 

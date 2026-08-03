@@ -33,7 +33,7 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
   const { isMobile, setSidebarOpen } = useSidebar();
 
   const connectionQuery = useQuery({
-    queryKey: queryKeys.tools.connection(props.kind === "connection" ? props.connectionId : "__none__"),
+    queryKey: queryKeys.tools.connection(props.kind === "connection" ? props.connectionId : t("ui.components.appconnectionsidebar.none")),
     queryFn: () => toolsApi.getConnection(props.kind === "connection" ? props.connectionId : ""),
     enabled: props.kind === "connection" && !!props.connectionId,
   });

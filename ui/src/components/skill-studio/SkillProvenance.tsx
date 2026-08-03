@@ -32,7 +32,7 @@ export function SkillLineageChip({
   if (!forkedFromSkillId) return null;
 
   const original = originalQuery.data;
-  const label = original ? formatLineageLabel(original) : "the original skill";
+  const label = original ? formatLineageLabel(original) : t("ui.components.skill-studio.skillprovenance.original-skill");
 
   return (
     <Link

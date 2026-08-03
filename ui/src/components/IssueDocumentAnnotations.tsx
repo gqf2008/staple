@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Profiler, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { Agent, DocumentAnnotationThreadWithComments, IssueDocument } from "@paperclipai/shared";
@@ -199,13 +200,13 @@ export function IssueDocumentAnnotations({
 
   const newCommentDisabled = draftDirty || draftConflicted || historicalPreview || !doc.latestRevisionId;
   const newCommentDisabledReason = historicalPreview
-    ? "New comments are disabled while previewing a historical revision."
+    ? t("ui.components.issuedocumentannotations.new-comments-disabled-while")
     : draftConflicted
-      ? "Resolve the document conflict before adding new comments."
+      ? t("ui.components.issuedocumentannotations.resolve-document-conflict-before")
       : draftDirty
-        ? "Save the draft to anchor new comments."
+        ? t("ui.components.issuedocumentannotations.save-draft-anchor-new")
         : !doc.latestRevisionId
-          ? "Document has no saved revision yet."
+          ? t("ui.components.issuedocumentannotations.document-has-no-saved")
           : null;
 
   const handleSelectionAnchorChange = useCallback((anchor: PendingAnchor | null) => {

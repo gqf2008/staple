@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 type Platform = "mac" | "windows" | "linux";
 
 const platforms: { id: Platform; label: string; icon: typeof Apple }[] = [
-  { id: "mac", label: "macOS", icon: Apple },
+  { id: "mac", label: t("ui.components.pathinstructionsmodal.macos"), icon: Apple },
   { id: "windows", label: t("components.pathInstructions.windows", { defaultValue: "Windows" }), icon: Monitor },
   { id: "linux", label: t("components.pathInstructions.linux", { defaultValue: "Linux" }), icon: Terminal },
 ];
