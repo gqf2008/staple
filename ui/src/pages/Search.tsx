@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Search as SearchIcon, AlertTriangle, FileQuestion, Plus, X } from "lucide-react";
 import {
@@ -60,13 +61,13 @@ const SEARCH_DEBOUNCE_MS = 250;
 const IDENTIFIER_PATTERN = /^[A-Z]+-\d+$/;
 
 const SCOPE_LABELS: Record<CompanySearchScope, string> = {
-  all: "All",
-  issues: "Tasks",
-  comments: "Comments",
-  documents: "Documents",
-  artifacts: "Artifacts",
-  agents: "Agents",
-  projects: "Projects",
+  all: t("pages.search.all", { defaultValue: "All" }),
+  issues: t("pages.search.tasks", { defaultValue: "Tasks" }),
+  comments: t("pages.search.comments", { defaultValue: "Comments" }),
+  documents: t("pages.search.documents", { defaultValue: "Documents" }),
+  artifacts: t("pages.search.artifacts", { defaultValue: "Artifacts" }),
+  agents: t("pages.search.agents", { defaultValue: "Agents" }),
+  projects: t("pages.search.projects", { defaultValue: "Projects" }),
 };
 
 type SubGroupKey = "issues" | "comments" | "documents" | "artifacts" | "agents" | "projects";
@@ -74,12 +75,12 @@ type SubGroupKey = "issues" | "comments" | "documents" | "artifacts" | "agents" 
 const SUBGROUP_ORDER: SubGroupKey[] = ["issues", "comments", "documents", "artifacts", "agents", "projects"];
 
 const SUBGROUP_LABELS: Record<SubGroupKey, string> = {
-  issues: "Tasks",
-  comments: "Comments",
-  documents: "Documents",
-  artifacts: "Artifacts",
-  agents: "Agents",
-  projects: "Projects",
+  issues: t("pages.search.tasks", { defaultValue: "Tasks" }),
+  comments: t("pages.search.comments", { defaultValue: "Comments" }),
+  documents: t("pages.search.documents", { defaultValue: "Documents" }),
+  artifacts: t("pages.search.artifacts", { defaultValue: "Artifacts" }),
+  agents: t("pages.search.agents", { defaultValue: "Agents" }),
+  projects: t("pages.search.projects", { defaultValue: "Projects" }),
 };
 
 function classifyResult(result: CompanySearchResult): SubGroupKey {
@@ -112,7 +113,7 @@ function isCompanySearchScope(value: string | null): value is CompanySearchScope
 }
 
 function describeScope(scope: CompanySearchScope) {
-  if (scope === "all") return "All scopes";
+  if (scope === "all") return t("pages.search.allScopes", { defaultValue: "All scopes" });
   return SCOPE_LABELS[scope];
 }
 
@@ -162,7 +163,7 @@ export function buildSearchUrl(
 }
 
 function shapeError(error: unknown): { message: string; status?: number } {
-  if (!error) return { message: "Unknown error" };
+  if (!error) return { message: t("pages.search.unknownError", { defaultValue: "Unknown error" }) };
   if (error instanceof Error) {
     const status = (error as Error & { status?: number }).status;
     return { message: error.message, status: typeof status === "number" ? status : undefined };
@@ -196,7 +197,7 @@ export function Search() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Search" }]);
+    setBreadcrumbs([{ label: t("pages.search.search", { defaultValue: "Search" }) }]);
   }, [setBreadcrumbs]);
 
   useEffect(() => {
@@ -327,7 +328,7 @@ export function Search() {
     [parsedCommittedQuery.query, scope, sort],
   );
 
-  // "Clear all" drops both URL filters and any typed operator tokens (keeping the
+  // t("pages.search.clearAll", { defaultValue: "Clear all" }) drops both URL filters and any typed operator tokens (keeping the
   // plain text query), so the results snap back to the unfiltered set.
   const handleClearAllFilters = useCallback(() => {
     const plain = parsedCommittedQuery.query;
@@ -403,7 +404,7 @@ export function Search() {
   const activeFilterCount = countActiveFilters(activeFilters);
 
   // Preview query for the mobile bottom sheet: run the draft filters so the apply
-  // button can show "Show N results" before the user commits.
+  // button can show t("pages.search.showNResults", { defaultValue: "Show N results" }) before the user commits.
   const { data: previewData } = useQuery<CompanySearchResponse>({
     queryKey: [
       ...queryKeys.companySearch.search(
@@ -587,7 +588,7 @@ export function Search() {
   return (
     <div className="flex h-full min-h-0 flex-col" data-page="search">
       <div className="border-b border-border px-4 py-3 sm:px-6">
-        <h1 className="sr-only">Search</h1>
+        <h1 className="sr-only">{t("pages.search.search", { defaultValue: "Search" })}</h1>
         <div className="relative">
           <SearchIcon className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -607,15 +608,15 @@ export function Search() {
                 }
               }
             }}
-            placeholder="Search tasks, comments, documents, artifacts, agents, projects…"
-            aria-label="Search query"
+            placeholder={t("pages.search.placeholder", { defaultValue: "Search tasks, comments, documents, artifacts, agents, projects…" })}
+            aria-label={t("pages.search.searchQuery", { defaultValue: "Search query" })}
             className="h-10 pl-9 pr-20 text-sm"
           />
           {draftQuery.length > 0 ? (
             <button
               type="button"
               onClick={handleClear}
-              aria-label="Clear search"
+              aria-label={t("pages.search.clearSearch", { defaultValue: "Clear search" })}
               className="absolute right-12 top-1/2 inline-flex h-6 w-6 -translate-y-1/2 items-center justify-center rounded-full text-muted-foreground hover:bg-accent/50"
             >
               <X className="h-3.5 w-3.5" />
@@ -805,7 +806,7 @@ function SearchTabContent({
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-10 sm:px-6">
         <div>
-          <h2 className="text-lg font-semibold">Type to search company memory.</h2>
+          <h2 className="text-lg font-semibold">{t("pages.search.typeToSearch", { defaultValue: "Type to search company memory." })}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Tasks, comments, plan documents, artifacts, agents, projects — same surface, ranked by relevance.
           </p>
@@ -833,11 +834,11 @@ function SearchTabContent({
         ) : null}
         <ul className="space-y-1 text-xs text-muted-foreground">
           <li>
-            <span className="font-medium text-foreground">Identifier lookup:</span> type{" "}
+            <span className="font-medium text-foreground">{t("pages.search.identifierLookup", { defaultValue: "Identifier lookup:" })}</span> type{" "}
             <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">PAP-123</code> to jump straight to a task.
           </li>
           <li>
-            <span className="font-medium text-foreground">Quoted phrases:</span> wrap a phrase in quotes to match the
+            <span className="font-medium text-foreground">{t("pages.search.quotedPhrases", { defaultValue: "Quoted phrases:" })}</span> wrap a phrase in quotes to match the
             exact sequence.
           </li>
           <li>
@@ -854,9 +855,9 @@ function SearchTabContent({
     return (
       <div className="mx-auto flex w-full max-w-xl flex-col items-center justify-center gap-3 px-4 py-12 text-center">
         <AlertTriangle className="h-10 w-10 text-destructive" aria-hidden />
-        <div className="text-base font-semibold">Couldn’t run that search</div>
+        <div className="text-base font-semibold">{t("pages.search.couldntRun", { defaultValue: "Couldn’t run that search" })}</div>
         <p className="text-sm text-muted-foreground">
-          {status ? `The server returned ${status}.` : "The request failed."} Your input and filters are still here, so
+          {status ? `The server returned ${status}.` : t("pages.search.requestFailed", { defaultValue: "The request failed." })} Your input and filters are still here, so
           you can retry or fall back to the Tasks filter.
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2">
@@ -922,11 +923,11 @@ function SearchTabContent({
           </Button>
         </div>
         <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          <li>Try fewer tokens or a single distinctive term.</li>
+          <li>{t("pages.search.fewerTokens", { defaultValue: "Try fewer tokens or a single distinctive term." })}</li>
           <li>
             Use an identifier shortcut like <code className="rounded bg-muted px-1 py-0.5">PAP-123</code>.
           </li>
-          <li>Wrap multi-word phrases in quotes.</li>
+          <li>{t("pages.search.wrapQuotes", { defaultValue: "Wrap multi-word phrases in quotes." })}</li>
         </ul>
       </div>
     );
@@ -948,7 +949,7 @@ function SearchTabContent({
             ? ` · ${activeFilterCount} ${activeFilterCount === 1 ? "filter" : "filters"} active`
             : ""}
         </span>
-        {isFetching ? <span aria-live="polite" className="normal-case tracking-normal">Updating…</span> : null}
+        {isFetching ? <span aria-live="polite" className="normal-case tracking-normal">{t("pages.search.updating", { defaultValue: "Updating…" })}</span> : null}
       </div>
       <div className="flex flex-col pb-10">
         {scope === "all" ? (
