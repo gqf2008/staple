@@ -2,7 +2,7 @@
 
 use std::sync::Arc;
 
-use staple_data::{CompanyRepository, GoalRepository, ProjectRepository};
+use staple_data::{CompanyRepository, GoalRepository, IssueRepository, ProjectRepository};
 
 /// Application-wide dependencies for route handlers.
 #[derive(Clone)]
@@ -13,4 +13,6 @@ pub struct AppState {
     pub goals: Arc<dyn GoalRepository>,
     /// Projects repository.
     pub projects: Arc<dyn ProjectRepository>,
+    /// Issues repository.
+    pub issues: Arc<dyn IssueRepository>,
 }
