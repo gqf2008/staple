@@ -11,6 +11,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useDialogActions } from "../context/DialogContext";
 import { SIDEBAR_SCROLL_RESET_STATE } from "../lib/navigation-scroll";
 import { cn } from "../lib/utils";
+import { t } from "../i18n";
 import { useInboxBadge } from "../hooks/useInboxBadge";
 import { Badge } from "@/components/ui/badge";
 
@@ -43,14 +44,14 @@ export function MobileBottomNav({ visible }: MobileBottomNavProps) {
 
   const items = useMemo<MobileNavItem[]>(
     () => [
-      { type: "link", to: "/dashboard", label: "Home", icon: House },
-      { type: "link", to: "/issues", label: "Tasks", icon: CircleDot },
-      { type: "action", label: "Create", icon: SquarePen, onClick: () => openNewIssue() },
-      { type: "link", to: "/agents/all", label: "Agents", icon: Users },
+      { type: "link", to: "/dashboard", label: t("common.home", { defaultValue: "Home" }), icon: House },
+      { type: "link", to: "/issues", label: t("nav.tasks", { defaultValue: "Tasks" }), icon: CircleDot },
+      { type: "action", label: t("common.create", { defaultValue: "Create" }), icon: SquarePen, onClick: () => openNewIssue() },
+      { type: "link", to: "/agents/all", label: t("common.agents", { defaultValue: "Agents" }), icon: Users },
       {
         type: "link",
         to: "/inbox",
-        label: "Inbox",
+        label: t("nav.inbox", { defaultValue: "Inbox" }),
         icon: Inbox,
         badge: inboxBadge.inbox,
       },
