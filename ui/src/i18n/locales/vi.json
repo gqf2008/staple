@@ -429,7 +429,10 @@
     "dismissed": "Dismissed",
     "escalated": "Escalated",
     "resolved": "Resolved",
-    "open": "Open"
+    "open": "Open",
+    "decided": "Decided",
+    "snoozed": "Snoozed",
+    "expired": "Expired"
   },
   "approvals": {
     "type": {

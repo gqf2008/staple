@@ -429,7 +429,10 @@
     "dismissed": "已忽略",
     "escalated": "已升级",
     "resolved": "已解决",
-    "open": "未处理"
+    "open": "未处理",
+    "decided": "Decided",
+    "snoozed": "Snoozed",
+    "expired": "Expired"
   },
   "approvals": {
     "type": {
