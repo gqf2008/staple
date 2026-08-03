@@ -19,6 +19,7 @@ pub mod issues;
 pub mod projects;
 pub mod relations;
 pub mod secrets;
+pub mod skills;
 pub mod work_products;
 
 /// Shared `{id}` path parameter (goals, projects, and future resources).

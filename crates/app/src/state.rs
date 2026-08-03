@@ -6,7 +6,7 @@ use staple_data::{
     ActivityRepository, ApiKeyRepository, ApprovalRepository, AssetRepository, CompanyRepository,
     CostRepository, DecisionRepository, DocumentRepository, ExternalObjectRepository,
     GoalRepository, HeartbeatRepository, IssueCommentRepository, IssueRelationRepository,
-    IssueRepository, ProjectRepository, SecretRepository, WorkProductRepository,
+    IssueRepository, ProjectRepository, SecretRepository, SkillRepository, WorkProductRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -50,4 +50,6 @@ pub struct AppState {
     pub decisions: Arc<dyn DecisionRepository>,
     /// External object repository.
     pub external_objects: Arc<dyn ExternalObjectRepository>,
+    /// Skills repository.
+    pub skills: Arc<dyn SkillRepository>,
 }

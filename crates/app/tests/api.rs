@@ -14,7 +14,7 @@ use staple_data::{
     TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
     TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
     TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoSecretRepository, TursoWorkProductRepository, migrate, open,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -79,6 +79,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let external_objects_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let skills_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -102,6 +105,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
+        skills: Arc::new(TursoSkillRepository::new(skills_db)),
     };
     (state, seed_db)
 }
@@ -2216,4 +2220,113 @@ async fn decision_desk_and_inbox_and_external_objects() {
     .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(list.as_array().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn skills_policy_evaluation() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local'),
+                ('22222222-2222-2222-2222-222222222222', 'c1', 'two', 'senior', 'codex_local'),
+                ('33333333-3333-3333-3333-333333333333', 'c2', 'three', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Board creates a skill restricted to senior role.
+    let (status, skill) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        json!({
+            "name": "code_review",
+            "description": "review",
+            "restrictionPolicy": { "allowedRoles": ["senior"] }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(skill["name"], "code_review");
+
+    // List.
+    let (status, list) = send_json(&app, Method::GET, "/api/companies/c1/skills", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Senior allowed.
+    let (status, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "22222222-2222-2222-2222-222222222222", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(evaluation["allowed"], true);
+
+    // Engineer denied by role allow-list.
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+    assert!(evaluation["reason"].as_str().unwrap().contains("role"));
+
+    // Cross-company agent denied (company boundary in the evaluator).
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "33333333-3333-3333-3333-333333333333", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+    // Cross-company agents resolve to "not found" (existence is not leaked).
+    assert!(evaluation["reason"].as_str().unwrap().contains("not found"));
+
+    // Unknown skill denied.
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "22222222-2222-2222-2222-222222222222", "skill": "nope" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+
+    // Duplicate skill -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        json!({ "name": "code_review" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Agent cannot create skills (board-only).
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        Some(r#"{"name":"x"}"#),
+        Some("sk-agent"),
+    )
+    .await;
+    // Invalid key -> 401 (no key was created for the agent).
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
 }

@@ -7,7 +7,7 @@ use staple_data::{
     TursoAssetRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
     TursoDocumentRepository, TursoExternalObjectRepository, TursoGoalRepository,
     TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
@@ -36,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let api_keys_db = open(&db_config).await?;
     let decisions_db = open(&db_config).await?;
     let external_objects_db = open(&db_config).await?;
+    let skills_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let secret_cipher = SecretCipher::load_or_create(default_key_path())
         .map_err(|error| Box::<dyn Error>::from(error.to_string()))?;
@@ -58,6 +59,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
+        skills: Arc::new(TursoSkillRepository::new(skills_db)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
