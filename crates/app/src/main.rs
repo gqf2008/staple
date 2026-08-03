@@ -13,8 +13,9 @@ use staple_data::{
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
@@ -34,6 +35,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let board_keys_db = open(&db_config).await?;
     let budget_policies_db = open(&db_config).await?;
     let preferences_db = open(&db_config).await?;
+    let plugins_db = open(&db_config).await?;
+    let plugin_runtime_db = open(&db_config).await?;
     let goals_db = open(&db_config).await?;
     let projects_db = open(&db_config).await?;
     let issues_db = open(&db_config).await?;
@@ -68,6 +71,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
+        plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
+        plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
         issues: Arc::new(TursoIssueRepository::new(issues_db)),

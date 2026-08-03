@@ -112,3 +112,13 @@ pub fn sha256_hex(input: &str) -> String {
     let digest = Sha256::digest(input.as_bytes());
     digest.iter().map(|byte| format!("{byte:02x}")).collect()
 }
+
+/// Reads an INTEGER column as `Option<i64>` (`NULL` → `None`).
+pub fn row_i64_opt(row: &Row, idx: i32) -> Result<Option<i64>, libsql::Error> {
+    let value = row.get_value(idx)?;
+    if value.is_null() {
+        Ok(None)
+    } else {
+        Ok(Some(*value.as_integer().expect("INTEGER column")))
+    }
+}
