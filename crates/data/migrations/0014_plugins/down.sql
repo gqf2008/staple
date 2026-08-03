@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS plugin_managed_resources;
+DROP TABLE IF EXISTS plugin_company_settings;
+DROP TABLE IF EXISTS plugin_migrations;
+DROP TABLE IF EXISTS plugin_database_namespaces;
+DROP TABLE IF EXISTS plugin_webhook_deliveries;
+DROP TABLE IF EXISTS plugin_logs;
+DROP TABLE IF EXISTS plugin_job_runs;
+DROP TABLE IF EXISTS plugin_jobs;
+DROP TABLE IF EXISTS plugin_entities;
+DROP TABLE IF EXISTS plugin_state;
+DROP TABLE IF EXISTS plugin_config;
+DROP TABLE IF EXISTS plugins;

@@ -17,8 +17,9 @@ use staple_data::{
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -54,6 +55,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let preferences_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let plugins_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let plugin_runtime_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let goals_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -136,6 +143,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
+        plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
+        plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
         issues: Arc::new(TursoIssueRepository::new(issues_db)),
@@ -3698,4 +3707,303 @@ async fn access_and_operations_full_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn plugin_ecosystem_full_chain() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Register plugin.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/plugins",
+        json!({
+            "pluginKey": "acme.github",
+            "packageName": "@acme/github",
+            "version": "1.2.0",
+            "categories": ["integrations"],
+            "manifest": { "id": "acme.github", "name": "GitHub Sync" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let plugin_id = body["id"].as_str().unwrap().to_owned();
+    let (status, plugins) = send_json(&app, Method::GET, "/api/plugins", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(plugins.as_array().unwrap().len(), 1);
+
+    // Update status + error (failure diagnostics).
+    let (status, body) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/plugins/{plugin_id}"),
+        json!({ "status": "error", "lastError": "manifest validation failed" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "error");
+    assert_eq!(body["lastError"], "manifest validation failed");
+
+    // Config + company settings + managed resources.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/configs"),
+        json!({ "companyId": "c1", "config": { "token": "x" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/configs?companyId=c1"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["configJson"]["token"], "x");
+
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/plugins/{plugin_id}/company-settings"),
+        json!({ "companyId": "c1", "enabled": false, "settings": { "policy": "strict" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["enabled"], false);
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/managed-resources"),
+        json!({
+            "companyId": "c1",
+            "resourceKind": "agent",
+            "resourceKey": "defaults",
+            "resourceId": "a1",
+            "defaults": { "mode": "strict" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let resource_id = body["id"].as_str().unwrap().to_owned();
+    let (status, resources) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/managed-resources?companyId=c1"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(resources.as_array().unwrap().len(), 1);
+
+    // Runtime: state -> entity -> job -> run -> log -> webhook -> db.
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/plugins/{plugin_id}/state"),
+        json!({ "scopeKind": "company", "scopeId": "c1", "key": "cursor", "value": { "page": 2 } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["valueJson"]["page"], 2);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/state?scopeKind=company&scopeId=c1&namespace=default&key=cursor"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["valueJson"]["page"], 2);
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/plugins/{plugin_id}/state?scopeKind=company&scopeId=c1&namespace=default&key=cursor"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/entities"),
+        json!({
+            "companyId": "c1",
+            "entityType": "issue",
+            "scopeKind": "issue",
+            "scopeId": "i1",
+            "externalId": "GH-1",
+            "title": "Sync"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["externalId"], "GH-1");
+    let (status, entities) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/entities?companyId=c1"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(entities.as_array().unwrap().len(), 1);
+
+    // Job -> run -> complete.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs"),
+        json!({ "jobKey": "nightly", "schedule": "0 0 * * *" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs/nightly/runs"),
+        json!({ "companyId": "c1", "trigger": "manual" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let run_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs/nightly/runs/{run_id}/complete"),
+        json!({ "status": "succeeded", "logs": ["done"] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "succeeded");
+    assert_eq!(body["logs"][0], "done");
+
+    // Logs.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/logs"),
+        json!({ "companyId": "c1", "level": "info", "message": "started" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, logs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/logs?companyId=c1"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(logs.as_array().unwrap()[0]["message"], "started");
+
+    // Webhook.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/webhooks"),
+        json!({
+            "companyId": "c1",
+            "webhookKey": "issue.created",
+            "externalId": "evt-1",
+            "payload": { "id": 1 }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let webhook_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/webhooks/{webhook_id}/complete"),
+        json!({ "status": "succeeded", "durationMs": 10 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "succeeded");
+
+    // Database namespace + migration.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/database/namespaces"),
+        json!({ "namespaceName": "acme_github", "namespaceMode": "schema" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/database/migrations"),
+        json!({
+            "namespaceName": "acme_github",
+            "migrationKey": "0001_init",
+            "checksum": "abc123",
+            "pluginVersion": "1.2.0",
+            "status": "applied"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["status"], "applied");
+    let (status, migrations) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/plugins/{plugin_id}/database/migrations"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(migrations.as_array().unwrap().len(), 1);
+
+    // Company boundary: managed resource delete for another company is 404.
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/plugins/{plugin_id}/managed-resources/{resource_id}?companyId=c2"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/plugins/{plugin_id}/managed-resources/{resource_id}?companyId=c1"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+
+    // Unknown plugin -> 404 diagnostics.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/plugins/missing/entities",
+        json!({ "entityType": "issue", "scopeKind": "issue" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Uninstall.
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/plugins/{plugin_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
 }

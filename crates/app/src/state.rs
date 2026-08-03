@@ -8,9 +8,9 @@ use staple_data::{
     DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectRepository,
     GoalRepository, HeartbeatRepository, InviteRepository, IssueCommentRepository,
     IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
-    MembershipRepository, PermissionGrantRepository, PreferenceRepository, ProjectRepository,
-    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
-    WorkspaceRepository,
+    MembershipRepository, PermissionGrantRepository, PluginRepository, PluginRuntimeRepository,
+    PreferenceRepository, ProjectRepository, RoutineRepository, SecretRepository, SkillRepository,
+    WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -35,6 +35,10 @@ pub struct AppState {
     pub budget_policies: Arc<dyn BudgetPolicyRepository>,
     /// Sidebar preferences / company logos repository.
     pub preferences: Arc<dyn PreferenceRepository>,
+    /// Plugin registry/config/settings/resources repository.
+    pub plugins: Arc<dyn PluginRepository>,
+    /// Plugin runtime (state/entities/jobs/logs/webhooks/db) repository.
+    pub plugin_runtime: Arc<dyn PluginRuntimeRepository>,
     /// Goals repository.
     pub goals: Arc<dyn GoalRepository>,
     /// Projects repository.

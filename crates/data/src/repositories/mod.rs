@@ -28,6 +28,8 @@ pub mod issues;
 pub mod labels;
 pub mod memberships;
 pub mod permission_grants;
+pub mod plugin_runtime;
+pub mod plugins;
 pub mod preferences;
 pub mod projects;
 pub mod routines;
@@ -121,6 +123,18 @@ pub use memberships::{
 pub use permission_grants::{
     NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,
     TursoPermissionGrantRepository,
+};
+pub use plugin_runtime::{
+    NewPluginEntity, NewPluginJob, NewPluginJobRun, NewPluginLog, NewPluginMigration,
+    NewPluginNamespace, NewPluginWebhook, PluginDatabaseNamespaceRecord, PluginEntityRecord,
+    PluginJobRecord, PluginJobRunRecord, PluginLogRecord, PluginMigrationRecord,
+    PluginRuntimeError, PluginRuntimeRepository, PluginStateRecord, PluginWebhookDeliveryRecord,
+    TursoPluginRuntimeRepository,
+};
+pub use plugins::{
+    NewManagedResource, NewPlugin, PluginCompanySettingRecord, PluginConfigRecord, PluginError,
+    PluginManagedResourceRecord, PluginRecord, PluginRepository, TursoPluginRepository,
+    UpsertCompanySettings, UpsertPluginConfig,
 };
 pub use preferences::{
     CompanyLogoRecord, PreferenceError, PreferenceRepository, SidebarPreferenceRecord,
