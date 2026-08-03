@@ -15,6 +15,8 @@ use crate::contract::{AdapterError, AgentAdapter, InvocationInput, RunHandle, Ru
 /// HTTP adapter configuration.
 #[derive(Debug, Clone)]
 pub struct HttpAdapterConfig {
+    /// Adapter type name (defaults to `http`).
+    pub name: String,
     /// Base URL of the HTTP runtime.
     pub base_url: String,
 }
@@ -71,7 +73,7 @@ impl From<WireStatus> for RunStatus {
 #[async_trait::async_trait]
 impl AgentAdapter for HttpAdapter {
     fn name(&self) -> &str {
-        "http"
+        &self.config.name
     }
 
     async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError> {
@@ -213,7 +215,10 @@ mod tests {
     async fn invoke_observe_cancel_lifecycle() {
         let runs = std::sync::Arc::new(Mutex::new(HashMap::new()));
         let base = serve(runs.clone()).await;
-        let adapter = HttpAdapter::new(HttpAdapterConfig { base_url: base });
+        let adapter = HttpAdapter::new(HttpAdapterConfig {
+            name: "http".to_owned(),
+            base_url: base,
+        });
 
         let handle = adapter
             .invoke(InvocationInput {

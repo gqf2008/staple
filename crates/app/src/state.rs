@@ -10,7 +10,7 @@ use staple_data::{
 };
 
 use crate::storage::LocalStorage;
-use staple_adapters::AdapterRegistry;
+use staple_adapters::{AdapterRegistry, PluginReport};
 
 /// Application-wide dependencies for route handlers.
 #[derive(Clone)]
@@ -55,4 +55,6 @@ pub struct AppState {
     pub skills: Arc<dyn SkillRepository>,
     /// Adapter registry.
     pub adapters: Arc<AdapterRegistry>,
+    /// Plugin load diagnostics.
+    pub plugin_reports: Vec<PluginReport>,
 }

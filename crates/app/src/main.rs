@@ -1,6 +1,8 @@
 use std::{error::Error, sync::Arc};
 
-use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
+use staple_adapters::{
+    AdapterRegistry, CliAdapter, CliAdapterConfig, PluginError, PluginManifest, PluginReport,
+};
 use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
@@ -66,6 +68,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
             registry
         }),
+        plugin_reports: load_plugin_reports(),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
@@ -73,6 +76,42 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     topcoat::serve(listener, router(state)).await?;
     Ok(())
+}
+
+/// Loads external adapter plugins from `STAPLE_ADAPTER_PLUGINS` (or the
+/// default `~/.paperclip/adapter-plugins.json` when present) and registers
+/// them into the app's adapter registry. Returns explicit diagnostics.
+fn load_plugin_reports() -> Vec<PluginReport> {
+    let path = std::env::var("STAPLE_ADAPTER_PLUGINS")
+        .map(std::path::PathBuf::from)
+        .unwrap_or_else(|_| {
+            let home = std::env::var("HOME").unwrap_or_else(|_| ".".to_owned());
+            std::path::PathBuf::from(home)
+                .join(".paperclip")
+                .join("adapter-plugins.json")
+        });
+    if !path.exists() {
+        return Vec::new();
+    }
+    match PluginManifest::load(&path) {
+        Ok(manifest) => {
+            let mut registry = AdapterRegistry::new();
+            manifest.register_into(&mut registry)
+        }
+        Err(error) => vec![PluginReport {
+            r#type: "*manifest*".to_owned(),
+            loaded: false,
+            error: Some(match error {
+                PluginError::Read(path, source) => {
+                    format!("cannot read {path}: {source}")
+                }
+                PluginError::InvalidJson(message) => format!("invalid JSON: {message}"),
+                PluginError::UnsupportedContract(version) => {
+                    format!("unsupported contract version {version}")
+                }
+            }),
+        }],
+    }
 }
 
 /// Initializes `tracing` with the configured `EnvFilter` directive.

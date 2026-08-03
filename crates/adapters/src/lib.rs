@@ -7,9 +7,14 @@
 pub mod cli;
 pub mod contract;
 pub mod http;
+pub mod plugins;
 pub mod registry;
 
 pub use cli::{CliAdapter, CliAdapterConfig};
 pub use contract::{AdapterError, AgentAdapter, InvocationInput, RunHandle, RunStatus};
 pub use http::{HttpAdapter, HttpAdapterConfig};
+pub use plugins::{
+    CURRENT_CONTRACT_VERSION, PluginAdapterDecl, PluginError, PluginKind, PluginManifest,
+    PluginReport,
+};
 pub use registry::AdapterRegistry;
