@@ -13,7 +13,7 @@ import { Link } from "@/lib/router";
 import { authApi } from "@/api/auth";
 import { queryKeys } from "@/lib/queryKeys";
 import { useSidebar } from "../context/SidebarContext";
-import { t } from "../i18n";
+import { t, localizeServerLabel } from "../i18n";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
@@ -139,7 +139,7 @@ export function SidebarAccountMenu({
     },
   });
 
-  const displayName = session?.user.name?.trim() || t("components.activityRow.board");
+  const displayName = localizeServerLabel(session?.user.name?.trim()) || t("components.activityRow.board");
   const secondaryLabel =
     session?.user.email?.trim() || (deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.signed") : t("ui.components.sidebaraccountmenu.local-workspace-board"));
   const accountBadge = deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.account") : t("components.agentConfigForm.local");

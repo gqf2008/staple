@@ -89,6 +89,23 @@ export function localizeBuiltInAgentName(name: string): string {
   return key ? i18n.t(key) : name;
 }
 
+const SERVER_LABEL_KEYS: Record<string, string> = {
+  "Board": "ui.builtinAgents.board",
+  "Agent": "ui.builtinAgents.agent",
+  "System": "ui.builtinAgents.system",
+};
+
+/**
+ * Localize server-provided display labels (the server returns English stock
+ * names/labels such as "Board" for the local board user). Falls back to the
+ * original string when there is no mapping.
+ */
+export function localizeServerLabel(name: string | null | undefined): string {
+  if (!name) return "";
+  const key = SERVER_LABEL_KEYS[name] ?? BUILTIN_AGENT_NAME_KEYS[name];
+  return key ? i18n.t(key) : name;
+}
+
 export function t(key: string, options: TOptions = {}) {
   return i18n.t(key, options);
 }

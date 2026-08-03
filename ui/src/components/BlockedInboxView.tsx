@@ -278,7 +278,7 @@ function resolveOwnerName(
   userLabelById?: ReadonlyMap<string, string>,
 ): { label: string | null; isAgent: boolean } {
   const owner = row.attention.owner;
-  if (owner.label) return { label: owner.label, isAgent: owner.type === "agent" };
+  if (owner.label) return { label: localizeServerLabel(owner.label), isAgent: owner.type === "agent" };
   if (owner.agentId) {
     return { label: agentNameById.get(owner.agentId) ?? null, isAgent: true };
   }

@@ -49,7 +49,7 @@ export function ActivityRow({ event, agentMap, userProfileMap, entityNameMap, en
 
   const actor = event.actorType === "agent" ? agentMap.get(event.actorId) : null;
   const userProfile = event.actorType === "user" ? userProfileMap?.get(event.actorId) : null;
-  const actorName = actor?.name ?? (event.actorType === "system" ? t("components.activityRow.system", { defaultValue: "System" }) : userProfile?.label ?? (event.actorType === "user" ? t("components.activityRow.board", { defaultValue: "Board" }) : event.actorId || t("components.activityRow.unknown", { defaultValue: "Unknown" })));
+  const actorName = localizeServerLabel(actor?.name) ?? (event.actorType === "system" ? t("components.activityRow.system", { defaultValue: "System" }) : userProfile?.label ?? (event.actorType === "user" ? t("components.activityRow.board", { defaultValue: "Board" }) : event.actorId || t("components.activityRow.unknown", { defaultValue: "Unknown" })));
   const actorAvatarUrl = userProfile?.image ?? null;
 
   const inner = (

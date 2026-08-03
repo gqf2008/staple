@@ -34,7 +34,7 @@ const EVENT_LABEL: Record<CaseEventKind, string> = {
 function actorLabel(event: CaseEvent): string {
   if (event.actorType === "agent") return event.actorAgentName ?? "Agent";
   if (event.actorType === "user") return "User";
-  return "System";
+  return t("components.activityRow.system", { defaultValue: "System" });
 }
 
 function ActorIcon({ event }: { event: CaseEvent }) {

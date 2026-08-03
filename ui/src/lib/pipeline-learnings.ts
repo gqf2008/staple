@@ -94,13 +94,13 @@ export function formatLearningEvent(event: PipelineCompanyCaseEvent): LearningEv
 
 export function learningDayKey(value: string | Date) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown";
+  if (Number.isNaN(date.getTime())) return t("ui.lib.pipeline-learnings.unknown");
   return date.toISOString().slice(0, 10);
 }
 
 export function learningDayLabel(value: string | Date) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown";
+  if (Number.isNaN(date.getTime())) return t("ui.lib.pipeline-learnings.unknown");
   const today = new Date();
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();

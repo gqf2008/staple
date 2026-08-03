@@ -85,12 +85,12 @@ function resolveActorLabel(args: {
 }) {
   const { agentId, userId, agentMap, currentUserId, userLabelMap } = args;
   if (agentId) {
-    return agentMap?.get(agentId)?.name ?? agentId.slice(0, 8);
+    return localizeServerLabel(agentMap?.get(agentId)?.name) ?? agentId.slice(0, 8);
   }
   if (userId) {
     return formatAssigneeUserLabel(userId, currentUserId, userLabelMap) ?? t("components.activityRow.board");
   }
-  return "Unknown";
+  return t("components.activityRow.unknown", { defaultValue: "Unknown" });
 }
 
 function statusLabel(status: IssueThreadInteraction["status"]) {

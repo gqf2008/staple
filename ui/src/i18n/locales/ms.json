@@ -5045,7 +5045,8 @@
     "activityRow": {
       "system": "System",
       "board": "Board",
-      "unknown": "Unknown"
+      "unknown": "Unknown",
+      "you": "You"
     },
     "issueThreadInteraction": {
       "pending": "Pending",
@@ -10922,7 +10923,10 @@
       "briefsAgent": "Briefs Agent",
       "learningAgent": "Learning Agent",
       "briefs": "Briefs",
-      "learning": "Learning"
+      "learning": "Learning",
+      "board": "Board",
+      "agent": "Agent",
+      "system": "System"
     },
     "hooks": {
       "usecompanyorder": {
@@ -11341,7 +11345,8 @@
         "onboarding": "Onboarding"
       },
       "pipeline-learnings": {
-        "sent-back": "sent back"
+        "sent-back": "sent back",
+        "unknown": "Unknown"
       },
       "pipeline-references": {
         "workspace-folder": "Workspace folder"
@@ -11530,7 +11535,8 @@
     },
     "context": {
       "liveupdatesprovider": {
-        "new-join-request-waiting": "A new join request is waiting for approval."
+        "new-join-request-waiting": "A new join request is waiting for approval.",
+        "agent-fallback": "Agent {{id}}"
       },
       "themecontext": {
         "ffffff": "#ffffff",

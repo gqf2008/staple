@@ -139,7 +139,7 @@ function resolveActorLabel(
   actorId: string | null,
 ): string {
   if (actorType === "agent" && actorId) {
-    return resolveAgentName(queryClient, companyId, actorId) ?? `Agent ${shortId(actorId)}`;
+    return resolveAgentName(queryClient, companyId, actorId) ?? t("ui.context.liveupdatesprovider.agent-fallback", { id: shortId(actorId) });
   }
   if (actorType === "system") return t("components.liveUpdates.system", { defaultValue: "System" });
   if (actorType === "user" && actorId) {

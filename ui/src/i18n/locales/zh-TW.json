@@ -5045,7 +5045,8 @@
     "activityRow": {
       "system": "系統",
       "board": "董事會",
-      "unknown": "未知"
+      "unknown": "未知",
+      "you": "你"
     },
     "issueThreadInteraction": {
       "pending": "待處理",
@@ -10922,7 +10923,10 @@
       "briefsAgent": "简报智能体",
       "learningAgent": "学习智能体",
       "briefs": "简报",
-      "learning": "学习"
+      "learning": "学习",
+      "board": "董事会",
+      "agent": "智能体",
+      "system": "系统"
     },
     "hooks": {
       "usecompanyorder": {
@@ -11341,7 +11345,8 @@
         "onboarding": "Onboarding"
       },
       "pipeline-learnings": {
-        "sent-back": "sent back"
+        "sent-back": "sent back",
+        "unknown": "未知"
       },
       "pipeline-references": {
         "workspace-folder": "Workspace folder"
@@ -11530,7 +11535,8 @@
     },
     "context": {
       "liveupdatesprovider": {
-        "new-join-request-waiting": "有一个新的加入请求等待批准。"
+        "new-join-request-waiting": "有一个新的加入请求等待批准。",
+        "agent-fallback": "智能体 {{id}}"
       },
       "themecontext": {
         "ffffff": "#ffffff",
