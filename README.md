@@ -10,8 +10,21 @@ control plane for AI-agent companies, built with **Rust + Topcoat + Turso**.
 
 ## Status
 
-- **Phase 0 — done**: independent repo, upstream reference mirror, rewrite plan.
-- **Phase 1 — next**: Rust workspace + Turso data layer.
+- **Phase 0–4 — done**: Rust workspace, Turso data layer, core APIs, governance,
+  board UI, adapters, and the plugin mechanism are implemented and tested
+  (see [doc/plans/parity-checklist.md](doc/plans/parity-checklist.md)).
+- **Phase 5 — in progress**: parity tracking, data migration tool, and the
+  dual-stack switch.
+
+## Runtime switch (dual-stack)
+
+The Rust binary is the default dev entrypoint (`make dev`). The Node reference
+snapshot is frozen and remains runnable as the rollback path (`make dev-node`)
+until the parity checklist is clear and the switch is confirmed.
+
+- Switch to Rust: `make dev` (default).
+- Rollback to Node: `make dev-node`.
+- Smoke the core flow through the Rust binary: `make smoke`.
 
 See [doc/plans/2026-08-03-topcoat-turso-rewrite.md](doc/plans/2026-08-03-topcoat-turso-rewrite.md)
 for the full roadmap.

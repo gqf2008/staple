@@ -17,5 +17,13 @@ lint:
 build:
 	cargo build --release --workspace
 
+# Smoke-test the core business flow through the Rust binary surface
+smoke:
+	cargo test -p staple-app --test release_smoke
+
+# Node reference runtime (rollback path; kept until parity checklist is clear)
+dev-node:
+	pnpm dev
+
 # Local pre-push check
 check: lint test
