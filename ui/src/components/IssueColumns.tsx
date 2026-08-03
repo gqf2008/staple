@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { t } from "../i18n";
 import { deriveOriginatingActor, type Issue } from "@paperclipai/shared";
 import { Columns3 } from "lucide-react";
 import { pickTextColorForPillBg } from "@/lib/color-contrast";
@@ -24,27 +25,27 @@ import { Badge } from "@/components/ui/badge";
 export const issueTrailingColumns: InboxIssueColumn[] = ["assignee", "kickedOffBy", "project", "workspace", "parent", "labels", "updated"];
 
 const issueColumnLabels: Record<InboxIssueColumn, string> = {
-  status: "Status",
+  status: t("components.issueColumns.status", { defaultValue: "Status" }),
   id: "ID",
-  assignee: "Responsible",
-  kickedOffBy: "Kicked off by",
-  project: "Project",
-  workspace: "Workspace",
-  parent: "Parent task",
-  labels: "Tags",
-  updated: "Last updated",
+  assignee: t("components.issueColumns.responsible", { defaultValue: "Responsible" }),
+  kickedOffBy: t("components.issueColumns.kickedOffBy", { defaultValue: "Kicked off by" }),
+  project: t("components.issueColumns.project", { defaultValue: "Project" }),
+  workspace: t("components.issueColumns.workspace", { defaultValue: "Workspace" }),
+  parent: t("components.issueColumns.parentTask", { defaultValue: "Parent task" }),
+  labels: t("components.issueColumns.tags", { defaultValue: "Tags" }),
+  updated: t("components.issueColumns.lastUpdated", { defaultValue: "Last updated" }),
 };
 
 const issueColumnDescriptions: Record<InboxIssueColumn, string> = {
-  status: "Task state chip on the left edge.",
-  id: "Ticket identifier like PAP-1009.",
-  assignee: "Responsible agent or board user.",
-  kickedOffBy: "Board user or agent who created the task.",
-  project: "Linked project pill with its color.",
-  workspace: "Execution or project workspace used for the task.",
-  parent: "Parent task identifier and title.",
-  labels: "Task labels and tags.",
-  updated: "Latest visible activity time.",
+  status: t("components.issueColumns.statusHint", { defaultValue: "Task state chip on the left edge." }),
+  id: t("components.issueColumns.identifierHint", { defaultValue: "Ticket identifier like PAP-1009." }),
+  assignee: t("components.issueColumns.responsibleHint", { defaultValue: "Responsible agent or board user." }),
+  kickedOffBy: t("components.issueColumns.creatorHint", { defaultValue: "Board user or agent who created the task." }),
+  project: t("components.issueColumns.projectHint", { defaultValue: "Linked project pill with its color." }),
+  workspace: t("components.issueColumns.workspaceHint", { defaultValue: "Execution or project workspace used for the task." }),
+  parent: t("components.issueColumns.parentHint", { defaultValue: "Parent task identifier and title." }),
+  labels: t("components.issueColumns.tagsHint", { defaultValue: "Task labels and tags." }),
+  updated: t("components.issueColumns.updatedHint", { defaultValue: "Latest visible activity time." }),
 };
 
 export function issueActivityText(issue: Issue): string {
@@ -88,10 +89,10 @@ export function IssueColumnPicker({
           variant={iconOnly ? "outline" : "ghost"}
           size={iconOnly ? "icon" : "sm"}
           className={iconOnly ? "h-8 w-8 shrink-0" : "hidden h-8 shrink-0 px-2 text-xs sm:inline-flex"}
-          title="Columns"
+          title={t("components.issueColumns.columns", { defaultValue: "Columns" })}
         >
           <Columns3 className={iconOnly ? "h-3.5 w-3.5" : "mr-1 h-3.5 w-3.5"} />
-          {!iconOnly && "Columns"}
+          {!iconOnly && t("components.issueColumns.columns", { defaultValue: "Columns" })}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-(--sz-300px) rounded-xl border-border/70 p-1.5 shadow-xl shadow-black/10">
@@ -263,10 +264,10 @@ export function InboxIssueTrailingColumns({
   onFilterWorkspace?: (workspaceId: string) => void;
 }) {
   const activityText = timeAgo(issue.lastActivityAt ?? issue.lastExternalCommentAt ?? issue.updatedAt);
-  const userLabel = assigneeUserName ?? formatAssigneeUserLabel(issue.assigneeUserId, currentUserId) ?? "User";
+  const userLabel = assigneeUserName ?? formatAssigneeUserLabel(issue.assigneeUserId, currentUserId) ?? t("components.issueColumns.user", { defaultValue: "User" });
   const originatingActor = deriveOriginatingActor(issue);
   const originatingUserId = originatingActor?.kind === "user" ? originatingActor.id : null;
-  const creatorUserLabel = creatorUserName ?? formatAssigneeUserLabel(originatingUserId, currentUserId) ?? "User";
+  const creatorUserLabel = creatorUserName ?? formatAssigneeUserLabel(originatingUserId, currentUserId) ?? t("components.issueColumns.user", { defaultValue: "User" });
 
   return (
     <span
@@ -456,7 +457,7 @@ export function InboxIssueTrailingColumns({
               {parentIdentifier ? (
                 <span className="font-mono">{parentIdentifier}</span>
               ) : (
-                <span className="italic">Sub-task</span>
+                <span className="italic">{t("components.issueColumns.subTask", { defaultValue: "Sub-task" })}</span>
               )}
             </span>
           );

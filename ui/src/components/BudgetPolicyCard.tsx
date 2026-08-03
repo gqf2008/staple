@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "../i18n";
 import type { BudgetPolicySummary } from "@paperclipai/shared";
 import { AlertTriangle, PauseCircle, ShieldAlert, Wallet } from "lucide-react";
 import { cn, formatCents } from "../lib/utils";
@@ -19,7 +20,7 @@ function parseDollarInput(value: string) {
 }
 
 function windowLabel(windowKind: BudgetPolicySummary["windowKind"]) {
-  return windowKind === "lifetime" ? "Lifetime budget" : "Monthly UTC budget";
+  return windowKind === "lifetime" ? t("components.budgetPolicy.lifetimeBudget", { defaultValue: "Lifetime budget" }) : t("components.budgetPolicy.monthlyBudget", { defaultValue: "Monthly UTC budget" });
 }
 
 function statusTone(status: BudgetPolicySummary["status"]) {
@@ -56,16 +57,16 @@ export function BudgetPolicyCard({
   const observedBudgetGrid = isPlain ? (
     <div className="grid gap-6 sm:grid-cols-2">
       <div>
-        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">Observed</div>
+        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.budgetPolicy.observed", { defaultValue: "Observed" })}</div>
         <div className="mt-2 text-xl font-semibold tabular-nums">{formatCents(summary.observedAmount)}</div>
         <div className="mt-1 text-xs text-muted-foreground">
-          {summary.amount > 0 ? `${summary.utilizationPercent}% of limit` : "No cap configured"}
+          {summary.amount > 0 ? `${summary.utilizationPercent}% of limit` : t("components.budgetPolicy.noCap", { defaultValue: "No cap configured" })}
         </div>
       </div>
       <div>
-        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">Budget</div>
+        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.budgetPolicy.budget", { defaultValue: "Budget" })}</div>
         <div className="mt-2 text-xl font-semibold tabular-nums">
-          {summary.amount > 0 ? formatCents(summary.amount) : "Disabled"}
+          {summary.amount > 0 ? formatCents(summary.amount) : t("components.budgetPolicy.disabled", { defaultValue: "Disabled" })}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
           Soft alert at {summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
@@ -75,16 +76,16 @@ export function BudgetPolicyCard({
   ) : (
     <div className="grid gap-3 sm:grid-cols-2">
       <div className="rounded-xl border border-border/70 bg-black/[0.18] px-4 py-3">
-        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">Observed</div>
+        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.budgetPolicy.observed", { defaultValue: "Observed" })}</div>
         <div className="mt-2 text-xl font-semibold tabular-nums">{formatCents(summary.observedAmount)}</div>
         <div className="mt-1 text-xs text-muted-foreground">
-          {summary.amount > 0 ? `${summary.utilizationPercent}% of limit` : "No cap configured"}
+          {summary.amount > 0 ? `${summary.utilizationPercent}% of limit` : t("components.budgetPolicy.noCap", { defaultValue: "No cap configured" })}
         </div>
       </div>
       <div className="rounded-xl border border-border/70 bg-black/[0.18] px-4 py-3">
-        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">Budget</div>
+        <div className="text-(length:--text-micro) uppercase tracking-(--tracking-caps) text-muted-foreground">{t("components.budgetPolicy.budget", { defaultValue: "Budget" })}</div>
         <div className="mt-2 text-xl font-semibold tabular-nums">
-          {summary.amount > 0 ? formatCents(summary.amount) : "Disabled"}
+          {summary.amount > 0 ? formatCents(summary.amount) : t("components.budgetPolicy.disabled", { defaultValue: "Disabled" })}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
           Soft alert at {summary.warnPercent}%{summary.paused && summary.pauseReason ? ` · ${summary.pauseReason} pause` : ""}
@@ -96,8 +97,8 @@ export function BudgetPolicyCard({
   const progressSection = (
     <div className="space-y-2">
       <div className="flex items-center justify-between text-xs text-muted-foreground">
-        <span>Remaining</span>
-        <span>{summary.amount > 0 ? formatCents(summary.remainingAmount) : "Unlimited"}</span>
+        <span>{t("components.budgetPolicy.remaining", { defaultValue: "Remaining" })}</span>
+        <span>{summary.amount > 0 ? formatCents(summary.remainingAmount) : t("components.budgetPolicy.unlimited", { defaultValue: "Unlimited" })}</span>
       </div>
       <div className={cn("h-2 overflow-hidden rounded-full", isPlain ? "bg-border/70" : "bg-muted/70")}>
         <div
@@ -146,7 +147,7 @@ export function BudgetPolicyCard({
         }}
         disabled={!canSave || isSaving || parsedDraft === null}
       >
-        {isSaving ? "Saving..." : summary.amount > 0 ? "Update budget" : "Set budget"}
+        {isSaving ? t("components.budgetPolicy.saving", { defaultValue: "Saving..." }) : summary.amount > 0 ? t("components.budgetPolicy.updateBudget", { defaultValue: "Update budget" }) : t("components.budgetPolicy.setBudget", { defaultValue: "Set budget" })}
       </Button>
     </div>
   ) : null;
@@ -173,7 +174,7 @@ export function BudgetPolicyCard({
             )}
           >
             <StatusIcon className="h-3.5 w-3.5" />
-            {summary.paused ? "Paused" : summary.status === "warning" ? "Warning" : summary.status === "hard_stop" ? "Hard stop" : "Healthy"}
+            {summary.paused ? t("components.budgetPolicy.paused", { defaultValue: "Paused" }) : summary.status === "warning" ? t("components.budgetPolicy.warning", { defaultValue: "Warning" }) : summary.status === "hard_stop" ? t("components.budgetPolicy.hardStop", { defaultValue: "Hard stop" }) : t("components.budgetPolicy.healthy", { defaultValue: "Healthy" })}
           </div>
         </div>
 
@@ -182,7 +183,7 @@ export function BudgetPolicyCard({
         {pausedPane}
         {saveSection}
         {parsedDraft === null ? (
-          <p className="text-xs text-destructive">Enter a valid non-negative dollar amount.</p>
+          <p className="text-xs text-destructive">{t("components.budgetPolicy.validAmountHint", { defaultValue: "Enter a valid non-negative dollar amount." })}</p>
         ) : null}
       </div>
     );
@@ -201,7 +202,7 @@ export function BudgetPolicyCard({
           </div>
           <div className={cn("inline-flex items-center gap-2 rounded-full border px-3 py-1 text-(length:--text-micro) uppercase tracking-(--tracking-caps)", statusTone(summary.status))}>
             <StatusIcon className="h-3.5 w-3.5" />
-            {summary.paused ? "Paused" : summary.status === "warning" ? "Warning" : summary.status === "hard_stop" ? "Hard stop" : "Healthy"}
+            {summary.paused ? t("components.budgetPolicy.paused", { defaultValue: "Paused" }) : summary.status === "warning" ? t("components.budgetPolicy.warning", { defaultValue: "Warning" }) : summary.status === "hard_stop" ? t("components.budgetPolicy.hardStop", { defaultValue: "Hard stop" }) : t("components.budgetPolicy.healthy", { defaultValue: "Healthy" })}
           </div>
         </div>
       </CardHeader>
@@ -211,7 +212,7 @@ export function BudgetPolicyCard({
         {pausedPane}
         {saveSection}
         {parsedDraft === null ? (
-          <p className="text-xs text-destructive">Enter a valid non-negative dollar amount.</p>
+          <p className="text-xs text-destructive">{t("components.budgetPolicy.validAmountHint", { defaultValue: "Enter a valid non-negative dollar amount." })}</p>
         ) : null}
       </CardContent>
     </Card>
