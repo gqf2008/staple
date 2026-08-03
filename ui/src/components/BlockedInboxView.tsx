@@ -1,4 +1,4 @@
-import { t } from "../i18n";
+import { t, localizeServerLabel } from "../i18n";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";

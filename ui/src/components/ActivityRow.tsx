@@ -1,5 +1,5 @@
 import { Link } from "@/lib/router";
-import { t } from "../i18n";
+import { t, localizeServerLabel } from "../i18n";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { deriveInitials } from "./Identity";
 import { IssueReferenceActivitySummary } from "./IssueReferenceActivitySummary";
