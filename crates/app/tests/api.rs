@@ -2330,3 +2330,40 @@ async fn skills_policy_evaluation() {
     // Invalid key -> 401 (no key was created for the agent).
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }
+
+#[tokio::test]
+async fn board_ui_pages_render() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    create_issue_via(&app, &company_id, "UI task").await;
+
+    // Home page lists companies.
+    let (status, html) = send(&app, Method::GET, "/", None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Companies"));
+    assert!(html.contains("Acme"));
+    // Token layer is present; no bare values in markup.
+    assert!(html.contains("--color-primary"));
+    assert!(html.contains("--space-4"));
+
+    // Company overview shows the issue.
+    let (status, html) = send(&app, Method::GET, &format!("/companies/{company_id}"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Issues"));
+    assert!(html.contains("UI task"));
+
+    // Issue list page.
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/companies/{company_id}/issues"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("UI task"));
+
+    // Unknown company -> 404.
+    let (status, _) = send(&app, Method::GET, "/companies/missing", None).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}

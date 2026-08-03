@@ -1,0 +1,126 @@
+//! Design token layer (aligned with `DESIGN.md`: every visual value lives in
+//! the token layer; components only reference `var(--token)`).
+
+/// Token definitions plus the small component class set used by the board UI.
+/// No component may contain a bare hex/px value — all values resolve through
+/// these custom properties.
+pub const TOKENS_CSS: &str = r#"
+:root {
+  /* color */
+  --color-background: #fafaf9;
+  --color-foreground: #1c1917;
+  --color-card: #ffffff;
+  --color-card-foreground: #1c1917;
+  --color-primary: #2563eb;
+  --color-primary-foreground: #ffffff;
+  --color-muted: #f5f5f4;
+  --color-muted-foreground: #78716c;
+  --color-border: #e7e5e4;
+  --color-destructive: #dc2626;
+  --color-status-running: #16a34a;
+  --color-status-paused: #d97706;
+  --color-status-blocked: #dc2626;
+  --color-status-done: #16a34a;
+
+  /* spacing */
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+
+  /* radius */
+  --radius-sm: 0.3rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+
+  /* typography */
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-size-xs: 0.75rem;
+  --font-size-sm: 0.875rem;
+  --font-size-md: 1rem;
+  --font-size-lg: 1.125rem;
+  --font-size-xl: 1.5rem;
+
+  /* shadow */
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
+  --shadow-md: 0 4px 6px rgb(0 0 0 / 0.07);
+
+  /* motion */
+  --motion-duration-fast: 120ms;
+  --motion-duration-base: 200ms;
+  --motion-ease-base: cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: var(--font-size-md);
+  color: var(--color-foreground);
+  background: var(--color-background);
+}
+
+.app-nav {
+  display: flex;
+  gap: var(--space-4);
+  align-items: center;
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-card);
+}
+
+.app-nav a {
+  color: var(--color-primary);
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.app-nav a:hover { text-decoration: underline; }
+
+.app-main { padding: var(--space-6); max-width: 960px; margin: 0 auto; }
+
+.card {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+  margin-bottom: var(--space-4);
+  box-shadow: var(--shadow-sm);
+  transition: box-shadow var(--motion-duration-fast) var(--motion-ease-base);
+}
+
+.card:hover { box-shadow: var(--shadow-md); }
+
+.card h3 { margin: 0 0 var(--space-2); font-size: var(--font-size-lg); }
+
+.card p { margin: var(--space-1) 0; color: var(--color-muted-foreground); }
+
+.badge {
+  display: inline-block;
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-sm);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+
+.badge-running { background: var(--color-status-running); color: var(--color-primary-foreground); }
+.badge-paused { background: var(--color-status-paused); color: var(--color-primary-foreground); }
+.badge-blocked { background: var(--color-status-blocked); color: var(--color-primary-foreground); }
+.badge-done { background: var(--color-status-done); color: var(--color-primary-foreground); }
+.badge-default { background: var(--color-muted); color: var(--color-muted-foreground); }
+
+.mono { font-family: var(--font-mono); font-size: var(--font-size-xs); }
+
+.page-title { font-size: var(--font-size-xl); margin: 0 0 var(--space-6); }
+
+.list { list-style: none; padding: 0; margin: 0; }
+
+.list li { padding: var(--space-2) 0; border-bottom: 1px solid var(--color-border); }
+
+.empty { color: var(--color-muted-foreground); padding: var(--space-4); }
+"#;
