@@ -9,7 +9,7 @@ use topcoat::{
     router::{StatusCode, content::Json, path_param, route},
 };
 
-use crate::{dto::DocumentDto, error::ApiError, routes::Id, state::AppState};
+use crate::{audit::log_activity, dto::DocumentDto, error::ApiError, routes::Id, state::AppState};
 
 /// Body for `POST /api/issues/{issueId}/documents`.
 #[derive(Debug, Deserialize)]
@@ -72,6 +72,7 @@ pub async fn create_document(
         ));
     }
     let issue_id = path_param::<Id>(cx)?.to_string();
+    let issue_id_for_log = issue_id.clone();
     let state = app_context::<AppState>(cx);
     let document = state
         .documents
@@ -84,6 +85,15 @@ pub async fn create_document(
         })
         .await
         .map_err(document_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &document.company_id,
+        "document.created",
+        "document",
+        &document.id,
+        Some(json!({ "issueId": issue_id_for_log })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(document.into())))
 }
 
@@ -124,6 +134,15 @@ pub async fn update_document(
         })
         .await
         .map_err(document_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &document.company_id,
+        "document.updated",
+        "document",
+        &document.id,
+        Some(json!({ "revision": document.latest_revision_number })),
+    )
+    .await?;
     Ok(Json(document.into()))
 }
 

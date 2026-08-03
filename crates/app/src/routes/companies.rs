@@ -9,7 +9,9 @@ use topcoat::{
     router::{StatusCode, content::Json, path_param, route},
 };
 
-use crate::{dto::CompanyDto, error::ApiError, routes::CompanyId, state::AppState};
+use crate::{
+    audit::log_activity, dto::CompanyDto, error::ApiError, routes::CompanyId, state::AppState,
+};
 
 /// Largest allowed attachment size in bytes (upstream constant).
 const MAX_COMPANY_ATTACHMENT_MAX_BYTES: i64 = 1024 * 1024 * 1024;
@@ -184,6 +186,15 @@ pub async fn create_company(
         })
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
+    log_activity(
+        &state.activity,
+        &company.id,
+        "company.created",
+        "company",
+        &company.id,
+        Some(json!({ "name": company.name })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(company.into())))
 }
 
@@ -210,7 +221,18 @@ pub async fn get_company(cx: &Cx) -> Result<Json<CompanyDto>, ApiError> {
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
     match company {
-        Some(company) => Ok(Json(company.into())),
+        Some(company) => {
+            log_activity(
+                &state.activity,
+                &company.id,
+                "company.updated",
+                "company",
+                &company.id,
+                None,
+            )
+            .await?;
+            Ok(Json(company.into()))
+        }
         None => Err(ApiError::not_found("Company not found")),
     }
 }
@@ -240,7 +262,18 @@ pub async fn update_company(
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
     match company {
-        Some(company) => Ok(Json(company.into())),
+        Some(company) => {
+            log_activity(
+                &state.activity,
+                &company.id,
+                "company.updated",
+                "company",
+                &company.id,
+                None,
+            )
+            .await?;
+            Ok(Json(company.into()))
+        }
         None => Err(ApiError::not_found("Company not found")),
     }
 }

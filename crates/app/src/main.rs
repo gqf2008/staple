@@ -3,10 +3,10 @@ use std::{error::Error, sync::Arc};
 use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
-    TursoAssetRepository, TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
-    TursoWorkProductRepository, migrate, open,
+    TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository,
+    TursoCostRepository, TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoProjectRepository, TursoWorkProductRepository, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -28,6 +28,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let work_products_db = open(&db_config).await?;
     let heartbeat_db = open(&db_config).await?;
     let costs_db = open(&db_config).await?;
+    let approvals_db = open(&db_config).await?;
+    let activity_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
@@ -42,6 +44,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         work_products: Arc::new(TursoWorkProductRepository::new(work_products_db)),
         heartbeat: Arc::new(TursoHeartbeatRepository::new(heartbeat_db)),
         costs: Arc::new(TursoCostRepository::new(costs_db)),
+        approvals: Arc::new(TursoApprovalRepository::new(approvals_db)),
+        activity: Arc::new(TursoActivityRepository::new(activity_db)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;

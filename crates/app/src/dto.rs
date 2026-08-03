@@ -652,3 +652,91 @@ impl From<staple_data::AgentCostRow> for AgentCostRowDto {
         }
     }
 }
+
+/// Approval resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ApprovalDto {
+    /// Approval id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Type.
+    pub r#type: String,
+    /// Requester agent id.
+    pub requested_by_agent_id: Option<String>,
+    /// Requester user id.
+    pub requested_by_user_id: Option<String>,
+    /// Status.
+    pub status: String,
+    /// Payload.
+    pub payload: serde_json::Value,
+    /// Decision note.
+    pub decision_note: Option<String>,
+    /// Deciding user id.
+    pub decided_by_user_id: Option<String>,
+    /// ISO 8601 decision time.
+    pub decided_at: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::ApprovalRecord> for ApprovalDto {
+    fn from(record: staple_data::ApprovalRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            r#type: record.r#type,
+            requested_by_agent_id: record.requested_by_agent_id,
+            requested_by_user_id: record.requested_by_user_id,
+            status: record.status,
+            payload: serde_json::from_str(&record.payload).unwrap_or(serde_json::Value::Null),
+            decision_note: record.decision_note,
+            decided_by_user_id: record.decided_by_user_id,
+            decided_at: record.decided_at,
+            created_at: record.created_at,
+        }
+    }
+}
+
+/// Activity log entry.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ActivityEntryDto {
+    /// Entry id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Actor type.
+    pub actor_type: String,
+    /// Actor id.
+    pub actor_id: String,
+    /// Action.
+    pub action: String,
+    /// Entity type.
+    pub entity_type: String,
+    /// Entity id.
+    pub entity_id: String,
+    /// Details.
+    pub details: Option<serde_json::Value>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+}
+
+impl From<staple_data::ActivityEntry> for ActivityEntryDto {
+    fn from(entry: staple_data::ActivityEntry) -> Self {
+        Self {
+            id: entry.id,
+            company_id: entry.company_id,
+            actor_type: entry.actor_type,
+            actor_id: entry.actor_id,
+            action: entry.action,
+            entity_type: entry.entity_type,
+            entity_id: entry.entity_id,
+            details: entry
+                .details
+                .and_then(|value| serde_json::from_str(&value).ok()),
+            created_at: entry.created_at,
+        }
+    }
+}

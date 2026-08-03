@@ -9,7 +9,9 @@ use topcoat::{
     router::{StatusCode, content::Json, path_param, route},
 };
 
-use crate::{dto::IssueCommentDto, error::ApiError, routes::Id, state::AppState};
+use crate::{
+    audit::log_activity, dto::IssueCommentDto, error::ApiError, routes::Id, state::AppState,
+};
 
 /// Body for `POST /api/issues/{issueId}/comments`.
 #[derive(Debug, Deserialize)]
@@ -62,6 +64,15 @@ pub async fn add_comment(
         })
         .await
         .map_err(comment_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &comment.company_id,
+        "comment.created",
+        "issue_comment",
+        &comment.id,
+        Some(json!({ "issueId": comment.issue_id })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(comment.into())))
 }
 
@@ -92,7 +103,18 @@ pub async fn delete_comment(cx: &Cx) -> Result<StatusCode, ApiError> {
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
     {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(comment) => {
+            log_activity(
+                &state.activity,
+                &comment.company_id,
+                "comment.deleted",
+                "issue_comment",
+                &comment.id,
+                Some(json!({ "issueId": comment.issue_id })),
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Comment not found")),
     }
 }

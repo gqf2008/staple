@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::WorkProductDto,
     error::ApiError,
     routes::{Id, is_uuid},
@@ -153,6 +154,15 @@ pub async fn create_work_product(
         })
         .await
         .map_err(work_product_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &product.company_id,
+        "work_product.created",
+        "issue_work_product",
+        &product.id,
+        Some(json!({ "issueId": product.issue_id, "type": product.r#type })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(product.into())))
 }
 
@@ -177,7 +187,18 @@ pub async fn update_work_product(
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
     {
-        Some(product) => Ok(Json(product.into())),
+        Some(product) => {
+            log_activity(
+                &state.activity,
+                &product.company_id,
+                "work_product.updated",
+                "issue_work_product",
+                &product.id,
+                None,
+            )
+            .await?;
+            Ok(Json(product.into()))
+        }
         None => Err(ApiError::not_found("Work product not found")),
     }
 }
@@ -193,7 +214,18 @@ pub async fn delete_work_product(cx: &Cx) -> Result<StatusCode, ApiError> {
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
     {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(product) => {
+            log_activity(
+                &state.activity,
+                &product.company_id,
+                "work_product.deleted",
+                "issue_work_product",
+                &product.id,
+                None,
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Work product not found")),
     }
 }

@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::GoalDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -203,6 +204,15 @@ pub async fn create_goal(
         })
         .await
         .map_err(goal_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &goal.company_id,
+        "goal.created",
+        "goal",
+        &goal.id,
+        Some(json!({ "title": goal.title })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(goal.into())))
 }
 
@@ -245,7 +255,18 @@ pub async fn update_goal(
         .await
         .map_err(goal_error_to_api)?
     {
-        Some(goal) => Ok(Json(goal.into())),
+        Some(goal) => {
+            log_activity(
+                &state.activity,
+                &goal.company_id,
+                "goal.updated",
+                "goal",
+                &goal.id,
+                None,
+            )
+            .await?;
+            Ok(Json(goal.into()))
+        }
         None => Err(ApiError::not_found("Goal not found")),
     }
 }
@@ -256,7 +277,18 @@ pub async fn delete_goal(cx: &Cx) -> Result<StatusCode, ApiError> {
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     match state.goals.delete(&id).await.map_err(goal_error_to_api)? {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(goal) => {
+            log_activity(
+                &state.activity,
+                &goal.company_id,
+                "goal.deleted",
+                "goal",
+                &goal.id,
+                None,
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Goal not found")),
     }
 }

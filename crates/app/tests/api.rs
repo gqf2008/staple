@@ -9,10 +9,10 @@ use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
 use staple_data::{
-    DbConfig, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoWorkProductRepository, migrate, open,
+    DbConfig, TursoActivityRepository, TursoApprovalRepository, TursoAssetRepository,
+    TursoCompanyRepository, TursoCostRepository, TursoDocumentRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoProjectRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -58,6 +58,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let costs_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let approvals_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let activity_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -75,6 +81,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         work_products: Arc::new(TursoWorkProductRepository::new(work_products_db)),
         heartbeat: Arc::new(TursoHeartbeatRepository::new(heartbeat_db)),
         costs: Arc::new(TursoCostRepository::new(costs_db)),
+        approvals: Arc::new(TursoApprovalRepository::new(approvals_db)),
+        activity: Arc::new(TursoActivityRepository::new(activity_db)),
     };
     (state, seed_db)
 }
@@ -1552,4 +1560,181 @@ async fn cost_event_validation_and_404() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn approval_state_machine_and_gate() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // Create approval -> 201 pending.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({
+            "type": "budget_override_required",
+            "requestedByUserId": "u1",
+            "payload": { "budgetMonthlyCents": 500 }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created["status"], "pending");
+    assert_eq!(created["type"], "budget_override_required");
+    let approval_id = created["id"].as_str().unwrap().to_owned();
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Approve -> applies the budget override (approval gate).
+    let (status, decided) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/approvals/{approval_id}/decide"),
+        json!({ "decision": "approved", "decisionNote": "ok", "decidedByUserId": "board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(decided["status"], "approved");
+    assert!(decided["decidedAt"].is_string());
+
+    let (_, summary) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/costs/summary"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(summary["budgetMonthlyCents"], 500);
+
+    // Decide again -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/approvals/{approval_id}/decide"),
+        json!({ "decision": "rejected" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Cancel a second approval.
+    let (_, second) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({ "type": "hire_agent", "payload": {} }),
+    )
+    .await;
+    let second_id = second["id"].as_str().unwrap().to_owned();
+    let (status, cancelled) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/approvals/{second_id}/cancel"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(cancelled["status"], "cancelled");
+
+    // Invalid type -> 422.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({ "type": "bogus" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+}
+
+#[tokio::test]
+async fn mutating_apis_write_audit_log() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+
+    // A few mutations across entities.
+    let (_, goal) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/goals"),
+        json!({ "title": "G" }),
+    )
+    .await;
+    let goal_id = goal["id"].as_str().unwrap().to_owned();
+    let (_, project) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "P" }),
+    )
+    .await;
+    let project_id = project["id"].as_str().unwrap().to_owned();
+    let issue_id = create_issue_via(&app, &company_id, "T").await;
+    send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/comments"),
+        json!({ "body": "hello" }),
+    )
+    .await;
+
+    // The audit trail must contain all of them.
+    let (status, activity) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/activity"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let actions: Vec<&str> = activity
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["action"].as_str().unwrap())
+        .collect();
+    for expected in [
+        "company.created",
+        "goal.created",
+        "project.created",
+        "issue.created",
+        "comment.created",
+    ] {
+        assert!(
+            actions.contains(&expected),
+            "missing audit entry {expected}: {actions:?}"
+        );
+    }
+
+    // Entity ids match.
+    let goal_entry = activity
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["action"] == "goal.created")
+        .unwrap();
+    assert_eq!(goal_entry["entityId"], goal_id);
+    let project_entry = activity
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|entry| entry["action"] == "project.created")
+        .unwrap();
+    assert_eq!(project_entry["entityId"], project_id);
+    assert!(
+        activity
+            .as_array()
+            .unwrap()
+            .iter()
+            .all(|entry| entry["companyId"] == company_id)
+    );
 }

@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::HeartbeatRunDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -109,6 +110,15 @@ pub async fn start_run(
         })
         .await
         .map_err(heartbeat_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &run.company_id,
+        "heartbeat_run.started",
+        "heartbeat_run",
+        &run.id,
+        Some(json!({ "agentId": run.agent_id, "invocationSource": run.invocation_source })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(run.into())))
 }
 
@@ -175,7 +185,18 @@ pub async fn complete_run(
         .await
         .map_err(heartbeat_error_to_api)?
     {
-        Some(run) => Ok(Json(run.into())),
+        Some(run) => {
+            log_activity(
+                &state.activity,
+                &run.company_id,
+                "heartbeat_run.completed",
+                "heartbeat_run",
+                &run.id,
+                Some(json!({ "status": run.status, "errorKind": run.error_kind })),
+            )
+            .await?;
+            Ok(Json(run.into()))
+        }
         None => Err(ApiError::not_found("Heartbeat run not found")),
     }
 }
@@ -191,7 +212,18 @@ pub async fn cancel_run(cx: &Cx) -> Result<Json<HeartbeatRunDto>, ApiError> {
         .await
         .map_err(heartbeat_error_to_api)?
     {
-        Some(run) => Ok(Json(run.into())),
+        Some(run) => {
+            log_activity(
+                &state.activity,
+                &run.company_id,
+                "heartbeat_run.cancelled",
+                "heartbeat_run",
+                &run.id,
+                None,
+            )
+            .await?;
+            Ok(Json(run.into()))
+        }
         None => Err(ApiError::not_found("Heartbeat run not found")),
     }
 }

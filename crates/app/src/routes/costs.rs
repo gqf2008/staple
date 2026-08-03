@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::{AgentCostRowDto, BudgetSummaryDto, CostEventDto},
     error::ApiError,
     routes::{CompanyId, is_uuid},
@@ -89,6 +90,7 @@ pub async fn create_cost_event(
 ) -> Result<(StatusCode, Json<serde_json::Value>), ApiError> {
     validate_event(&body)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let company_id_for_log = company_id.clone();
     let state = app_context::<AppState>(cx);
     let outcome = state
         .costs
@@ -106,6 +108,19 @@ pub async fn create_cost_event(
         })
         .await
         .map_err(cost_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &company_id_for_log,
+        "cost_event.recorded",
+        "cost_event",
+        &outcome.event.id,
+        Some(json!({
+            "agentId": outcome.event.agent_id,
+            "costCents": outcome.event.cost_cents,
+            "hardStopTriggered": outcome.hard_stop_triggered,
+        })),
+    )
+    .await?;
     Ok((
         StatusCode::CREATED,
         Json(json!({
@@ -167,7 +182,18 @@ pub async fn set_budget(
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?
     {
-        Some(summary) => Ok(Json(summary.into())),
+        Some(summary) => {
+            log_activity(
+                &state.activity,
+                &company_id,
+                "budget.set",
+                "company",
+                &company_id,
+                Some(json!({ "budgetMonthlyCents": summary.budget_monthly_cents })),
+            )
+            .await?;
+            Ok(Json(summary.into()))
+        }
         None => Err(ApiError::not_found("Company not found")),
     }
 }

@@ -10,6 +10,7 @@ use topcoat::{
 };
 
 use crate::{
+    audit::log_activity,
     dto::IssueDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -229,6 +230,15 @@ pub async fn create_issue(
         })
         .await
         .map_err(issue_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &issue.company_id,
+        "issue.created",
+        "issue",
+        &issue.id,
+        Some(json!({ "identifier": issue.identifier, "title": issue.title })),
+    )
+    .await?;
     Ok((StatusCode::CREATED, Json(issue.into())))
 }
 
@@ -272,7 +282,18 @@ pub async fn update_issue(
         .await
         .map_err(issue_error_to_api)?
     {
-        Some(issue) => Ok(Json(issue.into())),
+        Some(issue) => {
+            log_activity(
+                &state.activity,
+                &issue.company_id,
+                "issue.updated",
+                "issue",
+                &issue.id,
+                Some(json!({ "status": issue.status })),
+            )
+            .await?;
+            Ok(Json(issue.into()))
+        }
         None => Err(ApiError::not_found("Issue not found")),
     }
 }
@@ -283,7 +304,18 @@ pub async fn delete_issue(cx: &Cx) -> Result<StatusCode, ApiError> {
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     match state.issues.delete(&id).await.map_err(issue_error_to_api)? {
-        Some(_) => Ok(StatusCode::NO_CONTENT),
+        Some(issue) => {
+            log_activity(
+                &state.activity,
+                &issue.company_id,
+                "issue.deleted",
+                "issue",
+                &issue.id,
+                None,
+            )
+            .await?;
+            Ok(StatusCode::NO_CONTENT)
+        }
         None => Err(ApiError::not_found("Issue not found")),
     }
 }
