@@ -14,7 +14,8 @@ pub use migrations::{
 };
 pub use repositories::{
     CompanyPatch, CompanyRecord, CompanyRepository, GoalError, GoalPatch, GoalRecord,
-    GoalRepository, NewCompany, NewGoal, NewProject, ProjectError, ProjectPatch, ProjectRecord,
-    ProjectRepository, RepoError, TursoCompanyRepository, TursoGoalRepository,
-    TursoProjectRepository, companies, goals, projects,
+    GoalRepository, IssueError, IssuePatch, IssueRecord, IssueRepository, NewCompany, NewGoal,
+    NewIssue, NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository, RepoError,
+    TursoCompanyRepository, TursoGoalRepository, TursoIssueRepository, TursoProjectRepository,
+    allowed_status_transition, companies, goals, issues, projects,
 };

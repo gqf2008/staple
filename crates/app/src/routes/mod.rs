@@ -5,6 +5,7 @@ use topcoat::router::path_param;
 pub mod companies;
 pub mod goals;
 pub mod health;
+pub mod issues;
 pub mod projects;
 
 /// Shared `{id}` path parameter (goals, projects, and future resources).

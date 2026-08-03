@@ -12,6 +12,12 @@ pub fn row_text(row: &Row, idx: i32) -> Result<Option<String>, libsql::Error> {
     }
 }
 
+/// Reads an INTEGER column.
+pub fn row_i64(row: &Row, idx: i32) -> Result<i64, libsql::Error> {
+    let value = row.get_value(idx)?;
+    Ok(*value.as_integer().expect("INTEGER column"))
+}
+
 /// Whether a company exists.
 pub async fn company_exists(conn: &Connection, company_id: &str) -> Result<bool, libsql::Error> {
     let mut rows = conn

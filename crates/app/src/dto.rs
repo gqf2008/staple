@@ -171,3 +171,88 @@ impl From<staple_data::ProjectRecord> for ProjectDto {
         }
     }
 }
+
+/// Issue resource, matching the upstream issue JSON shape (core fields).
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IssueDto {
+    /// Issue id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Linked project id.
+    pub project_id: Option<String>,
+    /// Linked goal id.
+    pub goal_id: Option<String>,
+    /// Parent issue id.
+    pub parent_id: Option<String>,
+    /// Title.
+    pub title: String,
+    /// Optional description.
+    pub description: Option<String>,
+    /// `backlog | todo | in_progress | in_review | done | blocked | cancelled`.
+    pub status: String,
+    /// `critical | high | medium | low`.
+    pub priority: String,
+    /// Assignee agent id (single-assignee model).
+    pub assignee_agent_id: Option<String>,
+    /// Assignee user id.
+    pub assignee_user_id: Option<String>,
+    /// Creator agent id.
+    pub created_by_agent_id: Option<String>,
+    /// Creator user id.
+    pub created_by_user_id: Option<String>,
+    /// Per-company issue number.
+    pub issue_number: i64,
+    /// Stable identifier.
+    pub identifier: String,
+    /// Request depth.
+    pub request_depth: i64,
+    /// `standard | ask | planning`.
+    pub work_mode: String,
+    /// Billing code.
+    pub billing_code: Option<String>,
+    /// ISO 8601 start time.
+    pub started_at: Option<String>,
+    /// ISO 8601 completion time.
+    pub completed_at: Option<String>,
+    /// ISO 8601 cancellation time.
+    pub cancelled_at: Option<String>,
+    /// ISO 8601 hide time.
+    pub hidden_at: Option<String>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::IssueRecord> for IssueDto {
+    fn from(record: staple_data::IssueRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            project_id: record.project_id,
+            goal_id: record.goal_id,
+            parent_id: record.parent_id,
+            title: record.title,
+            description: record.description,
+            status: record.status,
+            priority: record.priority,
+            assignee_agent_id: record.assignee_agent_id,
+            assignee_user_id: record.assignee_user_id,
+            created_by_agent_id: record.created_by_agent_id,
+            created_by_user_id: record.created_by_user_id,
+            issue_number: record.issue_number,
+            identifier: record.identifier,
+            request_depth: record.request_depth,
+            work_mode: record.work_mode,
+            billing_code: record.billing_code,
+            started_at: record.started_at,
+            completed_at: record.completed_at,
+            cancelled_at: record.cancelled_at,
+            hidden_at: record.hidden_at,
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}

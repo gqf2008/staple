@@ -2,7 +2,8 @@ use std::{error::Error, sync::Arc};
 
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
-    TursoCompanyRepository, TursoGoalRepository, TursoProjectRepository, migrate, open,
+    TursoCompanyRepository, TursoGoalRepository, TursoIssueRepository, TursoProjectRepository,
+    migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -16,11 +17,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let companies_db = open(&db_config).await?;
     let goals_db = open(&db_config).await?;
     let projects_db = open(&db_config).await?;
+    let issues_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
         projects: Arc::new(TursoProjectRepository::new(projects_db)),
+        issues: Arc::new(TursoIssueRepository::new(issues_db)),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
