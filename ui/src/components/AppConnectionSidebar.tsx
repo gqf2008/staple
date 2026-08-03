@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { ChevronLeft } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { humanizeConnectionDisplayName } from "@paperclipai/shared";
@@ -32,27 +33,27 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
   const { isMobile, setSidebarOpen } = useSidebar();
 
   const connectionQuery = useQuery({
-    queryKey: queryKeys.tools.connection(props.kind === "connection" ? props.connectionId : "__none__"),
+    queryKey: queryKeys.tools.connection(props.kind === "connection" ? props.connectionId : t("ui.components.appconnectionsidebar.none")),
     queryFn: () => toolsApi.getConnection(props.kind === "connection" ? props.connectionId : ""),
     enabled: props.kind === "connection" && !!props.connectionId,
   });
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: props.kind === "application" && !!selectedCompanyId,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: props.kind === "application" && !!selectedCompanyId,
   });
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const attentionQuery = useQuery({
-    queryKey: queryKeys.apps.attention(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.attention(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listAppsAttention(selectedCompanyId!),
     enabled: !!selectedCompanyId,
     refetchInterval: 30_000,
@@ -90,7 +91,7 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
           className="flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
         >
           <ChevronLeft className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">All apps</span>
+          <span className="truncate">{t("pages.appsBrowse.allApps")}</span>
         </Link>
         <div className="flex min-w-0 items-center gap-2 px-2 py-1">
           <AppLogo name={appName} logoUrl={appDefinitionLogoUrl(logoEntry)} size={28} />
@@ -111,7 +112,7 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
               end
               badge={tab.key === "review" && reviewCount > 0 ? reviewCount : undefined}
               badgeTone="danger"
-              badgeLabel="needing review"
+              badgeLabel={t("ui.components.appconnectionsidebar.needing-review")}
             />
           ))}
         </div>

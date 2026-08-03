@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { UIAdapterModule } from "../types";
 import { SchemaConfigFields } from "../schema-config-fields";
 import {
@@ -7,7 +8,7 @@ import {
 
 export const cursorCloudUIAdapter: UIAdapterModule = {
   type: "cursor_cloud",
-  label: "Cursor Cloud",
+  label: t("ui.adapters.adapter-display-registry.cursor-cloud"),
   parseStdoutLine: parseCursorCloudStdoutLine,
   ConfigFields: SchemaConfigFields,
   buildAdapterConfig: buildCursorCloudConfig,

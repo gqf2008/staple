@@ -3,9 +3,62 @@ import { initReactI18next, useTranslation as useReactI18nextTranslation } from "
 
 import { DEFAULT_LOCALE, i18nextResources, supportedLocales } from "./locales";
 
+const LOCALE_STORAGE_KEY = "paperclip.locale";
+
+/**
+ * Normalize a raw locale candidate (browser string, stored value, user input)
+ * into one of the supported locale codes, or null when it cannot be matched.
+ */
+export function normalizeLocale(candidate: string | null | undefined): string | null {
+  if (!candidate) return null;
+  const normalized = candidate.replace(/_/g, "-").toLowerCase();
+  if (normalized.startsWith("zh")) {
+    if (normalized.startsWith("zh-hant") || normalized.startsWith("zh-tw")) return "zh-TW";
+    return "zh-CN";
+  }
+  const exact = supportedLocales.find((locale) => locale.toLowerCase() === normalized);
+  return exact ?? null;
+}
+
+/**
+ * Resolve the initial UI locale: an explicitly stored choice wins, then the
+ * browser language, then the repository default (en).
+ */
+export function detectInitialLocale(): string {
+  if (typeof window !== "undefined") {
+    try {
+      const stored = window.localStorage.getItem(LOCALE_STORAGE_KEY);
+      const fromStorage = normalizeLocale(stored);
+      if (fromStorage) return fromStorage;
+    } catch {
+      // Storage unavailable (private mode, tests, etc.) — fall through.
+    }
+    const fromBrowser = normalizeLocale(
+      typeof navigator !== "undefined" ? navigator.language : undefined,
+    );
+    if (fromBrowser) return fromBrowser;
+  }
+  return DEFAULT_LOCALE;
+}
+
+/**
+ * Switch the active UI locale and persist the choice for the next visit.
+ */
+export function setLocale(locale: string): void {
+  const normalized = normalizeLocale(locale) ?? DEFAULT_LOCALE;
+  void i18n.changeLanguage(normalized);
+  if (typeof window !== "undefined") {
+    try {
+      window.localStorage.setItem(LOCALE_STORAGE_KEY, normalized);
+    } catch {
+      // Storage unavailable — the in-memory switch still applies.
+    }
+  }
+}
+
 const i18nextOptions: InitOptions = {
   resources: i18nextResources,
-  lng: DEFAULT_LOCALE,
+  lng: detectInitialLocale(),
   fallbackLng: DEFAULT_LOCALE,
   supportedLngs: supportedLocales,
   defaultNS: "translation",
@@ -17,6 +70,41 @@ const i18nextOptions: InitOptions = {
 void i18n.use(initReactI18next).init(i18nextOptions).catch((error: unknown) => {
   console.error("Failed to initialize i18next", error);
 });
+
+const BUILTIN_AGENT_NAME_KEYS: Record<string, string> = {
+  "Reflection Coach": "ui.builtinAgents.reflectionCoach",
+  "Summarizer": "ui.builtinAgents.summarizer",
+  "Briefs Agent": "ui.builtinAgents.briefsAgent",
+  "Learning Agent": "ui.builtinAgents.learningAgent",
+  "Briefs": "ui.builtinAgents.briefs",
+  "Learning": "ui.builtinAgents.learning",
+};
+
+/**
+ * Localize server-provided built-in agent display names (the server seeds
+ * English stock names; the UI maps them through locale resources).
+ */
+export function localizeBuiltInAgentName(name: string): string {
+  const key = BUILTIN_AGENT_NAME_KEYS[name];
+  return key ? i18n.t(key) : name;
+}
+
+const SERVER_LABEL_KEYS: Record<string, string> = {
+  "Board": "ui.builtinAgents.board",
+  "Agent": "ui.builtinAgents.agent",
+  "System": "ui.builtinAgents.system",
+};
+
+/**
+ * Localize server-provided display labels (the server returns English stock
+ * names/labels such as "Board" for the local board user). Falls back to the
+ * original string when there is no mapping.
+ */
+export function localizeServerLabel(name: string | null | undefined): string {
+  if (!name) return "";
+  const key = SERVER_LABEL_KEYS[name] ?? BUILTIN_AGENT_NAME_KEYS[name];
+  return key ? i18n.t(key) : name;
+}
 
 export function t(key: string, options: TOptions = {}) {
   return i18n.t(key, options);

@@ -5,6 +5,7 @@
  * glyph and verb a tool gets. The Wrench is reserved for genuinely unknown
  * tools.
  */
+import { t } from "../../i18n";
 import {
   BookOpen,
   Bot,
@@ -63,12 +64,12 @@ export function mcpToolSegment(name: string): string | null {
 }
 
 const FAMILY_META: Record<Exclude<ToolFamily, "mcp">, Omit<ToolTaxonomyEntry, "family">> = {
-  terminal: { icon: SquareTerminal, verbLabel: "Running a command" },
-  search: { icon: FileSearch, verbLabel: "Searching" },
-  read: { icon: BookOpen, verbLabel: "Reading files" },
-  edit: { icon: Pencil, verbLabel: "Editing files" },
-  web: { icon: Globe, verbLabel: "Fetching the web" },
-  agent: { icon: Bot, verbLabel: "Delegating" },
+  terminal: { icon: SquareTerminal, verbLabel: t("ui.components.task-chat.tool-taxonomy.running-command") },
+  search: { icon: FileSearch, verbLabel: t("ui.components.task-chat.tool-taxonomy.searching") },
+  read: { icon: BookOpen, verbLabel: t("ui.components.task-chat.tool-taxonomy.reading-files") },
+  edit: { icon: Pencil, verbLabel: t("ui.components.task-chat.tool-taxonomy.editing-files") },
+  web: { icon: Globe, verbLabel: t("ui.components.task-chat.tool-taxonomy.fetching-web") },
+  agent: { icon: Bot, verbLabel: t("ui.components.task-chat.tool-taxonomy.delegating") },
   other: { icon: Wrench, verbLabel: "Working" },
 };
 

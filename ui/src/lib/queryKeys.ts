@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export const queryKeys = {
   companies: {
     all: ["companies"] as const,
@@ -45,9 +46,9 @@ export const queryKeys = {
         "tools",
         companyId,
         "activity",
-        filters.app ?? "__all",
-        filters.agent ?? "__all",
-        filters.outcome ?? "__all",
+        filters.app ?? t("ui.lib.querykeys.fallback-all"),
+        filters.agent ?? t("ui.lib.querykeys.fallback-all"),
+        filters.outcome ?? t("ui.lib.querykeys.fallback-all"),
         filters.window ?? "24h",
         filters.search ?? "",
       ] as const,
@@ -70,12 +71,12 @@ export const queryKeys = {
         "audit",
         companyId,
         "agent-actions",
-        filters.agentId ?? "__all",
-        filters.responsibleUserId ?? "__all",
-        filters.runId ?? "__all",
-        filters.entityType ?? "__all",
-        filters.action ?? "__all",
-        filters.actorType ?? "__all",
+        filters.agentId ?? t("ui.lib.querykeys.fallback-all"),
+        filters.responsibleUserId ?? t("ui.lib.querykeys.fallback-all"),
+        filters.runId ?? t("ui.lib.querykeys.fallback-all"),
+        filters.entityType ?? t("ui.lib.querykeys.fallback-all"),
+        filters.action ?? t("ui.lib.querykeys.fallback-all"),
+        filters.actorType ?? t("ui.lib.querykeys.fallback-all"),
         filters.from ?? "",
         filters.to ?? "",
       ] as const,
@@ -99,7 +100,7 @@ export const queryKeys = {
     file: (companyId: string, skillId: string, relativePath: string) =>
       ["company-skills", companyId, skillId, "file", relativePath] as const,
     catalog: (filters: { kind?: string; category?: string; q?: string } = {}) =>
-      ["company-skills", "catalog", filters.kind ?? "__all-kinds__", filters.category ?? "__all-categories__", filters.q ?? ""] as const,
+      ["company-skills", "catalog", filters.kind ?? t("ui.lib.querykeys.fallback-all-kinds"), filters.category ?? t("ui.lib.querykeys.fallback-all-categories"), filters.q ?? ""] as const,
     catalogDetail: (catalogRef: string) => ["company-skills", "catalog", "detail", catalogRef] as const,
     catalogFile: (catalogRef: string, relativePath: string) =>
       ["company-skills", "catalog", "file", catalogRef, relativePath] as const,
@@ -108,13 +109,13 @@ export const queryKeys = {
     testRunTemplates: (companyId: string) =>
       ["company-skills", companyId, "test-run-templates"] as const,
     testRuns: (companyId: string, skillId: string, inputId?: string | null) =>
-      ["company-skills", companyId, skillId, "test-runs", inputId ?? "__all-inputs__"] as const,
+      ["company-skills", companyId, skillId, "test-runs", inputId ?? t("ui.lib.querykeys.fallback-all-inputs")] as const,
     testRunDetail: (companyId: string, skillId: string, runId: string) =>
       ["company-skills", companyId, skillId, "test-run", runId] as const,
   },
   teamCatalog: {
     catalog: (filters: { kind?: string; category?: string; q?: string } = {}) =>
-      ["team-catalog", "catalog", filters.kind ?? "__all-kinds__", filters.category ?? "__all-categories__", filters.q ?? ""] as const,
+      ["team-catalog", "catalog", filters.kind ?? t("ui.lib.querykeys.fallback-all-kinds"), filters.category ?? t("ui.lib.querykeys.fallback-all-categories"), filters.q ?? ""] as const,
     catalogDetail: (catalogRef: string) => ["team-catalog", "catalog", "detail", catalogRef] as const,
     catalogFile: (catalogRef: string, relativePath: string) =>
       ["team-catalog", "catalog", "file", catalogRef, relativePath] as const,
@@ -159,7 +160,7 @@ export const queryKeys = {
     list: (companyId: string) => ["issues", companyId] as const,
     mentionPool: (companyId: string) => ["issues", companyId, "mention-pool"] as const,
     search: (companyId: string, q: string, projectId?: string, limit?: number) =>
-      ["issues", companyId, "search", q, projectId ?? "__all-projects__", limit ?? "__no-limit__"] as const,
+      ["issues", companyId, "search", q, projectId ?? t("ui.components.issueslist.fallback-all-projects"), limit ?? t("ui.lib.querykeys.fallback-no-limit")] as const,
     listAssignedToMe: (companyId: string) => ["issues", companyId, "assigned-to-me"] as const,
     listMineByMe: (companyId: string) => ["issues", companyId, "mine-by-me"] as const,
     listTouchedByMe: (companyId: string) => ["issues", companyId, "touched-by-me"] as const,
@@ -228,7 +229,7 @@ export const queryKeys = {
   },
   routines: {
     list: (companyId: string, filters?: { projectId?: string | null }) =>
-      ["routines", companyId, filters?.projectId ?? "__all-projects__"] as const,
+      ["routines", companyId, filters?.projectId ?? t("ui.components.issueslist.fallback-all-projects")] as const,
     detail: (id: string) => ["routines", "detail", id] as const,
     runs: (id: string) => ["routines", "runs", id] as const,
     revisions: (id: string) => ["routines", "revisions", id] as const,
@@ -390,7 +391,7 @@ export const queryKeys = {
   },
   decisions: {
     list: (companyId: string, status?: string) =>
-      ["decisions", companyId, status ?? "__all-statuses__"] as const,
+      ["decisions", companyId, status ?? t("ui.lib.querykeys.fallback-all-statuses")] as const,
     detail: (id: string) => ["decisions", "detail", id] as const,
     forTargetIssue: (companyId: string, issueId: string) =>
       ["decisions", companyId, "target", issueId] as const,

@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { cn } from "@/lib/utils";
 
 export type MatchSourceChipKind = "title" | "identifier" | "comment" | "document";
@@ -14,9 +15,9 @@ const chipStyles: Record<MatchSourceChipKind, string> = {
 };
 
 const chipLabels: Record<MatchSourceChipKind, string> = {
-  title: "Title",
-  identifier: "Identifier",
-  comment: "Comment",
+  title: t("components.agentConfigForm.title"),
+  identifier: t("pages.tools.profileDetail.identifier"),
+  comment: t("components.commentThread.comment"),
   document: "Doc",
 };
 

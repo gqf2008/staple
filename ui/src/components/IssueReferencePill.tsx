@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ReactNode } from "react";
 import type { IssueRelationIssueSummary } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -18,7 +19,7 @@ export function IssueReferencePill({
 }) {
   const issueLabel = issue.identifier ?? issue.title;
   const classNames = cn(
-    "paperclip-mention-chip paperclip-mention-chip--issue",
+    t("ui.components.issuereferencepill.paperclip-mention-chip-paperclip"),
     "inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs no-underline",
     issue.identifier && "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring",
     strikethrough && "opacity-60 line-through decoration-muted-foreground",

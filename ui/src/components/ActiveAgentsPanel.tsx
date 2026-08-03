@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { memo, useMemo } from "react";
 import { Link } from "@/lib/router";
 import { useQueries, useQuery } from "@tanstack/react-query";
@@ -73,7 +74,7 @@ export function ActiveAgentsPanel({
   cardLimit = DASHBOARD_RUN_CARD_LIMIT,
   gridClassName,
   cardClassName,
-  emptyMessage = "No recent agent runs.",
+  emptyMessage = t("components.activeAgentsPanel.noRecentRuns"),
   queryScope = "dashboard",
   showMoreLink = true,
 }: ActiveAgentsPanelProps) {
@@ -155,7 +156,7 @@ export function ActiveAgentsPanel({
       {showMoreLink && hiddenRunCount > 0 && (
         <div className="mt-3 flex justify-end text-xs text-muted-foreground">
           <Link to="/dashboard/live" className="hover:text-foreground hover:underline">
-            {hiddenRunCount} more active/recent run{hiddenRunCount === 1 ? "" : "s"}
+            {hiddenRunCount} {t("ui.components.activeagentspanel.more-active-recent-run")}{hiddenRunCount === 1 ? "" : "s"}
           </Link>
         </div>
       )}
@@ -203,7 +204,7 @@ const AgentRunCard = memo(function AgentRunCard({
               <Identity name={run.agentName} size="sm" className="[&>span:last-child]:!text-(length:--text-micro)" />
             </div>
             <div className="mt-2 flex items-center gap-2 text-(length:--text-micro) text-muted-foreground">
-              <span>{isActive ? "Live now" : run.finishedAt ? `Finished ${relativeTime(run.finishedAt)}` : `Started ${relativeTime(run.createdAt)}`}</span>
+              <span>{isActive ? t("pages.runTranscriptUxLab.liveNow") : run.finishedAt ? `Finished ${relativeTime(run.finishedAt)}` : `Started ${relativeTime(run.createdAt)}`}</span>
             </div>
           </div>
 

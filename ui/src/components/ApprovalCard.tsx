@@ -1,4 +1,5 @@
 import { CheckCircle2, XCircle, Clock } from "lucide-react";
+import { t } from "../i18n";
 import { Link } from "@/lib/router";
 import { Badge } from "@/components/ui/badge";
 import { Button, buttonVariants } from "@/components/ui/button";
@@ -8,7 +9,7 @@ import {
   typeIcon,
   defaultTypeIcon,
   ApprovalPayloadRenderer,
-  typeLabel,
+  typeLabel as approvalTypeLabel,
 } from "./ApprovalPayload";
 import { timeAgo } from "../lib/timeAgo";
 import type { Approval, Agent } from "@paperclipai/shared";
@@ -44,7 +45,7 @@ export function ApprovalCard({
 }) {
   const payload = approval.payload as Record<string, unknown> | null;
   const Icon = typeIcon[approval.type] ?? defaultTypeIcon;
-  const kindLabel = typeLabel[approval.type] ?? approval.type;
+  const kindLabel = approvalTypeLabel(approval.type);
   const subject = approvalSubject(payload);
   const showResolutionButtons =
     Boolean(onApprove && onReject) &&
@@ -70,7 +71,7 @@ export function ApprovalCard({
                 </Badge>
                 {requesterAgent && (
                   <div className="inline-flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
-                    <span>Requested by</span>
+                    <span>{t("common.requestedBy", { defaultValue: "Requested by" })}</span>
                     <Identity name={requesterAgent.name} size="sm" className="inline-flex" />
                   </div>
                 )}
@@ -80,7 +81,7 @@ export function ApprovalCard({
                   {subject ?? kindLabel}
                 </h3>
                 <p className="text-xs leading-5 text-muted-foreground">
-                  Approval request created {timeAgo(approval.createdAt)}
+                  {t("common.approvalCreated", { time: timeAgo(approval.createdAt) })}
                 </p>
               </div>
             </div>
@@ -89,7 +90,7 @@ export function ApprovalCard({
         <div className="shrink-0">
           <div className="inline-flex items-center gap-1.5 rounded-full border border-border/70 bg-background/80 px-2.5 py-1 text-xs text-muted-foreground">
             {statusIcon(approval.status)}
-            <span className="capitalize">{approval.status.replace(/_/g, " ")}</span>
+            <span className="capitalize">{t(`status.${approval.status}`, { defaultValue: approval.status.replace(/_/g, " ") })}</span>
           </div>
         </div>
       </div>
@@ -104,7 +105,7 @@ export function ApprovalCard({
 
       {approval.decisionNote && (
         <div className="mt-4 rounded-lg border border-border/60 bg-muted/30 px-3.5 py-3 text-xs leading-5 text-muted-foreground">
-          <span className="font-medium text-foreground">Decision note.</span> {approval.decisionNote}
+          <span className="font-medium text-foreground">{t("common.decisionNote", { defaultValue: "Decision note." })}</span> {approval.decisionNote}
         </div>
       )}
 
@@ -119,7 +120,7 @@ export function ApprovalCard({
                   onClick={onApprove}
                   disabled={isPending}
                 >
-                  {pendingAction === "approve" ? "Approving..." : "Approve"}
+                  {pendingAction === "approve" ? t("common.approving", { defaultValue: "Approving..." }) : t("common.approve", { defaultValue: "Approve" })}
                 </Button>
                 <Button
                   variant="destructive"
@@ -127,7 +128,7 @@ export function ApprovalCard({
                   onClick={onReject}
                   disabled={isPending}
                 >
-                  {pendingAction === "reject" ? "Rejecting..." : "Reject"}
+                  {pendingAction === "reject" ? t("common.rejecting", { defaultValue: "Rejecting..." }) : t("common.reject", { defaultValue: "Reject" })}
                 </Button>
               </>
             )}
@@ -138,11 +139,11 @@ export function ApprovalCard({
                 to={detailLink}
                 className={cn(buttonVariants({ variant: "ghost", size: "sm" }), "h-auto px-2 text-xs text-muted-foreground")}
               >
-                View details
+                {t("common.viewDetails", { defaultValue: "View details" })}
               </Link>
             ) : (
               <Button variant="ghost" size="sm" className="h-auto px-2 text-xs text-muted-foreground" onClick={onOpen}>
-                View details
+                {t("common.viewDetails", { defaultValue: "View details" })}
               </Button>
             )
           ) : null}

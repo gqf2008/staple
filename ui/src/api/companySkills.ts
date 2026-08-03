@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CatalogSkill,
   CatalogSkillFileDetail,
@@ -54,8 +55,8 @@ export const companySkillsApi = {
     if (query.q) params.set("q", query.q);
     if (query.sort) params.set("sort", query.sort);
     if (query.scope) params.set("scope", query.scope);
-    for (const category of query.categories ?? []) params.append("categories[]", category);
-    for (const include of query.include ?? []) params.append("include[]", include);
+    for (const category of query.categories ?? []) params.append(t("ui.api.companyskills.categories"), category);
+    for (const include of query.include ?? []) params.append(t("ui.api.companyskills.include"), include);
     const search = params.toString();
     return api.get<CompanySkillListItem[]>(`/companies/${encodeURIComponent(companyId)}/skills${search ? `?${search}` : ""}`);
   },

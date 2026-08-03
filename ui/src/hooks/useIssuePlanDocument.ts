@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import type { IssueDocument } from "@paperclipai/shared";
 import { ApiError } from "@/api/client";

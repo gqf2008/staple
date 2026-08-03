@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useRef } from "react";
 
 const CHARS = [" ", ".", "·", "▪", "▫", "○"] as const;
@@ -66,7 +67,7 @@ export function AsciiArtAnimation() {
   useEffect(() => {
     if (!preRef.current) return;
     const preEl: HTMLPreElement = preRef.current;
-    const motionMedia = window.matchMedia("(prefers-reduced-motion: reduce)");
+    const motionMedia = window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce"));
     let isVisible = document.visibilityState !== "hidden";
     let loopActive = false;
     let lastRenderAt = 0;

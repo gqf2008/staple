@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   createContext,
   useCallback,
@@ -18,7 +19,7 @@ interface ThemeContextValue {
 
 const THEME_STORAGE_KEY = "paperclip.theme";
 const DARK_THEME_COLOR = "#18181b";
-const LIGHT_THEME_COLOR = "#ffffff";
+const LIGHT_THEME_COLOR = t("ui.context.themecontext.ffffff");
 const ThemeContext = createContext<ThemeContextValue | undefined>(undefined);
 
 function resolveThemeFromDocument(): Theme {
@@ -80,7 +81,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (hasExplicitChoice) return;
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const media = window.matchMedia("(prefers-color-scheme: dark)");
+    const media = window.matchMedia(t("ui.context.themecontext.prefers-color-scheme-dark"));
     const handleChange = (event: MediaQueryListEvent) => {
       setThemeState(event.matches ? "dark" : "light");
     };

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export const ISSUE_OVERRIDE_ADAPTER_TYPES = new Set([
   "claude_local",
   "codex_local",

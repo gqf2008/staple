@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export type AgentOnboardingPromptInput = {
   onboardingTextUrl: string;
   connectionCandidates?: string[] | null;
@@ -11,7 +12,7 @@ export function buildAgentOnboardingPrompt(input: AgentOnboardingPromptInput) {
   const candidateList =
     candidateUrls.length > 0
       ? candidateUrls.map((url) => `- ${url}`).join("\n")
-      : "- (No candidate URLs are available yet.)";
+      : t("ui.lib.agent-onboarding-prompt.no-candidate-urls-available");
 
   const connectivityBlock =
     candidateUrls.length === 0

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 const BLOCK_MARKER_PATTERNS = [
   /^#{1,6}\s+/m,
   /^>\s+/m,

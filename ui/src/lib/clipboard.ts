@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export async function copyTextToClipboard(text: string): Promise<void> {
   // The async Clipboard API is only reliable in a secure context. Over plain
   // HTTP on a non-localhost host (e.g. a Tailscale name) `writeText` may resolve

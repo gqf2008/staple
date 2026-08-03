@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ComponentProps, type ReactNode } from "react";
+import { t } from "../i18n";
 import { ChevronRight } from "lucide-react";
 import { AgentIcon } from "@/components/AgentIconPicker";
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,8 @@ export function AgentSelect({
   agents,
   value,
   onChange,
-  placeholder = "Select agent…",
-  emptyMessage = "No agents yet.",
+  placeholder = t("components.agentMultiSelect.placeholder", { defaultValue: "Select agent…" }),
+  emptyMessage = t("components.agentMultiSelect.noAgents", { defaultValue: "No agents yet." }),
   disabled = false,
   triggerClassName,
   id,
@@ -74,7 +75,7 @@ export function AgentSelect({
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter agents"
+            placeholder={t("components.agentMultiSelect.filterAgents", { defaultValue: "Filter agents" })}
             className="h-8"
             autoFocus
           />
@@ -102,7 +103,7 @@ export function AgentSelect({
               </button>
             ))}
             {filteredAgents.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-muted-foreground">No matches.</div>
+              <div className="px-3 py-4 text-sm text-muted-foreground">{t("components.agentMultiSelect.noMatches", { defaultValue: "No matches." })}</div>
             ) : null}
           </div>
         )}
@@ -130,7 +131,7 @@ export function AgentMultiSelect({
   triggerClassName,
   contentAlign = "start",
   headerContent,
-  emptyMessage = "No agents yet.",
+  emptyMessage = t("components.agentMultiSelect.noAgents", { defaultValue: "No agents yet." }),
   showSelectionPreview = true,
   onOpenChange,
 }: {
@@ -212,7 +213,7 @@ export function AgentMultiSelect({
               {triggerIcon}
               <span className="truncate">
                 {triggerLabel ?? (selectedCount === 0
-                  ? "Select agents"
+                  ? t("components.agentMultiSelect.selectAgents", { defaultValue: "Select agents" })
                   : `${selectedCount} ${selectedCount === 1 ? "agent" : "agents"} selected`)}
               </span>
             </span>
@@ -224,7 +225,7 @@ export function AgentMultiSelect({
           <Input
             value={filter}
             onChange={(event) => setFilter(event.target.value)}
-            placeholder="Filter agents"
+            placeholder={t("components.agentMultiSelect.filterAgents", { defaultValue: "Filter agents" })}
             className="h-8"
             autoFocus
           />
@@ -273,19 +274,18 @@ export function AgentMultiSelect({
               );
             })}
             {filteredAgents.length === 0 ? (
-              <div className="px-3 py-4 text-sm text-muted-foreground">No matches.</div>
+              <div className="px-3 py-4 text-sm text-muted-foreground">{t("components.agentMultiSelect.noMatches", { defaultValue: "No matches." })}</div>
             ) : null}
           </div>
         )}
           <div className="flex items-center justify-between border-t border-border px-3 py-2">
             <span className="text-xs text-muted-foreground">
-              {workingAgentIds.size === 0 ? "No agents selected" : `${workingAgentIds.size} selected`}
+              {workingAgentIds.size === 0 ? t("components.agentMultiSelect.noneSelected", { defaultValue: "No agents selected" }) : `${workingAgentIds.size} selected`}
             </span>
             <div className="flex items-center gap-2">
               {staged ? (
                 <Button type="button" variant="ghost" size="sm" onClick={() => setOpen(false)} disabled={pending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
               ) : null}
               <Button
                 type="button"
@@ -296,7 +296,7 @@ export function AgentMultiSelect({
                 }}
                 disabled={pending}
               >
-                {staged ? (pending ? "Saving…" : "Save") : "Done"}
+                {staged ? (pending ? t("components.agentMultiSelect.saving", { defaultValue: "Saving…" }) : t("components.agentMultiSelect.save", { defaultValue: "Save" })) : t("components.agentMultiSelect.done", { defaultValue: "Done" })}
               </Button>
             </div>
           </div>

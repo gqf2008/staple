@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ExecutionWorkspaceMode, ProjectExecutionWorkspaceDefaultMode } from "@paperclipai/shared";
 
 type ProjectWorkspaceDefaultSource = {

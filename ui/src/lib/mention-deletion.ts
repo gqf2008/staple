@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createRootEditorSubscription$, realmPlugin } from "@mdxeditor/editor";
 import { $isLinkNode, type LinkNode } from "@lexical/link";
 import {

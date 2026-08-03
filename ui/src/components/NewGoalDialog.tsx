@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { t } from "../i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { GOAL_STATUSES, GOAL_LEVELS } from "@paperclipai/shared";
 import { useDialog } from "../context/DialogContext";
@@ -26,12 +27,15 @@ import { cn } from "../lib/utils";
 import { MarkdownEditor, type MarkdownEditorRef } from "./MarkdownEditor";
 import { StatusBadge } from "./StatusBadge";
 
-const levelLabels: Record<string, string> = {
-  company: "Company",
-  team: "Team",
-  agent: "Agent",
-  task: "Task",
-};
+function levelLabel(level: string): string {
+  switch (level) {
+    case "company": return t("components.dialogs.newGoal.levelCompany", { defaultValue: "Company" });
+    case "team": return t("components.dialogs.newGoal.levelTeam", { defaultValue: "Team" });
+    case "agent": return t("components.dialogs.newGoal.levelAgent", { defaultValue: "Agent" });
+    case "task": return t("components.dialogs.newGoal.levelTask", { defaultValue: "Task" });
+    default: return level;
+  }
+}
 
 export function NewGoalDialog() {
   const { newGoalOpen, newGoalDefaults, closeNewGoal } = useDialog();
@@ -70,7 +74,7 @@ export function NewGoalDialog() {
 
   const uploadDescriptionImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!selectedCompanyId) throw new Error("No company selected");
+      if (!selectedCompanyId) throw new Error(t("components.dialogs.common.noCompanySelected", { defaultValue: "No company selected" }));
       return assetsApi.uploadImage(selectedCompanyId, file, "goals/drafts");
     },
   });
@@ -127,8 +131,8 @@ export function NewGoalDialog() {
                 {selectedCompany.name.slice(0, 3).toUpperCase()}
               </span>
             )}
-            <span className="text-muted-foreground/60">&rsaquo;</span>
-            <span>{newGoalDefaults.parentId ? "New sub-goal" : "New goal"}</span>
+            <span className="text-muted-foreground/60">{t("ui.components.newgoaldialog.rsaquo")}</span>
+            <span>{newGoalDefaults.parentId ? t("components.dialogs.newGoal.newSubGoal", { defaultValue: "New sub-goal" }) : t("components.dialogs.newGoal.newGoal", { defaultValue: "New goal" })}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -145,7 +149,7 @@ export function NewGoalDialog() {
               className="text-muted-foreground"
               onClick={() => { reset(); closeNewGoal(); }}
             >
-              <span className="text-lg leading-none">&times;</span>
+              <span className="text-lg leading-none">{t("ui.components.newagentdialog.times")}</span>
             </Button>
           </div>
         </div>
@@ -154,7 +158,7 @@ export function NewGoalDialog() {
         <div className="px-4 pt-4 pb-2 shrink-0">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Goal title"
+            placeholder={t("components.dialogs.newGoal.goalTitle", { defaultValue: "Goal title" })}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={(e) => {
@@ -173,7 +177,7 @@ export function NewGoalDialog() {
             ref={descriptionEditorRef}
             value={description}
             onChange={setDescription}
-            placeholder="Add description..."
+            placeholder={t("components.dialogs.common.addDescription", { defaultValue: "Add description..." })}
             bordered={false}
             contentClassName={cn("text-sm text-muted-foreground", expanded ? "min-h-(--sz-220px)" : "min-h-(--sz-120px)")}
             imageUploadHandler={async (file) => {
@@ -213,7 +217,7 @@ export function NewGoalDialog() {
             <PopoverTrigger asChild>
               <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent/50 transition-colors">
                 <Layers className="h-3 w-3 text-muted-foreground" />
-                {levelLabels[level] ?? level}
+                {levelLabel(level)}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-1" align="start">
@@ -226,7 +230,7 @@ export function NewGoalDialog() {
                   )}
                   onClick={() => { setLevel(l); setLevelOpen(false); }}
                 >
-                  {levelLabels[l] ?? l}
+                  {levelLabel(l)}
                 </button>
               ))}
             </PopoverContent>
@@ -237,7 +241,7 @@ export function NewGoalDialog() {
             <PopoverTrigger asChild>
               <button className="inline-flex items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent/50 transition-colors">
                 <Target className="h-3 w-3 text-muted-foreground" />
-                {currentParent ? currentParent.title : "Parent goal"}
+                {currentParent ? currentParent.title : t("components.dialogs.newGoal.parentGoal", { defaultValue: "Parent goal" })}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-48 p-1" align="start">
@@ -248,8 +252,7 @@ export function NewGoalDialog() {
                 )}
                 onClick={() => { setParentId(""); setParentOpen(false); }}
               >
-                No parent
-              </button>
+                {t("components.issuesList.noParent")}</button>
               {(goals ?? []).map((g) => (
                 <button
                   key={g.id}
@@ -273,7 +276,7 @@ export function NewGoalDialog() {
             disabled={!title.trim() || createGoal.isPending}
             onClick={handleSubmit}
           >
-            {createGoal.isPending ? "Creating…" : newGoalDefaults.parentId ? "Create sub-goal" : "Create goal"}
+            {createGoal.isPending ? t("components.dialogs.common.creating", { defaultValue: "Creating…" }) : newGoalDefaults.parentId ? t("components.dialogs.newGoal.createSubGoal", { defaultValue: "Create sub-goal" }) : t("components.dialogs.newGoal.createGoal", { defaultValue: "Create goal" })}
           </Button>
         </div>
       </DialogContent>

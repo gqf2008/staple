@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 
@@ -44,7 +45,7 @@ export function SummarizerAgentSelect({
   );
 
   const renderAgent = (option: InlineEntityOption | null) => {
-    if (!option || !option.id) return <span>Summarizer (default)</span>;
+    if (!option || !option.id) return <span>{t("ui.pages.statuscards.summarizeragentselect.summarizer-default")}</span>;
     const agent = option.id.startsWith("agent:") ? agentById.get(option.id.slice("agent:".length)) : null;
     return (
       <>
@@ -58,10 +59,10 @@ export function SummarizerAgentSelect({
     <InlineEntitySelector
       value={value ? `agent:${value}` : ""}
       options={agentOptions}
-      placeholder="Summarizer (default)"
-      noneLabel="Summarizer (default)"
-      searchPlaceholder="Search agents..."
-      emptyMessage="No agents found."
+      placeholder={t("ui.pages.statuscards.summarizeragentselect.summarizer-default")}
+      noneLabel={t("ui.pages.statuscards.summarizeragentselect.summarizer-default.2")}
+      searchPlaceholder={t("components.agentsUsingSkillDialog.searchAgents")}
+      emptyMessage={t("components.dialogs.newIssue.noAgentsFound")}
       onChange={(next) => onChange(next.startsWith("agent:") ? next.slice("agent:".length) : "")}
       className="h-8 text-sm"
       renderTriggerValue={renderAgent}

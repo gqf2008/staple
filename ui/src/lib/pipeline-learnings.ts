@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PipelineCompanyCaseEvent } from "../api/pipelines";
 import { formatShortDate } from "./utils";
 
@@ -23,7 +24,7 @@ function eventItemTitle(event: PipelineCompanyCaseEvent): string {
     asString(payload.itemTitle) ??
     asString(payload.caseTitle) ??
     asString(payload.title) ??
-    "Untitled item"
+    t("pages.pipelines.untitledItem")
   );
 }
 
@@ -34,7 +35,7 @@ function eventActorName(event: PipelineCompanyCaseEvent): string {
     asString(payload.actorName) ??
     asString(payload.reviewerName) ??
     asString(payload.decidedByName) ??
-    "Someone"
+    t("components.liveUpdates.someone")
   );
 }
 
@@ -48,7 +49,7 @@ function payloadText(event: PipelineCompanyCaseEvent, ...keys: string[]): string
 }
 
 function reviewVerb(decision: string | null): string {
-  if (decision === "request_changes") return "sent back";
+  if (decision === "request_changes") return t("ui.lib.pipeline-learnings.sent-back");
   if (decision === "reject" || decision === "drop") return "declined";
   return "approved";
 }
@@ -93,19 +94,19 @@ export function formatLearningEvent(event: PipelineCompanyCaseEvent): LearningEv
 
 export function learningDayKey(value: string | Date) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown";
+  if (Number.isNaN(date.getTime())) return t("ui.lib.pipeline-learnings.unknown");
   return date.toISOString().slice(0, 10);
 }
 
 export function learningDayLabel(value: string | Date) {
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unknown";
+  if (Number.isNaN(date.getTime())) return t("ui.lib.pipeline-learnings.unknown");
   const today = new Date();
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   const diffDays = Math.round((startOfToday - startOfDay) / 86_400_000);
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 0) return t("pages.timeline.today");
+  if (diffDays === 1) return t("ui.lib.attention.yesterday");
   return formatShortDate(date);
 }
 

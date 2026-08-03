@@ -1,3 +1,4 @@
+import { t } from "../../../../i18n";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import type { ToolMcpGatewayWithTokens } from "@paperclipai/shared";
@@ -7,9 +8,9 @@ import { ErrorState, RelativeTime } from "@/pages/tools/shared";
 import { cn } from "@/lib/utils";
 
 const OUTCOME_LABEL: Record<ToolAuditOutcome, string> = {
-  allowed: "Allowed",
+  allowed: t("components.runTranscript.allowed"),
   blocked: "Blocked",
-  asked_first: "Ask first",
+  asked_first: t("pages.apps.testPanel.askFirst"),
   waiting: "Waiting",
   failed: "Failed",
   unknown: "—",
@@ -66,12 +67,10 @@ export function GatewayActivityPanel({
   return (
     <div className="space-y-3">
       <p className="text-sm text-muted-foreground">
-        Every call through this gateway in the last 7 days, with why it was allowed, blocked, or paused.
-      </p>
+        {t("ui.pages.apps.gateways.panels.gatewayactivitypanel.every-call-through-gateway")}</p>
       {events.length === 0 ? (
         <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No calls have gone through this gateway yet.
-        </div>
+          {t("ui.pages.apps.gateways.panels.gatewayactivitypanel.no-calls-have-gone")}</div>
       ) : (
         <ul className="divide-y divide-border rounded-lg border border-border">
           {events.map((event) => {

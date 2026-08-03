@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export type IssueChatScrollTarget =
   | { type: "element"; element: HTMLElement }
   | { type: "window" };

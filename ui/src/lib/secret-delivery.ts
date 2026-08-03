@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { SecretAccessEvent } from "@paperclipai/shared";
 
 /**
@@ -48,7 +49,7 @@ export function deliveryModeDescription(mode: SecretDeliveryMode): string {
     case "api":
       return "Fetched on demand via the run-bound agent API. Never written to the environment.";
     default:
-      return "Provided through adapter configuration.";
+      return t("ui.lib.secret-delivery.provided-through-adapter-configuration");
   }
 }
 

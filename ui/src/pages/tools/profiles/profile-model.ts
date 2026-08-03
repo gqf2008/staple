@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type {
   ToolCatalogEntry,
   ToolProfileDefaultAction,
@@ -31,9 +32,9 @@ export function toolCapability(tool: ToolCatalogEntry): ToolCapability {
 }
 
 export const CAPABILITY_LABEL: Record<ToolCapability, string> = {
-  read: "Read-only",
-  write: "Makes changes",
-  destructive: "Destructive",
+  read: t("pages.tools.pasteConfig.readOnly"),
+  write: t("pages.tools.policies.makesChanges"),
+  destructive: t("components.issueThreadInteraction.destructive"),
 };
 
 // --- App grouping ----------------------------------------------------------
@@ -66,7 +67,7 @@ export function groupCatalogByApp(
       const name =
         (tool.applicationId ? applicationsById.get(tool.applicationId) : null) ??
         connectionsById.get(tool.connectionId) ??
-        "Tools";
+        t("app.tools");
       group = {
         appKey,
         applicationId: tool.applicationId,
@@ -131,7 +132,7 @@ export function appCheckState(group: AppGroup, selection: AppSelection | undefin
 export function appSelectionLabel(group: AppGroup, selection: AppSelection | undefined): string {
   const total = group.tools.length;
   const state = appCheckState(group, selection);
-  if (state === "unchecked") return "None selected";
+  if (state === "unchecked") return t("ui.pages.tools.profiles.profile-model.none-selected");
   if (selection?.kind === "all" || (selection?.kind === "all_except" && selection.excluded.length === 0)) {
     return `All ${group.name} tools (${total})`;
   }
@@ -368,11 +369,11 @@ export interface TemplateDef {
 }
 
 export const TEMPLATES: TemplateDef[] = [
-  { key: "read_only", title: "Read-only", description: "See and fetch, but never change anything." },
-  { key: "everyday", title: "Everyday work", description: "Read and make routine changes — no destructive tools." },
-  { key: "full_access", title: "Full access", description: "Everything every connected app offers." },
-  { key: "scratch", title: "Start from scratch", description: "An empty profile you build up tool by tool." },
-  { key: "copy", title: "Copy an existing profile", description: "Start from a profile you already have." },
+  { key: "read_only", title: t("pages.tools.pasteConfig.readOnly"), description: t("ui.pages.tools.profiles.profile-model.see-fetch-but-never") },
+  { key: "everyday", title: t("ui.pages.tools.profiles.profile-model.everyday-work"), description: t("ui.pages.tools.profiles.profile-model.read-make-routine-changes") },
+  { key: "full_access", title: t("ui.pages.tools.profiles.profile-model.full-access"), description: t("ui.pages.tools.profiles.profile-model.everything-every-connected-app") },
+  { key: "scratch", title: t("pages.tools.policies.startFromScratch"), description: t("ui.pages.tools.profiles.profile-model.empty-profile-you-build") },
+  { key: "copy", title: t("ui.pages.tools.profiles.profile-model.copy-existing-profile"), description: t("ui.pages.tools.profiles.profile-model.start-from-profile-you") },
 ];
 
 function capabilityPredicate(key: TemplateKey): (tool: ToolCatalogEntry) => boolean {

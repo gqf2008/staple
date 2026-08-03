@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   Component,
   createContext,
@@ -113,11 +114,11 @@ const entityScopedZones = new Set<PluginLauncherPlacementZone>([
   "toolbarButton",
 ]);
 const focusableElementSelector = [
-  "button:not([disabled])",
-  "[href]",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
+  t("ui.plugins.launchers.button-not-disabled"),
+  t("ui.plugins.launchers.href"),
+  t("ui.plugins.launchers.input-not-disabled"),
+  t("ui.plugins.launchers.select-not-disabled"),
+  t("ui.plugins.launchers.textarea-not-disabled"),
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 const launcherOverlayBaseZIndex = 1000;
@@ -129,7 +130,7 @@ const PluginLauncherRuntimeContext = createContext<PluginLauncherRuntimeContextV
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return "Unknown error";
+  return t("components.dialogs.newAgent.unknownError");
 }
 
 function buildLauncherHostContext(
@@ -248,7 +249,7 @@ function launcherShellBoundsStyle(bounds: PluginLauncherBounds | null): CSSPrope
 
 function launcherPopoverStyle(instance: LauncherInstance): CSSProperties {
   const rect = instance.sourceRect;
-  const baseWidth = launcherShellBoundsStyle(instance.bounds).width ?? "min(24rem, calc(100vw - 2rem))";
+  const baseWidth = launcherShellBoundsStyle(instance.bounds).width ?? t("ui.plugins.launchers.fallback-min-24rem-calc-100vw");
   if (!rect) {
     return {
       width: baseWidth,
@@ -405,7 +406,7 @@ class LauncherErrorBoundary extends Component<LauncherErrorBoundaryProps, Launch
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error("Plugin launcher render failed", {
+    console.error(t("ui.plugins.launchers.plugin-launcher-render-failed"), {
       pluginKey: this.props.launcher.pluginKey,
       launcherId: this.props.launcher.id,
       error,
@@ -417,8 +418,7 @@ class LauncherErrorBoundary extends Component<LauncherErrorBoundaryProps, Launch
     if (this.state.hasError) {
       return (
         <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-          {this.props.launcher.pluginDisplayName}: failed to render
-        </div>
+          {this.props.launcher.pluginDisplayName}{t("ui.plugins.launchers.failed-render")}</div>
       );
     }
     return this.props.children;
@@ -456,7 +456,7 @@ function LauncherRenderContent({
 
     return (
       <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
-        {instance.launcher.pluginDisplayName}: could not resolve launcher target "{instance.launcher.action.target}".
+        {instance.launcher.pluginDisplayName}{t("ui.plugins.launchers.could-not-resolve-launcher")}{instance.launcher.action.target}".
       </div>
     );
   }
@@ -596,8 +596,7 @@ function LauncherModalShell({
             className="ml-auto"
             onClick={() => void closeLauncher(instance.key, { reason: "programmatic" })}
           >
-            Close
-          </Button>
+            {t("components.fileViewer.close")}</Button>
         </div>
         <div
           className={cn(
@@ -802,7 +801,7 @@ export function PluginLauncherOutlet({
   if (errorMessage) {
     return (
       <div className={cn("rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1 text-xs text-destructive", errorClassName)}>
-        Plugin launchers unavailable: {errorMessage}
+        {t("ui.plugins.launchers.plugin-launchers-unavailable")}{errorMessage}
       </div>
     );
   }

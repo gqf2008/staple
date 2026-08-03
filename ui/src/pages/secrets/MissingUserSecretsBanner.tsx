@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle } from "lucide-react";
@@ -61,10 +62,7 @@ export function MissingUserSecretsBanner({
         <div className="min-w-0 flex-1">
           <p className="font-medium">{title}</p>
           <p className="mt-0.5 text-amber-700/90 dark:text-amber-300/90">
-            {missing.length} user secret{missing.length === 1 ? "" : "s"} you are responsible for
-            {missing.length === 1 ? " has" : " have"} no value yet. Runs that require
-            {missing.length === 1 ? " it" : " them"} will fail until you set your value.
-          </p>
+            {missing.length} {t("components.agentConfigForm.userSecret")}{missing.length === 1 ? "" : "s"} {t("ui.pages.secrets.missingusersecretsbanner.you-responsible")}{missing.length === 1 ? " has" : " have"} {t("ui.pages.secrets.missingusersecretsbanner.no-value-yet-runs")}{missing.length === 1 ? " it" : " them"} {t("ui.pages.secrets.missingusersecretsbanner.will-fail-until-you")}</p>
           <ul className="mt-2 space-y-1.5">
             {missing.map((entry) => (
               <li
@@ -76,8 +74,7 @@ export function MissingUserSecretsBanner({
                   <code className="text-(length:--text-micro) text-muted-foreground">{entry.definition.key}</code>
                 </span>
                 <Button size="sm" onClick={() => setDialogFor(entry)}>
-                  Set value
-                </Button>
+                  {t("ui.pages.secrets.missingusersecretsbanner.set-value")}</Button>
               </li>
             ))}
           </ul>
@@ -86,8 +83,7 @@ export function MissingUserSecretsBanner({
               to={secretsPath}
               className="mt-2 inline-block text-(length:--text-micro) font-medium underline underline-offset-2"
             >
-              Manage all my secrets
-            </Link>
+              {t("ui.pages.secrets.missingusersecretsbanner.manage-all-my-secrets")}</Link>
           ) : null}
         </div>
       </div>

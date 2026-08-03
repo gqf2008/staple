@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   Issue,
   IssueBlockedInboxAttention,
@@ -38,27 +39,27 @@ export const BLOCKED_REASON_VARIANT_ORDER: BlockedReasonVariant[] = [
 ];
 
 export const BLOCKED_VARIANT_LABELS: Record<BlockedReasonVariant, string> = {
-  needs_decision: "Needs decision",
-  stalled: "Blocked chain stalled",
-  needs_attention: "Needs attention",
-  recovery_required: "Recovery required",
-  external_wait: "External wait",
-  owner_paused: "Owner paused",
+  needs_decision: t("ui.lib.blockedinbox.needs-decision"),
+  stalled: t("ui.lib.blockedinbox.blocked-chain-stalled"),
+  needs_attention: t("components.appsSidebar.needsAttention"),
+  recovery_required: t("ui.lib.blockedinbox.recovery-required"),
+  external_wait: t("ui.lib.blockedinbox.external-wait"),
+  owner_paused: t("ui.lib.blockedinbox.owner-paused"),
 };
 
 const REASON_LABELS: Record<IssueBlockedInboxReason, string> = {
-  pending_board_decision: "Pending board decision",
-  pending_user_decision: "Pending user decision",
-  missing_successful_run_disposition: "Pick disposition",
-  blocked_chain_stalled: "Blocked chain stalled",
-  blocked_by_unassigned_issue: "Unassigned blocker",
-  blocked_by_assigned_backlog_issue: "Parked blocker",
-  blocked_by_cancelled_issue: "Cancelled blocker",
-  in_review_without_action_path: "Review without action path",
-  invalid_review_participant: "Invalid review participant",
-  open_recovery_issue: "Recovery in progress",
-  external_owner_action: "External owner action",
-  blocked_by_uninvokable_assignee: "Owner paused",
+  pending_board_decision: t("ui.lib.blockedinbox.pending-board-decision"),
+  pending_user_decision: t("ui.lib.blockedinbox.pending-user-decision"),
+  missing_successful_run_disposition: t("ui.lib.blockedinbox.pick-disposition"),
+  blocked_chain_stalled: t("ui.lib.blockedinbox.blocked-chain-stalled"),
+  blocked_by_unassigned_issue: t("ui.lib.blockedinbox.unassigned-blocker"),
+  blocked_by_assigned_backlog_issue: t("ui.lib.blockedinbox.parked-blocker"),
+  blocked_by_cancelled_issue: t("ui.lib.blockedinbox.cancelled-blocker"),
+  in_review_without_action_path: t("ui.lib.blockedinbox.review-without-action-path"),
+  invalid_review_participant: t("ui.lib.blockedinbox.invalid-review-participant"),
+  open_recovery_issue: t("components.issueRecoveryAction.recoveryInProgress"),
+  external_owner_action: t("ui.lib.blockedinbox.external-owner-action"),
+  blocked_by_uninvokable_assignee: t("ui.lib.blockedinbox.owner-paused"),
 };
 
 const SEVERITY_RANK: Record<IssueBlockedInboxSeverity, number> = {
@@ -75,7 +76,7 @@ export function blockedReasonVariant(reason: IssueBlockedInboxReason): BlockedRe
 }
 
 export function blockedReasonLabel(reason: IssueBlockedInboxReason): string {
-  return REASON_LABELS[reason] ?? "Stopped";
+  return REASON_LABELS[reason] ?? t("components.workspaceServiceControlBar.stopped");
 }
 
 export function blockedVariantLabel(variant: BlockedReasonVariant): string {
@@ -110,14 +111,14 @@ export type BlockedInboxGroupBy = "blocker_type" | "none";
 export type BlockedInboxSort = "urgency" | "most_recent" | "longest_stopped";
 
 export const BLOCKED_GROUP_OPTIONS: readonly [BlockedInboxGroupBy, string][] = [
-  ["blocker_type", "Blocker type"],
+  ["blocker_type", t("ui.lib.blockedinbox.blocker-type")],
   ["none", "None"],
 ];
 
 export const BLOCKED_SORT_OPTIONS: readonly [BlockedInboxSort, string][] = [
-  ["urgency", "Most urgent"],
-  ["most_recent", "Most recent"],
-  ["longest_stopped", "Longest stopped"],
+  ["urgency", t("ui.lib.blockedinbox.most-urgent")],
+  ["most_recent", t("ui.lib.blockedinbox.most-recent")],
+  ["longest_stopped", t("ui.lib.blockedinbox.longest-stopped")],
 ];
 
 export interface BlockedInboxGroup {
@@ -253,7 +254,7 @@ export function formatStoppedAge(stoppedSinceAt: string | null, now: number = Da
   const then = new Date(stoppedSinceAt).getTime();
   if (!Number.isFinite(then)) return "stopped";
   const seconds = Math.max(0, Math.round((now - then) / 1000));
-  if (seconds < 60) return "stopped just now";
+  if (seconds < 60) return t("ui.lib.blockedinbox.stopped-just-now");
   if (seconds < 3600) {
     const m = Math.floor(seconds / 60);
     return `stopped ${m}m`;

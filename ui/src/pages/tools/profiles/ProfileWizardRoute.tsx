@@ -1,4 +1,5 @@
 import { useEffect } from "react";
+import { t } from "../../../i18n";
 import { useParams, useSearchParams } from "@/lib/router";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
 import { useCompany } from "@/context/CompanyContext";
@@ -28,16 +29,16 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Access profiles", href: advancedTabHref("profiles") },
-      { label: mode === "edit" ? "Resume draft" : "New profile" },
+      { label: selectedCompany?.name ?? t("pages.tools.profileWizardRoute.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.tools.profileWizardRoute.apps", { defaultValue: "Apps" }), href: "/apps" },
+      { label: t("pages.tools.profileWizardRoute.accessProfiles", { defaultValue: "Access profiles" }), href: advancedTabHref("profiles") },
+      { label: mode === "edit" ? t("pages.tools.profileWizardRoute.resumeDraft", { defaultValue: "Resume draft" }) : t("pages.tools.profileWizardRoute.newProfile", { defaultValue: "New profile" }) },
     ]);
     return () => setBreadcrumbs([]);
   }, [setBreadcrumbs, selectedCompany?.name, mode]);
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to create a profile.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("pages.tools.profileWizardRoute.selectCompany", { defaultValue: "Select a company to create a profile." })}</div>;
   }
 
   return (
@@ -45,11 +46,10 @@ export function ProfileWizardRoute({ mode }: { mode: "new" | "edit" }) {
       <div className="mx-auto flex w-full max-w-4xl flex-col gap-5 p-4 sm:p-6">
         <header>
           <h1 className="text-xl font-bold text-foreground">
-            {mode === "edit" ? "Finish your profile" : "New access profile"}
+            {mode === "edit" ? t("pages.tools.profileWizardRoute.finishProfile", { defaultValue: "Finish your profile" }) : t("pages.tools.profileWizardRoute.newAccessProfile", { defaultValue: "New access profile" })}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Choose which tools this profile allows, then assign it to the agents that need them.
-          </p>
+            {t("ui.pages.tools.profiles.profilewizardroute.choose-which-tools-profile")}</p>
         </header>
         <ProfileWizard
           companyId={selectedCompanyId}

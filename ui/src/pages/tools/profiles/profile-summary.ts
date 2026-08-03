@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type { ToolProfileStatus, ToolProfileSummary, ToolProfileWithDetails } from "@paperclipai/shared";
 
 /**
@@ -15,7 +16,7 @@ function plural(n: number, one: string, many = `${one}s`): string {
 export function allowsLabel(summary: ToolProfileSummary): string {
   if (summary.accessMode === "all_except") {
     return summary.excludedToolCount === 0
-      ? "All tools"
+      ? t("ui.pages.tools.profiles.profile-summary.all-tools")
       : `All except ${plural(summary.excludedToolCount, "tool")}`;
   }
   const parts = [plural(summary.allowedToolCount, "tool")];
@@ -33,18 +34,18 @@ export interface AssignedLabel {
 
 /** "Company default" / "2 agents" / "Not assigned yet". */
 export function assignedLabel(summary: ToolProfileSummary): AssignedLabel {
-  if (summary.isCompanyDefault) return { text: "Company default", unassigned: false };
+  if (summary.isCompanyDefault) return { text: t("pages.tools.profileDetail.companyDefault"), unassigned: false };
   if (summary.appliesToAgentCount > 0) {
     return { text: plural(summary.appliesToAgentCount, "agent"), unassigned: false };
   }
   if (summary.assignmentCount > 0) {
     return { text: plural(summary.assignmentCount, "assignment"), unassigned: false };
   }
-  return { text: "Not assigned yet", unassigned: true };
+  return { text: t("pages.tools.profileDetail.notAssigned"), unassigned: true };
 }
 
 export const STATUS_LABEL: Record<ToolProfileStatus, string> = {
-  draft: "Draft",
+  draft: t("components.routineList.draft"),
   active: "Active",
   disabled: "Off",
   archived: "Archived",

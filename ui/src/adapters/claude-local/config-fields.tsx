@@ -1,4 +1,5 @@
 import type { AdapterConfigFieldsProps } from "../types";
+import { t } from "../../i18n";
 import {
   Field,
   ToggleField,
@@ -13,7 +14,7 @@ const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 
 const instructionsFileHint =
-  "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime.";
+  t("ui.adapters.claude-local.config-fields.absolute-path-markdown-file");
 
 export function ClaudeLocalConfigFields({
   mode,
@@ -30,7 +31,7 @@ export function ClaudeLocalConfigFields({
   return (
     <>
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("components.claudeConfig.instructionsFile", { defaultValue: "Agent instructions file" })} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -86,7 +87,7 @@ export function ClaudeLocalAdvancedFields({
 
   return (
     <>
-      <Field label="Execution engine" hint="Auto uses ACP when prerequisites pass and falls back to Claude CLI with diagnostics.">
+      <Field label={t("components.claudeConfig.executionEngine", { defaultValue: "Execution engine" })} hint={t("components.claudeConfig.engineHint", { defaultValue: "Auto uses ACP when prerequisites pass and falls back to Claude CLI with diagnostics." })}>
         <select
           className={inputClass}
           value={engine}
@@ -97,16 +98,16 @@ export function ClaudeLocalAdvancedFields({
               : mark("adapterConfig", "engine", value === "auto" ? undefined : value);
           }}
         >
-          <option value="auto">Auto (ACP preferred)</option>
-          <option value="cli">Claude CLI</option>
-          <option value="acp">ACP</option>
+          <option value="auto">{t("components.claudeConfig.auto", { defaultValue: "Auto (ACP preferred)" })}</option>
+          <option value="cli">{t("components.claudeConfig.claudeCli", { defaultValue: "Claude CLI" })}</option>
+          <option value="acp">{t("components.claudeConfig.acp", { defaultValue: "ACP" })}</option>
         </select>
       </Field>
       {acpSelected && (
         <>
           <Field
-            label="ACP server command"
-            hint="Optional override for the Claude ACP server command. Defaults to the package-local claude-agent-acp binary."
+            label={t("components.claudeConfig.acpCommand", { defaultValue: "ACP server command" })}
+            hint={t("ui.adapters.claude-local.config-fields.optional-override-claude-acp")}
           >
             <DraftInput
               value={
@@ -124,7 +125,7 @@ export function ClaudeLocalAdvancedFields({
               placeholder="claude-agent-acp"
             />
           </Field>
-          <Field label="ACP session mode" hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
+          <Field label={t("components.claudeConfig.acpSessionMode", { defaultValue: "ACP session mode" })} hint={t("components.claudeConfig.sessionModeHint", { defaultValue: "Persistent keeps ACP session state between runs. One-shot starts fresh each run." })}>
             <select
               className={inputClass}
               value={
@@ -139,13 +140,13 @@ export function ClaudeLocalAdvancedFields({
                   : mark("adapterConfig", "mode", value);
               }}
             >
-              <option value="persistent">Persistent</option>
-              <option value="oneshot">One-shot</option>
+              <option value="persistent">{t("components.claudeConfig.persistent", { defaultValue: "Persistent" })}</option>
+              <option value="oneshot">{t("components.claudeConfig.oneShot", { defaultValue: "One-shot" })}</option>
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
-            hint="Fallback if the ACP agent asks for input outside an interactive session."
+            label={t("components.claudeConfig.acpPermissions", { defaultValue: "ACP non-interactive permissions" })}
+            hint={t("components.claudeConfig.permissionsHint", { defaultValue: "Fallback if the ACP agent asks for input outside an interactive session." })}
           >
             <select
               className={inputClass}
@@ -161,13 +162,13 @@ export function ClaudeLocalAdvancedFields({
                   : mark("adapterConfig", "nonInteractivePermissions", value);
               }}
             >
-              <option value="deny">Deny</option>
-              <option value="fail">Fail</option>
+              <option value="deny">{t("components.claudeConfig.deny", { defaultValue: "Deny" })}</option>
+              <option value="fail">{t("components.claudeConfig.fail", { defaultValue: "Fail" })}</option>
             </select>
           </Field>
           <Field
-            label="ACP state directory"
-            hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
+            label={t("components.claudeConfig.acpStateDir", { defaultValue: "ACP state directory" })}
+            hint={t("ui.adapters.claude-local.config-fields.optional-acp-session-state")}
           >
             <div className="flex items-center gap-2">
               <DraftInput
@@ -189,8 +190,8 @@ export function ClaudeLocalAdvancedFields({
             </div>
           </Field>
           <Field
-            label="ACP warm process idle ms"
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            label={t("components.claudeConfig.warmIdleMs", { defaultValue: "ACP warm process idle ms" })}
+            hint={t("ui.adapters.claude-local.config-fields.defaults-which-closes-acp")}
           >
             {isCreate ? (
               <input
@@ -215,7 +216,7 @@ export function ClaudeLocalAdvancedFields({
         </>
       )}
       <ToggleField
-        label="Enable Chrome"
+        label={t("components.claudeConfig.enableChrome", { defaultValue: "Enable Chrome" })}
         hint={help.chrome}
         checked={
           isCreate
@@ -229,7 +230,7 @@ export function ClaudeLocalAdvancedFields({
         }
       />
       <ToggleField
-        label="Skip permissions"
+        label={t("components.claudeConfig.skipPermissions", { defaultValue: "Skip permissions" })}
         hint={help.dangerouslySkipPermissions}
         checked={
           isCreate
@@ -246,7 +247,7 @@ export function ClaudeLocalAdvancedFields({
             : mark("adapterConfig", "dangerouslySkipPermissions", v)
         }
       />
-      <Field label="Max turns per run" hint={help.maxTurnsPerRun}>
+      <Field label={t("components.claudeConfig.maxTurns", { defaultValue: "Max turns per run" })} hint={help.maxTurnsPerRun}>
         {isCreate ? (
           <input
             type="number"

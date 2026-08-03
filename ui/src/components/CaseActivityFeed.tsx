@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import { Link } from "@/lib/router";
 import { Bot, User, Cog, ChevronDown, ListFilter } from "lucide-react";
@@ -18,22 +19,22 @@ import { cn, relativeTime } from "@/lib/utils";
 const EVENT_LABEL: Record<CaseEventKind, string> = {
   created: "created",
   updated: "updated",
-  fields_changed: "fields changed",
-  status_changed: "status changed",
-  issue_linked: "issue linked",
-  issue_unlinked: "issue unlinked",
-  document_revised: "document revised",
-  child_linked: "child linked",
-  attachment_added: "attachment added",
-  label_added: "label added",
-  label_removed: "label removed",
+  fields_changed: t("ui.components.caseactivityfeed.fields-changed"),
+  status_changed: t("ui.components.caseactivityfeed.status-changed"),
+  issue_linked: t("ui.components.caseactivityfeed.issue-linked"),
+  issue_unlinked: t("ui.components.caseactivityfeed.issue-unlinked"),
+  document_revised: t("ui.components.caseactivityfeed.document-revised"),
+  child_linked: t("ui.components.caseactivityfeed.child-linked"),
+  attachment_added: t("ui.components.caseactivityfeed.attachment-added"),
+  label_added: t("ui.components.caseactivityfeed.label-added"),
+  label_removed: t("ui.components.caseactivityfeed.label-removed"),
 };
 
 /** Human label for the actor, preferring the resolved agent name. */
 function actorLabel(event: CaseEvent): string {
   if (event.actorType === "agent") return event.actorAgentName ?? "Agent";
   if (event.actorType === "user") return "User";
-  return "System";
+  return t("components.activityRow.system", { defaultValue: "System" });
 }
 
 function ActorIcon({ event }: { event: CaseEvent }) {
@@ -110,13 +111,13 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
   }
 
   const filterLabel = active.size === 0
-    ? "All activity"
+    ? t("ui.components.caseactivityfeed.all-activity.2")
     : active.size === 1
       ? EVENT_LABEL[[...active][0]!] ?? [...active][0]!
       : `${active.size} filters`;
 
   if (events.length === 0) {
-    return <p className="py-6 text-center text-sm text-muted-foreground">No activity yet.</p>;
+    return <p className="py-6 text-center text-sm text-muted-foreground">{t("components.routineOperate.noActivity")}</p>;
   }
 
   return (
@@ -134,10 +135,9 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
-            <DropdownMenuLabel>Activity filter</DropdownMenuLabel>
+            <DropdownMenuLabel>{t("ui.components.caseactivityfeed.activity-filter")}</DropdownMenuLabel>
             <DropdownMenuItem onSelect={() => setActive(new Set())}>
-              All activity
-            </DropdownMenuItem>
+              {t("ui.components.caseactivityfeed.all-activity")}</DropdownMenuItem>
             <DropdownMenuSeparator />
             {presentKinds.map((kind) => (
               <DropdownMenuCheckboxItem
@@ -152,7 +152,7 @@ export function CaseActivityFeed({ events }: { events: CaseEvent[] }) {
         </DropdownMenu>
       </div>
       {filtered.length === 0 ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">No events match this filter.</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">{t("ui.components.caseactivityfeed.no-events-match-filter")}</p>
       ) : (
         <div className="divide-y divide-border">
           {filtered.map((event) => (

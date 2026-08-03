@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { ReactNode } from "react";
 import type {
   ToolRiskLevel,
@@ -91,12 +92,12 @@ function decisionToStatusKey(decision: string): { key: string; label: string } {
       return { key: "block", label: "block" };
     case "require_approval":
     case "requires_approval":
-      return { key: "require-approval", label: "require approval" };
+      return { key: "require-approval", label: t("ui.pages.tools.shared.require-approval") };
     case "redact":
     case "redacted":
       return { key: "redacted", label: "redacted" };
     case "rate_limited":
-      return { key: "rate-limit", label: "rate limited" };
+      return { key: "rate-limit", label: t("ui.pages.tools.shared.rate-limited") };
     case "defer":
     case "deferred":
       return { key: "deferred", label: "deferred" };
@@ -189,7 +190,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
         <div className="flex items-start gap-2 text-sm text-destructive">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
           <div>
-            <p className="font-medium">Could not load this view</p>
+            <p className="font-medium">{t("ui.pages.tools.shared.could-not-load-view")}</p>
             <p className="text-destructive/80">{message}</p>
           </div>
         </div>
@@ -199,8 +200,7 @@ export function ErrorState({ error, onRetry }: { error: unknown; onRetry?: () =>
             onClick={onRetry}
             className="self-start rounded-md border border-border px-3 py-1.5 text-xs font-medium hover:bg-accent"
           >
-            Retry
-          </button>
+            {t("components.issueProperties.retry")}</button>
         ) : null}
       </CardContent>
     </Card>
@@ -231,7 +231,7 @@ export function PendingBackendNotice({
         <p className="max-w-2xl text-sm text-muted-foreground">{body}</p>
         {issue ? (
           <a href={issue.href} className="text-sm font-medium text-primary hover:underline">
-            Tracked in {issue.identifier} →
+            {t("ui.pages.tools.shared.tracked")}{issue.identifier} →
           </a>
         ) : null}
       </CardContent>

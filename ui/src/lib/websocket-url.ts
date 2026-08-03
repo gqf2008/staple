@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type BrowserLocationLike = Pick<Location, "host" | "hostname" | "port" | "protocol">;
 
 function isWildcardHost(hostname: string): boolean {

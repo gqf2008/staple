@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { AttentionFeed, AttentionFeedQuery } from "@paperclipai/shared";
 import { api } from "./client";
 

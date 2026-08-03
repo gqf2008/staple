@@ -1,4 +1,5 @@
 import { useCallback, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import { useNavigate } from "@/lib/router";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
@@ -50,7 +51,7 @@ import type {
 export function RunButton({
   onClick,
   disabled,
-  label = "Run now",
+  label = t("components.agentActionButtons.runNow", { defaultValue: "Run now" }),
   size = "sm",
 }: {
   onClick: () => void;
@@ -83,7 +84,7 @@ export function PauseResumeButton({
     return (
       <Button variant="outline" size={size} onClick={onResume} disabled={disabled}>
         <Play className="h-3.5 w-3.5 sm:mr-1" />
-        <span className="hidden sm:inline">Resume</span>
+        <span className="hidden sm:inline">{t("components.agentActionButtons.resume", { defaultValue: "Resume" })}</span>
       </Button>
     );
   }
@@ -91,7 +92,7 @@ export function PauseResumeButton({
   return (
     <Button variant="outline" size={size} onClick={onPause} disabled={disabled}>
       <Pause className="h-3.5 w-3.5 sm:mr-1" />
-      <span className="hidden sm:inline">Pause</span>
+      <span className="hidden sm:inline">{t("components.agentActionButtons.pause", { defaultValue: "Pause" })}</span>
     </Button>
   );
 }
@@ -112,10 +113,10 @@ export function ClearErrorButton({
       onClick={onClick}
       disabled={disabled}
       className="border-destructive/60 text-destructive hover:bg-destructive/10 hover:text-destructive dark:border-destructive/50"
-      aria-label="Clear error and return agent to idle"
+      aria-label={t("components.agentActionButtons.clearErrorHint", { defaultValue: "Clear error and return agent to idle" })}
     >
       <CheckCircle2 className="h-3.5 w-3.5 sm:mr-1" />
-      <span className="hidden sm:inline">Clear error</span>
+      <span className="hidden sm:inline">{t("components.agentActionButtons.clearError", { defaultValue: "Clear error" })}</span>
     </Button>
   );
 }
@@ -144,7 +145,7 @@ export async function loadDuplicateInstructionsBundle(
 
   const entryFile = Object.prototype.hasOwnProperty.call(files, bundle.entryFile)
     ? bundle.entryFile
-    : Object.keys(files)[0] ?? "AGENTS.md";
+    : Object.keys(files)[0] ?? t("components.agentActionButtons.agentsMd", { defaultValue: "AGENTS.md" });
   return Object.keys(files).length > 0 ? { entryFile, files } : null;
 }
 
@@ -157,8 +158,8 @@ export function AgentActionButtons({
   agent,
   companyId,
   size = "sm",
-  assignLabel = "Assign Task",
-  runLabel = "Run now",
+  assignLabel = t("components.agentActionButtons.assignTask", { defaultValue: "Assign Task" }),
+  runLabel = t("components.agentActionButtons.runNow", { defaultValue: "Run now" }),
   showStatus = true,
   actionsDisabled = false,
   workActionsDisabled = false,
@@ -217,7 +218,7 @@ export function AgentActionButtons({
       if (onActionError) {
         onActionError(message);
       } else {
-        pushToast({ title: "Action failed", body: message, tone: "error" });
+        pushToast({ title: t("components.agentActionButtons.actionFailed", { defaultValue: "Action failed" }), body: message, tone: "error" });
       }
     },
     [onActionError, pushToast],
@@ -257,14 +258,14 @@ export function AgentActionButtons({
       }
     },
     onError: (err) => {
-      reportError(err instanceof Error ? err.message : "Action failed");
+      reportError(err instanceof Error ? err.message : t("components.agentActionButtons.actionFailed", { defaultValue: "Action failed" }));
     },
   });
 
   const duplicateAgent = useMutation({
     mutationFn: async () => {
       if (!resolvedCompanyId) {
-        throw new Error("Agent is not ready to duplicate");
+        throw new Error(t("components.agentActionButtons.notReadyDuplicate", { defaultValue: "Agent is not ready to duplicate" }));
       }
       const instructionsBundle = await loadDuplicateInstructionsBundle(agent.id, resolvedCompanyId);
       const payload = buildDuplicateAgentPayload(agent, instructionsBundle);
@@ -283,13 +284,13 @@ export function AgentActionButtons({
       if (resolvedCompanyId) {
         await queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(resolvedCompanyId) });
       }
-      pushToast({ title: "Agent duplicated", body: createdAgent.name, tone: "success" });
+      pushToast({ title: t("components.agentActionButtons.agentDuplicated", { defaultValue: "Agent duplicated" }), body: createdAgent.name, tone: "success" });
       navigate(`/agents/${agentRouteRef(createdAgent)}/dashboard`);
     },
     onError: (err) => {
-      const message = err instanceof Error ? err.message : "Failed to duplicate agent";
+      const message = err instanceof Error ? err.message : t("components.agentActionButtons.duplicateFailed", { defaultValue: "Failed to duplicate agent" });
       onActionError?.(message);
-      pushToast({ title: "Could not duplicate agent", body: message, tone: "error" });
+      pushToast({ title: t("components.agentActionButtons.couldNotDuplicate", { defaultValue: "Could not duplicate agent" }), body: message, tone: "error" });
     },
   });
 
@@ -310,7 +311,7 @@ export function AgentActionButtons({
       queryClient.invalidateQueries({ queryKey: queryKeys.agents.taskSessions(agent.id) });
     },
     onError: (err) => {
-      reportError(err instanceof Error ? err.message : "Failed to reset session");
+      reportError(err instanceof Error ? err.message : t("components.agentActionButtons.resetSessionFailed", { defaultValue: "Failed to reset session" }));
     },
   });
 
@@ -363,10 +364,9 @@ export function AgentActionButtons({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("components.agentActionButtons.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
               <AlertDialogAction onClick={() => agentAction.mutate("pause")}>
-                Pause anyway
-              </AlertDialogAction>
+                {t("ui.components.agentactionbuttons.pause-anyway")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
@@ -394,8 +394,7 @@ export function AgentActionButtons({
             ) : (
               <Copy className="h-3 w-3" />
             )}
-            Duplicate Agent
-          </button>
+            {t("ui.components.agentactionbuttons.duplicate-agent")}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
@@ -404,8 +403,7 @@ export function AgentActionButtons({
             }}
           >
             <Copy className="h-3 w-3" />
-            Copy Agent ID
-          </button>
+            {t("ui.components.agentactionbuttons.copy-agent-id")}</button>
           <button
             className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
             onClick={() => {
@@ -414,8 +412,7 @@ export function AgentActionButtons({
             }}
           >
             <RotateCcw className="h-3 w-3" />
-            Reset Sessions
-          </button>
+            {t("ui.components.agentactionbuttons.reset-sessions")}</button>
           {!hideTerminate && (
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50 text-destructive"
@@ -425,8 +422,7 @@ export function AgentActionButtons({
               }}
             >
               <Trash2 className="h-3 w-3" />
-              Terminate
-            </button>
+              {t("ui.components.agentactionbuttons.terminate")}</button>
           )}
         </PopoverContent>
       </Popover>

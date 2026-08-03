@@ -6,6 +6,7 @@
  * Direction C (PAP-12422): dense rows, mini-map brush, custom inline SVG.
  */
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Bot, Clock3, Coins, GanttChartSquare, Minus, Plus, RotateCcw, type LucideIcon } from "lucide-react";
 import type { WorkTimelineResult } from "@paperclipai/shared";
@@ -78,11 +79,11 @@ export async function loadTimelineWindow(
 
     if (!page.pagination.hasMore) break;
     const nextOffset = page.pagination.offset + page.pagination.limit;
-    if (nextOffset <= offset) throw new Error("Timeline pagination did not advance");
+    if (nextOffset <= offset) throw new Error(t("pages.timeline.paginationFailed", { defaultValue: "Timeline pagination did not advance" }));
     offset = nextOffset;
   }
 
-  if (!firstPage) throw new Error("Timeline response was empty");
+  if (!firstPage) throw new Error(t("pages.timeline.emptyResponse", { defaultValue: "Timeline response was empty" }));
   return {
     actors: Array.from(actors.values()),
     spans: Array.from(spans.values()),
@@ -128,8 +129,8 @@ function rangeWindow(range: DateRangeState): Pick<WorkTimelineParams, "from" | "
 }
 
 function rangeError(range: DateRangeState): string | null {
-  if (!range.fromDate || !range.toDate) return "Choose a start and end date.";
-  if (!rangeWindow(range)) return "Start date must be before end date.";
+  if (!range.fromDate || !range.toDate) return t("pages.timeline.chooseRange", { defaultValue: "Choose a start and end date." });
+  if (!rangeWindow(range)) return t("pages.timeline.startBeforeEnd", { defaultValue: "Start date must be before end date." });
   return null;
 }
 
@@ -241,29 +242,25 @@ function Segmented<T extends string>({
   );
 }
 
-/** Encoding key for the "Signal" timeline: colour = how each run started. */
+/** Encoding key for the t("pages.timeline.signal", { defaultValue: "Signal" }) timeline: colour = how each run started. */
 function TimelineLegend() {
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-3.5 py-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.delegated }} />
-        Delegated
-      </span>
+        {t("ui.pages.timeline.delegated")}</span>
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.automation }} />
-        Automation
-      </span>
+        {t("pages.agentDetail.automation")}</span>
       <span className="flex items-center gap-1.5">
         <span
           className="h-2.5 w-4 rounded-sm border border-dashed bg-transparent"
           style={{ borderColor: TIMELINE_COLORS.cancelled }}
         />
-        Cancelled
-      </span>
+        {t("status.cancelled")}</span>
       <span className="flex items-center gap-1.5">
         <span className="h-3.5 w-0.5" style={{ backgroundColor: TIMELINE_COLORS.now }} />
-        Now
-      </span>
+        {t("ui.pages.timeline.now")}</span>
     </div>
   );
 }
@@ -274,12 +271,12 @@ function TimelineSummaryStats({
   summary: ReturnType<typeof timelineSummary>;
 }) {
   const stats: { label: string; value: string; icon: LucideIcon }[] = [
-    { label: "Runs", value: formatInteger(summary.runs), icon: GanttChartSquare },
-    { label: "Agents", value: formatInteger(summary.agents), icon: Bot },
-    { label: "Run time", value: formatDuration(0, summary.activeMs), icon: Clock3 },
+    { label: t("pages.timeline.runs", { defaultValue: "Runs" }), value: formatInteger(summary.runs), icon: GanttChartSquare },
+    { label: t("pages.timeline.agents", { defaultValue: "Agents" }), value: formatInteger(summary.agents), icon: Bot },
+    { label: t("pages.timeline.runTime", { defaultValue: "Run time" }), value: formatDuration(0, summary.activeMs), icon: Clock3 },
     {
-      label: "Tokens used",
-      value: summary.totalTokens > 0 ? formatCompactInteger(summary.totalTokens) : "Not tracked",
+      label: t("pages.timeline.tokensUsed", { defaultValue: "Tokens used" }),
+      value: summary.totalTokens > 0 ? formatCompactInteger(summary.totalTokens) : t("pages.timeline.notTracked", { defaultValue: "Not tracked" }),
       icon: Coins,
     },
   ];
@@ -313,7 +310,7 @@ export function Timeline() {
   const [visibleWindow, setVisibleWindow] = useState<VisibleTimelineWindow | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Timeline" }]);
+    setBreadcrumbs([{ label: t("pages.timeline.title", { defaultValue: "Timeline" }) }]);
   }, [setBreadcrumbs]);
 
   const dateRangeError = rangeError(dateRange);
@@ -352,7 +349,7 @@ export function Timeline() {
     return (
       <>
         <RequestCollapsedSidebar />
-        <EmptyState icon={GanttChartSquare} message="Select a company to view its work timeline." />
+        <EmptyState icon={GanttChartSquare} message={t("pages.timeline.selectCompany", { defaultValue: "Select a company to view its work timeline." })} />
       </>
     );
   }
@@ -360,7 +357,7 @@ export function Timeline() {
   const header = (
     <div className="flex items-center gap-2">
       <GanttChartSquare className="h-6 w-6 text-muted-foreground" />
-      <h1 className="text-3xl font-semibold tracking-tight">Work Timeline</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{t("pages.timeline.workTimeline", { defaultValue: "Work Timeline" })}</h1>
     </div>
   );
 
@@ -385,8 +382,7 @@ export function Timeline() {
 
   const rangeControls = (
     <label className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      Range
-      <Segmented
+      {t("ui.pages.timeline.range")}<Segmented
         value={rangePreset}
         onChange={(preset) => {
           if (preset === "custom") return;
@@ -394,9 +390,9 @@ export function Timeline() {
           setDateRange(presetRange(preset));
         }}
         options={[
-          { value: "today", label: "Today" },
-          { value: "7d", label: "7 days" },
-          { value: "30d", label: "30 days" },
+          { value: "today", label: t("pages.timeline.today", { defaultValue: "Today" }) },
+          { value: "7d", label: t("ui.pages.timeline.days") },
+          { value: "30d", label: t("ui.pages.timeline.30-days") },
         ]}
       />
       <Input
@@ -407,7 +403,7 @@ export function Timeline() {
           setDateRange((prev) => ({ ...prev, fromDate: event.target.value }));
         }}
         className="h-8 w-(--sz-150px) text-xs"
-        aria-label="Timeline start date"
+        aria-label={t("pages.timeline.startDate", { defaultValue: "Timeline start date" })}
       />
       <span>to</span>
       <Input
@@ -418,7 +414,7 @@ export function Timeline() {
           setDateRange((prev) => ({ ...prev, toDate: event.target.value }));
         }}
         className="h-8 w-(--sz-150px) text-xs"
-        aria-label="Timeline end date"
+        aria-label={t("pages.timeline.endDate", { defaultValue: "Timeline end date" })}
       />
     </label>
   );
@@ -426,14 +422,14 @@ export function Timeline() {
   const toolbar = (
     <div className="flex flex-wrap items-start gap-3">
       {summary && <TimelineSummaryStats summary={summary} />}
-      <div className="ml-auto flex items-center gap-1 pt-3" aria-label="Timeline zoom controls">
+      <div className="ml-auto flex items-center gap-1 pt-3" aria-label={t("pages.timeline.zoomControls", { defaultValue: "Timeline zoom controls" })}>
         <Button
           type="button"
           variant="outline"
           size="icon-xs"
           onClick={() => adjustZoom(0.8)}
-          aria-label="Zoom out"
-          title="Zoom out"
+          aria-label={t("pages.timeline.zoomOut", { defaultValue: "Zoom out" })}
+          title={t("pages.timeline.zoomOut", { defaultValue: "Zoom out" })}
         >
           <Minus className="h-3 w-3" />
         </Button>
@@ -442,8 +438,8 @@ export function Timeline() {
           variant="outline"
           size="icon-xs"
           onClick={() => adjustZoom(1.25)}
-          aria-label="Zoom in"
-          title="Zoom in"
+          aria-label={t("pages.timeline.zoomIn", { defaultValue: "Zoom in" })}
+          title={t("pages.timeline.zoomIn", { defaultValue: "Zoom in" })}
         >
           <Plus className="h-3 w-3" />
         </Button>
@@ -452,8 +448,8 @@ export function Timeline() {
           variant="outline"
           size="icon-xs"
           onClick={resetZoom}
-          aria-label="Reset zoom"
-          title="Reset zoom"
+          aria-label={t("pages.timeline.resetZoom", { defaultValue: "Reset zoom" })}
+          title={t("pages.timeline.resetZoom", { defaultValue: "Reset zoom" })}
         >
           <RotateCcw className="h-3 w-3" />
         </Button>
@@ -484,14 +480,14 @@ export function Timeline() {
       {error && (
         <EmptyState
           icon={GanttChartSquare}
-          message="Couldn't load the timeline. The aggregation endpoint may be unavailable."
+          message={t("pages.timeline.loadFailed", { defaultValue: "Couldn't load the timeline. The aggregation endpoint may be unavailable." })}
         />
       )}
 
       {data && !isLoading && !dateRangeError && (
         data.spans.length === 0 ? (
           <div className="space-y-3">
-            <EmptyState icon={GanttChartSquare} message="No activity in this window." />
+            <EmptyState icon={GanttChartSquare} message={t("pages.timeline.noActivity", { defaultValue: "No activity in this window." })} />
             <div className="flex flex-wrap items-center justify-end gap-3">
               {rangeControls}
             </div>
@@ -516,7 +512,7 @@ export function Timeline() {
               <p className="text-xs text-muted-foreground">
                 {data.spans.length} run{data.spans.length === 1 ? "" : "s"} ·{" "}
                 {new Date(data.window.from).toLocaleString()} to {new Date(data.window.to).toLocaleString()}
-                {data.window.capped ? " · window capped" : ""}
+                {data.window.capped ? t("ui.pages.timeline.window-capped") : ""}
               </p>
               {rangeControls}
             </div>

@@ -118,7 +118,7 @@ export function isCommandTool(name: string, input: unknown): boolean {
 }
 
 export function displayToolName(name: string, input: unknown): string {
-  if (isCommandTool(name, input)) return "Executing command";
+  if (isCommandTool(name, input)) return t("components.runTranscript.executingCommand");
   return humanizeLabel(name);
 }
 
@@ -186,7 +186,7 @@ function readToolDetailValue(value: unknown, max = 200): string | null {
 export function describeToolInput(name: string, input: unknown): ToolInputDetail[] {
   if (typeof input === "string") {
     const summary = compactWhitespace(isCommandTool(name, input) ? stripWrappedShell(input) : input);
-    return summary ? [{ label: isCommandTool(name, input) ? "Command" : "Input", value: truncate(summary, 200), tone: "code" }] : [];
+    return summary ? [{ label: isCommandTool(name, input) ? t("components.agentConfigForm.command") : "Input", value: truncate(summary, 200), tone: "code" }] : [];
   }
 
   const record = asRecord(input);
@@ -203,15 +203,15 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
   };
 
   pushDetail(
-    "Intent",
+    t("components.issueChatThread.intent"),
     summarizeRecord(record, ["description", "summary", "reason", "goal", "intent", "action", "task"]) ?? null,
   );
   pushDetail("Path", readToolDetailValue(record.path) ?? readToolDetailValue(record.filePath) ?? readToolDetailValue(record.file_path));
-  pushDetail("Directory", readToolDetailValue(record.cwd));
-  pushDetail("Query", readToolDetailValue(record.query));
-  pushDetail("Target", readToolDetailValue(record.url) ?? readToolDetailValue(record.target));
-  pushDetail("Prompt", readToolDetailValue(record.prompt) ?? readToolDetailValue(record.message));
-  pushDetail("Pattern", readToolDetailValue(record.pattern));
+  pushDetail(t("ui.lib.transcriptpresentation.directory"), readToolDetailValue(record.cwd));
+  pushDetail(t("ui.lib.transcriptpresentation.query"), readToolDetailValue(record.query));
+  pushDetail(t("pages.companyImport.target"), readToolDetailValue(record.url) ?? readToolDetailValue(record.target));
+  pushDetail(t("pages.agentDetail.prompt"), readToolDetailValue(record.prompt) ?? readToolDetailValue(record.message));
+  pushDetail(t("ui.lib.transcriptpresentation.pattern"), readToolDetailValue(record.pattern));
   pushDetail("Name", readToolDetailValue(record.name) ?? readToolDetailValue(record.title));
 
   if (Array.isArray(record.paths) && record.paths.length > 0) {
@@ -221,7 +221,7 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
       .join(", ");
     if (paths) {
       const suffix = record.paths.length > 3 ? `, +${record.paths.length - 3} more` : "";
-      pushDetail("Paths", `${paths}${suffix}`);
+      pushDetail(t("pages.executionWorkspaceDetail.paths"), `${paths}${suffix}`);
     }
   }
 
@@ -231,7 +231,7 @@ export function describeToolInput(name: string, input: unknown): ToolInputDetail
       ? record.cmd
       : null;
   if (command && isCommandTool(name, record) && !details.some((detail) => detail.label === "Intent")) {
-    pushDetail("Command", truncate(stripWrappedShell(command), 200), "code");
+    pushDetail(t("components.agentConfigForm.command"), truncate(stripWrappedShell(command), 200), "code");
   }
 
   return details;
@@ -242,7 +242,7 @@ export function summarizeToolResult(
   isError: boolean | undefined,
   density: TranscriptDensity = "comfortable",
 ): string {
-  if (!result) return isError ? "Tool failed" : "Waiting for result";
+  if (!result) return isError ? t("components.runTranscript.toolFailed") : t("components.runTranscript.waitingResult");
   const structured = parseStructuredToolResult(result);
   if (structured) {
     if (structured.body) {
@@ -266,7 +266,7 @@ export function parseSystemActivity(text: string): TranscriptActivity | null {
   if (!match) return null;
   return {
     status: match[1].toLowerCase() === "started" ? "running" : "completed",
-    name: humanizeLabel(match[2] ?? "Activity"),
+    name: humanizeLabel(match[2] ?? t("nav.activity")),
     activityId: match[3] || undefined,
   };
 }
@@ -278,4 +278,5 @@ export function shouldHideNiceModeStderr(text: string): boolean {
 
 export function summarizeNotice(text: string, max = 160): string {
   return truncate(compactWhitespace(text), max);
-}
+}import { t } from "../i18n";
+

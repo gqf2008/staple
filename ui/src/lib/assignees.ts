@@ -67,7 +67,7 @@ export function currentUserAssigneeOption(currentUserId: string | null | undefin
   return [{
     id: assigneeValueFromSelection({ assigneeUserId: currentUserId }),
     label: "Me",
-    searchText: currentUserId === "local-board" ? "me board human local-board" : `me human ${currentUserId}`,
+    searchText: currentUserId === "local-board" ? t("ui.lib.assignees.me-board-human-local") : `me human ${currentUserId}`,
   }];
 }
 
@@ -77,7 +77,7 @@ export function formatAssigneeUserLabel(
   userLabels?: ReadonlyMap<string, string> | Record<string, string> | null,
 ): string | null {
   if (!userId) return null;
-  if (currentUserId && userId === currentUserId) return "You";
+  if (currentUserId && userId === currentUserId) return t("components.activityRow.you", { defaultValue: "You" });
   return formatUserLabel(userId, userLabels);
 }
 
@@ -90,8 +90,9 @@ export function formatUserLabel(
     const label = userLabels instanceof Map
       ? userLabels.get(userId)
       : (userLabels as Record<string, string>)[userId];
-    if (typeof label === "string" && label.trim()) return label;
+    if (typeof label === "string" && label.trim()) return localizeServerLabel(label);
   }
-  if (userId === "local-board") return "Board";
+  if (userId === "local-board") return t("components.activityRow.board");
   return userId.slice(0, 5);
-}
+}import { t, localizeServerLabel } from "../i18n";
+

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CompanySearchResponse, CompanySearchScope, CompanySearchSort, IssuePriority, IssueStatus } from "@paperclipai/shared";
 import { api } from "./client";
 

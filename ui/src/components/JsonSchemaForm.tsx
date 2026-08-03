@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import {
   ChevronDown,
   ChevronRight,
@@ -79,13 +80,13 @@ export interface JsonSchemaNode {
 
   // Paperclip extensions
   /**
-   * When true, the field is hidden behind an "Advanced options" disclosure
+   * When true, the field is hidden behind an t("components.jsonSchemaForm.advancedOptions", { defaultValue: "Advanced options" }) disclosure
    * in the top-level `JsonSchemaForm`. Defaults to false (essential).
    */
   "x-paperclip-advanced"?: boolean;
   /**
    * Optional sub-section name used to group advanced fields under headings
-   * inside the disclosure (e.g. "SSH access", "VM resources"). Ignored when
+   * inside the disclosure (e.g. t("components.jsonSchemaForm.sshAccess", { defaultValue: "SSH access" }), t("components.jsonSchemaForm.vmResources", { defaultValue: "VM resources" })). Ignored when
    * `x-paperclip-advanced` is not true.
    */
   "x-paperclip-group"?: string;
@@ -107,7 +108,7 @@ export interface JsonSchemaFormProps {
   disabled?: boolean;
   /** Additional CSS class for the root container. */
   className?: string;
-  /** Label for the disclosure that hides advanced fields. Defaults to "Advanced options". */
+  /** Label for the disclosure that hides advanced fields. Defaults to t("components.jsonSchemaForm.advancedOptions", { defaultValue: "Advanced options" }). */
   advancedLabel?: string;
 }
 
@@ -185,7 +186,7 @@ export function validateField(
 
   // Required check
   if (isRequired && (value === undefined || value === null || value === "")) {
-    return "This field is required";
+    return t("components.jsonSchemaForm.required", { defaultValue: "This field is required" });
   }
 
   // Skip further validation if empty and not required
@@ -195,7 +196,7 @@ export function validateField(
     return null;
   }
   if (type === "secret-ref" && typeof value === "object") {
-    return "Invalid secret reference";
+    return t("components.jsonSchemaForm.invalidSecret", { defaultValue: "Invalid secret reference" });
   }
 
   if (type === "string" || type === "secret-ref") {
@@ -225,7 +226,7 @@ export function validateField(
 
   if (type === "number" || type === "integer") {
     const num = Number(value);
-    if (isNaN(num)) return "Must be a valid number";
+    if (isNaN(num)) return t("components.jsonSchemaForm.invalidNumber", { defaultValue: "Must be a valid number" });
     if (schema.minimum != null && num < schema.minimum) {
       return `Must be at least ${schema.minimum}`;
     }
@@ -239,7 +240,7 @@ export function validateField(
       return `Must be less than ${schema.exclusiveMaximum}`;
     }
     if (type === "integer" && !Number.isInteger(num)) {
-      return "Must be a whole number";
+      return t("components.jsonSchemaForm.invalidWhole", { defaultValue: "Must be a whole number" });
     }
     if (schema.multipleOf != null && num % schema.multipleOf !== 0) {
       return `Must be a multiple of ${schema.multipleOf}`;
@@ -525,12 +526,12 @@ const EnumField = React.memo(({
         disabled={disabled}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select an option" />
+          <SelectValue placeholder={t("components.jsonSchemaForm.selectOption", { defaultValue: "Select an option" })} />
         </SelectTrigger>
         <SelectContent>
           {showUnsetOption && (
-            <SelectItem value={ENUM_UNSET_VALUE} textValue="None">
-              <span className="text-muted-foreground">None</span>
+            <SelectItem value={ENUM_UNSET_VALUE} textValue={t("components.jsonSchemaForm.none", { defaultValue: "None" })}>
+              <span className="text-muted-foreground">{t("components.jsonSchemaForm.none", { defaultValue: "None" })}</span>
             </SelectItem>
           )}
           {options.map((option) => (
@@ -659,7 +660,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("components.jsonSchemaForm.hideSecret", { defaultValue: "Hide secret" }) : t("components.jsonSchemaForm.showSecret", { defaultValue: "Show secret" })}
         </span>
       </Button>
     </div>
@@ -688,7 +689,7 @@ const SecretField = React.memo(({
           <Eye className="h-4 w-4 text-muted-foreground" />
         )}
         <span className="sr-only">
-          {isVisible ? "Hide secret" : "Show secret"}
+          {isVisible ? t("components.jsonSchemaForm.hideSecret", { defaultValue: "Hide secret" }) : t("components.jsonSchemaForm.showSecret", { defaultValue: "Show secret" })}
         </span>
       </Button>
     </div>
@@ -710,9 +711,9 @@ const SecretField = React.memo(({
           value={bindingValue}
           onChange={handlePickerChange}
           label=""
-          placeholder="Select an existing secret"
+          placeholder={t("components.jsonSchemaForm.selectSecret", { defaultValue: "Select an existing secret" })}
           allowVersionSelector={false}
-          emptyHint="No active secrets yet. Create one or paste a raw value below."
+          emptyHint={t("components.jsonSchemaForm.noSecrets", { defaultValue: "No active secrets yet. Create one or paste a raw value below." })}
           disabled={disabled}
         />
         {!isBoundToSecret ? (
@@ -729,8 +730,7 @@ const SecretField = React.memo(({
                   }}
                   disabled={disabled}
                 >
-                  Hide raw value input
-                </button>
+                  {t("ui.components.jsonschemaform.hide-raw-value-input")}</button>
               ) : null}
             </div>
           ) : (
@@ -740,8 +740,7 @@ const SecretField = React.memo(({
               onClick={() => setShowRawInput(true)}
               disabled={disabled}
             >
-              Or paste a raw value
-            </button>
+              {t("ui.components.jsonschemaform.paste-raw-value")}</button>
           )
         ) : null}
       </div>
@@ -935,7 +934,7 @@ const ArrayField = React.memo(({
           }}
         >
           <Plus className="mr-2 h-4 w-4" />
-          {isComplex ? "Add item" : "Add"}
+          {isComplex ? t("components.jsonSchemaForm.addItem", { defaultValue: "Add item" }) : t("components.jsonSchemaForm.add", { defaultValue: "Add" })}
         </Button>
       </div>
 
@@ -947,7 +946,7 @@ const ArrayField = React.memo(({
           >
             <div className="flex-1">
               <div className="mb-2 text-xs font-medium text-muted-foreground">
-                Item {index + 1}
+                {t("pages.pipelines.item")}{index + 1}
               </div>
               <FormField
                 propSchema={itemSchema}
@@ -980,14 +979,13 @@ const ArrayField = React.memo(({
               }}
             >
               <Trash2 className="h-4 w-4" />
-              <span className="sr-only">Remove item</span>
+              <span className="sr-only">{t("components.jsonSchemaForm.removeItem", { defaultValue: "Remove item" })}</span>
             </Button>
           </div>
         ))}
         {items.length === 0 && (
           <div className="rounded-lg border border-dashed p-4 text-center text-xs text-muted-foreground">
-            No items added yet.
-          </div>
+            {t("ui.components.jsonschemaform.no-items-added-yet")}</div>
         )}
       </div>
       {error && (
@@ -1213,7 +1211,7 @@ export function JsonSchemaForm({
   errors = {},
   disabled,
   className,
-  advancedLabel = "Advanced options",
+  advancedLabel = t("components.jsonSchemaForm.advancedOptions", { defaultValue: "Advanced options" }),
 }: JsonSchemaFormProps) {
   const type = resolveType(schema);
 
@@ -1259,7 +1257,7 @@ export function JsonSchemaForm({
     const groupOrder: string[] = [];
     const groups = new Map<string, Array<[string, JsonSchemaNode]>>();
     const advancedKeys = new Set<string>();
-    const DEFAULT_GROUP = "More options";
+    const DEFAULT_GROUP = t("components.jsonSchemaForm.moreOptions", { defaultValue: "More options" });
 
     for (const entry of Object.entries(properties)) {
       const [key, propSchema] = entry;
@@ -1319,8 +1317,7 @@ export function JsonSchemaForm({
           className,
         )}
       >
-        No configuration options available.
-      </div>
+        {t("ui.components.jsonschemaform.no-configuration-options-available")}</div>
     );
   }
 

@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import * as React from "react"
 import { Avatar as AvatarPrimitive } from "radix-ui"
 

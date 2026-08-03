@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { t } from "../i18n";
 import {
   Check,
   ChevronDown,
@@ -42,7 +43,7 @@ export type WorkspaceServiceControlBarProps = {
   /** serviceKey is null when the action targets all services (aggregate bar / popover footer). */
   onAction: (action: WorkspaceServiceControlAction, serviceKey: string | null) => void;
   onViewLogs?: () => void;
-  /** Optional link target for "Manage in Services tab" in the multi-service popover. */
+  /** Optional link target for t("components.workspaceServiceControlBar.manageInServices", { defaultValue: "Manage in Services tab" }) in the multi-service popover. */
   onManageServices?: () => void;
   /** Initial open state for the multi-service popover (used by Storybook/static captures). */
   defaultServicesOpen?: boolean;
@@ -65,19 +66,19 @@ function statusMeta(entry: WorkspaceServiceControlEntry): { label: string; unhea
     case "provisioning":
       return { label: "Provisioning…", unhealthy: false };
     case "starting":
-      return { label: "Starting…", unhealthy: false };
+      return { label: t("components.workspaceServiceControlBar.starting", { defaultValue: "Starting…" }), unhealthy: false };
     case "stopping":
-      return { label: "Stopping…", unhealthy: false };
+      return { label: t("components.workspaceServiceControlBar.stopping", { defaultValue: "Stopping…" }), unhealthy: false };
     case "restarting":
-      return { label: "Restarting…", unhealthy: false };
+      return { label: t("components.workspaceServiceControlBar.restarting", { defaultValue: "Restarting…" }), unhealthy: false };
     case "failed":
-      return { label: "Failed", unhealthy: false };
+      return { label: t("components.workspaceServiceControlBar.failed", { defaultValue: "Failed" }), unhealthy: false };
     case "running":
       return entry.healthStatus === "unhealthy"
-        ? { label: "Unhealthy", unhealthy: true }
-        : { label: "Running", unhealthy: false };
+        ? { label: t("components.workspaceServiceControlBar.unhealthy", { defaultValue: "Unhealthy" }), unhealthy: true }
+        : { label: t("components.workspaceServiceControlBar.running", { defaultValue: "Running" }), unhealthy: false };
     default:
-      return { label: "Stopped", unhealthy: false };
+      return { label: t("components.workspaceServiceControlBar.stopped", { defaultValue: "Stopped" }), unhealthy: false };
   }
 }
 
@@ -110,7 +111,7 @@ function CopyUrlButton({ url, disabled }: { url: string; disabled?: boolean }) {
   useEffect(() => () => {
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
   }, []);
-  const copyLabel = copyState === "copied" ? "URL copied" : copyState === "failed" ? "Copy failed" : "Copy URL";
+  const copyLabel = copyState === "copied" ? t("components.workspaceServiceControlBar.urlCopied", { defaultValue: "URL copied" }) : copyState === "failed" ? t("components.workspaceServiceControlBar.copyFailed", { defaultValue: "Copy failed" }) : t("components.workspaceServiceControlBar.copyUrl", { defaultValue: "Copy URL" });
   return (
     <Button
       variant="ghost"
@@ -121,7 +122,7 @@ function CopyUrlButton({ url, disabled }: { url: string; disabled?: boolean }) {
       className="text-muted-foreground hover:text-foreground"
       onClick={async () => {
         try {
-          if (!navigator.clipboard) throw new Error("Clipboard API unavailable");
+          if (!navigator.clipboard) throw new Error(t("components.workspaceServiceControlBar.clipboardUnavailable", { defaultValue: "Clipboard API unavailable" }));
           await navigator.clipboard.writeText(url);
           setCopyState("copied");
         } catch {
@@ -148,7 +149,7 @@ function UrlSegment({ entry, compact }: { entry: WorkspaceServiceControlEntry; c
   const live = entry.state === "running" && Boolean(entry.url);
 
   if (!displayUrl) {
-    return <span className="font-mono text-xs text-muted-foreground/70">no url</span>;
+    return <span className="font-mono text-xs text-muted-foreground/70">{t("components.projectProperties.noUrl")}</span>;
   }
   return (
     <>
@@ -178,10 +179,10 @@ function UrlSegment({ entry, compact }: { entry: WorkspaceServiceControlEntry; c
           size="icon-xs"
           disabled={!live}
           className="text-muted-foreground hover:text-foreground"
-          title="Open in new tab"
+          title={t("components.workspaceServiceControlBar.openNewTab", { defaultValue: "Open in new tab" })}
         >
           {live ? (
-            <a href={entry.url ?? undefined} target="_blank" rel="noreferrer" aria-label="Open in new tab">
+            <a href={entry.url ?? undefined} target="_blank" rel="noreferrer" aria-label={t("components.workspaceServiceControlBar.openNewTab", { defaultValue: "Open in new tab" })}>
               <ExternalLink className="size-3" />
             </a>
           ) : (
@@ -211,12 +212,11 @@ function ActionSlots({
         className="w-13 justify-center"
         disabled={!canStart}
         onClick={() => onAction("start")}
-        aria-label="Start"
-        title="Start"
+        aria-label={t("components.workspaceServiceControlBar.start", { defaultValue: "Start" })}
+        title={t("components.workspaceServiceControlBar.start", { defaultValue: "Start" })}
       >
         <Play className="size-3" />
-        Start
-      </Button>
+        {t("components.workspaceRuntimeControls.start")}</Button>
     );
   }
 
@@ -228,8 +228,8 @@ function ActionSlots({
           size="icon-xs"
           disabled={!canStart}
           onClick={() => onAction("start")}
-          aria-label="Start"
-          title="Start"
+          aria-label={t("components.workspaceServiceControlBar.start", { defaultValue: "Start" })}
+          title={t("components.workspaceServiceControlBar.start", { defaultValue: "Start" })}
         >
           <Play className="size-3" />
         </Button>
@@ -238,8 +238,8 @@ function ActionSlots({
           size="icon-xs"
           disabled={!canStart}
           onClick={() => onAction("restart")}
-          aria-label="Restart"
-          title="Restart"
+          aria-label={t("components.workspaceServiceControlBar.restart", { defaultValue: "Restart" })}
+          title={t("components.workspaceServiceControlBar.restart", { defaultValue: "Restart" })}
           className="border border-border text-foreground"
         >
           <RotateCcw className="size-3" />
@@ -255,8 +255,8 @@ function ActionSlots({
         size="icon-xs"
         disabled={transitional}
         onClick={() => onAction("stop")}
-        aria-label="Stop"
-        title="Stop"
+        aria-label={t("components.workspaceServiceControlBar.stop", { defaultValue: "Stop" })}
+        title={t("components.workspaceServiceControlBar.stop", { defaultValue: "Stop" })}
         className="border border-border text-foreground"
       >
         <Square className="size-3" />
@@ -266,8 +266,8 @@ function ActionSlots({
         size="icon-xs"
         disabled={transitional || !canStart}
         onClick={() => onAction("restart")}
-        aria-label="Restart"
-        title="Restart"
+        aria-label={t("components.workspaceServiceControlBar.restart", { defaultValue: "Restart" })}
+        title={t("components.workspaceServiceControlBar.restart", { defaultValue: "Restart" })}
         className="border border-border text-foreground"
       >
         <RotateCcw className="size-3" />
@@ -295,8 +295,7 @@ function FailureDetail({
             onClick={onViewLogs}
             className="font-medium text-foreground underline underline-offset-2 hover:text-foreground/80"
           >
-            View logs
-          </button>
+            {t("ui.components.workspaceservicecontrolbar.view-logs")}</button>
         </>
       ) : null}
     </div>
@@ -415,7 +414,7 @@ function MultiServiceBar({
 
   const aggregateEntry: WorkspaceServiceControlEntry = {
     key: "__all__",
-    name: "All services",
+    name: t("components.workspaceServiceControlBar.allServices", { defaultValue: "All services" }),
     state: anyTransitional
       ? "starting"
       : anyFailed
@@ -446,7 +445,7 @@ function MultiServiceBar({
             </PopoverTrigger>
             <PopoverContent align="end" className="w-96 p-0" onOpenAutoFocus={(event) => event.preventDefault()}>
               <div className="px-4 pb-1 pt-3 text-xs font-medium uppercase tracking-wide text-muted-foreground">
-                Services · {services.length}
+                {t("ui.components.workspaceservicecontrolbar.services")}{services.length}
               </div>
               <div className="divide-y divide-border px-4">
                 {services.map((entry) => (
@@ -454,9 +453,9 @@ function MultiServiceBar({
                 ))}
               </div>
               <div className="flex items-center gap-1 border-t border-border px-4 py-2">
-                <Button variant="ghost" size="xs" onClick={() => onAction("start", null)}>Start all</Button>
-                <Button variant="ghost" size="xs" onClick={() => onAction("stop", null)}>Stop all</Button>
-                <Button variant="ghost" size="xs" onClick={() => onAction("restart", null)}>Restart all</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("start", null)}>{t("components.workspaceServiceControlBar.startAll", { defaultValue: "Start all" })}</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("stop", null)}>{t("components.workspaceServiceControlBar.stopAll", { defaultValue: "Stop all" })}</Button>
+                <Button variant="ghost" size="xs" onClick={() => onAction("restart", null)}>{t("components.workspaceServiceControlBar.restartAll", { defaultValue: "Restart all" })}</Button>
                 {onManageServices ? (
                   <Button
                     variant="link"
@@ -464,8 +463,7 @@ function MultiServiceBar({
                     className="ml-auto text-muted-foreground"
                     onClick={onManageServices}
                   >
-                    Manage in Services tab →
-                  </Button>
+                    {t("ui.components.workspaceservicecontrolbar.manage-services-tab")}</Button>
                 ) : null}
               </div>
             </PopoverContent>
@@ -478,7 +476,7 @@ function MultiServiceBar({
                 <UrlSegment entry={primary} />
               </>
             ) : (
-              <span className="font-mono text-xs text-muted-foreground/70">no url</span>
+              <span className="font-mono text-xs text-muted-foreground/70">{t("components.projectProperties.noUrl")}</span>
             )}
           </div>
           <div className="mx-3 hidden h-5 w-px bg-border sm:block" />

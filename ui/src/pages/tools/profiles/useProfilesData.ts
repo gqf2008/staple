@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import { useMemo } from "react";
 import { useQueries, useQuery } from "@tanstack/react-query";
 import { agentsApi } from "@/api/agents";

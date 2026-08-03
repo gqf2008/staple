@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adaptersApi, type AdapterCapabilities } from "@/api/adapters";

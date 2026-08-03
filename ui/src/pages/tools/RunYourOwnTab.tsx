@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Lock, Plus, ShieldCheck, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -32,12 +33,12 @@ function splitCommand(raw: string): { command: string; args: string[] } {
 type KeyRow = { id: number; value: string };
 
 /**
- * M8b — "Run your own" tab on the Advanced door (PAP-10862, plan D8).
+ * M8b — t("pages.tools.runYourOwn.runYourOwn", { defaultValue: "Run your own" }) tab on the Advanced door (PAP-10862, plan D8).
  *
  * Admin-only surface over P5a's command-template routes
  * (`POST /companies/:id/tools/stdio-templates`). Registers a command that
  * Paperclip will run in the company's isolated workspace and the keys it
- * expects. One of the two M8 screens where "MCP" vocabulary is allowed.
+ * expects. One of the two M8 screens where t("pages.tools.runYourOwn.mcp", { defaultValue: "MCP" }) vocabulary is allowed.
  */
 export function RunYourOwnTab({ companyId }: { companyId: string }) {
   const qc = useQueryClient();
@@ -76,7 +77,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
         envKeys,
       }),
     onSuccess: () => {
-      pushToast({ title: "Tool added", body: `"${name.trim()}" is ready to connect.`, tone: "success" });
+      pushToast({ title: t("pages.tools.runYourOwn.toolAdded", { defaultValue: "Tool added" }), body: `"${name.trim()}" is ready to connect.`, tone: "success" });
       setName("");
       setCommand("");
       setKeyRows([]);
@@ -94,25 +95,23 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-6">
       <p className="max-w-2xl text-sm text-muted-foreground">
-        For a tool that runs from a command. Paperclip runs it in your company's own isolated workspace.
-        Administrators only.
-      </p>
+        {t("ui.pages.tools.runyourowntab.tool-runs-from-command")}</p>
 
       <div className="space-y-5 rounded-lg border border-border bg-card p-5">
         <div className="space-y-1.5">
-          <Label htmlFor="ryo-name">Name</Label>
+          <Label htmlFor="ryo-name">{t("pages.tools.runYourOwn.name", { defaultValue: "Name" })}</Label>
           <Input
             id="ryo-name"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            placeholder="Acme tools"
+            placeholder={t("pages.tools.runYourOwn.namePlaceholder", { defaultValue: "Acme tools" })}
             maxLength={160}
           />
-          <p className="text-xs text-muted-foreground">What you'll call this tool in your apps list.</p>
+          <p className="text-xs text-muted-foreground">{t("pages.tools.runYourOwn.nameHint", { defaultValue: "What you'll call this tool in your apps list." })}</p>
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="ryo-command">Command</Label>
+          <Label htmlFor="ryo-command">{t("pages.tools.runYourOwn.command", { defaultValue: "Command" })}</Label>
           <Input
             id="ryo-command"
             value={command}
@@ -121,13 +120,13 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
             spellCheck={false}
             className="bg-slate-900 font-mono text-(length:--text-compact) text-slate-100 placeholder:text-slate-500 focus-visible:ring-slate-400"
           />
-          <p className="text-xs text-muted-foreground">The command that runs the tool. From the tool's README.</p>
+          <p className="text-xs text-muted-foreground">{t("pages.tools.runYourOwn.commandHint", { defaultValue: "The command that runs the tool. From the tool's README." })}</p>
         </div>
 
         <div className="space-y-2">
           <div className="flex items-baseline gap-2">
-            <Label>Keys it needs</Label>
-            <span className="text-xs text-muted-foreground">· optional, depends on the tool</span>
+            <Label>{t("pages.tools.runYourOwn.keysNeeded", { defaultValue: "Keys it needs" })}</Label>
+            <span className="text-xs text-muted-foreground">{t("ui.pages.tools.runyourowntab.optional-depends-tool")}</span>
           </div>
           {keyRows.length > 0 ? (
             <div className="space-y-2">
@@ -144,7 +143,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                             rows.map((r) => (r.id === row.id ? { ...r, value: event.target.value } : r)),
                           )
                         }
-                        placeholder="API_KEY"
+                        placeholder={t("ui.pages.tools.runyourowntab.api-key")}
                         spellCheck={false}
                         className={`font-mono text-(length:--text-compact) ${invalid ? "border-destructive" : ""}`}
                       />
@@ -152,7 +151,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                         type="button"
                         variant="ghost"
                         size="icon"
-                        aria-label="Remove key"
+                        aria-label={t("pages.tools.runYourOwn.removeKey", { defaultValue: "Remove key" })}
                         onClick={() => setKeyRows((rows) => rows.filter((r) => r.id !== row.id))}
                       >
                         <X className="h-4 w-4" />
@@ -160,8 +159,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                     </div>
                     {invalid ? (
                       <p className="text-xs text-destructive">
-                        Use letters, numbers and underscores, starting with a letter or underscore (e.g. API_KEY).
-                      </p>
+                        {t("ui.pages.tools.runyourowntab.use-letters-numbers-underscores")}</p>
                     ) : null}
                   </div>
                 );
@@ -170,20 +168,17 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
           ) : null}
           <Button type="button" variant="outline" size="sm" onClick={addKeyRow} className="gap-1.5">
             <Plus className="h-3.5 w-3.5" />
-            Add a key
-          </Button>
+            {t("ui.pages.tools.runyourowntab.add-key")}</Button>
         </div>
 
         <div className="flex items-start gap-2.5 rounded-md bg-muted/50 px-3 py-2.5">
           <ShieldCheck className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
           <div className="text-xs">
             <p className="font-medium text-foreground">
-              This runs in your company's own workspace, isolated from everything else.
-            </p>
+              {t("ui.pages.tools.runyourowntab.runs-your-company-own")}</p>
             <p className="mt-0.5 flex items-center gap-1 text-muted-foreground">
               <Lock className="h-3 w-3" />
-              Only administrators see this option.
-            </p>
+              {t("ui.pages.tools.runyourowntab.only-administrators-see-option")}</p>
           </div>
         </div>
 
@@ -191,31 +186,30 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button onClick={() => createMutation.mutate()} disabled={!canSubmit || createMutation.isPending}>
-            {createMutation.isPending ? "Adding…" : "Check & continue"}
+            {createMutation.isPending ? t("pages.tools.runYourOwn.adding", { defaultValue: "Adding…" }) : t("pages.tools.runYourOwn.checkAndContinue", { defaultValue: "Check & continue" })}
           </Button>
           <span className="text-xs text-muted-foreground">
-            Paperclip will register the command and the keys it needs.
-          </span>
+            {t("ui.pages.tools.runyourowntab.paperclip-will-register-command")}</span>
         </div>
       </div>
 
       <div className="space-y-3">
-        <h3 className="text-sm font-semibold text-foreground">Your own tools</h3>
+        <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.runYourOwn.yourOwnTools", { defaultValue: "Your own tools" })}</h3>
         {templates.isLoading ? (
           <LoadingState />
         ) : templates.isError ? (
           <ErrorState error={templates.error} onRetry={() => templates.refetch()} />
         ) : adminTemplates.length === 0 ? (
-          <p className="text-sm text-muted-foreground">You haven't added any of your own tools yet.</p>
+          <p className="text-sm text-muted-foreground">{t("pages.tools.runYourOwn.noTools", { defaultValue: "You haven't added any of your own tools yet." })}</p>
         ) : (
           <div className="overflow-hidden rounded-lg border border-border">
             <table className="w-full text-sm">
               <thead>
                 <tr className="border-b border-border bg-muted/40 text-left text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                  <th className="px-4 py-2.5">Name</th>
-                  <th className="px-4 py-2.5">Command</th>
-                  <th className="px-4 py-2.5">Keys</th>
-                  <th className="px-4 py-2.5">Added</th>
+                  <th className="px-4 py-2.5">{t("pages.tools.runYourOwn.name", { defaultValue: "Name" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.tools.runYourOwn.command", { defaultValue: "Command" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.tools.runYourOwn.keys", { defaultValue: "Keys" })}</th>
+                  <th className="px-4 py-2.5">{t("pages.tools.runYourOwn.added", { defaultValue: "Added" })}</th>
                   <th className="px-4 py-2.5" />
                 </tr>
               </thead>
@@ -244,12 +238,12 @@ function RunYourOwnRow({
   const disableMutation = useMutation({
     mutationFn: () => toolsApi.disableStdioTemplate(companyId, template.templateId),
     onSuccess: () => {
-      pushToast({ title: "Tool turned off", tone: "success" });
+      pushToast({ title: t("pages.tools.runYourOwn.toolTurnedOff", { defaultValue: "Tool turned off" }), tone: "success" });
       qc.invalidateQueries({ queryKey: queryKeys.tools.stdioTemplates(companyId) });
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn't turn it off",
+        title: t("pages.tools.runYourOwn.turnOffFailed", { defaultValue: "Couldn't turn it off" }),
         body: error instanceof Error ? error.message : undefined,
         tone: "error",
       });
@@ -281,8 +275,7 @@ function RunYourOwnRow({
             onClick={() => disableMutation.mutate()}
             disabled={disableMutation.isPending}
           >
-            Turn off
-          </Button>
+            {t("ui.pages.tools.policiestab.turn-off")}</Button>
         )}
       </td>
     </tr>

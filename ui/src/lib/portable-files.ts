@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CompanyPortabilityFileEntry } from "@paperclipai/shared";
 
 const contentTypeByExtension: Record<string, string> = {
@@ -28,7 +29,7 @@ export function getPortableFileDataUrl(
   entry: CompanyPortabilityFileEntry | null | undefined,
 ) {
   if (!entry || typeof entry === "string") return null;
-  const contentType = getPortableFileContentType(filePath, entry) ?? "application/octet-stream";
+  const contentType = getPortableFileContentType(filePath, entry) ?? t("ui.components.fileviewersheet.fallback-application-octet-stream");
   return `data:${contentType};base64,${entry.data}`;
 }
 

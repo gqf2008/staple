@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { FlaskConical, ChevronRight } from "lucide-react";
 import { Link } from "@/lib/router";
@@ -16,10 +17,10 @@ const HEALTH_DOT: Record<SmokeHealth, string> = {
 };
 
 const HEALTH_LABEL: Record<SmokeHealth, string> = {
-  green: "All paths passing",
-  amber: "Needs a run",
-  red: "Failing paths",
-  unknown: "No runs yet",
+  green: t("ui.components.smokelabdashboardcard.all-paths-passing"),
+  amber: t("ui.components.smokelabdashboardcard.needs-run"),
+  red: t("ui.components.smokelabdashboardcard.failing-paths"),
+  unknown: t("components.activityCharts.noRuns"),
 };
 
 function formatTime(value: string | Date | null | undefined): string {
@@ -48,7 +49,7 @@ export function SmokeLabDashboardCard({ companyId }: { companyId: string }) {
   const latestRun = runsQuery.data?.runs?.[0];
 
   const detailQuery = useQuery({
-    queryKey: queryKeys.smokeLab.run(companyId, latestRun?.id ?? "__none__"),
+    queryKey: queryKeys.smokeLab.run(companyId, latestRun?.id ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => smokeLabApi.getRun(companyId, latestRun!.id),
     enabled: enabled && loaded && !!latestRun,
   });
@@ -72,14 +73,14 @@ export function SmokeLabDashboardCard({ companyId }: { companyId: string }) {
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span className={cn("h-2.5 w-2.5 shrink-0 rounded-full", HEALTH_DOT[health])} />
-            <p className="truncate text-sm font-semibold text-foreground">Integration smoke</p>
+            <p className="truncate text-sm font-semibold text-foreground">{t("pages.instanceExperimental.integrationSmoke")}</p>
           </div>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">
             {HEALTH_LABEL[health]}
             {failing.length > 0 && `: ${failing.join(", ")}`}
           </p>
           <p className="mt-0.5 truncate text-(length:--text-micro) text-muted-foreground/80">
-            {latestRun ? `Last run ${formatTime(latestRun.startedAt)}` : "Run one from the Smoke Lab tab"}
+            {latestRun ? `Last run ${formatTime(latestRun.startedAt)}` : t("ui.components.smokelabdashboardcard.run-one-from-smoke")}
           </p>
         </div>
       </div>

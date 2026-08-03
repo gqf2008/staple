@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, ShieldQuestion, X } from "lucide-react";
 import type { ToolActionRequestListItem } from "@paperclipai/shared";
@@ -12,7 +13,7 @@ import { Button } from "@/components/ui/button";
 import { MarkdownBody } from "@/components/MarkdownBody";
 
 /**
- * "Ask first" review queue (M1b float / M9 card, PAP-10859).
+ * t("pages.reviewQueueCard.askFirst", { defaultValue: "Ask first" }) review queue (M1b float / M9 card, PAP-10859).
  *
  * Renders pending `tool_action_requests` as prosumer cards with three choices:
  *   • Allow once   → approve this single request
@@ -25,7 +26,7 @@ import { MarkdownBody } from "@/components/MarkdownBody";
 export function ReviewQueueCard({
   connectionId,
   emptyState = "hidden",
-  heading = "Waiting for your OK",
+  heading = t("pages.reviewQueueCard.waitingForOk", { defaultValue: "Waiting for your OK" }),
 }: {
   connectionId?: string;
   emptyState?: "hidden" | "reassure";
@@ -34,7 +35,7 @@ export function ReviewQueueCard({
   const { selectedCompanyId } = useCompany();
 
   const query = useQuery({
-    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? "__none__", "pending"),
+    queryKey: queryKeys.tools.actionRequests(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none"), "pending"),
     queryFn: () => toolsApi.listActionRequests(selectedCompanyId!, "pending"),
     enabled: !!selectedCompanyId,
     refetchInterval: 20_000,
@@ -52,8 +53,7 @@ export function ReviewQueueCard({
     if (emptyState === "hidden") return null;
     return (
       <div className="rounded-xl border border-border bg-card p-5 text-sm text-muted-foreground">
-        Nothing is waiting for your OK right now.
-      </div>
+        {t("pages.appNotConnected.nothingWaiting")}</div>
     );
   }
 
@@ -89,7 +89,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     mutationFn: () => toolsApi.approveActionRequest(companyId, item.request.id),
     onMutate: () => setResolving("allow"),
     onSuccess: () => {
-      pushToast({ title: "Allowed once", body: `${actionLabel(item)} can run this time.`, tone: "success" });
+      pushToast({ title: t("pages.reviewQueueCard.allowedOnce", { defaultValue: "Allowed once" }), body: `${actionLabel(item)} can run this time.`, tone: "success" });
       invalidate();
     },
     onError: (error) => {
@@ -108,7 +108,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     onMutate: () => setResolving("always"),
     onSuccess: () => {
       pushToast({
-        title: "Always allowed",
+        title: t("pages.reviewQueueCard.alwaysAllowed", { defaultValue: "Always allowed" }),
         body: `${actionLabel(item)} won’t ask again.`,
         tone: "success",
       });
@@ -126,7 +126,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
     mutationFn: () => toolsApi.declineActionRequest(companyId, item.request.id),
     onMutate: () => setResolving("decline"),
     onSuccess: () => {
-      pushToast({ title: "Declined", body: `${actionLabel(item)} won’t run.`, tone: "info" });
+      pushToast({ title: t("pages.reviewQueueCard.declined", { defaultValue: "Declined" }), body: `${actionLabel(item)} won’t run.`, tone: "info" });
       invalidate();
     },
     onError: (error) => {
@@ -148,7 +148,7 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
             in {humanizeConnectionDisplayName(item.applicationName)}
           </span>
         )}
-        <span className="text-xs text-muted-foreground">· asked {timeAgo(item.request.createdAt)}</span>
+        <span className="text-xs text-muted-foreground">{t("ui.pages.apps.reviewqueuecard.asked")}{timeAgo(item.request.createdAt)}</span>
       </div>
 
       {preview ? (
@@ -157,30 +157,26 @@ function ReviewRow({ companyId, item }: { companyId: string; item: ToolActionReq
         </div>
       ) : (
         <p className="mt-1 text-sm text-muted-foreground">
-          An agent wants to run this action. It can change something, so we’re checking with you first.
-        </p>
+          {t("ui.pages.apps.reviewqueuecard.agent-wants-run-action")}</p>
       )}
 
       <div className="mt-3 flex flex-wrap items-center gap-2">
         <Button size="sm" onClick={() => allowOnce.mutate()} disabled={busy}>
           {resolving === "allow" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <Check className="mr-1.5 h-3.5 w-3.5" />}
-          Allow once
-        </Button>
+          {t("ui.pages.apps.reviewqueuecard.allow-once")}</Button>
         <Button size="sm" variant="outline" onClick={() => alwaysAllow.mutate()} disabled={busy}>
           {resolving === "always" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : null}
-          Always allow
-        </Button>
+          {t("components.agentBubbleActionRow.alwaysAllow")}</Button>
         <Button size="sm" variant="ghost" onClick={() => decline.mutate()} disabled={busy}>
           {resolving === "decline" ? <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" /> : <X className="mr-1.5 h-3.5 w-3.5" />}
-          Decline
-        </Button>
+          {t("components.issueThreadInteraction.decline")}</Button>
       </div>
     </div>
   );
 }
 
 function actionLabel(item: ToolActionRequestListItem): string {
-  if (!item.toolTitle && !item.toolName) return "This action";
+  if (!item.toolTitle && !item.toolName) return t("pages.reviewQueueCard.thisAction", { defaultValue: "This action" });
   return humanizeConnectionDisplayName(item.toolName ?? "", { title: item.toolTitle });
 }
 
@@ -189,8 +185,8 @@ function failToast(
   error: unknown,
 ) {
   pushToast({
-    title: "Couldn’t save that",
-    body: error instanceof Error ? error.message : "Please try again.",
+    title: t("ui.pages.apps.reviewqueuecard.couldn-save"),
+    body: error instanceof Error ? error.message : t("pages.reviewQueueCard.tryAgain", { defaultValue: "Please try again." }),
     tone: "error",
   });
 }

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect } from "react";
 import {
   focusPageSearchShortcutTarget,

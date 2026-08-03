@@ -1,4 +1,5 @@
 import { useEffect, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import type {
   FeedbackDataSharingPreference,
   FeedbackVoteValue,
@@ -74,7 +75,7 @@ export function AgentBubbleActionRow({
       options?: { allowSharing?: boolean; reason?: string },
     ) => Promise<void>;
   } | null;
-  /** Extra DropdownMenuItem nodes appended after the default "Copy message". */
+  /** Extra DropdownMenuItem nodes appended after the default t("components.agentBubbleActionRow.copyMessage", { defaultValue: "Copy message" }). */
   menuItems?: ReactNode;
   className?: string;
 }) {
@@ -85,8 +86,8 @@ export function AgentBubbleActionRow({
       <button
         type="button"
         className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-        title="Copy message"
-        aria-label="Copy message"
+        title={t("components.agentBubbleActionRow.copyMessage", { defaultValue: "Copy message" })}
+        aria-label={t("components.agentBubbleActionRow.copyMessage", { defaultValue: "Copy message" })}
         onClick={() => {
           void navigator.clipboard.writeText(copyText).then(() => {
             setCopied(true);
@@ -125,8 +126,8 @@ export function AgentBubbleActionRow({
             variant="ghost"
             size="icon-xs"
             className="text-muted-foreground hover:text-foreground"
-            title="More actions"
-            aria-label="More actions"
+            title={t("components.agentBubbleActionRow.moreActions", { defaultValue: "More actions" })}
+            aria-label={t("components.agentBubbleActionRow.moreActions", { defaultValue: "More actions" })}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
@@ -138,8 +139,7 @@ export function AgentBubbleActionRow({
             }}
           >
             <Copy className="mr-2 h-3.5 w-3.5" />
-            Copy message
-          </DropdownMenuItem>
+            {t("components.agentBubbleActionRow.copyMessage")}</DropdownMenuItem>
           {menuItems}
         </DropdownMenuContent>
       </DropdownMenu>
@@ -242,8 +242,8 @@ export function IssueChatFeedbackButtons({
             ? "text-green-600 dark:text-green-400"
             : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
-        title="Helpful"
-        aria-label="Helpful"
+        title={t("components.agentBubbleActionRow.helpful", { defaultValue: "Helpful" })}
+        aria-label={t("components.agentBubbleActionRow.helpful", { defaultValue: "Helpful" })}
         onClick={handleThumbsUp}
       >
         <ThumbsUp className="h-3.5 w-3.5" />
@@ -259,19 +259,19 @@ export function IssueChatFeedbackButtons({
                 ? "text-amber-600 dark:text-amber-400"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
-            title="Needs work"
-            aria-label="Needs work"
+            title={t("components.agentBubbleActionRow.needsWork", { defaultValue: "Needs work" })}
+            aria-label={t("components.agentBubbleActionRow.needsWork", { defaultValue: "Needs work" })}
             onClick={handleThumbsDown}
           >
             <ThumbsDown className="h-3.5 w-3.5" />
           </button>
         </PopoverTrigger>
         <PopoverContent side="top" align="start" className="w-80 p-3">
-          <div className="mb-2 text-sm font-medium">What could have been better?</div>
+          <div className="mb-2 text-sm font-medium">{t("components.agentBubbleActionRow.whatBetter", { defaultValue: "What could have been better?" })}</div>
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("components.agentBubbleActionRow.addNote", { defaultValue: "Add a short note" })}
             className="min-h-20 resize-y bg-background text-sm"
             disabled={isSaving}
           />
@@ -286,15 +286,14 @@ export function IssueChatFeedbackButtons({
                 setDownvoteReason("");
               }}
             >
-              Dismiss
-            </Button>
+              {t("pages.inbox.dismiss")}</Button>
             <Button
               type="button"
               size="sm"
               disabled={isSaving || !downvoteReason.trim()}
               onClick={handleSubmitReason}
             >
-              {isSaving ? "Saving..." : "Save note"}
+              {isSaving ? t("components.agentBubbleActionRow.saving", { defaultValue: "Saving..." }) : t("components.agentBubbleActionRow.saveNote", { defaultValue: "Save note" })}
             </Button>
           </div>
         </PopoverContent>
@@ -311,21 +310,16 @@ export function IssueChatFeedbackButtons({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save your feedback sharing preference</DialogTitle>
+            <DialogTitle>{t("components.agentBubbleActionRow.feedbackPreference", { defaultValue: "Save your feedback sharing preference" })}</DialogTitle>
             <DialogDescription>
-              Choose whether voted AI outputs can be shared with Paperclip Labs. This
-              answer becomes the default for future thumbs up and thumbs down votes.
-            </DialogDescription>
+              {t("ui.components.agentbubbleactionrow.choose-whether-voted-ai")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>This vote is always saved locally.</p>
+            <p>{t("components.agentBubbleActionRow.voteLocal", { defaultValue: "This vote is always saved locally." })}</p>
             <p>
-              Choose <span className="font-medium text-foreground">Always allow</span> to share
-              this vote and future voted AI outputs. Choose{" "}
-              <span className="font-medium text-foreground">Don't allow</span> to keep this vote
-              and future votes local.
-            </p>
-            <p>You can change this later in Instance Settings &gt; General.</p>
+              {t("components.agentConfigPrimitives.choose")}<span className="font-medium text-foreground">{t("components.agentBubbleActionRow.alwaysAllow", { defaultValue: "Always allow" })}</span> {t("ui.components.agentbubbleactionrow.share-vote-future-voted")}{" "}
+              <span className="font-medium text-foreground">{t("components.agentBubbleActionRow.dontAllow", { defaultValue: "Don't allow" })}</span> {t("ui.components.agentbubbleactionrow.keep-vote-future-votes")}</p>
+            <p>{t("ui.components.agentbubbleactionrow.you-can-change-later")}</p>
             {termsUrl ? (
               <a
                 href={termsUrl}
@@ -333,8 +327,7 @@ export function IssueChatFeedbackButtons({
                 rel="noreferrer"
                 className="inline-flex text-sm text-foreground underline underline-offset-4"
               >
-                Read our terms of service
-              </a>
+                {t("ui.components.agentbubbleactionrow.read-our-terms-service")}</a>
             ) : null}
           </div>
           <DialogFooter>
@@ -350,7 +343,7 @@ export function IssueChatFeedbackButtons({
                 ).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Don't allow"}
+              {isSaving ? t("components.agentBubbleActionRow.saving", { defaultValue: "Saving..." }) : t("components.agentBubbleActionRow.dontAllow", { defaultValue: "Don't allow" })}
             </Button>
             <Button
               type="button"
@@ -363,7 +356,7 @@ export function IssueChatFeedbackButtons({
                 }).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Always allow"}
+              {isSaving ? t("components.agentBubbleActionRow.saving", { defaultValue: "Saving..." }) : t("components.agentBubbleActionRow.alwaysAllow", { defaultValue: "Always allow" })}
             </Button>
           </DialogFooter>
         </DialogContent>

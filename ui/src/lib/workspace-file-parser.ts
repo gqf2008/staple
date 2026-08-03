@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export interface ParsedWorkspaceFileRef {
   path: string;
   resourceKind?: "file" | "directory";

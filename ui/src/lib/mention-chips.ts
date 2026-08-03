@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CSSProperties } from "react";
 import {
   parseAgentMentionHref,
@@ -106,13 +107,13 @@ export function mentionChipInlineStyle(mention: ParsedMentionChip): CSSPropertie
   if (mention.kind === "project" && mention.color) {
     const projectStyle = projectMentionColors(mention.color);
     Object.assign(style, projectStyle);
-    style["--paperclip-mention-project-color"] = mention.color;
+    style[t("ui.lib.mention-chips.paperclip-mention-project-color")] = mention.color;
   }
 
   if (mention.kind === "agent") {
     const iconMask = buildAgentIconMask(mention.icon);
     if (iconMask) {
-      style["--paperclip-mention-icon-mask"] = iconMask;
+      style[t("ui.lib.mention-chips.paperclip-mention-icon-mask")] = iconMask;
     }
   }
 
@@ -157,8 +158,8 @@ export function clearMentionChipDecoration(element: HTMLElement) {
   element.style.removeProperty("border-color");
   element.style.removeProperty("background-color");
   element.style.removeProperty("color");
-  element.style.removeProperty("--paperclip-mention-project-color");
-  element.style.removeProperty("--paperclip-mention-icon-mask");
+  element.style.removeProperty(t("ui.lib.mention-chips.paperclip-mention-project-color"));
+  element.style.removeProperty(t("ui.lib.mention-chips.paperclip-mention-icon-mask"));
 }
 
 function projectMentionColors(color: string): Pick<CSSProperties, "borderColor" | "backgroundColor" | "color"> {
@@ -172,7 +173,7 @@ function projectMentionColors(color: string): Pick<CSSProperties, "borderColor" 
 }
 
 function buildAgentIconMask(iconName: string | null): string | null {
-  const cacheKey = iconName ?? "__default__";
+  const cacheKey = iconName ?? t("ui.lib.mention-chips.fallback-default");
   const cached = iconMaskCache.get(cacheKey);
   if (cached) return cached;
 

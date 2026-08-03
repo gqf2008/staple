@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -65,7 +66,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
   const accept = useMutation({
     mutationFn: (interactionId: string) => issuesApi.acceptInteraction(issue.id, interactionId),
     onSuccess: invalidate,
-    onError: () => setActionError("Couldn't confirm — try again."),
+    onError: () => setActionError(t("ui.components.issue-properties.issueplanconfirmationactionbar.couldn-confirm-try-again")),
   });
   const reject = useMutation({
     mutationFn: ({ interactionId, reason }: { interactionId: string; reason?: string }) =>
@@ -75,7 +76,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
       setRejectReason("");
       invalidate();
     },
-    onError: () => setActionError("Couldn't send that back — try again."),
+    onError: () => setActionError(t("ui.components.issue-properties.issueplanconfirmationactionbar.couldn-send-back-try")),
   });
 
   // Interaction changed under us (resolved elsewhere, superseded): reset.
@@ -122,7 +123,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
             )}
           />
           {rejectAttempted && reasonInvalid ? (
-            <p className="text-xs text-destructive">A decline reason is required.</p>
+            <p className="text-xs text-destructive">{t("ui.components.issuethreadinteractioncard.decline-reason-required")}</p>
           ) : null}
         </div>
       ) : null}
@@ -141,14 +142,12 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
                 setRejectAttempted(false);
               }}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             <Button size="sm" variant="outline" disabled={working !== null} onClick={handleReject}>
               {working === "reject" ? (
                 <>
                   <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                  Sending back...
-                </>
+                  {t("ui.components.issue-properties.issueplanconfirmationactionbar.sending-back")}</>
               ) : (
                 confirmation.payload.rejectLabel ?? "Decline"
               )}
@@ -171,8 +170,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
             {working === "reject" ? (
               <>
                 <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-                Sending back...
-              </>
+                {t("ui.components.issue-properties.issueplanconfirmationactionbar.sending-back")}</>
             ) : (
               confirmation.payload.rejectLabel ?? "Decline"
             )}
@@ -190,8 +188,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
           {working === "accept" ? (
             <>
               <Loader2 className="mr-2 h-3.5 w-3.5 animate-spin" />
-              Confirming...
-            </>
+              {t("ui.components.issuethreadinteractioncard.confirming")}</>
           ) : (
             confirmation.payload.acceptLabel ?? "Confirm"
           )}

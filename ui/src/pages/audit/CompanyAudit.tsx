@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect } from "react";
 import { ShieldCheck } from "lucide-react";
 import { useCompany } from "../../context/CompanyContext";
@@ -16,11 +17,11 @@ export function CompanyAudit() {
   const { setBreadcrumbs } = useBreadcrumbs();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Audit" }]);
+    setBreadcrumbs([{ label: t("nav.audit") }]);
   }, [setBreadcrumbs]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={ShieldCheck} message="Select a company to view the agent audit log." />;
+    return <EmptyState icon={ShieldCheck} message={t("ui.pages.audit.companyaudit.select-company-view-agent")} />;
   }
 
   return <AuditFeed companyId={selectedCompanyId} />;

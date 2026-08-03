@@ -1,10 +1,11 @@
+import { t } from "../i18n";
 export interface DocumentAnnotationHashTarget {
   documentKey: string;
   threadId: string | null;
   commentId: string | null;
 }
 
-const DOCUMENT_HASH_PREFIX = "#document-";
+const DOCUMENT_HASH_PREFIX = t("ui.components.issuedocumentssection.document");
 
 export function parseDocumentAnnotationHash(hash: string): DocumentAnnotationHashTarget | null {
   if (!hash.startsWith(DOCUMENT_HASH_PREFIX)) return null;

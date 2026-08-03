@@ -13,10 +13,12 @@ import { Link } from "@/lib/router";
 import { authApi } from "@/api/auth";
 import { queryKeys } from "@/lib/queryKeys";
 import { useSidebar } from "../context/SidebarContext";
+import { t, localizeServerLabel } from "../i18n";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
 import { ThemeToggle } from "./ThemeToggle";
+import { LanguageToggle } from "./LanguageToggle";
 import { SidebarServerInfo } from "./SidebarServerInfo";
 import { Badge } from "@/components/ui/badge";
 
@@ -137,10 +139,10 @@ export function SidebarAccountMenu({
     },
   });
 
-  const displayName = session?.user.name?.trim() || "Board";
+  const displayName = localizeServerLabel(session?.user.name?.trim()) || t("components.activityRow.board");
   const secondaryLabel =
-    session?.user.email?.trim() || (deploymentMode === "authenticated" ? "Signed in" : "Local workspace board");
-  const accountBadge = deploymentMode === "authenticated" ? "Account" : "Local";
+    session?.user.email?.trim() || (deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.signed") : t("ui.components.sidebaraccountmenu.local-workspace-board"));
+  const accountBadge = deploymentMode === "authenticated" ? t("ui.components.sidebaraccountmenu.account") : t("components.agentConfigForm.local");
   const initials = deriveInitials(displayName);
   const profileHref = `/u/${deriveUserSlug(session?.user.name, session?.user.email, session?.user.id)}`;
   const sourceSha = version ? sourceVersionSha(version) : null;
@@ -162,7 +164,7 @@ export function SidebarAccountMenu({
           <button
             type="button"
             className="flex w-full items-center gap-2.5 px-3 py-2 text-left text-(length:--text-compact) font-medium text-foreground/80 transition-colors hover:bg-accent/50 hover:text-foreground"
-            aria-label="Open account menu"
+            aria-label={t("ui.components.sidebaraccountmenu.open-account-menu")}
           >
             <Avatar size="sm">
               {session?.user.image ? <AvatarImage src={session.user.image} alt={displayName} /> : null}
@@ -207,7 +209,7 @@ export function SidebarAccountMenu({
                       </a>
                     ) : null}
                     <p>
-                      Paperclip{" "}
+                      {t("components.issueChatThread.paperclip")}{" "}
                       <a
                         href={`${SOURCE_REPOSITORY_URL}/commit/${sourceFullSha}`}
                         target="_blank"
@@ -219,43 +221,44 @@ export function SidebarAccountMenu({
                     </p>
                   </div>
                 ) : version ? (
-                  <p className="mt-1 text-xs text-muted-foreground">Paperclip v{version}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{t("ui.components.sidebaraccountmenu.paperclip")}{version}</p>
                 ) : null}
               </div>
             </div>
 
             <div className="mt-4 space-y-1">
               <MenuAction
-                label="View profile"
-                description="Open your activity, task, and usage ledger."
+                label={t("common.viewProfile", { defaultValue: "View profile" })}
+                description={t("common.viewProfileDesc", { defaultValue: "Open your activity, task, and usage ledger." })}
                 icon={UserRound}
                 href={profileHref}
                 onClick={closeNavigationChrome}
               />
               <MenuAction
-                label="Edit profile"
-                description="Update your display name and avatar."
+                label={t("common.editProfile", { defaultValue: "Edit profile" })}
+                description={t("common.editProfileDesc", { defaultValue: "Update your display name and avatar." })}
                 icon={UserRoundPen}
                 href={PROFILE_SETTINGS_PATH}
                 onClick={closeNavigationChrome}
               />
               <MenuAction
-                label="Documentation"
-                description="Open Paperclip docs in a new tab."
+                label={t("common.documentation", { defaultValue: "Documentation" })}
+                description={t("common.documentationDesc", { defaultValue: "Open Paperclip docs in a new tab." })}
                 icon={BookOpen}
                 href={DOCS_URL}
                 external
                 onClick={() => setOpen(false)}
               />
               <MenuAction
-                label="Feedback"
-                description="Share feedback or report an issue."
+                label={t("common.feedback", { defaultValue: "Feedback" })}
+                description={t("common.feedbackDesc", { defaultValue: "Share feedback or report an issue." })}
                 icon={Megaphone}
                 href={FEEDBACK_URL}
                 external
                 onClick={() => setOpen(false)}
               />
               <ThemeToggle variant="menu-action" onAfterToggle={() => setOpen(false)} />
+              <LanguageToggle variant="menu-action" onAfterToggle={() => setOpen(false)} />
               {deploymentMode === "authenticated" ? (
                 <button
                   type="button"
@@ -271,10 +274,10 @@ export function SidebarAccountMenu({
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-sm font-medium text-foreground">
-                      {signOutMutation.isPending ? "Signing out..." : "Sign out"}
+                      {signOutMutation.isPending ? t("common.signingOut", { defaultValue: "Signing out..." }) : t("common.signOut", { defaultValue: "Sign out" })}
                     </span>
                     <span className="block text-xs text-muted-foreground">
-                      End this browser session.
+                      {t("common.endSession", { defaultValue: "End this browser session." })}
                     </span>
                   </span>
                 </button>

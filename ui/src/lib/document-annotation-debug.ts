@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export const SELECTION_DEBUG_STORAGE_KEY = "paperclipDebugSelection";
 
 type SelectionDebugEvent = {
@@ -109,7 +110,7 @@ function record(type: string, details: SelectionDebugEvent["details"]): void {
   const event = { at: now(), type, details };
   state.events.push(event);
   if (state.events.length > MAX_DEBUG_EVENTS) state.events.shift();
-  console.debug("[paperclip selection debug]", event);
+  console.debug(t("ui.lib.document-annotation-debug.paperclip-selection-debug"), event);
 }
 
 export function recordSelectionChange(active: boolean): void {

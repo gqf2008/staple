@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 import type { AdapterConfigFieldsProps } from "./types";
 import { Field, help } from "../components/agent-config-primitives";
@@ -74,7 +75,7 @@ export function RuntimeServicesJsonField({
   const value = isCreate ? values?.runtimeServicesJson ?? "" : draft;
 
   return (
-    <Field label="Runtime services JSON" hint={help.runtimeServicesJson}>
+    <Field label={t("ui.adapters.runtime-json-fields.runtime-services-json")} hint={help.runtimeServicesJson}>
       <textarea
         className={`${inputClass} min-h-[148px]`}
         value={value}
@@ -106,7 +107,7 @@ export function PayloadTemplateJsonField({
   const value = isCreate ? values?.payloadTemplateJson ?? "" : draft;
 
   return (
-    <Field label="Payload template JSON" hint={help.payloadTemplateJson}>
+    <Field label={t("ui.adapters.runtime-json-fields.payload-template-json")} hint={help.payloadTemplateJson}>
       <textarea
         className={`${inputClass} min-h-[132px]`}
         value={value}

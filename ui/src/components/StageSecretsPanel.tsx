@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { KeyRound, Save } from "lucide-react";
 import type { CompanySecret, RoutineEnvConfig } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
@@ -52,14 +53,14 @@ export function StageSecretsPanel({
     return (
       <EmptyState
         icon={KeyRound}
-        message="Secrets are available only to step automation. Pick an agent to run this step, then add the secrets it needs."
-        action="Set up automation"
+        message={t("ui.components.stagesecretspanel.secrets-available-only-step")}
+        action={t("ui.components.stagesecretspanel.set-up-automation")}
         onAction={onSetupAutomation}
       />
     );
   }
 
-  const displayName = agentName?.trim() || "the responsible agent";
+  const displayName = agentName?.trim() || t("ui.components.stagesecretspanel.fallback-responsible-agent");
 
   return (
     <div className="space-y-5">
@@ -70,15 +71,12 @@ export function StageSecretsPanel({
           <KeyRound className="h-3.5 w-3.5 mt-0.5 shrink-0" />
         )}
         <p>
-          These env vars are injected when{" "}
-          <span className="font-medium text-foreground">{displayName}</span> runs this step. They override
-          matching project and agent env on collisions. <span className="font-mono">PAPERCLIP_*</span> names
-          are reserved.
-        </p>
+          {t("ui.components.stagesecretspanel.these-env-vars-injected")}{" "}
+          <span className="font-medium text-foreground">{displayName}</span> {t("ui.components.stagesecretspanel.runs-step-they-override")}<span className="font-mono">{t("ui.components.stagesecretspanel.paperclip")}</span> {t("ui.components.stagesecretspanel.names-reserved")}</p>
       </div>
 
       {secretsLoading ? (
-        <p className="text-sm text-muted-foreground">Loading secrets…</p>
+        <p className="text-sm text-muted-foreground">{t("ui.components.stagesecretspanel.loading-secrets")}</p>
       ) : (
         <EnvironmentVariablesEditor
           value={value}
@@ -91,9 +89,9 @@ export function StageSecretsPanel({
       <div className="flex items-center gap-3">
         <Button type="button" onClick={onSave} disabled={!dirty || saving}>
           <Save className="h-4 w-4 mr-1.5" />
-          {saving ? "Saving…" : "Save secrets"}
+          {saving ? t("components.agentMultiSelect.saving") : t("ui.components.stagesecretspanel.save-secrets")}
         </Button>
-        {dirty && !saving ? <span className="text-xs text-muted-foreground">Unsaved changes</span> : null}
+        {dirty && !saving ? <span className="text-xs text-muted-foreground">{t("components.agentConfigForm.unsavedChanges")}</span> : null}
       </div>
     </div>
   );

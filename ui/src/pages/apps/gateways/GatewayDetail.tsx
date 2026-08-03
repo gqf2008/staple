@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Send } from "lucide-react";
 import type { ToolMcpGatewayTokenCreated } from "@paperclipai/shared";
@@ -37,32 +38,32 @@ export function GatewayDetail() {
   const activeTab: GatewayTabKey | null = isGatewayTabKey(tab) ? tab : null;
 
   const gatewaysQuery = useQuery({
-    queryKey: gatewaysQueryKey(selectedCompanyId ?? "__none__"),
+    queryKey: gatewaysQueryKey(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGateways(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const profilesQuery = useQuery({
-    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listProfiles(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const connectionsQuery = useQuery({
-    queryKey: queryKeys.tools.connections(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.connections(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listConnections(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const applicationsQuery = useQuery({
-    queryKey: queryKeys.tools.applications(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.applications(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listApplications(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const agentsQuery = useQuery({
-    queryKey: queryKeys.agents.list(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.agents.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => agentsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
   const projectsQuery = useQuery({
-    queryKey: queryKeys.projects.list(selectedCompanyId ?? "__none__", { includeArchived: true }),
+    queryKey: queryKeys.projects.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none"), { includeArchived: true }),
     queryFn: () => projectsApi.list(selectedCompanyId!, { includeArchived: true }),
     enabled: !!selectedCompanyId,
   });
@@ -96,9 +97,9 @@ export function GatewayDetail() {
   useEffect(() => {
     if (!gateway) return;
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
-      { label: "Gateways", href: "/apps/gateways" },
+      { label: selectedCompany?.name ?? t("pages.gatewayDetail.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.gatewayDetail.apps", { defaultValue: "Apps" }), href: "/apps" },
+      { label: t("pages.gatewayDetail.gateways", { defaultValue: "Gateways" }), href: "/apps/gateways" },
       { label: gateway.name },
     ]);
     return () => setBreadcrumbs([]);
@@ -111,7 +112,7 @@ export function GatewayDetail() {
       }),
     onSuccess: async (updated) => {
       pushToast({
-        title: updated.status === "active" ? "Gateway on" : "Gateway off",
+        title: updated.status === "active" ? t("pages.gatewayDetail.gatewayOn", { defaultValue: "Gateway on" }) : t("pages.gatewayDetail.gatewayOff", { defaultValue: "Gateway off" }),
         body:
           updated.status === "active"
             ? `${updated.name} is exposing its tools again.`
@@ -122,14 +123,14 @@ export function GatewayDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update the gateway",
+        title: t("pages.gatewayDetail.updateFailed", { defaultValue: "Couldn't update the gateway" }),
         body: error instanceof Error ? error.message : String(error),
         tone: "error",
       }),
   });
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to manage gateways.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("pages.gatewayDetail.selectCompany", { defaultValue: "Select a company to manage gateways." })}</div>;
   }
   if (!activeTab) {
     return <Navigate replace to={gatewayTabHref(gatewayId, "overview")} />;
@@ -149,10 +150,9 @@ export function GatewayDetail() {
   if (!gateway) {
     return (
       <div className="max-w-3xl p-6">
-        <p className="text-sm text-muted-foreground">We couldn’t find that gateway.</p>
+        <p className="text-sm text-muted-foreground">{t("ui.pages.apps.gateways.gatewaydetail.we-couldn-find-gateway")}</p>
         <Button className="mt-4" variant="outline" onClick={() => navigate("/apps/gateways")}>
-          Back to gateways
-        </Button>
+          {t("ui.pages.apps.gateways.gatewaydetail.back-gateways")}</Button>
       </div>
     );
   }
@@ -171,19 +171,17 @@ export function GatewayDetail() {
         <div className="min-w-0">
           <div className="text-xs text-muted-foreground">
             <Link to="/apps/gateways" className="hover:underline">
-              Apps · Gateways
-            </Link>
+              {t("ui.pages.apps.gateways.gatewaydetail.apps-gateways")}</Link>
           </div>
           <h1 className="mt-1 text-2xl font-bold tracking-tight">{gateway.name}</h1>
           <p className="mt-1 truncate font-mono text-xs text-muted-foreground">{endpointHost}</p>
         </div>
         <Button onClick={() => setSnippetOpen(true)}>
           <Send className="mr-1.5 h-4 w-4" />
-          Show snippet
-        </Button>
+          {t("ui.pages.apps.gateways.gatewaydetail.show-snippet")}</Button>
       </div>
 
-      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label="Gateway tabs">
+      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label={t("pages.gatewayDetail.gatewayTabs", { defaultValue: "Gateway tabs" })}>
         {GATEWAY_TABS.map((item) => {
           const isActive = item.key === activeTab;
           return (

@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { ArrowDown } from "lucide-react";
@@ -14,7 +15,7 @@ type PillPhase = "hidden" | "in" | "out";
  */
 function motionDisabled(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return true;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce")).matches;
 }
 
 interface TaskMessageScrollerProps {
@@ -151,7 +152,7 @@ export function TaskMessageScroller({ children, contentKey, className }: TaskMes
       {pillPhase !== "hidden" ? (
         <button
           type="button"
-          aria-label="Scroll to latest"
+          aria-label={t("ui.components.task-chat.taskmessagescroller.scroll-latest")}
           onClick={handleJumpToLatest}
           onAnimationEnd={() => {
             if (pillPhase === "out") setPillPhase("hidden");

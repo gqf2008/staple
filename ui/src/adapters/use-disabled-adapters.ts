@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { adaptersApi } from "@/api/adapters";

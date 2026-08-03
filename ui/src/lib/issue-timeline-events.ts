@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ActivityEvent, IssueWorkMode } from "@paperclipai/shared";
 import { isIssueWorkMode } from "@/lib/work-mode-meta";
 

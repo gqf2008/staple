@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Normalize pasted markdown by removing common leading whitespace (dedent)
  * and normalizing line endings. This fixes formatting issues when pasting

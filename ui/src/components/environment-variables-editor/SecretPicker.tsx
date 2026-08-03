@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { CornerUpLeft, Folder, KeyRound, Plus } from "lucide-react";
 import type { CompanySecret, SecretStatus } from "@paperclipai/shared";
 import {
@@ -107,7 +108,7 @@ function buildFolderGroup(
     options.push({
       key: `folder-up-${pathKey(currentPath)}`,
       value: folderValue(parentPath),
-      label: "Up one folder",
+      label: t("components.secretPicker.upOneFolder", { defaultValue: "Up one folder" }),
       title: pathLabel(parentPath),
       searchText: pathLabel(parentPath),
       kind: "back",
@@ -119,7 +120,7 @@ function buildFolderGroup(
 
   return {
     id: "browse-secrets",
-    label: currentPath.length > 0 ? pathLabel(currentPath) : "Browse secrets",
+    label: currentPath.length > 0 ? pathLabel(currentPath) : t("components.secretPicker.browseSecrets", { defaultValue: "Browse secrets" }),
     options,
   };
 }
@@ -167,11 +168,11 @@ export function SecretPicker({
     const result: SearchableSelectGroup<string, SecretOption>[] = [];
 
     // Missing (deleted) secret still needs a resolvable option so the trigger
-    // can render the destructive "Missing secret" chip.
+    // can render the destructive t("components.secretPicker.missingSecret", { defaultValue: "Missing secret" }) chip.
     if (boundMissing) {
       result.push({
         id: "current-missing",
-        label: "Current",
+        label: t("components.secretPicker.current", { defaultValue: "Current" }),
         options: [
           {
             key: `missing-${secretId}`,
@@ -191,7 +192,7 @@ export function SecretPicker({
     if (recent.length > 0) {
       result.push({
         id: "recently-used",
-        label: "Recently used",
+        label: t("components.secretPicker.recentlyUsed", { defaultValue: "Recently used" }),
         options: recent.map((secret) => ({
           key: `recent-${secret.id}`,
           value: secret.id,
@@ -207,7 +208,7 @@ export function SecretPicker({
 
     result.push({
       id: "all-secrets",
-      label: recent.length > 0 ? "All secrets" : undefined,
+      label: recent.length > 0 ? t("components.secretPicker.allSecrets", { defaultValue: "All secrets" }) : undefined,
       options: secrets.map((secret) => ({
         key: `all-${secret.id}`,
         value: secret.id,
@@ -253,9 +254,9 @@ export function SecretPicker({
       deriveGroups={deriveGroups}
       disabled={disabled}
       disablePortal={disablePortal}
-      placeholder="Select secret…"
-      searchPlaceholder="Search secrets…"
-      emptyMessage="No matching secrets"
+      placeholder={t("components.secretPicker.selectPlaceholder", { defaultValue: "Select secret…" })}
+      searchPlaceholder={t("components.secretPicker.searchPlaceholder", { defaultValue: "Search secrets…" })}
+      emptyMessage={t("components.secretPicker.noMatches", { defaultValue: "No matching secrets" })}
       triggerClassName={cn(
         "h-(--sz-34px) min-h-(--sz-34px) font-mono text-sm",
         boundMissing && "border-destructive text-destructive",
@@ -264,7 +265,7 @@ export function SecretPicker({
       )}
       renderValue={(option) => {
         if (!option) {
-          return <span className="text-muted-foreground">Select secret…</span>;
+          return <span className="text-muted-foreground">{t("components.secretPicker.selectPlaceholder", { defaultValue: "Select secret…" })}</span>;
         }
         if (option.missing) {
           return (
@@ -323,10 +324,10 @@ export function SecretPicker({
             <Plus className="size-3.5 shrink-0" />
             {query.trim() ? (
               <span>
-                Create secret <span className="font-mono">&ldquo;{query.trim()}&rdquo;</span>…
+                {t("components.createSecretPopover.createSecret")}<span className="font-mono">{t("ui.components.commandpalette.ldquo")}{query.trim()}{t("ui.components.commandpalette.rdquo")}</span>…
               </span>
             ) : (
-              <span>Create new secret…</span>
+              <span>{t("components.secretPicker.createNew", { defaultValue: "Create new secret…" })}</span>
             )}
           </span>
         ),

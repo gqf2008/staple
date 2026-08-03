@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   AlertCircle,
   AlertOctagon,
@@ -75,17 +76,17 @@ export function externalObjectIconForLiveness(liveness: string): LucideIcon | nu
 }
 
 const CATEGORY_LABELS: Record<string, string> = {
-  unknown: "Not yet resolved",
+  unknown: t("ui.lib.external-objects.not-yet-resolved"),
   open: "Open",
   waiting: "Waiting",
   running: "Running",
-  succeeded: "Succeeded",
+  succeeded: t("components.activityCharts.succeeded"),
   failed: "Failed",
   blocked: "Blocked",
   closed: "Closed",
   archived: "Archived",
-  auth_required: "Authorization required",
-  unreachable: "Unreachable",
+  auth_required: t("ui.lib.external-objects.authorization-required"),
+  unreachable: t("ui.lib.external-objects.unreachable"),
 };
 
 export function externalObjectCategoryLabel(category: string): string {
@@ -93,11 +94,11 @@ export function externalObjectCategoryLabel(category: string): string {
 }
 
 const LIVENESS_LABELS: Record<string, string> = {
-  unknown: "Not yet refreshed",
-  fresh: "Fresh",
-  stale: "Stale",
-  auth_required: "Requires auth",
-  unreachable: "Unreachable",
+  unknown: t("ui.lib.external-objects.not-yet-refreshed"),
+  fresh: t("ui.lib.external-objects.fresh"),
+  stale: t("ui.lib.external-objects.stale"),
+  auth_required: t("ui.lib.external-objects.requires-auth"),
+  unreachable: t("ui.lib.external-objects.unreachable"),
 };
 
 export function externalObjectLivenessLabel(liveness: string): string {
@@ -165,10 +166,10 @@ const PROVIDER_LABELS: Record<string, string> = {
   github_pull_request: "GitHub",
   github_issue: "GitHub",
   hubspot: "HubSpot",
-  linear: "Linear",
-  jira: "Jira",
-  notion: "Notion",
-  asana: "Asana",
+  linear: t("ui.lib.external-objects.linear"),
+  jira: t("ui.lib.external-objects.jira"),
+  notion: t("ui.lib.external-objects.notion"),
+  asana: t("ui.lib.external-objects.asana"),
 };
 
 export function externalObjectProviderLabel(providerKey: string | null | undefined): string {
@@ -182,10 +183,10 @@ export function externalObjectProviderLabel(providerKey: string | null | undefin
 }
 
 const OBJECT_TYPE_LABELS: Record<string, string> = {
-  pull_request: "pull request",
+  pull_request: t("ui.lib.external-objects.pull-request"),
   issue: "issue",
   deployment: "deployment",
-  workflow_run: "workflow run",
+  workflow_run: t("ui.lib.external-objects.workflow-run"),
   ticket: "ticket",
   lead: "lead",
   url_link: "URL",
@@ -262,5 +263,5 @@ export function externalObjectDominantCount(
  */
 export function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce")).matches;
 }

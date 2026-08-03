@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { type ReactNode, useMemo, useState } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -62,8 +63,8 @@ export function SearchFilterMenu(props: SearchFilterMenuProps) {
     options,
     selected,
     searchable = false,
-    searchPlaceholder = "Search…",
-    emptyMessage = "No options",
+    searchPlaceholder = t("ui.components.search.searchfiltermenu.search"),
+    emptyMessage = t("ui.components.search.searchfiltermenu.no-options"),
     triggerClassName,
     contentClassName,
     align = "start",
@@ -123,8 +124,7 @@ export function SearchFilterMenu(props: SearchFilterMenuProps) {
               className="text-xs text-muted-foreground hover:text-foreground"
               onClick={() => props.onClear()}
             >
-              Clear
-            </button>
+              {t("components.issueProperties.clear")}</button>
           ) : null}
         </div>
 

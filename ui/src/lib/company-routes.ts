@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 const BOARD_ROUTE_ROOTS = new Set([
   "dashboard",
   "companies",

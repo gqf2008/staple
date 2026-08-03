@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   ChevronDown,
@@ -84,15 +85,15 @@ type UsesMode = "anything" | "app" | "actions" | "capability";
 const RISK_LEVELS: ToolRiskLevel[] = ["read", "write", "destructive", "low", "medium", "high", "critical"];
 const RATE_LIMIT_KEY_FIELDS: RateLimitKeyBy[] = ["company", "agent", "application", "connection", "tool"];
 const CAPABILITY_OPTIONS: Array<{ value: ToolRiskLevel; label: string; sentence: string }> = [
-  { value: "read", label: "Read-only", sentence: "read-only actions" },
-  { value: "write", label: "Makes changes", sentence: "actions that make changes" },
-  { value: "destructive", label: "Destructive", sentence: "destructive actions" },
+  { value: "read", label: t("pages.tools.policies.readOnly", { defaultValue: "Read-only" }), sentence: t("ui.pages.tools.policiestab.read-only-actions") },
+  { value: "write", label: t("pages.tools.policies.makesChanges", { defaultValue: "Makes changes" }), sentence: t("ui.pages.tools.policiestab.actions-make-changes") },
+  { value: "destructive", label: t("pages.tools.policies.destructive", { defaultValue: "Destructive" }), sentence: t("ui.pages.tools.policiestab.destructive-actions") },
 ];
 const OUTCOMES: Array<{ value: BuilderPolicyType; label: string }> = [
-  { value: "allow", label: "Allow" },
-  { value: "block", label: "Block" },
-  { value: "require_approval", label: "Ask first" },
-  { value: "rate_limit", label: "Limit" },
+  { value: "allow", label: t("pages.tools.policies.allow", { defaultValue: "Allow" }) },
+  { value: "block", label: t("pages.tools.wizardToolsStep.block") },
+  { value: "require_approval", label: t("pages.tools.policies.askFirst", { defaultValue: "Ask first" }) },
+  { value: "rate_limit", label: t("pages.tools.policies.limit", { defaultValue: "Limit" }) },
 ];
 const SUPPORTED_BUILDER_POLICY_TYPES = new Set<string>(OUTCOMES.map((outcome) => outcome.value));
 
@@ -217,7 +218,7 @@ function policyToForm(policy: ToolPolicy): PolicyFormState {
 function buildPolicyPayload(form: PolicyFormState) {
   const priority = Number(form.priority);
   if (!Number.isInteger(priority) || priority < 0 || priority > 10000) {
-    throw new Error("Priority must be an integer from 0 to 10000");
+    throw new Error(t("pages.tools.policies.priorityHint", { defaultValue: "Priority must be an integer from 0 to 10000" }));
   }
   const selectors: Record<string, unknown> = {};
   if (form.actorType !== ANY_VALUE) selectors.actorType = form.actorType;
@@ -234,9 +235,9 @@ function buildPolicyPayload(form: PolicyFormState) {
   if (form.policyType === "rate_limit") {
     const limit = Number(form.rateLimitLimit);
     const windowSeconds = Number(form.rateLimitWindowSeconds);
-    if (!Number.isInteger(limit) || limit <= 0) throw new Error("Limit must be a positive integer");
+    if (!Number.isInteger(limit) || limit <= 0) throw new Error(t("pages.tools.policies.limitHint", { defaultValue: "Limit must be a positive integer" }));
     if (!Number.isInteger(windowSeconds) || windowSeconds <= 0) {
-      throw new Error("Window must be a positive number of seconds");
+      throw new Error(t("pages.tools.policies.windowHint", { defaultValue: "Window must be a positive number of seconds" }));
     }
     config = { rateLimit: { limit, windowSeconds, keyBy: form.rateLimitKeyBy } };
   }
@@ -263,12 +264,12 @@ function windowLabel(seconds: string | number | null | undefined) {
 
 function outcomeLabel(policy: Pick<ToolPolicy, "policyType" | "config"> | PolicyFormState) {
   const policyType = String(policy.policyType);
-  if (policyType === "allow") return "Allow";
-  if (policyType === "block") return "Block";
-  if (policyType === "require_approval") return "Ask first";
-  if (policyType === "redact") return "Unsupported: redact";
-  if (policyType === "trust_rule") return "Allow";
-  if (policyType === "validate") return "Unsupported: custom check";
+  if (policyType === "allow") return t("pages.tools.policies.allow", { defaultValue: "Allow" });
+  if (policyType === "block") return t("pages.tools.wizardToolsStep.block");
+  if (policyType === "require_approval") return t("pages.tools.policies.askFirst", { defaultValue: "Ask first" });
+  if (policyType === "redact") return t("pages.tools.policies.unsupportedRedact", { defaultValue: "Unsupported: redact" });
+  if (policyType === "trust_rule") return t("pages.tools.policies.allow", { defaultValue: "Allow" });
+  if (policyType === "validate") return t("pages.tools.policies.unsupportedCustom", { defaultValue: "Unsupported: custom check" });
   const config = "config" in policy && isRecord(policy.config) ? policy.config : {};
   const rateLimit = isRecord(config.rateLimit) ? config.rateLimit : config;
   const limit = "rateLimitLimit" in policy ? policy.rateLimitLimit : rateLimit.limit;
@@ -301,10 +302,10 @@ function policySentence(
   const actorType = selectValue(selectors, "actorType");
   const catalogById = new Map([...catalogByToolName.values()].map((tool) => [tool.id, tool]));
 
-  let who = "any agent";
-  if (agentIds.length === 1) who = maps.agent.get(agentIds[0]!) ?? "one agent";
+  let who = t("ui.pages.tools.policiestab.any-agent");
+  if (agentIds.length === 1) who = maps.agent.get(agentIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-agent");
   else if (agentIds.length > 1) who = `${agentIds.length} agents`;
-  else if (projectIds.length === 1) who = `agents in ${maps.project.get(projectIds[0]!) ?? "one project"}`;
+  else if (projectIds.length === 1) who = `agents in ${maps.project.get(projectIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-project")}`;
   else if (projectIds.length > 1) who = `agents in ${projectIds.length} projects`;
   else if (actorType !== ANY_VALUE && actorType !== "agent") who = `${actorType}s`;
 
@@ -313,12 +314,12 @@ function policySentence(
   else if (tools.length > 1) uses = `${tools.length} specific actions`;
   else if (catalogEntryIds.length === 1) {
     const tool = catalogById.get(catalogEntryIds[0]!);
-    uses = tool ? tool.title || toolDisplayName(tool.toolName, catalogByToolName) : "one action";
+    uses = tool ? tool.title || toolDisplayName(tool.toolName, catalogByToolName) : t("ui.pages.tools.policiestab.one-action");
   }
   else if (catalogEntryIds.length > 1) uses = `${catalogEntryIds.length} specific actions`;
-  else if (appIds.length === 1) uses = maps.application.get(appIds[0]!) ?? "one app";
+  else if (appIds.length === 1) uses = maps.application.get(appIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-app");
   else if (appIds.length > 1) uses = `${appIds.length} apps`;
-  else if (connectionIds.length === 1) uses = maps.connection.get(connectionIds[0]!) ?? "one app";
+  else if (connectionIds.length === 1) uses = maps.connection.get(connectionIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-app");
   else if (risk !== ANY_VALUE) uses = capabilitySentence(risk);
 
   return { who, uses, outcome: outcomeLabel(policy) };
@@ -378,7 +379,7 @@ type LookupMaps = {
 function RuleSentence({ sentence }: { sentence: ReturnType<typeof policySentence> }) {
   return (
     <span>
-      When <strong>{sentence.who}</strong> uses <strong>{sentence.uses}</strong> →{" "}
+      {t("pages.tools.policies.when")}<strong>{sentence.who}</strong> uses <strong>{sentence.uses}</strong> →{" "}
       <strong>{sentence.outcome}</strong>
     </span>
   );
@@ -418,7 +419,7 @@ function PolicySimulator({
     onError: (err) => {
       setResult(null);
       pushToast({
-        title: "Rule test failed",
+        title: t("pages.tools.policies.ruleTestFailed", { defaultValue: "Rule test failed" }),
         body: err instanceof ApiError ? err.message : String(err),
         tone: "error",
       });
@@ -440,17 +441,16 @@ function PolicySimulator({
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2 text-base">
             <FlaskConical className="h-4 w-4" />
-            Test a rule
-          </SheetTitle>
-          <SheetDescription>Pick an agent and an action to see what Paperclip would do.</SheetDescription>
+            {t("ui.pages.tools.policiestab.test-rule")}</SheetTitle>
+          <SheetDescription>{t("pages.tools.policies.testHint", { defaultValue: "Pick an agent and an action to see what Paperclip would do." })}</SheetDescription>
         </SheetHeader>
         <div className="flex-1 space-y-4 overflow-y-auto p-4">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="space-y-1.5">
-              <Label>Agent</Label>
+              <Label>{t("pages.tools.policies.agent", { defaultValue: "Agent" })}</Label>
               <Select value={agentId} onValueChange={setAgentId}>
                 <SelectTrigger>
-                  <SelectValue placeholder="Select an agent" />
+                  <SelectValue placeholder={t("pages.tools.policies.selectAgent", { defaultValue: "Select an agent" })} />
                 </SelectTrigger>
                 <SelectContent>
                   {agents.map((a) => (
@@ -462,17 +462,17 @@ function PolicySimulator({
               </Select>
             </div>
             <div className="space-y-1.5">
-              <Label htmlFor="test-action">Action</Label>
+              <Label htmlFor="test-action">{t("pages.tools.policies.action", { defaultValue: "Action" })}</Label>
               <Input
                 id="test-action"
                 value={toolName}
                 onChange={(e) => setToolName(e.target.value)}
-                placeholder="e.g. gmail.send_email"
+                placeholder={t("ui.pages.tools.policiestab.gmail-send-email")}
               />
             </div>
           </div>
           <Button size="sm" disabled={!agentId || !toolName.trim() || test.isPending} onClick={() => test.mutate()}>
-            {test.isPending ? "Checking..." : "Check rule"}
+            {test.isPending ? t("pages.tools.policies.checking", { defaultValue: "Checking..." }) : t("pages.tools.policies.checkRule", { defaultValue: "Check rule" })}
           </Button>
 
           {result ? (
@@ -492,18 +492,18 @@ function PolicySimulator({
                 )}
               </div>
               <details className="text-xs text-muted-foreground">
-                <summary className="cursor-pointer text-foreground">Details</summary>
+                <summary className="cursor-pointer text-foreground">{t("pages.tools.policies.details", { defaultValue: "Details" })}</summary>
                 <div className="mt-2 space-y-1 font-mono">
-                  <div>reason: {result.reasonCode}</div>
-                  <div>matched rule ids: {result.matchedPolicyIds.length ? result.matchedPolicyIds.join(", ") : "none"}</div>
-                  <div>effective profiles: {result.effectiveProfileIds.length ? result.effectiveProfileIds.join(", ") : "none"}</div>
+                  <div>{t("ui.pages.tools.policiestab.reason")}{result.reasonCode}</div>
+                  <div>{t("ui.pages.tools.policiestab.matched-rule-ids")}{result.matchedPolicyIds.length ? result.matchedPolicyIds.join(", ") : "none"}</div>
+                  <div>{t("ui.pages.tools.policiestab.effective-profiles")}{result.effectiveProfileIds.length ? result.effectiveProfileIds.join(", ") : "none"}</div>
                 </div>
               </details>
             </div>
           ) : null}
         </div>
         <SheetFooter className="border-t border-border">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Close</Button>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>{t("pages.tools.policies.close", { defaultValue: "Close" })}</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>
@@ -559,14 +559,13 @@ function RuleBuilder({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
           <Button variant="ghost" size="sm" className="px-0" onClick={onCancel}>
-            Back to rules
-          </Button>
-          <h2 className="text-lg font-semibold text-foreground">{form.id ? "Edit rule" : "New rule"}</h2>
+            {t("ui.pages.tools.policiestab.back-rules")}</Button>
+          <h2 className="text-lg font-semibold text-foreground">{form.id ? t("pages.tools.policies.editRule", { defaultValue: "Edit rule" }) : t("pages.tools.policies.newRule", { defaultValue: "New rule" })}</h2>
         </div>
         <div className="flex gap-2">
-          <Button variant="outline" size="sm" onClick={onCancel}>Cancel</Button>
+          <Button variant="outline" size="sm" onClick={onCancel}>{t("pages.tools.policies.cancel", { defaultValue: "Cancel" })}</Button>
           <Button size="sm" onClick={onSave} disabled={saving}>
-            {saving ? "Saving..." : "Save rule"}
+            {saving ? t("pages.tools.policies.saving", { defaultValue: "Saving..." }) : t("pages.tools.policies.saveRule", { defaultValue: "Save rule" })}
           </Button>
         </div>
       </div>
@@ -577,12 +576,12 @@ function RuleBuilder({
 
       <div className="grid gap-4 lg:grid-cols-(--gtc-61)">
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">When</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.policies.when", { defaultValue: "When" })}</h3>
           <div className="grid gap-2">
             {[
-              ["everyone", "Everyone"],
-              ["agent", "Specific agent"],
-              ["project", "Agents in a project"],
+              ["everyone", t("pages.tools.policies.everyone", { defaultValue: "Everyone" })],
+              ["agent", t("pages.tools.policies.specificAgent", { defaultValue: "Specific agent" })],
+              ["project", t("pages.tools.policies.agentsInProject", { defaultValue: "Agents in a project" })],
             ].map(([value, label]) => (
               <Button
                 key={value}
@@ -597,18 +596,18 @@ function RuleBuilder({
           </div>
           {form.whenMode === "agent" ? (
             <Select value={form.agentId} onValueChange={(agentId) => setForm({ ...form, agentId })}>
-              <SelectTrigger><SelectValue placeholder="Choose agent" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("pages.tools.policies.chooseAgent", { defaultValue: "Choose agent" })} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY_VALUE}>Choose agent</SelectItem>
+                <SelectItem value={ANY_VALUE}>{t("pages.tools.policies.chooseAgent", { defaultValue: "Choose agent" })}</SelectItem>
                 {agents.map((agent) => <SelectItem key={agent.id} value={agent.id}>{agent.name}</SelectItem>)}
               </SelectContent>
             </Select>
           ) : null}
           {form.whenMode === "project" ? (
             <Select value={form.projectId} onValueChange={(projectId) => setForm({ ...form, projectId })}>
-              <SelectTrigger><SelectValue placeholder="Choose project" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("pages.tools.policies.chooseProject", { defaultValue: "Choose project" })} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY_VALUE}>Choose project</SelectItem>
+                <SelectItem value={ANY_VALUE}>{t("pages.tools.policies.chooseProject", { defaultValue: "Choose project" })}</SelectItem>
                 {projects.map((project) => <SelectItem key={project.id} value={project.id}>{project.name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -616,13 +615,13 @@ function RuleBuilder({
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Uses</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.policies.uses", { defaultValue: "Uses" })}</h3>
           <div className="grid gap-2">
             {[
-              ["anything", "Anything"],
-              ["app", "A specific app"],
-              ["actions", "Specific actions"],
-              ["capability", "Actions by capability"],
+              ["anything", t("pages.tools.policies.anything", { defaultValue: "Anything" })],
+              ["app", t("ui.pages.tools.policiestab.specific-app")],
+              ["actions", t("pages.tools.policies.specificActions", { defaultValue: "Specific actions" })],
+              ["capability", t("pages.tools.policies.actionsByCapability", { defaultValue: "Actions by capability" })],
             ].map(([value, label]) => (
               <Button
                 key={value}
@@ -637,18 +636,18 @@ function RuleBuilder({
           </div>
           {form.usesMode === "app" ? (
             <Select value={form.applicationId} onValueChange={(applicationId) => setForm({ ...form, applicationId })}>
-              <SelectTrigger><SelectValue placeholder="Choose app" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("pages.tools.policies.chooseApp", { defaultValue: "Choose app" })} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY_VALUE}>Choose app</SelectItem>
+                <SelectItem value={ANY_VALUE}>{t("pages.tools.policies.chooseApp", { defaultValue: "Choose app" })}</SelectItem>
                 {applications.map((app) => <SelectItem key={app.id} value={app.id}>{app.name}</SelectItem>)}
               </SelectContent>
             </Select>
           ) : null}
           {form.usesMode === "capability" ? (
             <Select value={form.riskLevel} onValueChange={(riskLevel) => setForm({ ...form, riskLevel })}>
-              <SelectTrigger><SelectValue placeholder="Choose capability" /></SelectTrigger>
+              <SelectTrigger><SelectValue placeholder={t("pages.tools.policies.chooseCapability", { defaultValue: "Choose capability" })} /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY_VALUE}>Choose capability</SelectItem>
+                <SelectItem value={ANY_VALUE}>{t("pages.tools.policies.chooseCapability", { defaultValue: "Choose capability" })}</SelectItem>
                 {CAPABILITY_OPTIONS.map((option) => (
                   <SelectItem key={option.value} value={option.value}>{option.label}</SelectItem>
                 ))}
@@ -658,7 +657,7 @@ function RuleBuilder({
           {form.usesMode === "actions" ? (
             <div className="max-h-80 overflow-y-auto rounded-md border border-border">
               {appGroups.length === 0 ? (
-                <div className="p-3 text-sm text-muted-foreground">No app actions discovered yet.</div>
+                <div className="p-3 text-sm text-muted-foreground">{t("pages.tools.policies.noActions", { defaultValue: "No app actions discovered yet." })}</div>
               ) : (
                 appGroups.map((group) => {
                   const selectedCount = group.tools.filter((tool) => selectedTools.has(tool.toolName)).length;
@@ -689,7 +688,7 @@ function RuleBuilder({
         </section>
 
         <section className="space-y-3">
-          <h3 className="text-sm font-semibold text-foreground">Then</h3>
+          <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.policies.then", { defaultValue: "Then" })}</h3>
           <div className="grid gap-2">
             {OUTCOMES.map((outcome) => (
               <Button
@@ -706,17 +705,17 @@ function RuleBuilder({
           {form.policyType === "rate_limit" ? (
             <div className="grid grid-cols-2 gap-2">
               <div className="space-y-1.5">
-                <Label htmlFor="limit-count">Times</Label>
+                <Label htmlFor="limit-count">{t("pages.tools.policies.times", { defaultValue: "Times" })}</Label>
                 <Input id="limit-count" inputMode="numeric" value={form.rateLimitLimit} onChange={(e) => setForm({ ...form, rateLimitLimit: e.target.value })} />
               </div>
               <div className="space-y-1.5">
-                <Label>Per</Label>
+                <Label>{t("pages.tools.policies.per", { defaultValue: "Per" })}</Label>
                 <Select value={form.rateLimitWindowSeconds} onValueChange={(rateLimitWindowSeconds) => setForm({ ...form, rateLimitWindowSeconds })}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="3600">Hour</SelectItem>
-                    <SelectItem value="86400">Day</SelectItem>
-                    <SelectItem value="60">Minute</SelectItem>
+                    <SelectItem value="3600">{t("pages.tools.policies.hour", { defaultValue: "Hour" })}</SelectItem>
+                    <SelectItem value="86400">{t("pages.tools.policies.day", { defaultValue: "Day" })}</SelectItem>
+                    <SelectItem value="60">{t("pages.tools.policies.minute", { defaultValue: "Minute" })}</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -728,23 +727,22 @@ function RuleBuilder({
       <details className="rounded-md border border-border p-3">
         <summary className="flex cursor-pointer items-center gap-2 text-sm font-semibold text-foreground">
           <ChevronDown className="h-4 w-4" />
-          Advanced
-        </summary>
+          {t("components.issueRunLedger.advanced")}</summary>
         <div className="mt-3 grid gap-3 lg:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="rule-name">Rule name</Label>
+            <Label htmlFor="rule-name">{t("pages.tools.policies.ruleName", { defaultValue: "Rule name" })}</Label>
             <Input id="rule-name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder={sentenceText(sentence)} />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="rule-priority">Priority</Label>
+            <Label htmlFor="rule-priority">{t("pages.tools.policies.priority", { defaultValue: "Priority" })}</Label>
             <Input id="rule-priority" inputMode="numeric" value={form.priority} onChange={(e) => setForm({ ...form, priority: e.target.value })} />
           </div>
           <div className="space-y-1.5">
-            <Label>Raw connection</Label>
+            <Label>{t("pages.tools.policies.rawConnection", { defaultValue: "Raw connection" })}</Label>
             <Select value={form.connectionId} onValueChange={(connectionId) => setForm({ ...form, connectionId })}>
               <SelectTrigger><SelectValue /></SelectTrigger>
               <SelectContent>
-                <SelectItem value={ANY_VALUE}>Any connection</SelectItem>
+                <SelectItem value={ANY_VALUE}>{t("pages.tools.policies.anyConnection", { defaultValue: "Any connection" })}</SelectItem>
                 {[...maps.connection.entries()].map(([id, name]) => <SelectItem key={id} value={id}>{name}</SelectItem>)}
               </SelectContent>
             </Select>
@@ -752,7 +750,7 @@ function RuleBuilder({
           <div className="flex items-center justify-between gap-3 rounded-md border border-border px-3 py-2 lg:col-span-2">
             <div>
               <p className="text-sm font-medium text-foreground">On</p>
-              <p className="text-xs text-muted-foreground">Turn this off to keep the rule saved without matching.</p>
+              <p className="text-xs text-muted-foreground">{t("pages.tools.policies.offHint", { defaultValue: "Turn this off to keep the rule saved without matching." })}</p>
             </div>
             <ToggleSwitch checked={form.enabled} onCheckedChange={(enabled) => setForm({ ...form, enabled })} />
           </div>
@@ -765,18 +763,18 @@ function RuleBuilder({
 function StarterCards({ onStart }: { onStart: (form: PolicyFormState) => void }) {
   const starters = [
     {
-      title: "Block destructive actions everywhere",
-      form: emptyPolicyForm({ policyType: "block", usesMode: "capability", riskLevel: "destructive", name: "Block destructive actions everywhere" }),
+      title: t("ui.pages.tools.policiestab.block-destructive-actions-everywhere"),
+      form: emptyPolicyForm({ policyType: "block", usesMode: "capability", riskLevel: "destructive", name: t("ui.pages.tools.policiestab.block-destructive-actions-everywhere") }),
     },
     {
-      title: "Ask first before selected actions",
-      form: emptyPolicyForm({ policyType: "require_approval", usesMode: "actions", name: "Ask first before selected actions" }),
+      title: t("pages.tools.policies.askFirstActions", { defaultValue: "Ask first before selected actions" }),
+      form: emptyPolicyForm({ policyType: "require_approval", usesMode: "actions", name: t("pages.tools.policies.askFirstActions", { defaultValue: "Ask first before selected actions" }) }),
     },
     {
-      title: "Limit a noisy action",
-      form: emptyPolicyForm({ policyType: "rate_limit", usesMode: "actions", rateLimitLimit: "50", name: "Limit a noisy action" }),
+      title: t("pages.tools.policies.limitNoisyAction", { defaultValue: "Limit a noisy action" }),
+      form: emptyPolicyForm({ policyType: "rate_limit", usesMode: "actions", rateLimitLimit: "50", name: t("pages.tools.policies.limitNoisyAction", { defaultValue: "Limit a noisy action" }) }),
     },
-    { title: "Start from scratch", form: emptyPolicyForm() },
+    { title: t("pages.tools.policies.startFromScratch", { defaultValue: "Start from scratch" }), form: emptyPolicyForm() },
   ];
   return (
     <div className="grid gap-2 sm:grid-cols-2">
@@ -881,9 +879,9 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
     onSuccess: () => {
       invalidatePolicies();
       setForm(null);
-      pushToast({ title: "Rule created", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.ruleCreated", { defaultValue: "Rule created" }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Could not save rule", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.ruleSaveFailed", { defaultValue: "Could not save rule" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
   const updatePolicy = useMutation({
     mutationFn: (input: { policyId: string; body: Partial<ReturnType<typeof buildPolicyPayload>> }) =>
@@ -891,43 +889,43 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
     onSuccess: () => {
       invalidatePolicies();
       setForm(null);
-      pushToast({ title: "Rule updated", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.ruleUpdated", { defaultValue: "Rule updated" }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Could not save rule", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.ruleSaveFailed", { defaultValue: "Could not save rule" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
   const reorder = useMutation({
     mutationFn: (policyIds: string[]) => toolsApi.reorderPolicies(companyId, { policyIds }),
     onSuccess: () => {
       invalidatePolicies();
-      pushToast({ title: "Rules reordered", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.rulesReordered", { defaultValue: "Rules reordered" }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Could not reorder rules", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.reorderFailed", { defaultValue: "Could not reorder rules" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
   const duplicate = useMutation({
     mutationFn: (policy: ToolPolicy) => toolsApi.duplicatePolicy(companyId, policy.id),
     onSuccess: () => {
       invalidatePolicies();
-      pushToast({ title: "Rule duplicated", body: "The copy is off until you turn it on.", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.ruleDuplicated", { defaultValue: "Rule duplicated" }), body: t("pages.tools.policies.copyOffHint", { defaultValue: "The copy is off until you turn it on." }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Duplicate failed", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.duplicateFailed", { defaultValue: "Duplicate failed" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
   const deletePolicy = useMutation({
     mutationFn: (policyId: string) => toolsApi.deletePolicy(companyId, policyId),
     onSuccess: () => {
       invalidatePolicies();
       setConfirm(null);
-      pushToast({ title: "Rule deleted", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.ruleDeleted", { defaultValue: "Rule deleted" }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Delete failed", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.deleteFailed", { defaultValue: "Delete failed" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
   const revoke = useMutation({
     mutationFn: (policyId: string) => toolsApi.revokeTrustRule(companyId, policyId),
     onSuccess: () => {
       invalidateTrustRules();
       setConfirm(null);
-      pushToast({ title: "Remembered approval forgotten", tone: "success" });
+      pushToast({ title: t("pages.tools.policies.approvalForgotten", { defaultValue: "Remembered approval forgotten" }), tone: "success" });
     },
-    onError: (err) => pushToast({ title: "Forget failed", body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
+    onError: (err) => pushToast({ title: t("pages.tools.policies.forgetFailed", { defaultValue: "Forget failed" }), body: err instanceof ApiError ? err.message : String(err), tone: "error" }),
   });
 
   function submitPolicy() {
@@ -938,7 +936,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
       if (form.id) updatePolicy.mutate({ policyId: form.id, body });
       else createPolicy.mutate(body);
     } catch (err) {
-      pushToast({ title: "Invalid rule", body: err instanceof Error ? err.message : String(err), tone: "error" });
+      pushToast({ title: t("pages.tools.policies.invalidRule", { defaultValue: "Invalid rule" }), body: err instanceof Error ? err.message : String(err), tone: "error" });
     }
   }
 
@@ -982,18 +980,16 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
   return (
     <div className="space-y-5">
       <ToolsPageHeader
-        title="Rules"
-        description="Rules are checked top to bottom — the first one that matches decides."
+        title={t("pages.tools.policies.title", { defaultValue: "Rules" })}
+        description={t("pages.tools.policies.rulesHint", { defaultValue: "Rules are checked top to bottom — the first one that matches decides." })}
         actions={
           <>
             <Button size="sm" variant="outline" onClick={() => setTestOpen(true)}>
               <FlaskConical className="mr-1 h-4 w-4" />
-              Test a rule
-            </Button>
+              {t("ui.pages.tools.policiestab.test-rule")}</Button>
             <Button size="sm" onClick={() => setForm(emptyPolicyForm())}>
               <Plus className="mr-1 h-4 w-4" />
-              New rule
-            </Button>
+              {t("pages.tools.policies.newRule")}</Button>
           </>
         }
       />
@@ -1007,9 +1003,9 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
           <div className="space-y-3">
             <EmptyState
               icon={Shield}
-              message="No rules yet"
-              description="Start with a template or create a rule from scratch."
-              action="New rule"
+              message={t("pages.tools.policies.noRules", { defaultValue: "No rules yet" })}
+              description={t("pages.tools.policies.noRulesHint", { defaultValue: "Start with a template or create a rule from scratch." })}
+              action={t("pages.tools.policies.newRule", { defaultValue: "New rule" })}
               onAction={() => setForm(emptyPolicyForm())}
             />
             <StarterCards onStart={setForm} />
@@ -1021,9 +1017,9 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                 <thead>
                   <tr className="border-b border-border text-left text-xs text-muted-foreground">
                     <th className="w-8 px-2 py-2.5 font-medium" />
-                    <th className="px-2 py-2.5 font-medium">Rule</th>
-                    <th className="px-2 py-2.5 font-medium">Outcome</th>
-                    <th className="px-2 py-2.5 text-right font-medium">Last 24h</th>
+                    <th className="px-2 py-2.5 font-medium">{t("pages.tools.policies.rule", { defaultValue: "Rule" })}</th>
+                    <th className="px-2 py-2.5 font-medium">{t("pages.tools.policies.outcome", { defaultValue: "Outcome" })}</th>
+                    <th className="px-2 py-2.5 text-right font-medium">{t("pages.tools.policies.last24h", { defaultValue: "Last 24h" })}</th>
                     <th className="px-2 py-2.5 text-center font-medium">On</th>
                     <th className="w-10 px-2 py-2.5 text-right font-medium" />
                   </tr>
@@ -1071,31 +1067,27 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                         <td className="px-2 py-2 text-right">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                              <Button size="icon" variant="ghost" aria-label="Rule actions">
+                              <Button size="icon" variant="ghost" aria-label={t("pages.tools.policies.ruleActions", { defaultValue: "Rule actions" })}>
                                 <MoreHorizontal className="h-4 w-4" />
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem onSelect={() => setForm(policyToForm(policy))}>
                                 <Pencil className="mr-2 h-4 w-4" />
-                                Edit
-                              </DropdownMenuItem>
+                                {t("components.issueProperties.edit")}</DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => duplicate.mutate(policy)}>
                                 <Copy className="mr-2 h-4 w-4" />
-                                Duplicate
-                              </DropdownMenuItem>
+                                {t("pages.tools.profilesIndex.duplicate")}</DropdownMenuItem>
                               <DropdownMenuItem onSelect={() => updatePolicy.mutate({ policyId: policy.id, body: { enabled: false } })}>
                                 <RotateCcw className="mr-2 h-4 w-4" />
-                                Turn off
-                              </DropdownMenuItem>
+                                {t("ui.pages.tools.policiestab.turn-off")}</DropdownMenuItem>
                               <DropdownMenuSeparator />
                               <DropdownMenuItem
                                 className="text-destructive focus:text-destructive"
                                 onSelect={() => setConfirm({ kind: "delete-rule", policy, hits })}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" />
-                                Delete
-                              </DropdownMenuItem>
+                                {t("common.delete")}</DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </td>
@@ -1110,16 +1102,15 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
       </div>
 
       <div className="space-y-2">
-        <h3 className="text-sm font-semibold text-foreground">Remembered approvals</h3>
-        <p className="text-sm text-muted-foreground">When you approve an Ask-first request, Paperclip can remember the decision.</p>
+        <h3 className="text-sm font-semibold text-foreground">{t("pages.tools.policies.rememberedApprovals", { defaultValue: "Remembered approvals" })}</h3>
+        <p className="text-sm text-muted-foreground">{t("pages.tools.policies.rememberedHint", { defaultValue: "When you approve an Ask-first request, Paperclip can remember the decision." })}</p>
         {trustRules.isLoading ? (
           <LoadingState />
         ) : trustRules.error ? (
           <ErrorState error={trustRules.error} onRetry={() => trustRules.refetch()} />
         ) : (trustRules.data?.trustRules ?? []).length === 0 ? (
           <div className="rounded-md border border-border px-4 py-6 text-sm text-muted-foreground">
-            No remembered approvals yet.
-          </div>
+            {t("ui.pages.tools.policiestab.no-remembered-approvals-yet")}</div>
         ) : (
           <div className="divide-y divide-border rounded-md border border-border">
             {(trustRules.data?.trustRules ?? []).map((rule) => (
@@ -1129,7 +1120,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                     <RuleSentence sentence={policySentence(rule, maps, catalogByToolName)} />
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    Remembered <RelativeTime value={rule.updatedAt} />
+                    {t("ui.pages.tools.policiestab.remembered")}<RelativeTime value={rule.updatedAt} />
                   </div>
                 </div>
                 <Button
@@ -1138,8 +1129,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                   disabled={!rule.enabled || revoke.isPending}
                   onClick={() => setConfirm({ kind: "forget-approval", policy: rule })}
                 >
-                  Forget
-                </Button>
+                  {t("pages.tools.policies.forget")}</Button>
               </div>
             ))}
           </div>
@@ -1164,15 +1154,15 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
         {confirm ? (
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>{confirm.kind === "delete-rule" ? "Delete rule?" : "Forget remembered approval?"}</DialogTitle>
+              <DialogTitle>{confirm.kind === "delete-rule" ? t("pages.tools.policies.deleteConfirm", { defaultValue: "Delete rule?" }) : t("pages.tools.policies.forgetConfirm", { defaultValue: "Forget remembered approval?" })}</DialogTitle>
               <DialogDescription>
                 {confirm.kind === "delete-rule"
                   ? `This rule matched ${confirm.hits} ${confirm.hits === 1 ? "time" : "times"} in the last 24 hours. Deleting it may change what agents can do.`
-                  : "Paperclip will ask again the next time this action needs approval."}
+                  : t("pages.tools.policies.forgetHint", { defaultValue: "Paperclip will ask again the next time this action needs approval." })}
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
-              <Button variant="outline" onClick={() => setConfirm(null)}>Cancel</Button>
+              <Button variant="outline" onClick={() => setConfirm(null)}>{t("pages.tools.policies.cancel", { defaultValue: "Cancel" })}</Button>
               <Button
                 variant="destructive"
                 disabled={deletePolicy.isPending || revoke.isPending}
@@ -1181,7 +1171,7 @@ export function PoliciesTab({ companyId }: { companyId: string }) {
                   else revoke.mutate(confirm.policy.id);
                 }}
               >
-                {confirm.kind === "delete-rule" ? "Delete" : "Forget"}
+                {confirm.kind === "delete-rule" ? t("pages.tools.policies.delete", { defaultValue: "Delete" }) : t("pages.tools.policies.forget", { defaultValue: "Forget" })}
               </Button>
             </DialogFooter>
           </DialogContent>

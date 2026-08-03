@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   IssueCommentMetadata,
   IssueCommentMetadataRow,
@@ -11,11 +12,11 @@ import type {
 } from "../components/SystemNotice";
 
 const TONE_LABEL: Record<SystemNoticeTone, string> = {
-  neutral: "System notice",
-  info: "System notice",
-  success: "System notice",
-  warning: "System warning",
-  danger: "System alert",
+  neutral: t("components.systemNotice.systemNotice"),
+  info: t("components.systemNotice.systemNotice"),
+  success: t("components.systemNotice.systemNotice"),
+  warning: t("components.systemNotice.systemWarning"),
+  danger: t("components.systemNotice.systemAlert"),
 };
 
 function metadataRowText(row: { label?: string | null }, fallback: string) {

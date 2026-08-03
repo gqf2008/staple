@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 /**
  * Catalog of the redesign's motion tokens. This mirrors the `--motion-*`
  * custom properties declared in ui/src/index.css :root, and is the list the dev
@@ -24,49 +25,49 @@ export interface MotionTokenDef {
 
 export const MOTION_TOKENS: MotionTokenDef[] = [
   // Easing primitives
-  { name: "--motion-ease-out-expo", group: "Easing", kind: "easing" },
-  { name: "--motion-ease-standard", group: "Easing", kind: "easing" },
-  { name: "--motion-ease-out", group: "Easing", kind: "easing" },
-  { name: "--motion-ease-scroll-pill-in", group: "Easing", kind: "easing" },
-  { name: "--motion-ease-scroll-pill-out", group: "Easing", kind: "easing" },
-  { name: "--motion-ease-in", group: "Easing", kind: "easing" },
+  { name: t("ui.components.task-chat.motion-tokens.motion-ease-expo"), group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
+  { name: t("ui.components.task-chat.motion-tokens.motion-ease-standard"), group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
+  { name: t("ui.components.task-chat.motion-tokens.motion-ease"), group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
+  { name: "--motion-ease-scroll-pill-in", group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
+  { name: "--motion-ease-scroll-pill-out", group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
+  { name: t("ui.components.task-chat.motion-tokens.motion-ease.2"), group: t("ui.components.task-chat.motion-tokens.easing"), kind: "easing" },
 
   // Duration primitives
-  { name: "--motion-duration-instant", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
-  { name: "--motion-duration-fast", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
-  { name: "--motion-duration-base", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
-  { name: "--motion-duration-slow", group: "Durations", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-duration-deliberate", group: "Durations", kind: "time", min: 0, max: 2000, step: 10 },
+  { name: "--motion-duration-instant", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-fast", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-base", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-slow", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: "--motion-duration-deliberate", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 2000, step: 10 },
   // Shared enter/exit/swap primitives owned by the decision/quicklook motion
   // block in index.css.
-  { name: "--motion-duration-enter", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
-  { name: "--motion-duration-exit", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
-  { name: "--motion-duration-swap", group: "Durations", kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-enter", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-exit", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
+  { name: "--motion-duration-swap", group: t("ui.components.task-chat.motion-tokens.durations"), kind: "time", min: 0, max: 1000, step: 10 },
 
   // State/component-scoped
-  { name: "--motion-marker-enter", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-bubble-enter", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-cot-line-stagger", group: "States", kind: "time", min: 0, max: 300, step: 5 },
-  { name: "--motion-cot-collapse", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-tool-enter", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-diff-reveal", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-status-enter", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-status-exit", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-approval-pulse", group: "States", kind: "time", min: 0, max: 3000, step: 20 },
-  { name: "--motion-plan-entry-stagger", group: "States", kind: "time", min: 0, max: 300, step: 5 },
-  { name: "--motion-plan-check", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-count-tween", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-streaming-cursor-blink", group: "States", kind: "time", min: 0, max: 3000, step: 20 },
-  { name: "--motion-turn-fold", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-scroll-pill-enter", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-scroll-pill-exit", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
-  { name: "--motion-pane-glide", group: "States", kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-marker-enter"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-bubble-enter"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-cot-line-stagger"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 300, step: 5 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-cot-collapse"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-tool-enter"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-diff-reveal"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-status-enter"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-status-exit"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-approval-pulse"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 3000, step: 20 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-plan-entry-stagger"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 300, step: 5 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-plan-check"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-count-tween"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-streaming-cursor-blink"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 3000, step: 20 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-turn-fold"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: "--motion-scroll-pill-enter", group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: "--motion-scroll-pill-exit", group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
+  { name: t("ui.components.task-chat.motion-tokens.motion-pane-glide"), group: t("pages.designGuide.states"), kind: "time", min: 0, max: 1500, step: 10 },
 ];
 
 /** Common easing presets offered by the tweak panel's easing picker. */
 export const EASING_PRESETS: { label: string; value: string }[] = [
-  { label: "ease-out-expo (house)", value: "cubic-bezier(0.16, 1, 0.3, 1)" },
-  { label: "standard (house)", value: "cubic-bezier(0.4, 0, 0.2, 1)" },
+  { label: t("ui.components.task-chat.motion-tokens.ease-expo-house"), value: "cubic-bezier(0.16, 1, 0.3, 1)" },
+  { label: t("ui.components.task-chat.motion-tokens.standard-house"), value: "cubic-bezier(0.4, 0, 0.2, 1)" },
   { label: "ease-out", value: "cubic-bezier(0, 0, 0.2, 1)" },
   { label: "ease-in-out", value: "cubic-bezier(0.42, 0, 0.58, 1)" },
   { label: "linear", value: "linear" },

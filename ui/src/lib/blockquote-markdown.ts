@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * When the WYSIWYG blockquote shortcut does not fire (e.g. the `> ` prefix is
  * assembled by an edit that Lexical's markdown-shortcut transform doesn't catch,

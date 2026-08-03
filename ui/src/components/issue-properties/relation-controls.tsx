@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState, type MouseEvent } from "react";
 import type { Issue } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -26,7 +27,7 @@ export function RemovableIssueReferencePill({
   const issueLabel = issue.identifier ?? issue.title;
   const confirmLabel = issue.identifier ? `${issue.identifier}: ${issue.title}` : issue.title;
   const chipClassName = cn(
-    "paperclip-mention-chip paperclip-mention-chip--issue",
+    t("ui.components.issuereferencepill.paperclip-mention-chip-paperclip"),
     "inline-flex items-center gap-1 rounded-full border border-border px-2 py-0.5 text-xs no-underline",
     issue.identifier && "hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring",
   );
@@ -83,18 +84,16 @@ export function RemovableIssueReferencePill({
       <Dialog open={isConfirmOpen} onOpenChange={setIsConfirmOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Remove blocker?</DialogTitle>
+            <DialogTitle>{t("ui.components.issue-properties.relation-controls.remove-blocker")}</DialogTitle>
             <DialogDescription>
-              Remove {confirmLabel} as a blocker for this task.
-            </DialogDescription>
+              {t("components.agentsUsingSkillDialog.remove")}{confirmLabel} {t("ui.components.issue-properties.relation-controls.blocker-task")}</DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <DialogClose asChild>
-              <Button type="button" variant="outline">Cancel</Button>
+              <Button type="button" variant="outline">{t("common.cancel")}</Button>
             </DialogClose>
             <Button type="button" variant="destructive" onClick={confirmRemove}>
-              Remove blocker
-            </Button>
+              {t("ui.components.issue-properties.relation-controls.remove-blocker-alt")}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -119,7 +118,7 @@ export function ExpandRelationListButton({
       onClick={onClick}
       aria-label={expanded ? "Show fewer items" : `Show ${hiddenCount} more items`}
     >
-      {expanded ? "Show less" : `Show ${hiddenCount} more`}
+      {expanded ? t("components.issueThreadInteraction.showLess") : `Show ${hiddenCount} more`}
     </button>
   );
 }

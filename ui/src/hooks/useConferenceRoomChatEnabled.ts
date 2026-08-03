@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useContext } from "react";
 import { QueryClient, QueryClientContext, useQuery } from "@tanstack/react-query";
 import { instanceSettingsApi } from "@/api/instanceSettings";

@@ -1,5 +1,6 @@
-"use client"
+t("ui.components.ui.checkbox.use-client")
 
+import { t } from "../../i18n";
 import * as React from "react"
 import { CheckIcon } from "lucide-react"
 import { Checkbox as CheckboxPrimitive } from "radix-ui"

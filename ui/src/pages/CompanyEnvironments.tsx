@@ -6,6 +6,7 @@ import {
   useState,
 } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { t } from "../i18n";
 import { ArrowLeft, Check, Play, RefreshCw, RotateCcw, Terminal, Trash2, X } from "lucide-react";
 import { FitAddon } from "@xterm/addon-fit";
 import { Terminal as XTermTerminal } from "@xterm/xterm";
@@ -221,7 +222,9 @@ function createEnvironmentFormFromEnvironment(environment: Environment): Environ
   };
 }
 
-const DISCARD_ENVIRONMENT_CHANGES_MESSAGE = "Discard unsaved environment changes?";
+function discardEnvironmentChangesMessage(): string {
+  return t("pages.companyEnvironments.discardChanges", { defaultValue: "Discard unsaved environment changes?" });
+}
 
 function stableJsonStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -299,17 +302,17 @@ function setupConnectionFallbackMessage(input: {
   isLoading: boolean;
 }): string | null {
   if (input.refreshError) {
-    return "Setup connection details could not be refreshed. You can still finish or cancel this setup.";
+    return t("ui.pages.companyenvironments.setup-connection-details-could");
   }
   if (input.isLoading) return null;
   if (!input.payload) {
-    return "Connection details are not available yet. You can still finish or cancel this setup.";
+    return t("pages.companyEnvironments.connectionPending", { defaultValue: "Connection details are not available yet. You can still finish or cancel this setup." });
   }
   if (input.payload.type !== "ssh") {
-    return "Browser terminal is not available for this provider connection. Use the provider setup instructions, then finish or cancel here.";
+    return t("ui.pages.companyenvironments.browser-terminal-not-available");
   }
   if (!readConnectionCommand(input.payload)) {
-    return "Connection details are not available yet. You can still finish or cancel this setup.";
+    return t("pages.companyEnvironments.connectionPending", { defaultValue: "Connection details are not available yet. You can still finish or cancel this setup." });
   }
   return null;
 }
@@ -318,17 +321,17 @@ const CUSTOM_IMAGE_TERMINAL_COLS = 100;
 const CUSTOM_IMAGE_TERMINAL_ROWS = 28;
 const CUSTOM_IMAGE_TERMINAL_SCROLLBACK_ROWS = 5_000;
 const CUSTOM_IMAGE_TERMINAL_FONT_FAMILY = [
-  "MesloLGS NF",
-  "MesloLGS Nerd Font Mono",
+  t("ui.pages.companyenvironments.meslolgs-nf"),
+  t("ui.pages.companyenvironments.meslolgs-nerd-font-mono"),
   "CaskaydiaCove Nerd Font Mono",
   "CaskaydiaMono Nerd Font",
   "JetBrainsMono Nerd Font",
   "FiraCode Nerd Font Mono",
-  "Symbols Nerd Font Mono",
-  "Menlo",
-  "Monaco",
-  "Consolas",
-  "Liberation Mono",
+  t("ui.pages.companyenvironments.symbols-nerd-font-mono"),
+  t("ui.pages.companyenvironments.menlo"),
+  t("ui.pages.companyenvironments.monaco"),
+  t("ui.pages.companyenvironments.consolas"),
+  t("ui.pages.companyenvironments.liberation-mono"),
   "monospace",
 ].join(", ");
 
@@ -360,16 +363,16 @@ function parseTerminalFrame(raw: string): Record<string, unknown> | null {
 function customImageTerminalStatusCopy(state: CustomImageTerminalConnectionState) {
   switch (state) {
     case "connecting":
-      return "Connecting";
+      return t("pages.companyEnvironments.connecting", { defaultValue: "Connecting" });
     case "connected":
-      return "Connected";
+      return t("pages.companyEnvironments.connected", { defaultValue: "Connected" });
     case "closed":
-      return "Closed";
+      return t("pages.companyEnvironments.closed", { defaultValue: "Closed" });
     case "error":
-      return "Connection failed";
+      return t("pages.companyEnvironments.connectionFailed", { defaultValue: "Connection failed" });
     case "idle":
     default:
-      return "Ready to connect";
+      return t("pages.companyEnvironments.readyToConnect", { defaultValue: "Ready to connect" });
   }
 }
 
@@ -381,20 +384,20 @@ function customImageTerminalCloseReasonCopy(reason: unknown) {
     && reason !== "setup_finished"
     && reason !== "setup_cancelled"
   ) {
-    return typeof reason === "string" && reason.trim() ? "Terminal closed." : null;
+    return typeof reason === "string" && reason.trim() ? t("pages.companyEnvironments.terminalClosed", { defaultValue: "Terminal closed." }) : null;
   }
 
   switch (reason) {
     case "expired":
-      return "Setup session expired.";
+      return t("pages.companyEnvironments.setupExpired", { defaultValue: "Setup session expired." });
     case "ssh_closed":
-      return "SSH session closed.";
+      return t("pages.companyEnvironments.sshClosed", { defaultValue: "SSH session closed." });
     case "server_shutdown":
-      return "Terminal server shut down.";
+      return t("pages.companyEnvironments.terminalShutDown", { defaultValue: "Terminal server shut down." });
     case "setup_finished":
-      return "Setup session finished.";
+      return t("pages.companyEnvironments.setupFinished", { defaultValue: "Setup session finished." });
     case "setup_cancelled":
-      return "Setup session cancelled.";
+      return t("pages.companyEnvironments.setupCancelled", { defaultValue: "Setup session cancelled." });
     default:
       return null;
   }
@@ -576,7 +579,7 @@ function EnvironmentCustomImageBrowserTerminal({
   const connectTerminal = useCallback(async () => {
     if (typeof WebSocket === "undefined") {
       setConnectionState("error");
-      setErrorMessage("Browser terminal is unavailable in this browser.");
+      setErrorMessage(t("pages.companyEnvironments.browserTerminalUnavailable", { defaultValue: "Browser terminal is unavailable in this browser." }));
       return;
     }
 
@@ -624,7 +627,7 @@ function EnvironmentCustomImageBrowserTerminal({
 
         if (frame.type === "error") {
           setConnectionState("error");
-          setErrorMessage(typeof frame.message === "string" ? frame.message : "Terminal connection failed.");
+          setErrorMessage(typeof frame.message === "string" ? frame.message : t("pages.companyEnvironments.terminalConnectionFailed", { defaultValue: "Terminal connection failed." }));
           return;
         }
 
@@ -643,11 +646,11 @@ function EnvironmentCustomImageBrowserTerminal({
       socket.onerror = () => {
         if (socketRef.current !== socket) return;
         setConnectionState("error");
-        setErrorMessage("Terminal websocket connection failed.");
+        setErrorMessage(t("pages.companyEnvironments.wsFailed", { defaultValue: "Terminal websocket connection failed." }));
       };
     } catch (error) {
       setConnectionState("error");
-      setErrorMessage(error instanceof Error ? error.message : "Terminal session could not be opened.");
+      setErrorMessage(error instanceof Error ? error.message : t("pages.companyEnvironments.terminalOpenFailed", { defaultValue: "Terminal session could not be opened." }));
     }
   }, [closeSocket, fitTerminal, getTerminalDimensions, resetTerminalScreen, sendTerminalResize, sessionId]);
 
@@ -673,14 +676,13 @@ function EnvironmentCustomImageBrowserTerminal({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
         <div className="flex min-w-0 items-center gap-2 text-xs">
           <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-medium">Browser terminal</span>
+          <span className="font-medium">{t("pages.companyEnvironments.browserTerminal", { defaultValue: "Browser terminal" })}</span>
           <span className="text-muted-foreground">{customImageTerminalStatusCopy(connectionState)}</span>
         </div>
         <div className="flex items-center gap-2">
           {terminalInteractive ? (
             <Button size="sm" variant="ghost" onClick={disconnectTerminal}>
-              Disconnect
-            </Button>
+              {t("ui.pages.companyenvironments.disconnect")}</Button>
           ) : (
             <Button
               size="sm"
@@ -689,7 +691,7 @@ function EnvironmentCustomImageBrowserTerminal({
               disabled={connectionState === "connecting"}
             >
               <Terminal className="mr-1.5 h-3.5 w-3.5" />
-              {connectionState === "closed" || connectionState === "error" ? "Reconnect" : "Open terminal"}
+              {connectionState === "closed" || connectionState === "error" ? t("pages.companyEnvironments.reconnect", { defaultValue: "Reconnect" }) : t("pages.companyEnvironments.openTerminal", { defaultValue: "Open terminal" })}
             </Button>
           )}
         </div>
@@ -698,7 +700,7 @@ function EnvironmentCustomImageBrowserTerminal({
         <div
           ref={terminalElementRef}
           data-testid={`custom-image-terminal-screen-${sessionId}`}
-          aria-label="Custom image browser terminal"
+          aria-label={t("pages.companyEnvironments.customImageTerminal", { defaultValue: "Custom image browser terminal" })}
           role="application"
           tabIndex={0}
           onFocus={() => xtermRef.current?.focus()}
@@ -719,22 +721,22 @@ function capabilityState(capability: EnvironmentProviderCapability | null | unde
   if (!capability || capability.status !== "supported" || !capability.supportsInteractiveSetup) {
     return {
       kind: "unsupported" as const,
-      label: "Unsupported provider",
-      reason: "This provider does not advertise interactive template setup.",
+      label: t("pages.companyEnvironments.unsupportedProvider", { defaultValue: "Unsupported provider" }),
+      reason: t("pages.companyEnvironments.noTemplateSetup", { defaultValue: "This provider does not advertise interactive template setup." }),
     };
   }
 
   if (!capability.supportsTemplateCapture) {
     return {
       kind: "capture_unavailable" as const,
-      label: "Setup capture unavailable",
-      reason: "This provider advertises setup, but image capture is unavailable.",
+      label: t("pages.companyEnvironments.captureUnavailable", { defaultValue: "Setup capture unavailable" }),
+      reason: t("pages.companyEnvironments.captureUnavailableDesc", { defaultValue: "This provider advertises setup, but image capture is unavailable." }),
     };
   }
 
   return {
     kind: "supported" as const,
-    label: "Template setup",
+    label: t("pages.companyEnvironments.templateSetup", { defaultValue: "Template setup" }),
     reason: null,
   };
 }
@@ -742,21 +744,21 @@ function capabilityState(capability: EnvironmentProviderCapability | null | unde
 function sessionStatusCopy(status: EnvironmentCustomImageSetupSession["status"]) {
   switch (status) {
     case "starting":
-      return "Setup starting";
+      return t("pages.companyEnvironments.setupStarting", { defaultValue: "Setup starting" });
     case "waiting_for_user":
-      return "Setup running";
+      return t("pages.companyEnvironments.setupRunning", { defaultValue: "Setup running" });
     case "capturing":
-      return "Capturing template";
+      return t("pages.companyEnvironments.capturingTemplate", { defaultValue: "Capturing template" });
     case "promoted":
-      return "Template captured";
+      return t("pages.companyEnvironments.templateCaptured", { defaultValue: "Template captured" });
     case "cancelled":
-      return "Setup cancelled";
+      return t("pages.companyEnvironments.setupCancelled2", { defaultValue: "Setup cancelled" });
     case "timed_out":
-      return "Setup expired";
+      return t("pages.companyEnvironments.setupExpired2", { defaultValue: "Setup expired" });
     case "failed":
-      return "Setup failed";
+      return t("pages.companyEnvironments.setupFailed", { defaultValue: "Setup failed" });
     default:
-      return "Setup status";
+      return t("pages.companyEnvironments.setupStatus", { defaultValue: "Setup status" });
   }
 }
 
@@ -819,15 +821,15 @@ function EnvironmentImageTemplatePanel({
       }));
       setSessionResult(result);
       pushToast({
-        title: "Setup session started",
-        body: "Connect details are available while the session is active.",
+        title: t("pages.companyEnvironments.setupStarted", { defaultValue: "Setup session started" }),
+        body: t("pages.companyEnvironments.connectDetailsHint", { defaultValue: "Connect details are available while the session is active." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to start setup",
-        body: error instanceof Error ? error.message : "Setup session could not be started.",
+        title: t("pages.companyEnvironments.startSetupFailed", { defaultValue: "Failed to start setup" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.startSetupFailedBody", { defaultValue: "Setup session could not be started." }),
         tone: "error",
       });
     },
@@ -844,15 +846,15 @@ function EnvironmentImageTemplatePanel({
       setSessionResult({ session: result.session, connectionPayload: null });
       invalidateOverview();
       pushToast({
-        title: "Template captured",
-        body: "Future runs can use the promoted template.",
+        title: t("pages.companyEnvironments.templateCaptured", { defaultValue: "Template captured" }),
+        body: t("pages.companyEnvironments.promotedHint", { defaultValue: "Future runs can use the promoted template." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to capture template",
-        body: error instanceof Error ? error.message : "Template capture failed.",
+        title: t("pages.companyEnvironments.captureFailed", { defaultValue: "Failed to capture template" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.captureFailedBody", { defaultValue: "Template capture failed." }),
         tone: "error",
       });
     },
@@ -860,7 +862,7 @@ function EnvironmentImageTemplatePanel({
 
   const cancelSetupMutation = useMutation({
     mutationFn: (sessionId: string) =>
-      environmentsApi.cancelCustomImageSetupSession(sessionId, { reason: "operator cancelled" }),
+      environmentsApi.cancelCustomImageSetupSession(sessionId, { reason: t("ui.pages.companyenvironments.operator-cancelled") }),
     onSuccess: (session) => {
       queryClient.setQueryData(overviewKey, (current: typeof overviewQuery.data) => ({
         activeTemplate: current?.activeTemplate ?? null,
@@ -870,15 +872,15 @@ function EnvironmentImageTemplatePanel({
       setSessionResult({ session, connectionPayload: null });
       invalidateOverview();
       pushToast({
-        title: "Setup cancelled",
-        body: "The active template was not changed.",
+        title: t("pages.companyEnvironments.setupCancelled2", { defaultValue: "Setup cancelled" }),
+        body: t("pages.companyEnvironments.templateUnchanged", { defaultValue: "The active template was not changed." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to cancel setup",
-        body: error instanceof Error ? error.message : "Setup session could not be cancelled.",
+        title: t("pages.companyEnvironments.cancelSetupFailed", { defaultValue: "Failed to cancel setup" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.cancelSetupFailedBody", { defaultValue: "Setup session could not be cancelled." }),
         tone: "error",
       });
     },
@@ -894,15 +896,15 @@ function EnvironmentImageTemplatePanel({
       }));
       invalidateOverview();
       pushToast({
-        title: "Template rolled back",
-        body: "Future runs will use the previous template.",
+        title: t("pages.companyEnvironments.templateRolledBack", { defaultValue: "Template rolled back" }),
+        body: t("pages.companyEnvironments.rolledBackHint", { defaultValue: "Future runs will use the previous template." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to roll back template",
-        body: error instanceof Error ? error.message : "Rollback failed.",
+        title: t("pages.companyEnvironments.rollbackFailed", { defaultValue: "Failed to roll back template" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.rollbackFailedBody", { defaultValue: "Rollback failed." }),
         tone: "error",
       });
     },
@@ -918,15 +920,15 @@ function EnvironmentImageTemplatePanel({
       }));
       invalidateOverview();
       pushToast({
-        title: "Template disabled",
-        body: "Future runs will use the base provider configuration.",
+        title: t("pages.companyEnvironments.templateDisabled", { defaultValue: "Template disabled" }),
+        body: t("pages.companyEnvironments.disabledHint", { defaultValue: "Future runs will use the base provider configuration." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to disable template",
-        body: error instanceof Error ? error.message : "Disable failed.",
+        title: t("pages.companyEnvironments.disableTemplateFailed", { defaultValue: "Failed to disable template" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.disableFailedBody", { defaultValue: "Disable failed." }),
         tone: "error",
       });
     },
@@ -944,15 +946,14 @@ function EnvironmentImageTemplatePanel({
   if (overviewQuery.isLoading) {
     return (
       <div className="mt-3 border-t border-border/60 pt-3 text-xs text-muted-foreground">
-        Loading template setup...
-      </div>
+        {t("ui.pages.companyenvironments.loading-template-setup")}</div>
     );
   }
 
   if (overviewQuery.isError) {
     return (
       <div className="mt-3 border-t border-border/60 pt-3 text-xs text-destructive">
-        {overviewQuery.error instanceof Error ? overviewQuery.error.message : "Template setup could not be loaded."}
+        {overviewQuery.error instanceof Error ? overviewQuery.error.message : t("pages.companyEnvironments.templateLoadFailed", { defaultValue: "Template setup could not be loaded." })}
       </div>
     );
   }
@@ -1004,8 +1005,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating || session.status !== "waiting_for_user"}
             >
               <Check className="mr-1.5 h-3.5 w-3.5" />
-              Finished
-            </Button>
+              {t("ui.pages.companyenvironments.finished")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1013,14 +1013,12 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <X className="mr-1.5 h-3.5 w-3.5" />
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
         </div>
         {isCapturing ? (
           <div className="mt-2 text-xs text-muted-foreground">
-            Capture is in progress. If this state remains after a refresh or interrupted request, cancel it to return to the active template controls.
-          </div>
+            {t("ui.pages.companyenvironments.capture-progress-if-state")}</div>
         ) : null}
         {session.status === "waiting_for_user" && connectionPayload?.type === "ssh" ? (
           <EnvironmentCustomImageBrowserTerminal autoConnect sessionId={session.id} />
@@ -1028,8 +1026,7 @@ function EnvironmentImageTemplatePanel({
         {session.status === "waiting_for_user" && connectionCommand ? (
           <details className="mt-2 rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
             <summary className="cursor-pointer select-none font-medium text-foreground">
-              SSH command fallback
-            </summary>
+              {t("ui.pages.companyenvironments.ssh-command-fallback")}</summary>
             <code className="mt-2 block overflow-x-auto whitespace-nowrap text-(length:--text-micro) leading-5">
               {connectionCommand}
             </code>
@@ -1054,7 +1051,7 @@ function EnvironmentImageTemplatePanel({
       <div className="mt-3 border-t border-border/60 pt-3" data-testid={`custom-image-template-state-${environment.id}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <div className="text-xs font-medium">Active template</div>
+            <div className="text-xs font-medium">{t("pages.companyEnvironments.activeTemplate", { defaultValue: "Active template" })}</div>
             <div className="text-xs text-muted-foreground">
               {providerDisplayName} · {activeTemplate.templateKind}
               {" · "}
@@ -1074,10 +1071,7 @@ function EnvironmentImageTemplatePanel({
                 className="text-xs text-destructive"
                 data-testid={`custom-image-template-out-of-sync-${environment.id}`}
               >
-                Not in use — the environment configuration changed since this image was
-                captured. Runs fall back to the base configuration until you capture a new
-                image.
-              </div>
+                {t("ui.pages.companyenvironments.not-use-environment-configuration")}</div>
             ) : null}
           </div>
           <div className="flex flex-wrap items-center gap-2">
@@ -1088,8 +1082,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
-              Refresh
-            </Button>
+              {t("components.standaloneBrowser.refresh")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1097,8 +1090,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-              Rollback
-            </Button>
+              {t("ui.pages.companyenvironments.rollback")}</Button>
             <Button
               size="sm"
               variant="ghost"
@@ -1106,8 +1098,7 @@ function EnvironmentImageTemplatePanel({
               disabled={isMutating}
             >
               <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-              Disable
-            </Button>
+              {t("pages.pluginManager.disable")}</Button>
           </div>
         </div>
       </div>
@@ -1118,7 +1109,7 @@ function EnvironmentImageTemplatePanel({
     <div className="mt-3 border-t border-border/60 pt-3" data-testid={`custom-image-template-state-${environment.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <div className="text-xs font-medium">Not configured</div>
+          <div className="text-xs font-medium">{t("pages.companyEnvironments.notConfigured", { defaultValue: "Not configured" })}</div>
           <div className="text-xs text-muted-foreground">
             {latestSession
               ? sessionStatusCopy(latestSession.status)
@@ -1135,8 +1126,7 @@ function EnvironmentImageTemplatePanel({
           disabled={isMutating}
         >
           <Play className="mr-1.5 h-3.5 w-3.5" />
-          Configure image
-        </Button>
+          {t("ui.pages.companyenvironments.configure-image")}</Button>
       </div>
     </div>
   );
@@ -1166,14 +1156,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
   useEffect(() => {
     const crumbs = [
-      { label: "Settings", href: "/company/settings" },
-      { label: "Instance settings", href: "/company/settings/instance/general" },
+      { label: t("pages.companyEnvironments.settings", { defaultValue: "Settings" }), href: "/company/settings" },
+      { label: t("pages.companyEnvironments.instanceSettings", { defaultValue: "Instance settings" }), href: "/company/settings/instance/general" },
       isEnvironmentFormPage
-        ? { label: "Environments", href: ENVIRONMENTS_PATH }
-        : { label: "Environments" },
+        ? { label: t("pages.companyEnvironments.title", { defaultValue: "Environments" }), href: ENVIRONMENTS_PATH }
+        : { label: t("pages.companyEnvironments.title", { defaultValue: "Environments" }) },
     ];
-    if (mode === "create") crumbs.push({ label: "Add environment" });
-    if (mode === "edit") crumbs.push({ label: "Edit environment" });
+    if (mode === "create") crumbs.push({ label: t("pages.companyEnvironments.addEnvironment", { defaultValue: "Add environment" }) });
+    if (mode === "edit") crumbs.push({ label: t("pages.companyEnvironments.editEnvironment", { defaultValue: "Edit environment" }) });
     setBreadcrumbs(crumbs);
   }, [isEnvironmentFormPage, mode, setBreadcrumbs]);
 
@@ -1240,7 +1230,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
   });
   const createSecret = useMutation({
     mutationFn: (input: { name: string; value: string }) => {
-      if (!selectedCompanyId) throw new Error("Select a company to create secrets");
+      if (!selectedCompanyId) throw new Error(t("pages.companyEnvironments.selectCompanySecrets", { defaultValue: "Select a company to create secrets" }));
       return secretsApi.create(selectedCompanyId, input);
     },
     onSuccess: async () => {
@@ -1257,7 +1247,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         return await environmentsApi.update(editingEnvironmentId, body);
       }
 
-      if (!selectedCompanyId) throw new Error("Select a company to create environments");
+      if (!selectedCompanyId) throw new Error(t("pages.companyEnvironments.selectCompanyCreate", { defaultValue: "Select a company to create environments" }));
       return await environmentsApi.create(selectedCompanyId!, body);
     },
     onSuccess: async (environment) => {
@@ -1278,29 +1268,29 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
       draftEnvironmentProbeMutation.reset();
       navigate(ENVIRONMENTS_PATH, { replace: true });
       pushToast({
-        title: wasEditing ? "Environment updated" : "Environment created",
+        title: wasEditing ? t("pages.companyEnvironments.environmentUpdated", { defaultValue: "Environment updated" }) : t("pages.companyEnvironments.environmentCreated", { defaultValue: "Environment created" }),
         body: `${environment.name} is ready.`,
         tone: "success",
       });
       const reconciliation = (environment as EnvironmentUpdateResult).customImageReconciliation;
       if (reconciliation?.action === "relinked") {
         pushToast({
-          title: "Custom image kept active",
-          body: "The captured image was re-linked to the updated configuration automatically.",
+          title: t("pages.companyEnvironments.imageKeptActive", { defaultValue: "Custom image kept active" }),
+          body: t("pages.companyEnvironments.imageKeptActiveDesc", { defaultValue: "The captured image was re-linked to the updated configuration automatically." }),
           tone: "info",
         });
       } else if (reconciliation?.action === "detached") {
         pushToast({
-          title: "Custom image no longer applies",
-          body: "This change alters what the captured image was built from. Runs use the base configuration until you capture a new image.",
+          title: t("pages.companyEnvironments.imageNoLongerApplies", { defaultValue: "Custom image no longer applies" }),
+          body: t("ui.pages.companyenvironments.change-alters-what-captured"),
           tone: "warn",
         });
       }
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to save environment",
-        body: error instanceof Error ? error.message : "Environment save failed.",
+        title: t("pages.companyEnvironments.saveFailed", { defaultValue: "Failed to save environment" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.saveFailedBody", { defaultValue: "Environment save failed." }),
         tone: "error",
       });
     },
@@ -1312,15 +1302,15 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.instance.settings });
       pushToast({
-        title: "Default environment updated",
-        body: "Agent inheritance now follows the updated instance default.",
+        title: t("pages.companyEnvironments.defaultUpdated", { defaultValue: "Default environment updated" }),
+        body: t("pages.companyEnvironments.defaultUpdatedDesc", { defaultValue: "Agent inheritance now follows the updated instance default." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to update default environment",
-        body: error instanceof Error ? error.message : "Default environment update failed.",
+        title: t("pages.companyEnvironments.defaultUpdateFailed", { defaultValue: "Failed to update default environment" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.defaultUpdateFailedBody", { defaultValue: "Default environment update failed." }),
         tone: "error",
       });
     },
@@ -1340,7 +1330,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         [environmentId]: probe,
       }));
       pushToast({
-        title: probe.ok ? "Environment probe passed" : "Environment probe failed",
+        title: probe.ok ? t("pages.companyEnvironments.probePassed", { defaultValue: "Environment probe passed" }) : t("pages.companyEnvironments.probeFailed", { defaultValue: "Environment probe failed" }),
         body: probe.summary,
         tone: probe.ok ? "success" : "error",
       });
@@ -1352,13 +1342,13 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         [environmentId]: {
           ok: false,
           driver: failedEnvironment?.driver ?? "local",
-          summary: error instanceof Error ? error.message : "Environment probe failed.",
+          summary: error instanceof Error ? error.message : t("pages.companyEnvironments.probeFailedBody", { defaultValue: "Environment probe failed." }),
           details: null,
         },
       }));
       pushToast({
-        title: "Environment probe failed",
-        body: error instanceof Error ? error.message : "Environment probe failed.",
+        title: t("pages.companyEnvironments.probeFailed", { defaultValue: "Environment probe failed" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.probeFailedBody", { defaultValue: "Environment probe failed." }),
         tone: "error",
       });
     },
@@ -1366,21 +1356,21 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
   const draftEnvironmentProbeMutation = useMutation({
     mutationFn: async (form: EnvironmentFormState) => {
-      if (!selectedCompanyId) throw new Error("Select a company to test environments");
+      if (!selectedCompanyId) throw new Error(t("pages.companyEnvironments.selectCompanyTest", { defaultValue: "Select a company to test environments" }));
       const body = buildEnvironmentPayload(form);
       return await environmentsApi.probeConfig(selectedCompanyId, body);
     },
     onSuccess: (probe) => {
       pushToast({
-        title: probe.ok ? "Draft probe passed" : "Draft probe failed",
+        title: probe.ok ? t("pages.companyEnvironments.draftProbePassed", { defaultValue: "Draft probe passed" }) : t("pages.companyEnvironments.draftProbeFailed", { defaultValue: "Draft probe failed" }),
         body: probe.summary,
         tone: probe.ok ? "success" : "error",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Draft probe failed",
-        body: error instanceof Error ? error.message : "Environment probe failed.",
+        title: t("pages.companyEnvironments.draftProbeFailed", { defaultValue: "Draft probe failed" }),
+        body: error instanceof Error ? error.message : t("pages.companyEnvironments.probeFailedBody", { defaultValue: "Environment probe failed." }),
         tone: "error",
       });
     },
@@ -1448,7 +1438,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     return (
       !environmentHasUnsavedChanges ||
       typeof window === "undefined" ||
-      window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)
+      window.confirm(discardEnvironmentChangesMessage())
     );
   }
 
@@ -1490,7 +1480,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         return;
       }
 
-      if (window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)) return;
+      if (window.confirm(discardEnvironmentChangesMessage())) return;
       event.preventDefault();
       event.stopPropagation();
     }
@@ -1594,15 +1584,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
   );
 
   if (!selectedCompanyId) {
-    return <div className="text-sm text-muted-foreground">Select a company context to manage environment secrets and bindings.</div>;
+    return <div className="text-sm text-muted-foreground">{t("pages.companyEnvironments.selectCompanyHint", { defaultValue: "Select a company context to manage environment secrets and bindings." })}</div>;
   }
 
   if (!environmentsEnabled) {
     return (
       <div className="max-w-3xl space-y-4">
         <div className="rounded-md border border-border px-4 py-4 text-sm text-muted-foreground">
-          Enable Environments in instance experimental settings to manage shared execution targets.
-        </div>
+          {t("ui.pages.companyenvironments.enable-environments-instance-experimental")}</div>
       </div>
     );
   }
@@ -1614,7 +1603,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
-              <div className="text-sm font-medium">Default</div>
+              <div className="text-sm font-medium">{t("pages.companyEnvironments.default", { defaultValue: "Default" })}</div>
             </div>
             <div className="min-w-(--sz-18rem) flex-1">
               <select
@@ -1624,7 +1613,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   defaultEnvironmentMutation.mutate(event.target.value || null)}
                 disabled={defaultEnvironmentMutation.isPending}
               >
-                <option value="">Local</option>
+                <option value="">{t("pages.companyEnvironments.local", { defaultValue: "Local" })}</option>
                 {nonLocalEnvironments.map((environment) => (
                   <option key={environment.id} value={environment.id}>
                     {environment.name} · {environment.driver}
@@ -1638,7 +1627,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         <div className="space-y-3">
           <div className="flex justify-end">
             <Button size="sm" asChild>
-              <Link to={`${ENVIRONMENTS_PATH}/new`}>Add environment</Link>
+              <Link to={`${ENVIRONMENTS_PATH}/new`}>{t("pages.companyEnvironments.addEnvironment", { defaultValue: "Add environment" })}</Link>
             </Button>
           </div>
           {savedEnvironments.map((environment) => {
@@ -1664,7 +1653,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     ) : null}
                     {environment.driver === "ssh" ? (
                       <div className="text-xs text-muted-foreground">
-                        {typeof environment.config.host === "string" ? environment.config.host : "SSH host"} ·{" "}
+                        {typeof environment.config.host === "string" ? environment.config.host : t("pages.companyEnvironments.sshHost", { defaultValue: "SSH host" })} ·{" "}
                         {typeof environment.config.username === "string" ? environment.config.username : "user"}
                       </div>
                     ) : environment.driver === "sandbox" ? (
@@ -1675,7 +1664,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         })()}
                       </div>
                     ) : (
-                      <div className="text-xs text-muted-foreground">Runs on this Paperclip host.</div>
+                      <div className="text-xs text-muted-foreground">{t("pages.companyEnvironments.localDesc", { defaultValue: "Runs on this Paperclip host." })}</div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -1687,14 +1676,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         disabled={testingEnvironmentId === environment.id}
                       >
                         {testingEnvironmentId === environment.id
-                          ? "Testing..."
+                          ? t("pages.companyEnvironments.testing", { defaultValue: "Testing..." })
                           : environment.driver === "ssh"
-                            ? "Test connection"
-                            : "Test provider"}
+                            ? t("pages.companyEnvironments.testConnection", { defaultValue: "Test connection" })
+                            : t("pages.companyEnvironments.testProvider", { defaultValue: "Test provider" })}
                       </Button>
                     ) : null}
                     <Button size="sm" variant="ghost" asChild>
-                      <Link to={environmentEditPath(environment.id)}>Edit</Link>
+                      <Link to={environmentEditPath(environment.id)}>{t("pages.companyEnvironments.edit", { defaultValue: "Edit" })}</Link>
                     </Button>
                   </div>
                 </div>
@@ -1721,16 +1710,15 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
       {isEnvironmentFormPage && mode === "edit" && environments === undefined ? (
         <div className="rounded-md border border-border px-4 py-4 text-sm text-muted-foreground">
-          Loading environment...
-        </div>
+          {t("ui.pages.companyenvironments.loading-environment")}</div>
       ) : null}
 
       {isEnvironmentFormPage && mode === "edit" && environments !== undefined && !editingEnvironment ? (
         <div className="space-y-3 rounded-md border border-border px-4 py-4 text-sm">
-          <div className="font-medium">Environment not found</div>
-          <div className="text-muted-foreground">The environment may have been removed or is not available in this company.</div>
+          <div className="font-medium">{t("pages.companyEnvironments.notFound", { defaultValue: "Environment not found" })}</div>
+          <div className="text-muted-foreground">{t("pages.companyEnvironments.notFoundDesc", { defaultValue: "The environment may have been removed or is not available in this company." })}</div>
           <Button size="sm" variant="outline" asChild>
-            <Link to={ENVIRONMENTS_PATH}>Back to environments</Link>
+            <Link to={ENVIRONMENTS_PATH}>{t("pages.companyEnvironments.backToEnvironments", { defaultValue: "Back to environments" })}</Link>
           </Button>
         </div>
       ) : null}
@@ -1743,19 +1731,17 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               <Button size="sm" variant="ghost" asChild>
                 <Link to={ENVIRONMENTS_PATH}>
                   <ArrowLeft className="mr-1.5 h-3.5 w-3.5" />
-                  Environments
-                </Link>
+                  {t("components.companySettingsSidebar.environments")}</Link>
               </Button>
             </div>
-            <h1 className="text-lg font-semibold">{editingEnvironmentId ? "Edit environment" : "Add environment"}</h1>
+            <h1 className="text-lg font-semibold">{editingEnvironmentId ? t("pages.companyEnvironments.editEnvironment", { defaultValue: "Edit environment" }) : t("pages.companyEnvironments.addEnvironment", { defaultValue: "Add environment" })}</h1>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
-              Configure a reusable execution target for your agents. Saved changes affect future runs; Paperclip may start fresh sessions or sandbox leases after environment config changes.
-            </p>
+              {t("ui.pages.companyenvironments.configure-reusable-execution-target")}</p>
           </div>
 
           <div className="px-6 py-4">
             <div className="space-y-4">
-              <Field label="Name" hint="Operator-facing name for this execution target.">
+              <Field label={t("pages.companyEnvironments.name", { defaultValue: "Name" })} hint={t("pages.companyEnvironments.nameHint", { defaultValue: "Operator-facing name for this execution target." })}>
                 <input
                   className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                   type="text"
@@ -1763,7 +1749,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   onChange={(e) => setEnvironmentForm((current) => ({ ...current, name: e.target.value }))}
                 />
               </Field>
-              <Field label="Description" hint="Optional note about what this machine is for.">
+              <Field label={t("pages.companyEnvironments.description", { defaultValue: "Description" })} hint={t("pages.companyEnvironments.descriptionHint", { defaultValue: "Optional note about what this machine is for." })}>
                 <input
                   className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                   type="text"
@@ -1771,7 +1757,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   onChange={(e) => setEnvironmentForm((current) => ({ ...current, description: e.target.value }))}
                 />
               </Field>
-              <Field label="Driver" hint="Sandbox stores plugin-backed provider config on the shared environment seam. SSH stores a remote machine target.">
+              <Field label={t("pages.companyEnvironments.driver", { defaultValue: "Driver" })} hint={t("ui.pages.companyenvironments.sandbox-stores-plugin-backed")}>
                 <select
                   className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                   value={environmentForm.driver}
@@ -1796,18 +1782,18 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     }))}
                 >
                   {sandboxCreationEnabled || environmentForm.driver === "sandbox" ? (
-                    <option value="sandbox">Sandbox</option>
+                    <option value="sandbox">{t("pages.companyEnvironments.sandbox", { defaultValue: "Sandbox" })}</option>
                   ) : null}
-                  <option value="ssh">SSH</option>
+                  <option value="ssh">{t("pages.companyEnvironments.ssh", { defaultValue: "SSH" })}</option>
                   {environmentForm.driver === "local" ? (
-                    <option value="local">Local</option>
+                    <option value="local">{t("pages.companyEnvironments.local", { defaultValue: "Local" })}</option>
                   ) : null}
                 </select>
               </Field>
 
               {environmentForm.driver === "ssh" ? (
                 <div className="grid gap-3 md:grid-cols-2">
-                  <Field label="Host" hint="DNS name or IP address for the remote machine.">
+                  <Field label={t("pages.companyEnvironments.host", { defaultValue: "Host" })} hint={t("pages.companyEnvironments.hostHint", { defaultValue: "DNS name or IP address for the remote machine." })}>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       type="text"
@@ -1815,7 +1801,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       onChange={(e) => setEnvironmentForm((current) => ({ ...current, sshHost: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Port" hint="Defaults to 22.">
+                  <Field label={t("pages.companyEnvironments.port", { defaultValue: "Port" })} hint={t("pages.companyEnvironments.portHint", { defaultValue: "Defaults to 22." })}>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       type="number"
@@ -1825,7 +1811,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       onChange={(e) => setEnvironmentForm((current) => ({ ...current, sshPort: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Username" hint="SSH username.">
+                  <Field label={t("pages.companyEnvironments.username", { defaultValue: "Username" })} hint={t("pages.companyEnvironments.usernameHint", { defaultValue: "SSH username." })}>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       type="text"
@@ -1833,7 +1819,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       onChange={(e) => setEnvironmentForm((current) => ({ ...current, sshUsername: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Remote workspace path" hint="Absolute path that Paperclip will verify during SSH connection tests.">
+                  <Field label={t("pages.companyEnvironments.remotePath", { defaultValue: "Remote workspace path" })} hint={t("pages.companyEnvironments.remotePathHint", { defaultValue: "Absolute path that Paperclip will verify during SSH connection tests." })}>
                     <input
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       type="text"
@@ -1843,7 +1829,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         setEnvironmentForm((current) => ({ ...current, sshRemoteWorkspacePath: e.target.value }))}
                     />
                   </Field>
-                  <Field label="Private key" hint="Optional PEM private key. Leave blank to rely on the server's SSH agent or default keychain.">
+                  <Field label={t("pages.companyEnvironments.privateKey", { defaultValue: "Private key" })} hint={t("ui.pages.companyenvironments.optional-pem-private-key")}>
                     <div className="space-y-2">
                       <select
                         className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
@@ -1855,7 +1841,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                             sshPrivateKey: e.target.value ? "" : current.sshPrivateKey,
                           }))}
                       >
-                        <option value="">No saved secret</option>
+                        <option value="">{t("pages.companyEnvironments.noSavedSecret", { defaultValue: "No saved secret" })}</option>
                         {(secrets ?? []).map((secret) => (
                           <option key={secret.id} value={secret.id}>{secret.name}</option>
                         ))}
@@ -1868,7 +1854,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       />
                     </div>
                   </Field>
-                  <Field label="Known hosts" hint="Optional known_hosts block used when strict host key checking is enabled.">
+                  <Field label={t("pages.companyEnvironments.knownHosts", { defaultValue: "Known hosts" })} hint={t("pages.companyEnvironments.knownHostsHint", { defaultValue: "Optional known_hosts block used when strict host key checking is enabled." })}>
                     <textarea
                       className="h-32 w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-xs font-mono outline-none"
                       value={environmentForm.sshKnownHosts}
@@ -1877,8 +1863,8 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                   </Field>
                   <div className="md:col-span-2">
                     <ToggleField
-                      label="Strict host key checking"
-                      hint="Keep this on unless you deliberately want probe-time host key acceptance disabled."
+                      label={t("pages.companyEnvironments.strictHostKey", { defaultValue: "Strict host key checking" })}
+                      hint={t("pages.companyEnvironments.strictHostKeyHint", { defaultValue: "Keep this on unless you deliberately want probe-time host key acceptance disabled." })}
                       checked={environmentForm.sshStrictHostKeyChecking}
                       onChange={(checked) =>
                         setEnvironmentForm((current) => ({ ...current, sshStrictHostKeyChecking: checked }))}
@@ -1889,7 +1875,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
               {environmentForm.driver === "sandbox" ? (
                 <div className="space-y-3">
-                  <Field label="Provider" hint="Installed run-capable sandbox provider plugins appear here.">
+                  <Field label={t("pages.companyEnvironments.provider", { defaultValue: "Provider" })} hint={t("pages.companyEnvironments.providerHint", { defaultValue: "Installed run-capable sandbox provider plugins appear here." })}>
                     <select
                       className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
                       value={environmentForm.sandboxProvider}
@@ -1930,12 +1916,11 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     />
                   ) : (
                     <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-                      This provider does not declare additional configuration fields.
-                    </div>
+                      {t("ui.pages.companyenvironments.provider-does-not-declare")}</div>
                   )}
                   <ToggleField
-                    label="Stream run logs"
-                    hint="Stream the agent CLI's output live while sandbox runs execute (recommended). Turn off to deliver output only when the run finishes."
+                    label={t("pages.companyEnvironments.streamRunLogs", { defaultValue: "Stream run logs" })}
+                    hint={t("ui.pages.companyenvironments.stream-agent-cli-output")}
                     checked={environmentForm.sandboxConfig.streamRunLogs !== false}
                     onChange={(checked) =>
                       setEnvironmentForm((current) => ({
@@ -1951,11 +1936,9 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               environmentForm.driver === "sandbox" &&
               selectedCompanyId ? (
                 <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 px-3 py-3">
-                  <div className="text-sm font-medium">Custom image</div>
+                  <div className="text-sm font-medium">{t("pages.companyEnvironments.customImage", { defaultValue: "Custom image" })}</div>
                   <div className="text-xs text-muted-foreground">
-                    Start a setup sandbox, SSH in to customize the instance, then capture the
-                    running machine as a reusable image for future runs.
-                  </div>
+                    {t("ui.pages.companyenvironments.start-setup-sandbox-ssh")}</div>
                   <EnvironmentImageTemplatePanel
                     environment={editingEnvironment}
                     companyId={selectedCompanyId}
@@ -1966,8 +1949,8 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               ) : null}
 
               <Field
-                label="Environment variables"
-                hint="Injected into runs that resolve through this environment. Use plain values or company secrets."
+                label={t("pages.companyEnvironments.envVars", { defaultValue: "Environment variables" })}
+                hint={t("ui.pages.companyenvironments.injected-into-runs-resolve")}
               >
                 <EnvironmentVariablesEditor
                   ref={environmentVariablesEditorRef}
@@ -1984,7 +1967,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                 <div className="text-xs text-destructive">
                   {environmentMutation.error instanceof Error
                     ? environmentMutation.error.message
-                    : "Failed to save environment"}
+                    : t("pages.companyEnvironments.saveFailed", { defaultValue: "Failed to save environment" })}
                 </div>
               ) : null}
               {draftEnvironmentProbeMutation.data ? (
@@ -2001,15 +1984,14 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               onClick={closeEnvironmentForm}
               disabled={environmentMutation.isPending}
             >
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
             {environmentForm.driver !== "local" ? (
               <Button
                 variant="outline"
                 onClick={() => draftEnvironmentProbeMutation.mutate(flushEnvironmentForm())}
                 disabled={draftEnvironmentProbeMutation.isPending || !environmentFormValid}
               >
-                {draftEnvironmentProbeMutation.isPending ? "Testing..." : "Test"}
+                {draftEnvironmentProbeMutation.isPending ? t("pages.companyEnvironments.testing", { defaultValue: "Testing..." }) : t("pages.companyEnvironments.test", { defaultValue: "Test" })}
               </Button>
             ) : null}
             <Button
@@ -2018,11 +2000,11 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
             >
               {environmentMutation.isPending
                 ? editingEnvironmentId
-                  ? "Saving..."
-                  : "Creating..."
+                  ? t("pages.companyEnvironments.saving", { defaultValue: "Saving..." })
+                  : t("pages.companyEnvironments.creating", { defaultValue: "Creating..." })
                 : editingEnvironmentId
-                  ? "Save environment"
-                  : "Create environment"}
+                  ? t("pages.companyEnvironments.saveEnvironment", { defaultValue: "Save environment" })
+                  : t("pages.companyEnvironments.createEnvironment", { defaultValue: "Create environment" })}
             </Button>
           </div>
         </div>

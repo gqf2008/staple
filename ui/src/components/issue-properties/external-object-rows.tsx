@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect, useState, type ReactNode } from "react";
 import type { IssueExternalObjectGroup } from "../../hooks/useIssueExternalObjects";
 import {
@@ -32,8 +33,8 @@ function externalObjectRowDisplayKey(group: IssueExternalObjectGroup): string {
   const displayKey = pill.displayKey?.trim();
   if (displayKey) return displayKey;
   if (pill.providerKey === "github") {
-    if (pill.objectType === "pull_request") return "Github PR";
-    if (pill.objectType === "issue") return "Github Issue";
+    if (pill.objectType === "pull_request") return t("ui.components.issue-properties.external-object-rows.github-pr");
+    if (pill.objectType === "issue") return t("ui.components.issue-properties.external-object-rows.github-issue");
   }
   return externalObjectDisplayLabel(pill.providerKey, pill.objectType);
 }
@@ -121,7 +122,7 @@ function ExternalObjectPropertyValue({ group }: { group: IssueExternalObjectGrou
   const className = cn(
     "inline-flex min-w-0 max-w-full items-center gap-1.5 text-sm no-underline",
     externalObjectPropertyTone(group),
-    pill.url ? "hover:underline focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring" : "",
+    pill.url ? t("ui.components.issue-properties.external-object-rows.hover-underline-focus-visible") : "",
   );
 
   if (pill.url) {
@@ -175,10 +176,9 @@ export function ExternalObjectRows({
 
   if (externalObjectsError) {
     return (
-      <PropertyRow label="External objects">
+      <PropertyRow label={t("ui.components.issuerelatedworkpanel.external-objects")}>
         <span className="text-xs text-muted-foreground">
-          Couldn't load external objects.
-          {onRetryExternalObjects ? (
+          {t("ui.components.issuerelatedworkpanel.couldn-load-external-objects")}{onRetryExternalObjects ? (
             <>
               {" "}
               <button
@@ -186,8 +186,7 @@ export function ExternalObjectRows({
                 className="text-primary underline-offset-2 hover:underline"
                 onClick={onRetryExternalObjects}
               >
-                Retry
-              </button>
+                {t("components.issueProperties.retry")}</button>
             </>
           ) : null}
         </span>
@@ -197,7 +196,7 @@ export function ExternalObjectRows({
 
   if (externalObjectsLoading) {
     return (
-      <PropertyRow label="External objects">
+      <PropertyRow label={t("ui.components.issuerelatedworkpanel.external-objects")}>
         <span className="h-4 w-24 animate-pulse rounded bg-muted/40" />
       </PropertyRow>
     );
@@ -226,7 +225,7 @@ export function ExternalObjectRows({
           );
         })}
       {expanded || hiddenExternalObjectCount > 0 ? (
-        <PropertyRow label="References">
+        <PropertyRow label={t("pages.secrets.references")}>
           <ExpandRelationListButton
             hiddenCount={hiddenExternalObjectCount}
             expanded={expanded}

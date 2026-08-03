@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Check, Loader2, Pencil } from "lucide-react";
 import type {
@@ -71,7 +72,7 @@ export function AppDetail() {
     enabled: !!connectionId && activeTab === "permissions",
   });
   const galleryQuery = useQuery({
-    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.apps.gallery(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listGallery(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
@@ -81,17 +82,17 @@ export function AppDetail() {
     enabled: !!connectionId && !!activeTab,
   });
   const profilesQuery = useQuery({
-    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.profiles(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listProfiles(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const policiesQuery = useQuery({
-    queryKey: queryKeys.tools.policies(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.tools.policies(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => toolsApi.listPolicies(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
   const agentsQuery = useQuery({
-    queryKey: queryKeys.agents.list(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.agents.list(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => agentsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId && !!activeTab,
   });
@@ -102,7 +103,7 @@ export function AppDetail() {
   });
   // Resolve who ran Test-tab calls ("<User> tested as <Agent>") in the Activity feed (PAP-11415).
   const userDirectoryQuery = useQuery({
-    queryKey: queryKeys.access.companyUserDirectory(selectedCompanyId ?? "__none__"),
+    queryKey: queryKeys.access.companyUserDirectory(selectedCompanyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => accessApi.listUserDirectory(selectedCompanyId!),
     enabled: !!selectedCompanyId && activeTab === "activity",
   });
@@ -113,13 +114,13 @@ export function AppDetail() {
   });
 
   const connection = connectionQuery.data;
-  const appName = connection ? humanizeConnectionDisplayName(connection) : "App";
+  const appName = connection ? humanizeConnectionDisplayName(connection) : t("pages.appDetail.app", { defaultValue: "App" });
 
   useEffect(() => {
     if (!activeTab) return;
     setBreadcrumbs([
-      { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
-      { label: "Apps", href: "/apps" },
+      { label: selectedCompany?.name ?? t("pages.appDetail.company", { defaultValue: "Company" }), href: "/dashboard" },
+      { label: t("pages.appDetail.apps", { defaultValue: "Apps" }), href: "/apps" },
       { label: appName, href: appTabHref(connectionId, "setup") },
       { label: appTabLabel(activeTab) },
     ]);
@@ -175,8 +176,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save that",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.saveFailed", { defaultValue: "Couldn't save that" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
     onSettled: () => setPending(false),
@@ -194,8 +195,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save installs",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.installsSaveFailed", { defaultValue: "Couldn't save installs" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -212,8 +213,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't rename the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.renameFailed", { defaultValue: "Couldn't rename the app" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -230,8 +231,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't save that",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.saveFailed", { defaultValue: "Couldn't save that" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -243,8 +244,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't start sign-in",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.signInFailed", { defaultValue: "Couldn't start sign-in" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -256,7 +257,7 @@ export function AppDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.apps.attention(selectedCompanyId!) });
       pushToast({
-        title: "App removed",
+        title: t("pages.appDetail.appRemoved", { defaultValue: "App removed" }),
         body: `${appName} no longer has access. You can connect it again any time.`,
         tone: "success",
       });
@@ -264,8 +265,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't remove the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.removeFailed", { defaultValue: "Couldn't remove the app" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -278,7 +279,7 @@ export function AppDetail() {
       queryClient.invalidateQueries({ queryKey: queryKeys.tools.applications(selectedCompanyId!) });
       queryClient.invalidateQueries({ queryKey: queryKeys.apps.attention(selectedCompanyId!) });
       pushToast({
-        title: updated.enabled ? "App resumed" : "App paused",
+        title: updated.enabled ? t("pages.appDetail.appResumed", { defaultValue: "App resumed" }) : t("pages.appDetail.appPaused", { defaultValue: "App paused" }),
         body: updated.enabled
           ? `${humanizeConnectionDisplayName(updated)} is available to agents again.`
           : `${humanizeConnectionDisplayName(updated)} is paused for agents.`,
@@ -287,8 +288,8 @@ export function AppDetail() {
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't update the app",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.updateFailed", { defaultValue: "Couldn't update the app" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -303,15 +304,15 @@ export function AppDetail() {
       pushToast({
         title: `Found ${result.discoveredCount} ${result.discoveredCount === 1 ? "action" : "actions"}`,
         body: result.quarantinedCount > 0
-          ? `${result.quarantinedCount} new ${result.quarantinedCount === 1 ? "action needs" : "actions need"} your OK.`
+          ? `${result.quarantinedCount} new ${result.quarantinedCount === 1 ? t("ui.pages.apps.appdetail.action-needs") : t("ui.pages.apps.appdetail.actions-need")} your OK.`
           : undefined,
         tone: "success",
       });
     },
     onError: (error) =>
       pushToast({
-        title: "Couldn't refresh actions",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("pages.appDetail.refreshFailed", { defaultValue: "Couldn't refresh actions" }),
+        body: error instanceof Error ? error.message : t("pages.appDetail.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       }),
   });
@@ -328,7 +329,7 @@ export function AppDetail() {
   }
 
   if (!selectedCompanyId) {
-    return <div className="p-6 text-sm text-muted-foreground">Select a company to manage apps.</div>;
+    return <div className="p-6 text-sm text-muted-foreground">{t("pages.appDetail.selectCompany", { defaultValue: "Select a company to manage apps." })}</div>;
   }
   if (connectionQuery.isLoading || catalogQuery.isLoading) {
     return (
@@ -342,10 +343,9 @@ export function AppDetail() {
   if (!connection) {
     return (
       <div className="max-w-3xl p-6">
-        <p className="text-sm text-muted-foreground">We couldn't find that app.</p>
+        <p className="text-sm text-muted-foreground">{t("pages.appDetail.notFound", { defaultValue: "We couldn't find that app." })}</p>
         <Button className="mt-4" variant="outline" onClick={() => navigate("/apps")}>
-          Back to apps
-        </Button>
+          {t("pages.appNotConnected.backToApps")}</Button>
       </div>
     );
   }
@@ -509,18 +509,17 @@ function AppDetailHeader({
               }}
             >
               <Input
-                aria-label="App name"
+                aria-label={t("pages.appDetail.appName", { defaultValue: "App name" })}
                 value={nameDraft}
                 onChange={(event) => onNameDraftChange(event.target.value)}
                 className="h-9 w-64 text-lg font-bold"
                 autoFocus
               />
               <Button type="submit" size="sm" disabled={renamePending || !nameDraft.trim()}>
-                {renamePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Save"}
+                {renamePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("pages.appDetail.save", { defaultValue: "Save" })}
               </Button>
               <Button type="button" size="sm" variant="ghost" onClick={onRenameCancel} disabled={renamePending}>
-                Cancel
-              </Button>
+                {t("common.cancel")}</Button>
             </form>
           ) : (
             <div className="flex items-center gap-1.5">
@@ -529,7 +528,7 @@ function AppDetailHeader({
                 variant="ghost"
                 size="icon"
                 className="h-7 w-7 text-muted-foreground"
-                aria-label="Rename app"
+                aria-label={t("pages.appDetail.renameApp", { defaultValue: "Rename app" })}
                 onClick={onRenameStart}
               >
                 <Pencil className="h-3.5 w-3.5" />
@@ -555,12 +554,12 @@ type StatusInfo = { label: string; tone: "connected" | "attention" | "paused" };
 
 function statusFor(connection: ToolConnection): StatusInfo {
   if (connection.enabled === false || connection.status === "disabled") {
-    return { label: "Paused", tone: "paused" };
+    return { label: t("pages.appDetail.paused", { defaultValue: "Paused" }), tone: "paused" };
   }
   if (isAttentionHealthStatus(connection.healthStatus)) {
-    return { label: "Needs attention", tone: "attention" };
+    return { label: t("pages.appDetail.needsAttention", { defaultValue: "Needs attention" }), tone: "attention" };
   }
-  return { label: "Connected", tone: "connected" };
+  return { label: t("pages.appDetail.connected", { defaultValue: "Connected" }), tone: "connected" };
 }
 
 function StatusBadge({ status }: { status: StatusInfo }) {

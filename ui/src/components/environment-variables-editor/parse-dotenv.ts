@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 /**
  * Minimal `.env`-style parser for bulk-pasting environment variables into the
  * editor (plan §6.9). Deliberately forgiving: it ignores comments and blank

@@ -1,4 +1,5 @@
 import { AlertTriangle } from "lucide-react";
+import { t } from "../../../i18n";
 import type { ToolProfileWithDetails } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import {
@@ -34,23 +35,23 @@ export function ProfileActionDialog({
   const defaultDeleteBlocked = kind === "delete" && profile.summary.isCompanyDefault;
   const copy = {
     archive: {
-      title: "Archive profile",
+      title: t("pages.tools.profileActionDialog.archiveProfile", { defaultValue: "Archive profile" }),
       body: `This profile stops applying to ${profile.summary.appliesToAgentCount} ${profile.summary.appliesToAgentCount === 1 ? "agent" : "agents"}. You can restore it later.`,
-      confirm: "Archive",
+      confirm: t("pages.tools.profileActionDialog.archive", { defaultValue: "Archive" }),
       action: onArchive,
     },
     restore: {
-      title: "Restore profile",
-      body: "This profile will be active again and can be assigned to agents.",
-      confirm: "Restore",
+      title: t("pages.tools.profileActionDialog.restoreProfile", { defaultValue: "Restore profile" }),
+      body: t("pages.tools.profileActionDialog.restoreHint", { defaultValue: "This profile will be active again and can be assigned to agents." }),
+      confirm: t("pages.tools.profileActionDialog.restore", { defaultValue: "Restore" }),
       action: onRestore,
     },
     delete: {
-      title: "Delete profile",
+      title: t("pages.tools.profileActionDialog.deleteProfile", { defaultValue: "Delete profile" }),
       body: defaultDeleteBlocked
-        ? "This profile is the company default. Reassign the company default to another profile before deleting it."
+        ? t("ui.pages.tools.profiles.profileactiondialog.profile-company-default-reassign")
         : `This permanently deletes the profile and removes ${profile.summary.assignmentCount} ${profile.summary.assignmentCount === 1 ? "assignment" : "assignments"}.`,
-      confirm: "Delete",
+      confirm: t("pages.tools.profileActionDialog.delete", { defaultValue: "Delete" }),
       action: onDelete,
     },
   }[kind];
@@ -65,11 +66,11 @@ export function ProfileActionDialog({
         {defaultDeleteBlocked ? (
           <div className="flex gap-3 rounded-lg border border-destructive/40 bg-destructive/5 px-3 py-2 text-sm text-destructive">
             <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />
-            <span>Choose another access profile and make it the company default first.</span>
+            <span>{t("pages.tools.profileActionDialog.companyDefaultHint", { defaultValue: "Choose another access profile and make it the company default first." })}</span>
           </div>
         ) : null}
         <DialogFooter>
-          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button variant="ghost" onClick={onClose}>{t("pages.tools.profileActionDialog.cancel", { defaultValue: "Cancel" })}</Button>
           <Button
             variant={kind === "delete" ? "destructive" : "default"}
             disabled={pending || defaultDeleteBlocked}

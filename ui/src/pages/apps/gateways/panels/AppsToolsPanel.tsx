@@ -1,3 +1,4 @@
+import { t } from "../../../../i18n";
 import type { ToolProfileWithDetails } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
@@ -18,23 +19,19 @@ export function AppsToolsPanel({
   return (
     <div className="space-y-4">
       <p className="text-sm text-muted-foreground">
-        These apps go through this gateway. The bound profile
-        {profile ? ` (${profile.name})` : ""} decides which tools are allowed
-        {profile ? ` — ${allowedToolsLabel(profile)}.` : "."} Change the profile under Advanced.
-      </p>
+        {t("ui.pages.apps.gateways.panels.appstoolspanel.these-apps-go-through")}{profile ? ` (${profile.name})` : ""} {t("ui.pages.apps.gateways.panels.appstoolspanel.decides-which-tools-allowed")}{profile ? ` — ${allowedToolsLabel(profile)}.` : "."} {t("ui.pages.apps.gateways.panels.appstoolspanel.change-profile-under-advanced")}</p>
 
       {apps.length === 0 ? (
         <div className="rounded-md border border-dashed border-border p-6 text-center text-sm text-muted-foreground">
-          No apps are assigned to this gateway’s profile yet.
-        </div>
+          {t("ui.pages.apps.gateways.panels.appstoolspanel.no-apps-assigned-gateway")}</div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-border">
           <table className="w-full min-w-(--sz-32rem) text-sm">
             <thead>
               <tr className="border-b border-border bg-muted/40 text-left text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-                <th className="px-4 py-2.5">App</th>
-                <th className="px-4 py-2.5">Tools</th>
-                <th className="px-4 py-2.5">Status</th>
+                <th className="px-4 py-2.5">{t("pages.appDetail.app")}</th>
+                <th className="px-4 py-2.5">{t("app.tools")}</th>
+                <th className="px-4 py-2.5">{t("nav.status")}</th>
                 <th className="px-4 py-2.5 text-right" />
               </tr>
             </thead>
@@ -65,13 +62,12 @@ export function AppsToolsPanel({
                             : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
                         )}
                       >
-                        {app.needsAttention ? "Needs attention" : "Healthy"}
+                        {app.needsAttention ? t("components.appsSidebar.needsAttention") : t("components.budgetPolicy.healthy")}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">
                       <Link to={href} className="text-xs font-medium text-primary hover:underline">
-                        Open →
-                      </Link>
+                        {t("ui.pages.apps.gateways.panels.appstoolspanel.open")}</Link>
                     </td>
                   </tr>
                 );

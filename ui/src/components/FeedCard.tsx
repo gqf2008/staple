@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Link } from "@/lib/router";
 import { AgentIcon } from "./AgentIconPicker";
 import { timeAgo } from "../lib/timeAgo";
@@ -78,7 +79,7 @@ function formatVerb(
       return "deleted";
 
     case "approval.created":
-      return context === "pinned" ? "needs approval on" : "requested approval on";
+      return context === "pinned" ? t("ui.components.feedcard.needs-approval") : t("ui.components.feedcard.requested-approval");
     case "approval.approved":
       return "approved";
     case "approval.rejected":
@@ -87,7 +88,7 @@ function formatVerb(
       return "requested changes on";
 
     case "agent.created":
-      return context === "pinned" ? "wants to hire" : "hired";
+      return context === "pinned" ? t("ui.components.feedcard.wants-hire") : "hired";
     case "agent.paused":
       return "paused";
     case "agent.resumed":
@@ -293,10 +294,10 @@ function resolveContent(
   const actorName =
     actor?.name ??
     (event.actorType === "system"
-      ? "System"
+      ? t("components.feedCard.system")
       : event.actorType === "user"
-        ? "Board"
-        : event.actorId || "Unknown");
+        ? t("components.feedCard.board")
+        : event.actorId || t("components.feedCard.unknown"));
 
   const entityTitle = entityTitleMap?.get(`${event.entityType}:${event.entityId}`) ?? null;
 
@@ -468,7 +469,7 @@ export function FeedCard({
         )}
       </span>
       {isPinned && (
-        <span className="shrink-0 text-xs text-muted-foreground">Review →</span>
+        <span className="shrink-0 text-xs text-muted-foreground">{t("pages.connections.review")}</span>
       )}
       <span data-fc="time" className="shrink-0 text-muted-foreground">
         {timeAgo(event.createdAt)}

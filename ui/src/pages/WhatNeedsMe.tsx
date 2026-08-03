@@ -1,4 +1,5 @@
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowUpDown, Check, CheckCircle2, GraduationCap, Inbox, Layers, ListFilter, Loader2, Sun } from "lucide-react";
 import type { Agent, AttentionItem, AttentionSubject } from "@paperclipai/shared";
@@ -61,10 +62,10 @@ import { Checkbox } from "../components/ui/checkbox";
 import { Popover, PopoverContent, PopoverTrigger } from "../components/ui/popover";
 
 const SEVERITY_LABELS: Record<string, string> = {
-  critical: "Critical",
-  high: "High",
-  medium: "Medium",
-  low: "Low",
+  critical: t("priorities.critical", { defaultValue: "Critical" }),
+  high: t("priorities.high", { defaultValue: "High" }),
+  medium: t("priorities.medium", { defaultValue: "Medium" }),
+  low: t("priorities.low", { defaultValue: "Low" }),
 };
 
 /** Curtain rows never expand; module-level so memoized rows see one identity. */
@@ -158,7 +159,7 @@ export function WhatNeedsMe() {
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Decisions" }]);
+    setBreadcrumbs([{ label: t("pages.decisions.title", { defaultValue: "Decisions" }) }]);
   }, [setBreadcrumbs]);
 
   // Re-hydrate per-company preferences when the company changes.
@@ -467,11 +468,11 @@ export function WhatNeedsMe() {
       pushToast({
         id: `attention-dismiss-${item.id}`,
         dedupeKey: `attention-dismiss-${item.dismissalKey}`,
-        title: "Dismissed",
+        title: t("status.dismissed", { defaultValue: "Dismissed" }),
         body: item.subject.title ?? undefined,
         tone: "info",
         ttlMs: 8000,
-        action: { label: "Undo", onClick: () => handleUndoDismiss(item) },
+        action: { label: t("common.undo", { defaultValue: "Undo" }), onClick: () => handleUndoDismiss(item) },
       });
     },
     [dismiss, handleUndoDismiss, pushToast],
@@ -547,7 +548,7 @@ export function WhatNeedsMe() {
   const activeFilterCount = countActiveAttentionFilters(filters);
 
   if (!selectedCompanyId) {
-    return <p className="text-sm text-muted-foreground">Select a company first.</p>;
+    return <p className="text-sm text-muted-foreground">{t("common.selectCompanyFirst", { defaultValue: "Select a company first." })}</p>;
   }
 
   if (isLoading) {
@@ -559,7 +560,7 @@ export function WhatNeedsMe() {
   return (
     <div ref={rootRef} className="max-w-3xl space-y-4">
       <div className="flex items-center justify-between gap-2">
-        <h1 className="text-xl font-bold">Decisions</h1>
+        <h1 className="text-xl font-bold">{t("nav.decisions")}</h1>
         <div className="flex items-center gap-2">
           {visibleCount > 0 && (
             <span className="text-sm text-muted-foreground">
@@ -574,8 +575,8 @@ export function WhatNeedsMe() {
                 variant="outline"
                 size="icon"
                 className={cn("h-8 w-8 shrink-0", activeFilterCount > 0 && "bg-accent")}
-                title="Filter"
-                aria-label="Filter"
+                title={t("pages.decisions.filter", { defaultValue: "Filter" })}
+                aria-label={t("pages.decisions.filter", { defaultValue: "Filter" })}
               >
                 <ListFilter className="h-3.5 w-3.5" />
               </Button>
@@ -596,8 +597,8 @@ export function WhatNeedsMe() {
                 variant="outline"
                 size="icon"
                 className={cn("h-8 w-8 shrink-0", groupBy !== "none" && "bg-accent")}
-                title="Group"
-                aria-label="Group"
+                title={t("pages.decisions.group", { defaultValue: "Group" })}
+                aria-label={t("pages.decisions.group", { defaultValue: "Group" })}
               >
                 <Layers className="h-3.5 w-3.5" />
               </Button>
@@ -626,8 +627,8 @@ export function WhatNeedsMe() {
             variant="outline"
             size="icon"
             className="h-8 w-8 shrink-0"
-            title="Training"
-            aria-label="Training"
+            title={t("pages.decisions.training", { defaultValue: "Training" })}
+            aria-label={t("pages.decisions.training", { defaultValue: "Training" })}
             onClick={() => navigate(decisionTrainingHref())}
           >
             <GraduationCap className="h-3.5 w-3.5" />
@@ -640,8 +641,8 @@ export function WhatNeedsMe() {
                 variant="outline"
                 size="icon"
                 className="h-8 w-8 shrink-0"
-                title="Sort"
-                aria-label="Sort"
+                title={t("pages.decisions.sort", { defaultValue: "Sort" })}
+                aria-label={t("pages.decisions.sort", { defaultValue: "Sort" })}
               >
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </Button>
@@ -770,7 +771,7 @@ export function WhatNeedsMe() {
 
           {snoozedItems.length > 0 && (
             <Curtain
-              label="Snoozed"
+              label={t("status.snoozed", { defaultValue: "Snoozed" })}
               count={snoozedItems.length}
               open={snoozedOpen}
               onToggle={() => setSnoozedOpen((prev) => !prev)}
@@ -794,7 +795,7 @@ export function WhatNeedsMe() {
 
           {dismissedItems.length > 0 && (
             <Curtain
-              label="Dismissed"
+              label={t("status.dismissed", { defaultValue: "Dismissed" })}
               count={dismissedItems.length}
               open={dismissedOpen}
               onToggle={() => setDismissedOpen((prev) => !prev)}
@@ -850,13 +851,13 @@ export function WhatNeedsMe() {
 
       <div className="space-y-4">
         <Curtain
-          label="Decided"
+          label={t("status.decided", { defaultValue: "Decided" })}
           count={decisionHistoryCount(decidedDecisions?.length)}
           open={decidedOpen}
           onToggle={() => setDecidedOpen((prev) => !prev)}
         >
           {decidedDecisionsLoading ? (
-            <p className="text-xs text-muted-foreground">Loading decided decisions…</p>
+            <p className="text-xs text-muted-foreground">{t("pages.decisions.loadingDecided", { defaultValue: "Loading decided decisions…" })}</p>
           ) : (decidedDecisions?.length ?? 0) > 0 ? (
             decidedDecisions!.slice(0, DECISION_HISTORY_VISIBLE_LIMIT).map((decision) => (
               <DecisionResolver
@@ -868,18 +869,18 @@ export function WhatNeedsMe() {
               />
             ))
           ) : (
-            <p className="text-xs text-muted-foreground">No decided decisions.</p>
+            <p className="text-xs text-muted-foreground">{t("pages.decisions.noDecided", { defaultValue: "No decided decisions." })}</p>
           )}
         </Curtain>
 
         <Curtain
-          label="Expired"
+          label={t("status.expired", { defaultValue: "Expired" })}
           count={decisionHistoryCount(expiredDecisions?.length)}
           open={expiredOpen}
           onToggle={() => setExpiredOpen((prev) => !prev)}
         >
           {expiredDecisionsLoading ? (
-            <p className="text-xs text-muted-foreground">Loading expired decisions…</p>
+            <p className="text-xs text-muted-foreground">{t("pages.decisions.loadingExpired", { defaultValue: "Loading expired decisions…" })}</p>
           ) : (expiredDecisions?.length ?? 0) > 0 ? (
             expiredDecisions!.slice(0, DECISION_HISTORY_VISIBLE_LIMIT).map((decision) => (
               <DecisionResolver
@@ -891,7 +892,7 @@ export function WhatNeedsMe() {
               />
             ))
           ) : (
-            <p className="text-xs text-muted-foreground">No expired decisions.</p>
+            <p className="text-xs text-muted-foreground">{t("pages.decisions.noExpired", { defaultValue: "No expired decisions." })}</p>
           )}
         </Curtain>
       </div>
@@ -929,11 +930,11 @@ export function DecisionBundleHeader({
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-sm border-l-2 border-violet-500/60 bg-violet-500/5 px-3 py-1.5 text-xs">
       <span className="font-semibold text-violet-800 dark:text-violet-200">
-        {agentName ?? "An agent"} proposed {count} {noun}
+        {agentName ?? t("pages.decisions.typeAnAgent", { defaultValue: "An agent" })} proposed {count} {noun}
       </span>
       {originIssue && (originIssue.identifier || originIssue.title) && (
         <span className="text-muted-foreground">
-          {"· from "}
+          {t("ui.pages.whatneedsme.from")}
           {originIssue.href ? (
             <a href={originIssue.href} className="hover:underline">
               {originIssue.identifier ?? originIssue.title}
@@ -968,20 +969,19 @@ function FilterMenu({
   return (
     <div className="max-h-(--sz-70vh) overflow-y-auto">
       <div className="flex items-center justify-between px-3 py-2">
-        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Filter</span>
+        <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{t("pages.companySkills.filter")}</span>
         {hasActive && (
           <button
             type="button"
             className="text-xs text-muted-foreground hover:text-foreground"
             onClick={() => onChange(defaultAttentionFilterState)}
           >
-            Clear
-          </button>
+            {t("components.issueProperties.clear")}</button>
         )}
       </div>
 
       {options.sourceKinds.length > 1 && (
-        <FilterSection title="Type">
+        <FilterSection title={t("pages.decisions.type", { defaultValue: "Type" })}>
           {options.sourceKinds.map((kind) => (
             <FilterRow
               key={kind}
@@ -994,7 +994,7 @@ function FilterMenu({
       )}
 
       {options.severities.length > 1 && (
-        <FilterSection title="Severity">
+        <FilterSection title={t("pages.decisions.severity", { defaultValue: "Severity" })}>
           {options.severities.map((severity) => (
             <FilterRow
               key={severity}
@@ -1007,7 +1007,7 @@ function FilterMenu({
       )}
 
       {(options.projects.length > 0 || options.hasNoProject) && (
-        <FilterSection title="Project">
+        <FilterSection title={t("pages.decisions.project", { defaultValue: "Project" })}>
           {options.projects.map((project) => (
             <FilterRow
               key={project.id}
@@ -1018,7 +1018,7 @@ function FilterMenu({
           ))}
           {options.hasNoProject && (
             <FilterRow
-              label="No project"
+              label={t("pages.decisions.noProject", { defaultValue: "No project" })}
               checked={filters.projectIds.includes(NO_GROUP_SENTINEL)}
               onToggle={() => toggle("projectIds", NO_GROUP_SENTINEL)}
             />
@@ -1027,7 +1027,7 @@ function FilterMenu({
       )}
 
       {(options.workspaces.length > 0 || options.hasNoWorkspace) && (
-        <FilterSection title="Workspace">
+        <FilterSection title={t("pages.decisions.workspace", { defaultValue: "Workspace" })}>
           {options.workspaces.map((workspace) => (
             <FilterRow
               key={workspace.id}
@@ -1038,7 +1038,7 @@ function FilterMenu({
           ))}
           {options.hasNoWorkspace && (
             <FilterRow
-              label="No workspace"
+              label={t("pages.decisions.noWorkspace", { defaultValue: "No workspace" })}
               checked={filters.workspaceIds.includes(NO_GROUP_SENTINEL)}
               onToggle={() => toggle("workspaceIds", NO_GROUP_SENTINEL)}
             />
@@ -1212,10 +1212,10 @@ function CaughtUpNote({ filtered }: { filtered: boolean }) {
   return (
     <div className="rounded-xl border border-dashed border-border py-10 text-center">
       <p className="text-sm font-medium text-foreground">
-        {filtered ? "No decisions match your filters." : "You're all caught up."}
+        {filtered ? t("pages.decisions.noMatch", { defaultValue: "No decisions match your filters." }) : t("pages.decisions.allCaughtUp", { defaultValue: "You're all caught up." })}
       </p>
       {filtered && (
-        <p className="mt-1 text-xs text-muted-foreground">Adjust or clear the filters to see the rest.</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t("pages.decisions.adjustFilters", { defaultValue: "Adjust or clear the filters to see the rest." })}</p>
       )}
     </div>
   );
@@ -1227,11 +1227,10 @@ function ZeroState() {
       <div className="mb-4 rounded-full bg-green-500/10 p-4">
         <CheckCircle2 className="h-10 w-10 text-green-500" />
       </div>
-      <p className="text-lg font-semibold text-foreground">You're all caught up</p>
+      <p className="text-lg font-semibold text-foreground">{t("pages.decisions.allCaughtUp", { defaultValue: "You're all caught up" })}</p>
       <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Inbox className="h-4 w-4" />
-        Nothing needs a decision from you right now.
-      </p>
+        {t("ui.pages.whatneedsme.nothing-needs-decision-from")}</p>
     </div>
   );
 }

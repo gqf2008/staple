@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   attachmentArtifactWorkProductMetadataSchema,
   type AttachmentArtifactWorkProductMetadata,
@@ -67,10 +68,10 @@ const GENERIC_BINARY_CONTENT_TYPES = new Set([
 const VIDEO_FILENAME_EXTENSIONS = [
   ".mp4",
   ".m4v",
-  ".webm",
-  ".mov",
+  t("ui.lib.issue-output.webm"),
+  t("ui.lib.issue-output.mov"),
   ".qt",
-  ".quicktime",
+  t("ui.lib.issue-output.quicktime"),
 ];
 
 const BINARY_OUTPUT_APPLICATION_TYPES = new Set([
@@ -111,29 +112,29 @@ const DOCUMENT_LIKE_APPLICATION_TYPES = new Set([
 ]);
 
 const DOCUMENT_LIKE_FILENAME_EXTENSIONS = [
-  ".csv",
-  ".css",
-  ".graphql",
-  ".htm",
-  ".html",
+  t("ui.lib.issue-output.csv"),
+  t("ui.lib.issue-output.css"),
+  t("ui.lib.issue-output.graphql"),
+  t("ui.lib.issue-output.htm"),
+  t("ui.lib.issue-output.html"),
   ".js",
-  ".json",
-  ".jsx",
-  ".log",
-  ".markdown",
+  t("ui.lib.issue-output.json"),
+  t("ui.lib.issue-output.jsx"),
+  t("ui.lib.issue-output.log"),
+  t("ui.lib.issue-output.markdown"),
   ".md",
-  ".mdx",
-  ".php",
+  t("ui.lib.issue-output.mdx"),
+  t("ui.lib.issue-output.php"),
   ".py",
   ".sh",
-  ".sql",
-  ".toml",
+  t("ui.lib.issue-output.sql"),
+  t("ui.lib.issue-output.toml"),
   ".ts",
-  ".tsx",
-  ".txt",
-  ".xml",
-  ".yaml",
-  ".yml",
+  t("ui.lib.issue-output.tsx"),
+  t("ui.lib.issue-output.txt"),
+  t("ui.lib.issue-output.xml"),
+  t("ui.lib.issue-output.yaml"),
+  t("ui.lib.issue-output.yml"),
 ];
 
 export function normalizeOutputContentType(contentType: string | null | undefined): string {
@@ -196,13 +197,13 @@ export function getOutputFileGlyph(contentType: string | null | undefined): Outp
   if (type === "text/plain") return { label: "TXT", tone: "bin" };
   if (type === "text/csv" || type === "application/csv") return { label: "CSV", tone: "bin" };
   if (type === "text/html" || type === "application/html" || type === "application/xhtml+xml") {
-    return { label: "HTML", tone: "bin" };
+    return { label: t("components.markdownEditor.html"), tone: "bin" };
   }
-  if (type === "application/json" || type.endsWith("+json")) return { label: "JSON", tone: "bin" };
+  if (type === "application/json" || type.endsWith("+json")) return { label: t("components.markdownEditor.json"), tone: "bin" };
   if (type === "application/xml" || type === "text/xml" || type.endsWith("+xml")) {
     return { label: "XML", tone: "bin" };
   }
-  if (type === "application/wasm") return { label: "WASM", tone: "bin" };
+  if (type === "application/wasm") return { label: t("ui.lib.issue-output.wasm"), tone: "bin" };
   return { label: "BIN", tone: "bin" };
 }
 

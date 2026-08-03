@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CompanyPortabilityFileEntry } from "@paperclipai/shared";
 
 // Inline imports post the whole parsed package as one JSON body, so oversized

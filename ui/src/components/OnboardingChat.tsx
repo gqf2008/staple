@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect, useCallback, useMemo } from "react";
+import { t } from "../i18n";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import type { IssueComment } from "@paperclipai/shared";
 import { issuesApi } from "../api/issues";
@@ -28,30 +29,30 @@ function detectHiringPlan(body: string): boolean {
     /##?\s*(hiring|team|org|roles|plan)/i,
     /##?\s*(proposed|recommended)\s*(roles|hires|team)/i,
     /\n-\s+\*\*[^*]+\*\*/g, // bullet list with bold items (role names)
-    /\|\s*role\s*\|/i, // markdown table with "Role" header
+    /\|\s*role\s*\|/i, // markdown table with t("components.onboardingChat.role", { defaultValue: "Role" }) header
   ];
   return planPatterns.some((pattern) => pattern.test(body));
 }
 
 const QUEUED_MESSAGES = [
-  "Heartbeat triggered, waking up...",
-  "Initializing...",
-  "Getting ready...",
+  t("components.onboardingChat.wakingUp", { defaultValue: "Heartbeat triggered, waking up..." }),
+  t("components.onboardingChat.initializing", { defaultValue: "Initializing..." }),
+  t("components.onboardingChat.gettingReady", { defaultValue: "Getting ready..." }),
 ];
 
 const RUNNING_MESSAGES = [
-  "Working on a response...",
-  "Reading the conversation...",
-  "Thinking through the plan...",
-  "Drafting a response...",
-  "Still working...",
-  "Almost there...",
+  t("components.onboardingChat.workingOnResponse", { defaultValue: "Working on a response..." }),
+  t("components.onboardingChat.readingConversation", { defaultValue: "Reading the conversation..." }),
+  t("components.onboardingChat.thinkingPlan", { defaultValue: "Thinking through the plan..." }),
+  t("components.onboardingChat.draftingResponse", { defaultValue: "Drafting a response..." }),
+  t("components.onboardingChat.stillWorking", { defaultValue: "Still working..." }),
+  t("components.onboardingChat.almostThere", { defaultValue: "Almost there..." }),
 ];
 
 const WAITING_MESSAGES = [
-  "Waiting to wake up...",
-  "Heartbeat pending...",
-  "Should wake up soon...",
+  t("components.onboardingChat.waitingWake", { defaultValue: "Waiting to wake up..." }),
+  t("components.onboardingChat.heartbeatPending", { defaultValue: "Heartbeat pending..." }),
+  t("components.onboardingChat.wakeSoon", { defaultValue: "Should wake up soon..." }),
 ];
 
 function getCyclingMessage(messages: string[], elapsed: number, agentName: string): string {
@@ -249,8 +250,7 @@ export function OnboardingChat({
     return (
       <div className="flex items-center justify-center py-8 text-muted-foreground text-sm">
         <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-        Loading conversation...
-      </div>
+        {t("ui.components.onboardingchat.loading-conversation")}</div>
     );
   }
 
@@ -268,10 +268,10 @@ export function OnboardingChat({
           companyGoal={companyGoal}
           hasComments={Boolean(comments?.length)}
           onDiscuss={() => {
-            setInput("I want to discuss the plan before you get started.");
+            setInput(t("ui.components.onboardingchat.want-discuss-plan-before"));
             inputRef.current?.focus();
           }}
-          onStart={() => sendMessage("Yes, get started on the hiring plan!")}
+          onStart={() => sendMessage(t("components.onboardingChat.hiringPlanCta", { defaultValue: "Yes, get started on the hiring plan!" }))}
         />
         {comments?.map((comment) => {
           const isAgent = Boolean(comment.authorAgentId);
@@ -296,13 +296,12 @@ export function OnboardingChat({
                       : "text-foreground/70",
                   )}
                 >
-                  {isAgent ? agentName : "You"}
+                  {isAgent ? agentName : t("components.onboardingChat.you", { defaultValue: "You" })}
                 </span>
                 {isPlan && (
                   <span className="inline-flex items-center gap-0.5 text-(length:--text-nano) text-green-600 dark:text-green-400 font-medium">
                     <CheckCircle2 className="h-3 w-3" />
-                    Hiring plan detected
-                  </span>
+                    {t("ui.components.onboardingchat.hiring-plan-detected")}</span>
                 )}
               </div>
               <div className="prose prose-sm dark:prose-invert max-w-none [&>*:first-child]:mt-0 [&>*:last-child]:mb-0">
@@ -350,16 +349,13 @@ export function OnboardingChat({
               <CheckCircle2 className="h-4 w-4 text-green-500 shrink-0" />
               <div>
                 <p className="text-sm font-medium">
-                  {agentName} has prepared a hiring plan
-                </p>
+                  {agentName} {t("ui.components.onboardingchat.has-prepared-hiring-plan")}</p>
                 <p className="text-(length:--text-micro) text-muted-foreground">
-                  Review it, make edits, then approve.
-                </p>
+                  {t("ui.components.onboardingchat.review-make-edits-then")}</p>
               </div>
             </div>
             <Button size="sm" onClick={onReviewPlan}>
-              Review plan
-              <ArrowRight className="h-3.5 w-3.5 ml-1" />
+              {t("ui.components.onboardingchat.review-plan")}<ArrowRight className="h-3.5 w-3.5 ml-1" />
             </Button>
           </div>
         </div>
@@ -432,14 +428,13 @@ function WelcomeMessage({
             </span>
           </div>
           <p>
-            Hi! Thanks for bringing me on to lead <strong>{companyName}</strong>.
+            {t("ui.components.onboardingchat.hi-thanks-bringing-me")}<strong>{companyName}</strong>.
           </p>
           <p className="mt-1">
-            Our mission is: <em>{companyGoal}</em>
+            {t("ui.components.onboardingchat.our-mission")}<em>{companyGoal}</em>
           </p>
           <p className="mt-1">
-            I'm ready to put together a plan for who we should bring on. Want me to get started?
-          </p>
+            {t("ui.components.onboardingchat.ready-put-together-plan")}</p>
         </div>
       )}
 
@@ -450,14 +445,12 @@ function WelcomeMessage({
             className="rounded-full border border-border px-3 py-1 text-xs hover:bg-accent/50 transition-colors text-muted-foreground hover:text-foreground"
             onClick={onDiscuss}
           >
-            Let's discuss first
-          </button>
+            {t("ui.components.onboardingchat.let-discuss-first")}</button>
           <button
             className="rounded-full border border-foreground bg-foreground text-background px-3 py-1 text-xs hover:opacity-90 transition-opacity"
             onClick={onStart}
           >
-            Yes, get started!
-          </button>
+            {t("ui.components.onboardingchat.yes-get-started")}</button>
         </div>
       )}
 

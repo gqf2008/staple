@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 /**
  * Canonical state inventory for the Task Chat Redesign (flag:
  * enableTaskChatRedesign).
@@ -48,49 +49,49 @@ export interface TaskChatStateMeta {
 export const TASK_CHAT_STATE_META: Record<TaskChatStateId, TaskChatStateMeta> = {
   "session-start": {
     id: "session-start",
-    label: "Session start",
+    label: t("ui.components.task-chat.task-chat-states.session-start"),
     tier: "live",
     surface: "thread",
     protocol: 'acpx.session → TranscriptEntry kind:"init"',
   },
   "human-message": {
     id: "human-message",
-    label: "Human message",
+    label: t("ui.components.task-chat.task-chat-states.human-message"),
     tier: "live",
     surface: "thread",
     protocol: 'IssueComment authorType:"user"',
   },
   "agent-message": {
     id: "agent-message",
-    label: "Agent message",
+    label: t("ui.components.task-chat.task-chat-states.agent-message"),
     tier: "live",
     surface: "thread",
-    protocol: "text_delta stream:output (ACP agent_message_chunk)",
+    protocol: t("ui.components.task-chat.task-chat-states.text-delta-stream-output"),
   },
   thinking: {
     id: "thinking",
-    label: "Thinking",
+    label: t("ui.components.task-chat.task-chat-states.thinking"),
     tier: "live",
     surface: "thread",
-    protocol: "text_delta stream:thought (ACP agent_thought_chunk)",
+    protocol: t("ui.components.task-chat.task-chat-states.text-delta-stream-thought"),
   },
   responding: {
     id: "responding",
-    label: "Responding (streaming)",
+    label: t("ui.components.task-chat.task-chat-states.responding-streaming"),
     tier: "live",
     surface: "thread",
-    protocol: "text_delta stream:output, streaming",
+    protocol: t("ui.components.task-chat.task-chat-states.text-delta-stream-output.2"),
   },
   "tool-call": {
     id: "tool-call",
-    label: "Tool call",
+    label: t("ui.components.task-chat.task-chat-states.tool-call"),
     tier: "live",
     surface: "thread",
     protocol: "acpx.tool_call (ACP tool_call / tool_call_update)",
   },
   diff: {
     id: "diff",
-    label: "Diff",
+    label: t("ui.components.task-chat.task-chat-states.diff"),
     tier: "live",
     surface: "thread",
     protocol: 'ToolCallContent type:"diff" → TranscriptEntry kind:"diff"',
@@ -100,7 +101,7 @@ export const TASK_CHAT_STATE_META: Record<TaskChatStateId, TaskChatStateMeta> = 
     label: "Working",
     tier: "live",
     surface: "thread",
-    protocol: "heartbeat.run.progress + acpx.status",
+    protocol: t("ui.components.task-chat.task-chat-states.heartbeat-run-progress-acpx"),
   },
   running: {
     id: "running",
@@ -111,14 +112,14 @@ export const TASK_CHAT_STATE_META: Record<TaskChatStateId, TaskChatStateMeta> = 
   },
   completed: {
     id: "completed",
-    label: "Completed (collapsed)",
+    label: t("ui.components.task-chat.task-chat-states.completed-collapsed"),
     tier: "live",
     surface: "thread",
     protocol: "acpx.result (StopReason in subtype)",
   },
   "awaiting-approval": {
     id: "awaiting-approval",
-    label: "Awaiting approval",
+    label: t("components.issueThreadInteraction.awaitingApproval"),
     tier: "tier-b",
     surface: "thread",
     protocol: "ACP RequestPermissionRequest + PermissionOptionKind",
@@ -132,21 +133,21 @@ export const TASK_CHAT_STATE_META: Record<TaskChatStateId, TaskChatStateMeta> = 
   },
   interrupted: {
     id: "interrupted",
-    label: "Interrupted",
+    label: t("ui.components.task-chat.task-chat-states.interrupted"),
     tier: "tier-b",
     surface: "thread",
     protocol: 'AcpRuntimeTurnResult.status:"cancelled" / StopReason "cancelled"',
   },
   refused: {
     id: "refused",
-    label: "Refused",
+    label: t("ui.components.task-chat.task-chat-states.refused"),
     tier: "tier-b",
     surface: "thread",
     protocol: 'StopReason "refusal"',
   },
   truncated: {
     id: "truncated",
-    label: "Truncated",
+    label: t("ui.components.task-chat.task-chat-states.truncated"),
     tier: "tier-b",
     surface: "thread",
     protocol: 'StopReason "max_tokens" | "max_turn_requests"',

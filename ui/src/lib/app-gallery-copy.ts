@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Prosumer copy for the Apps surface (PAP-10856).
  *
@@ -51,58 +52,58 @@ export interface AppCopy {
  */
 const APP_COPY: Record<string, AppCopy> = {
   zapier: {
-    tagline: "Reach 9,000+ apps your team already uses.",
-    short: "Reach 9,000+ apps from your agents.",
+    tagline: t("ui.lib.app-gallery-copy.reach-000-apps-your"),
+    short: t("ui.lib.app-gallery-copy.reach-000-apps-from"),
   },
   github: {
-    tagline: "Read code and pull requests, comment on issues.",
-    short: "Read code and pull requests, comment on issues.",
+    tagline: t("ui.lib.app-gallery-copy.read-code-pull-requests"),
+    short: t("ui.lib.app-gallery-copy.read-code-pull-requests"),
   },
   slack: {
-    tagline: "Send and read messages in your team's channels.",
-    short: "Send and read messages in your channels.",
+    tagline: t("ui.lib.app-gallery-copy.send-read-messages-your"),
+    short: t("ui.lib.app-gallery-copy.send-read-messages-your.2"),
   },
   notion: {
-    tagline: "Read and update pages in your workspace.",
-    short: "Read and update pages in your workspace.",
+    tagline: t("ui.lib.app-gallery-copy.read-update-pages-your"),
+    short: t("ui.lib.app-gallery-copy.read-update-pages-your"),
   },
   linear: {
-    tagline: "Create, update and read tickets.",
-    short: "Create, update and read tickets.",
+    tagline: t("ui.lib.app-gallery-copy.create-update-read-tickets"),
+    short: t("ui.lib.app-gallery-copy.create-update-read-tickets"),
   },
   "google-sheets": {
-    tagline: "Read and update selected spreadsheets.",
-    short: "Share each sheet with the robot email, then paste the links.",
+    tagline: t("ui.lib.app-gallery-copy.read-update-selected-spreadsheets"),
+    short: t("ui.lib.app-gallery-copy.share-each-sheet-robot"),
   },
   gmail: {
-    tagline: "Read mail and send drafts for your review.",
-    short: "Read mail and send drafts for your review.",
+    tagline: t("ui.lib.app-gallery-copy.read-mail-send-drafts"),
+    short: t("ui.lib.app-gallery-copy.read-mail-send-drafts"),
   },
   hubspot: {
-    tagline: "Look up contacts and update deal stages.",
-    short: "Look up contacts and update deal stages.",
+    tagline: t("ui.lib.app-gallery-copy.look-up-contacts-update"),
+    short: t("ui.lib.app-gallery-copy.look-up-contacts-update"),
   },
   intercom: {
-    tagline: "Read and reply to customer conversations.",
-    short: "Read and reply to customer conversations.",
+    tagline: t("ui.lib.app-gallery-copy.read-reply-customer-conversations"),
+    short: t("ui.lib.app-gallery-copy.read-reply-customer-conversations"),
   },
   figma: {
-    tagline: "Read files and post comments on frames.",
-    short: "Read files and post comments on frames.",
+    tagline: t("ui.lib.app-gallery-copy.read-files-post-comments"),
+    short: t("ui.lib.app-gallery-copy.read-files-post-comments"),
   },
   stripe: {
-    tagline: "Read customers, invoices, and payouts.",
-    short: "Read customers, invoices, and payouts.",
+    tagline: t("ui.lib.app-gallery-copy.read-customers-invoices-payouts"),
+    short: t("ui.lib.app-gallery-copy.read-customers-invoices-payouts"),
   },
   context7: {
-    tagline: "Look up up-to-date docs for your libraries.",
-    short: "Look up up-to-date docs for your libraries.",
+    tagline: t("ui.lib.app-gallery-copy.look-up-up-date"),
+    short: t("ui.lib.app-gallery-copy.look-up-up-date"),
   },
 };
 
 const GENERIC: AppCopy = {
-  tagline: "Give your agents access to this app.",
-  short: "Give your agents access to this app.",
+  tagline: t("ui.lib.app-gallery-copy.give-your-agents-access"),
+  short: t("ui.lib.app-gallery-copy.give-your-agents-access"),
 };
 
 /** Curated, gate-safe copy for a gallery app. */

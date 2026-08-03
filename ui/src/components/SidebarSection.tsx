@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, type ComponentType, type ReactNode } from "react";
 import { Link } from "@/lib/router";
 import { ChevronRight } from "lucide-react";
@@ -17,7 +18,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
+import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "@/lib/utils";
 import { useSidebarNavExpanded } from "./SidebarNavItem";
 
 type SidebarSectionIcon = ComponentType<{ className?: string }>;
@@ -69,7 +70,9 @@ function SidebarSectionHeader({
   label,
   menu,
 }: Pick<SidebarSectionProps, "collapsible" | "headerAction" | "label" | "menu">) {
-  const { isMobile } = useSidebar();
+  const { isMobile, collapsed, peeking } = useSidebar();
+  const forceExpanded = useSidebarNavExpanded();
+  const rail = collapsed && !peeking && !forceExpanded;
   const [menuOpen, setMenuOpen] = useState(false);
   const hasMenu = Boolean(
     menu && ((menu.actions?.length ?? 0) > 0 || (menu.radioChoices?.length ?? 0) > 0),
@@ -77,7 +80,7 @@ function SidebarSectionHeader({
   const labelClassName = "text-(length:--text-nano) font-medium uppercase tracking-widest font-mono text-muted-foreground/60";
   const headerControlVisibilityClassName = isMobile
     ? "opacity-100"
-    : "opacity-0 group-hover/sidebar-section:opacity-100 group-focus-within/sidebar-section:opacity-100";
+    : t("ui.components.sidebarsection.opacity-group-hover-sidebar");
   const caretClassName = cn(
     "h-3 w-3 shrink-0 text-muted-foreground/60 transition-all",
     headerControlVisibilityClassName,
@@ -88,7 +91,7 @@ function SidebarSectionHeader({
     "h-5 w-5 shrink-0 text-muted-foreground/60 transition-opacity hover:text-foreground data-[state=open]:opacity-100",
     headerControlVisibilityClassName,
   );
-  const headerContent = <span className={labelClassName}>{label}</span>;
+  const headerContent = <span className={cn(labelClassName, rail && SIDEBAR_RAIL_HIDDEN_LABEL)}>{label}</span>;
   const HeaderActionIcon = headerAction?.icon;
 
   const headingControl = hasMenu ? (

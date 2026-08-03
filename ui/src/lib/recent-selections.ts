@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export const RECENT_SELECTION_DISPLAY_LIMIT = 3;
 const MAX_STORED_RECENT_SELECTIONS = 10;
 

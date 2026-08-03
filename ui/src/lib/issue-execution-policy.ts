@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { IssueExecutionPolicy, IssueExecutionStageParticipant, IssueExecutionStagePrincipal } from "@paperclipai/shared";
 import { parseAssigneeValue } from "./assignees";
 

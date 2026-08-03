@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { FinanceByKind } from "@paperclipai/shared";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { financeEventKindDisplayName, formatCents } from "@/lib/utils";
@@ -10,12 +11,12 @@ export function FinanceKindCard({ rows }: FinanceKindCardProps) {
   return (
     <Card>
       <CardHeader className="px-4 pt-4 pb-1">
-        <CardTitle className="text-base">Financial event mix</CardTitle>
-        <CardDescription>Account-level charges grouped by event kind.</CardDescription>
+        <CardTitle className="text-base">{t("ui.components.financekindcard.financial-event-mix")}</CardTitle>
+        <CardDescription>{t("ui.components.financekindcard.account-level-charges-grouped")}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-2 px-4 pb-4 pt-3">
         {rows.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No finance events in this period.</p>
+          <p className="text-sm text-muted-foreground">{t("ui.components.financekindcard.no-finance-events-period")}</p>
         ) : (
           rows.map((row) => (
             <div

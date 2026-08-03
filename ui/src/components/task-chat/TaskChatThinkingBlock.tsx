@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { ChevronRight } from "lucide-react";
@@ -12,7 +13,7 @@ import type { TaskChatThinkingItem } from "./task-chat-model";
  */
 export function TaskChatThinkingBlock({ item }: { item: TaskChatThinkingItem }) {
   const [open, setOpen] = useState(!item.collapsed);
-  const settledLabel = item.summaryLabel ?? "Thought process";
+  const settledLabel = item.summaryLabel ?? t("ui.components.task-chat.taskchatthinkingblock.fallback-thought-process");
 
   return (
     <div className="border-l-2 border-border pl-3 text-xs text-muted-foreground">
@@ -24,7 +25,7 @@ export function TaskChatThinkingBlock({ item }: { item: TaskChatThinkingItem }) 
       >
         <ChevronRight className={cn("h-3 w-3 shrink-0 transition-transform", open ? "rotate-90" : null)} aria-hidden />
         {item.streaming ? (
-          <span className="shimmer-text shimmer-text-muted font-medium">Thinking…</span>
+          <span className="shimmer-text shimmer-text-muted font-medium">{t("ui.components.task-chat.taskchatthinkingblock.thinking")}</span>
         ) : (
           <span className="font-medium">{settledLabel}</span>
         )}

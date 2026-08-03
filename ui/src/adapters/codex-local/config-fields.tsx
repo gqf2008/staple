@@ -1,4 +1,5 @@
 import type { AdapterConfigFieldsProps } from "../types";
+import { t } from "../../i18n";
 import {
   Field,
   ToggleField,
@@ -17,7 +18,7 @@ import {
 const inputClass =
   "w-full rounded-md border border-border px-2.5 py-1.5 bg-transparent outline-none text-sm font-mono placeholder:text-muted-foreground/40";
 const instructionsFileHint =
-  "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime. Note: Codex may still auto-apply repo-scoped AGENTS.md files from the workspace.";
+  t("ui.adapters.codex-local.config-fields.absolute-path-markdown-file");
 
 export function CodexLocalConfigFields({
   mode,
@@ -48,14 +49,14 @@ export function CodexLocalConfigFields({
   const fastModeSupported = isCodexLocalFastModeSupported(currentModel);
   const supportedModelsLabel = CODEX_LOCAL_FAST_MODE_SUPPORTED_MODELS.join(", ");
   const fastModeMessage = fastModeManualModel
-    ? "Fast mode will be passed through for this manual model. If Codex rejects it, turn the toggle off."
+    ? t("ui.adapters.codex-local.config-fields.fast-mode-will-passed")
     : fastModeSupported
-      ? "Fast mode consumes credits/tokens much faster than standard Codex runs."
+      ? t("components.codexConfig.fastModeHint", { defaultValue: "Fast mode consumes credits/tokens much faster than standard Codex runs." })
       : `Fast mode currently only works on ${supportedModelsLabel} or manual model IDs. Paperclip will ignore this toggle until the model is switched.`;
 
   return (
     <>
-      <Field label="Execution engine" hint="Auto uses ACP when prerequisites pass and falls back to Codex CLI with diagnostics.">
+      <Field label={t("components.codexConfig.executionEngine", { defaultValue: "Execution engine" })} hint={t("components.codexConfig.engineHint", { defaultValue: "Auto uses ACP when prerequisites pass and falls back to Codex CLI with diagnostics." })}>
         <select
           className={inputClass}
           value={engine}
@@ -66,16 +67,16 @@ export function CodexLocalConfigFields({
               : mark("adapterConfig", "engine", value === "auto" ? undefined : value);
           }}
         >
-          <option value="auto">Auto (ACP preferred)</option>
-          <option value="cli">Codex CLI</option>
-          <option value="acp">ACP</option>
+          <option value="auto">{t("components.codexConfig.auto", { defaultValue: "Auto (ACP preferred)" })}</option>
+          <option value="cli">{t("components.codexConfig.codexCli", { defaultValue: "Codex CLI" })}</option>
+          <option value="acp">{t("components.codexConfig.acp", { defaultValue: "ACP" })}</option>
         </select>
       </Field>
       {acpSelected && (
         <>
           <Field
-            label="ACP server command"
-            hint="Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary."
+            label={t("components.codexConfig.acpCommand", { defaultValue: "ACP server command" })}
+            hint={t("ui.adapters.codex-local.config-fields.optional-override-codex-acp")}
           >
             <DraftInput
               value={
@@ -93,7 +94,7 @@ export function CodexLocalConfigFields({
               placeholder="codex-acp"
             />
           </Field>
-          <Field label="ACP session mode" hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
+          <Field label={t("components.codexConfig.acpSessionMode", { defaultValue: "ACP session mode" })} hint={t("components.codexConfig.sessionModeHint", { defaultValue: "Persistent keeps ACP session state between runs. One-shot starts fresh each run." })}>
             <select
               className={inputClass}
               value={
@@ -108,13 +109,13 @@ export function CodexLocalConfigFields({
                   : mark("adapterConfig", "mode", value);
               }}
             >
-              <option value="persistent">Persistent</option>
-              <option value="oneshot">One-shot</option>
+              <option value="persistent">{t("components.codexConfig.persistent", { defaultValue: "Persistent" })}</option>
+              <option value="oneshot">{t("components.codexConfig.oneShot", { defaultValue: "One-shot" })}</option>
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
-            hint="Fallback if the ACP agent asks for input outside an interactive session."
+            label={t("components.codexConfig.acpPermissions", { defaultValue: "ACP non-interactive permissions" })}
+            hint={t("components.codexConfig.permissionsHint", { defaultValue: "Fallback if the ACP agent asks for input outside an interactive session." })}
           >
             <select
               className={inputClass}
@@ -130,13 +131,13 @@ export function CodexLocalConfigFields({
                   : mark("adapterConfig", "nonInteractivePermissions", value);
               }}
             >
-              <option value="deny">Deny</option>
-              <option value="fail">Fail</option>
+              <option value="deny">{t("components.codexConfig.deny", { defaultValue: "Deny" })}</option>
+              <option value="fail">{t("components.codexConfig.fail", { defaultValue: "Fail" })}</option>
             </select>
           </Field>
           <Field
-            label="ACP state directory"
-            hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
+            label={t("components.codexConfig.acpStateDir", { defaultValue: "ACP state directory" })}
+            hint={t("ui.adapters.claude-local.config-fields.optional-acp-session-state")}
           >
             <div className="flex items-center gap-2">
               <DraftInput
@@ -158,8 +159,8 @@ export function CodexLocalConfigFields({
             </div>
           </Field>
           <Field
-            label="ACP warm process idle ms"
-            hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+            label={t("components.codexConfig.warmIdleMs", { defaultValue: "ACP warm process idle ms" })}
+            hint={t("ui.adapters.claude-local.config-fields.defaults-which-closes-acp")}
           >
             {isCreate ? (
               <input
@@ -184,7 +185,7 @@ export function CodexLocalConfigFields({
         </>
       )}
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("components.codexConfig.instructionsFile", { defaultValue: "Agent instructions file" })} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -210,7 +211,7 @@ export function CodexLocalConfigFields({
         </Field>
       )}
       <ToggleField
-        label="Bypass sandbox"
+        label={t("components.codexConfig.bypassSandbox", { defaultValue: "Bypass sandbox" })}
         hint={help.dangerouslyBypassSandbox}
         checked={
           isCreate
@@ -228,7 +229,7 @@ export function CodexLocalConfigFields({
         }
       />
       <ToggleField
-        label="Enable search"
+        label={t("components.codexConfig.enableSearch", { defaultValue: "Enable search" })}
         hint={help.search}
         checked={
           isCreate
@@ -242,7 +243,7 @@ export function CodexLocalConfigFields({
         }
       />
       <ToggleField
-        label="Fast mode"
+        label={t("components.codexConfig.fastMode", { defaultValue: "Fast mode" })}
         hint={help.fastMode}
         checked={fastModeEnabled}
         onChange={(v) =>

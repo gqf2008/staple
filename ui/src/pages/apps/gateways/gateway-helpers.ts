@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type {
   ToolApplication,
   ToolConnection,
@@ -39,9 +40,9 @@ export function tokenStatus(
 
 export const TOKEN_STATUS_LABEL: Record<TokenStatus, string> = {
   active: "Active",
-  expiring: "Expiring",
+  expiring: t("ui.pages.apps.gateways.gateway-helpers.expiring"),
   expired: "Expired",
-  revoked: "Revoked",
+  revoked: t("ui.pages.inviteuxlab.revoked"),
 };
 
 /** Count of tokens that can currently authenticate (not revoked, not expired). */
@@ -85,15 +86,15 @@ export function formatScope(
     return `${gateway.contextScopeType} · ${shortId(gateway.contextScopeId)}`;
   }
   if (gateway.projectId) return `Project · ${projectNames.get(gateway.projectId) ?? shortId(gateway.projectId)}`;
-  if (gateway.agentId) return `Agent · ${agentNames.get(gateway.agentId) ?? shortId(gateway.agentId)}`;
-  return "Company";
+  if (gateway.agentId) return t("ui.pages.apps.gateways.gateway-helpers.agent-prefix", { name: agentNames.get(gateway.agentId) ?? shortId(gateway.agentId) });
+  return t("ui.pages.apps.gateways.gateway-helpers.company");
 }
 
 export function formatOwner(gateway: ToolMcpGatewayWithTokens, agentNames: Map<string, string>): string {
   if (gateway.createdByAgentId) {
-    return agentNames.get(gateway.createdByAgentId) ?? `Agent ${shortId(gateway.createdByAgentId)}`;
+    return agentNames.get(gateway.createdByAgentId) ?? t("ui.pages.apps.gateways.gateway-helpers.agent-fallback", { id: shortId(gateway.createdByAgentId) });
   }
-  return "Board";
+  return t("ui.pages.apps.gateways.gateway-helpers.board");
 }
 
 /** Whether the gateway is exposing tools to clients right now. */
@@ -103,13 +104,13 @@ export function isGatewayOn(gateway: ToolMcpGatewayWithTokens): boolean {
 
 /** Human summary of how many tools a profile allows. */
 export function allowedToolsLabel(profile: ToolProfileWithDetails | undefined): string {
-  if (!profile) return "Profile unavailable";
+  if (!profile) return t("pages.tools.gateways.profileUnavailable");
   const { accessMode, allowedToolCount, totalToolCount, excludedToolCount } = profile.summary;
   const count =
     accessMode === "all_except"
       ? Math.max(totalToolCount - excludedToolCount, 0)
       : allowedToolCount;
-  if (count === 0) return "No tools allowed";
+  if (count === 0) return t("pages.tools.gateways.noToolsAllowed");
   return `${count} ${count === 1 ? "tool" : "tools"}`;
 }
 
@@ -175,7 +176,7 @@ export function deriveGatewayApps(
       toolCount: toolCountByApp.get(applicationId) ?? 0,
       needsAttention: Boolean(attentionConnection),
       attentionReason: attentionConnection
-        ? "Sign-in expired — reconnect to restore access."
+        ? t("ui.pages.apps.gateways.gateway-helpers.sign-expired-reconnect-restore")
         : null,
     });
   }

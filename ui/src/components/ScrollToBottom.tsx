@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useState } from "react";
 import { ArrowDown } from "lucide-react";
 import { usePanel } from "../context/PanelContext";
@@ -77,7 +78,7 @@ export function ScrollToBottom() {
         "fixed bottom-(--sz-calc-21) right-6 z-40 flex h-9 w-9 items-center justify-center rounded-full border border-border bg-background shadow-md hover:bg-accent transition-(--tp-background-color-right) duration-200 md:bottom-6",
         panelVisible && panelContent && "md:right-(--sz-calc-22)",
       )}
-      aria-label="Scroll to bottom"
+      aria-label={t("ui.components.scrolltobottom.scroll-bottom")}
     >
       <ArrowDown className="h-4 w-4" />
     </button>

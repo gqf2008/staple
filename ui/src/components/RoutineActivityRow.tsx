@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from "react";
 import { ChevronRight } from "lucide-react";
 import type { ActivityEvent } from "@paperclipai/shared";
@@ -30,7 +31,7 @@ function formatDetailValue(value: unknown): string {
   try {
     return JSON.stringify(value);
   } catch {
-    return "[unserializable]";
+    return t("ui.components.routineactivityrow.unserializable");
   }
 }
 

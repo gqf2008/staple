@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { t } from "../../i18n";
 import {
   Check,
   ChevronDown,
@@ -100,7 +101,7 @@ export function FolderSwatch({
 }) {
   const backgroundColor = color
     ? (FOLDER_COLOR_VALUES[color] ?? color)
-    : "var(--folder-color-slate)";
+    : t("ui.components.folders.foldercontrols.var-folder-color-slate");
   return (
     <span
       aria-hidden="true"
@@ -120,7 +121,7 @@ function selectionLabel({
   allLabel: string;
 }) {
   if (selection === "all") return allLabel;
-  if (selection === "unfiled") return "Unfiled";
+  if (selection === "unfiled") return t("components.folderControls.unfiled", { defaultValue: "Unfiled" });
   return folders.find((folder) => folder.id === selection)?.name ?? allLabel;
 }
 
@@ -224,8 +225,8 @@ export function FolderRail({
   return (
     <nav aria-label={`${itemLabelPlural} folders`} className="hidden w-(--sz-folder-rail) shrink-0 border-r border-border pr-3 md:block">
       <div className="mb-2 flex items-center justify-between gap-2">
-        <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">Folders</div>
-        <Button variant="ghost" size="icon-sm" title="New folder" onClick={onCreate}>
+        <div className="text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">{t("components.folderControls.folders", { defaultValue: "Folders" })}</div>
+        <Button variant="ghost" size="icon-sm" title={t("components.folderControls.newFolder", { defaultValue: "New folder" })} onClick={onCreate}>
           <Plus className="h-3.5 w-3.5" />
         </Button>
       </div>
@@ -255,9 +256,8 @@ export function FolderRail({
             />
           ))}
           <div className="px-2 pb-1 pt-3 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-            System
-          </div>
-          {renderVirtualRow("unfiled", "Unfiled", result?.unfiledCount ?? 0, <FolderSwatch color={null} className="mt-0.5" />)}
+            {t("components.activityFeed.system")}</div>
+          {renderVirtualRow("unfiled", t("components.folderControls.unfiled", { defaultValue: "Unfiled" }), result?.unfiledCount ?? 0, <FolderSwatch color={null} className="mt-0.5" />)}
         </div>
       )}
     </nav>
@@ -340,13 +340,12 @@ export function FolderRailItem({
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={onStartRename}>Rename</DropdownMenuItem>
-          <DropdownMenuItem onSelect={onEdit}>Edit color</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onStartRename}>{t("components.folderControls.rename", { defaultValue: "Rename" })}</DropdownMenuItem>
+          <DropdownMenuItem onSelect={onEdit}>{t("components.folderControls.editColor", { defaultValue: "Edit color" })}</DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem variant="destructive" onSelect={onDelete}>
             <Trash2 className="h-3.5 w-3.5" />
-            Delete
-          </DropdownMenuItem>
+            {t("common.delete")}</DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
@@ -389,12 +388,10 @@ export function AllUnfiledBanner({
     <div className="mb-3 flex flex-wrap items-center gap-2 rounded-md border border-border bg-muted/40 px-3 py-2 text-sm">
       <FolderIcon className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
       <span className="min-w-0 flex-1 text-muted-foreground">
-        Group these {itemLabelPlural} into folders to keep things tidy.
-      </span>
+        {t("ui.components.folders.foldercontrols.group-these")}{itemLabelPlural} {t("ui.components.folders.foldercontrols.into-folders-keep-things")}</span>
       <Button size="sm" variant="outline" onClick={onCreateFolder}>
-        Create your first folder
-      </Button>
-      <Button size="icon-sm" variant="ghost" aria-label="Dismiss folder suggestion" onClick={dismiss}>
+        {t("ui.components.folders.foldercontrols.create-your-first-folder")}</Button>
+      <Button size="icon-sm" variant="ghost" aria-label={t("components.folderControls.dismissSuggestion", { defaultValue: "Dismiss folder suggestion" })} onClick={dismiss}>
         <X className="h-3.5 w-3.5" />
       </Button>
     </div>
@@ -464,20 +461,19 @@ export function MobileFolderSheet({
           />
           {result?.kind === "skill" ? (
             <>
-              {model.my ? renderBranch(model.my, "My Skills") : null}
+              {model.my ? renderBranch(model.my, t("components.folderControls.mySkills", { defaultValue: "My Skills" })) : null}
               <div className="px-2 pb-0.5 pt-2 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-                Company
-              </div>
+                {t("nav.sectionCompany")}</div>
               {model.company.map((node) => renderBranch(node))}
-              {model.projects ? renderBranch(model.projects, "Projects") : null}
-              {model.bundled ? renderBranch(model.bundled, "Bundled") : null}
+              {model.projects ? renderBranch(model.projects, t("components.folderControls.projects", { defaultValue: "Projects" })) : null}
+              {model.bundled ? renderBranch(model.bundled, t("components.folderControls.bundled", { defaultValue: "Bundled" })) : null}
             </>
           ) : (
             model.roots.map((node) => renderBranch(node, reservedRootLabel(node.folder)))
           )}
           <MobileFolderRow
             id="unfiled"
-            label="Unfiled"
+            label={t("components.folderControls.unfiled", { defaultValue: "Unfiled" })}
             count={result?.unfiledCount ?? 0}
             selected={selection === "unfiled"}
             onSelect={select}
@@ -486,8 +482,7 @@ export function MobileFolderSheet({
         <div className="border-t border-border px-4 pt-3">
           <Button size="sm" variant="outline" className="w-full" onClick={onCreate}>
             <Plus className="mr-2 h-3.5 w-3.5" />
-            New folder
-          </Button>
+            {t("components.folderControls.newFolder")}</Button>
         </div>
       </SheetContent>
     </Sheet>
@@ -538,7 +533,7 @@ export function MoveToMenu({
 }) {
   return (
     <DropdownMenuSub>
-      <DropdownMenuSubTrigger>Move to...</DropdownMenuSubTrigger>
+      <DropdownMenuSubTrigger>{t("components.folderControls.moveTo", { defaultValue: "Move to..." })}</DropdownMenuSubTrigger>
       <DropdownMenuSubContent className="w-56">
         <MoveToMenuItems
           folders={folders}
@@ -577,15 +572,14 @@ function MoveToMenuItems({
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             onKeyDown={(event) => event.stopPropagation()}
-            placeholder="Search folders"
+            placeholder={t("components.folderControls.searchFolders", { defaultValue: "Search folders" })}
             className="h-7 min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-muted-foreground"
           />
         </div>
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={() => onMove(null)}>
           <FolderSwatch color={null} />
-          Unfiled
-          {currentFolderId == null ? <Check className="ml-auto h-3.5 w-3.5" /> : null}
+          {t("components.folderControls.unfiled")}{currentFolderId == null ? <Check className="ml-auto h-3.5 w-3.5" /> : null}
         </DropdownMenuItem>
         {visibleFolders.map((folder) => (
           <DropdownMenuItem key={folder.id} onSelect={() => onMove(folder.id)}>
@@ -595,13 +589,12 @@ function MoveToMenuItems({
           </DropdownMenuItem>
         ))}
         {visibleFolders.length === 0 ? (
-          <div className="px-2 py-2 text-xs text-muted-foreground">No folders match.</div>
+          <div className="px-2 py-2 text-xs text-muted-foreground">{t("components.folderControls.noMatch", { defaultValue: "No folders match." })}</div>
         ) : null}
         <DropdownMenuSeparator />
         <DropdownMenuItem onSelect={onCreateAndMove}>
           <Plus className="h-3.5 w-3.5" />
-          New folder...
-        </DropdownMenuItem>
+          {t("ui.components.folders.foldercontrols.new-folder")}</DropdownMenuItem>
     </>
   );
 }
@@ -635,14 +628,14 @@ export function FolderFormDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>{isEdit ? "Edit folder" : "Create folder"}</DialogTitle>
+          <DialogTitle>{isEdit ? t("components.folderControls.editFolder", { defaultValue: "Edit folder" }) : t("components.folderControls.createFolder", { defaultValue: "Create folder" })}</DialogTitle>
           <DialogDescription>
-            {kind === "routine" ? "Organize routines in this company." : "Organize installed company skills."}
+            {kind === "routine" ? t("components.folderControls.routinesHint", { defaultValue: "Organize routines in this company." }) : t("components.folderControls.skillsHint", { defaultValue: "Organize installed company skills." })}
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-4">
           <div className="space-y-2">
-            <label className="text-sm font-medium" htmlFor="folder-name">Name</label>
+            <label className="text-sm font-medium" htmlFor="folder-name">{t("components.folderControls.name", { defaultValue: "Name" })}</label>
             <Input
               id="folder-name"
               value={name}
@@ -654,7 +647,7 @@ export function FolderFormDialog({
             />
           </div>
           <div className="space-y-2">
-            <div className="text-sm font-medium">Color</div>
+            <div className="text-sm font-medium">{t("components.folderControls.color", { defaultValue: "Color" })}</div>
             <div className="flex flex-wrap gap-2">
               {FOLDER_COLORS.map((swatch) => (
                 <button
@@ -677,17 +670,15 @@ export function FolderFormDialog({
                 )}
                 onClick={() => setColor(null)}
               >
-                None
-              </button>
+                {t("components.commentThread.none")}</button>
             </div>
           </div>
         </div>
         <DialogFooter>
           <Button variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button onClick={() => onSubmit({ name: name.trim(), color })} disabled={pending || !name.trim()}>
-            {pending ? "Saving..." : isEdit ? "Save" : "Create folder"}
+            {pending ? t("components.folderControls.saving", { defaultValue: "Saving..." }) : isEdit ? t("components.folderControls.save", { defaultValue: "Save" }) : t("components.folderControls.createFolder", { defaultValue: "Create folder" })}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -714,13 +705,12 @@ export function DeleteFolderDialog({
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>Delete folder</AlertDialogTitle>
+          <AlertDialogTitle>{t("components.folderControls.deleteFolder", { defaultValue: "Delete folder" })}</AlertDialogTitle>
           <AlertDialogDescription>
-            The {folder?.itemCount ?? 0} {itemLabelPlural} in this folder won't be deleted. They'll move to Unfiled.
-          </AlertDialogDescription>
+            The {folder?.itemCount ?? 0} {itemLabelPlural} {t("ui.components.folders.foldercontrols.folder-won-deleted-they")}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending}>{t("components.folderControls.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={pending || !folder}
@@ -729,7 +719,7 @@ export function DeleteFolderDialog({
               onConfirm();
             }}
           >
-            {pending ? "Deleting..." : "Delete folder"}
+            {pending ? t("components.folderControls.deleting", { defaultValue: "Deleting..." }) : t("components.folderControls.deleteFolder", { defaultValue: "Delete folder" })}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>
@@ -758,7 +748,7 @@ export function BulkBar({
       <span className="mr-auto text-sm text-muted-foreground">{selectedCount} selected</span>
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button size="sm" variant="outline">Move to...</Button>
+          <Button size="sm" variant="outline">{t("components.folderControls.moveTo", { defaultValue: "Move to..." })}</Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-56">
           <MoveToMenuItems
@@ -769,8 +759,8 @@ export function BulkBar({
           />
         </DropdownMenuContent>
       </DropdownMenu>
-      <Button size="sm" variant="ghost" onClick={onClear}>Deselect all</Button>
-      <Button size="sm" onClick={onDone}>Done</Button>
+      <Button size="sm" variant="ghost" onClick={onClear}>{t("components.folderControls.deselectAll", { defaultValue: "Deselect all" })}</Button>
+      <Button size="sm" onClick={onDone}>{t("components.folderControls.done", { defaultValue: "Done" })}</Button>
     </div>
   );
 }

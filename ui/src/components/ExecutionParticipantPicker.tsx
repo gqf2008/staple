@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useMemo, useState } from "react";
 import type { Agent, Issue } from "@paperclipai/shared";
 import { useQuery } from "@tanstack/react-query";
@@ -89,7 +90,7 @@ export function ExecutionParticipantPicker({
     updatePolicy(next);
   };
 
-  const label = stageType === "review" ? "Reviewers" : "Approvers";
+  const label = stageType === "review" ? t("components.issueProperties.reviewers") : t("components.issueProperties.approvers");
   const Icon = stageType === "review" ? Eye : ShieldCheck;
 
   return (
@@ -140,8 +141,7 @@ export function ExecutionParticipantPicker({
               onClick={() => toggle(`user:${currentUserId}`)}
             >
               <User className="h-3 w-3 shrink-0 text-muted-foreground" />
-              Assign to me
-            </button>
+              {t("components.issueProperties.assignToMe")}</button>
           )}
           {issue.createdByUserId && issue.createdByUserId !== currentUserId && (
             <button

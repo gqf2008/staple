@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Issue } from "@paperclipai/shared";
 import type { RunForIssue } from "../api/activity";
 import type { ActiveRunForIssue, LiveRunForIssue } from "../api/heartbeats";

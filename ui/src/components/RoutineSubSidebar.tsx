@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { t } from "../i18n";
 import {
   Activity as ActivityIcon,
   Circle,
@@ -40,21 +41,21 @@ type NavGroup = {
 
 const NAV_GROUPS: NavGroup[] = [
   {
-    label: "Routine",
+    label: t("components.routineSubSidebar.routine", { defaultValue: "Routine" }),
     items: [
-      { key: "overview", label: "Overview", icon: Circle },
-      { key: "triggers", label: "Triggers", icon: Clock3 },
-      { key: "variables", label: "Variables", icon: LayoutGrid },
-      { key: "secrets", label: "Secrets", icon: KeyRound },
-      { key: "delivery", label: "Delivery", icon: Send },
+      { key: "overview", label: t("components.routineSubSidebar.overview", { defaultValue: "Overview" }), icon: Circle },
+      { key: "triggers", label: t("components.routineSubSidebar.triggers", { defaultValue: "Triggers" }), icon: Clock3 },
+      { key: "variables", label: t("components.routineSubSidebar.variables", { defaultValue: "Variables" }), icon: LayoutGrid },
+      { key: "secrets", label: t("components.routineSubSidebar.secrets", { defaultValue: "Secrets" }), icon: KeyRound },
+      { key: "delivery", label: t("components.routineSubSidebar.delivery", { defaultValue: "Delivery" }), icon: Send },
     ],
   },
   {
-    label: "Operate",
+    label: t("components.routineSubSidebar.operate", { defaultValue: "Operate" }),
     items: [
-      { key: "runs", label: "Runs", icon: Play },
-      { key: "activity", label: "Activity", icon: ActivityIcon },
-      { key: "history", label: "History", icon: HistoryIcon },
+      { key: "runs", label: t("components.routineSubSidebar.runs", { defaultValue: "Runs" }), icon: Play },
+      { key: "activity", label: t("components.routineSubSidebar.activity", { defaultValue: "Activity" }), icon: ActivityIcon },
+      { key: "history", label: t("components.routineSubSidebar.history", { defaultValue: "History" }), icon: HistoryIcon },
     ],
   },
 ];
@@ -109,7 +110,7 @@ export function RoutineSubSidebar({
 
   return (
     <nav
-      aria-label="Routine sections"
+      aria-label={t("components.routineSubSidebar.sections", { defaultValue: "Routine sections" })}
       className="hidden h-full w-52 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-background px-3 py-4 md:flex"
     >
       {NAV_GROUPS.map((group) => (
@@ -152,7 +153,7 @@ export function RoutineSubSidebar({
                   <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500 motion-safe:animate-pulse" />
                 ) : dirty ? (
                   <span
-                    aria-label="Unsaved changes"
+                    aria-label={t("components.routineSubSidebar.unsavedChanges", { defaultValue: "Unsaved changes" })}
                     className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 ring-2 ring-background"
                   />
                 ) : null}
@@ -185,7 +186,7 @@ export function RoutineSectionPicker({
           }
         }}
       >
-        <SelectTrigger className="h-11 w-full" aria-label="Routine section">
+        <SelectTrigger className="h-11 w-full" aria-label={t("components.routineSubSidebar.section", { defaultValue: "Routine section" })}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

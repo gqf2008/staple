@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import { NavLink, useLocation } from "@/lib/router";
 import { useQuery } from "@tanstack/react-query";
 import { FolderOpen, Loader2, LogOut, MoreHorizontal, Plus } from "lucide-react";
@@ -49,9 +50,9 @@ import type { Project } from "@paperclipai/shared";
 type ProjectSidebarSlot = ReturnType<typeof usePluginSlots>["slots"][number];
 
 const PROJECT_SORT_CHOICES: SidebarSectionRadioChoice[] = [
-  { value: "top", label: "Top" },
-  { value: "alphabetical", label: "Alphabetical" },
-  { value: "recent", label: "Recent" },
+  { value: "top", label: t("components.sidebarProjects.top", { defaultValue: "Top" }) },
+  { value: "alphabetical", label: t("components.sidebarProjects.alphabetical", { defaultValue: "Alphabetical" }) },
+  { value: "recent", label: t("components.sidebarProjects.recent", { defaultValue: "Recent" }) },
 ];
 const REORDER_POINTER_MEDIA = "(hover: hover) and (pointer: fine)";
 
@@ -147,7 +148,7 @@ function ProjectItem({
       <ProjectTile color={project.color ?? null} icon={project.icon ?? null} size="xs" />
       <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : "flex-1 truncate"}>{project.name}</span>
       {!rail ? <ExternalObjectStatusSummary summary={externalObjectsSummary} compact /> : null}
-      {!rail && project.pauseReason === "budget" ? <BudgetSidebarMarker title="Project paused by budget" /> : null}
+      {!rail && project.pauseReason === "budget" ? <BudgetSidebarMarker title={t("components.sidebarProjects.pausedByBudget", { defaultValue: "Project paused by budget" })} /> : null}
     </NavLink>
   );
 
@@ -196,7 +197,7 @@ function ProjectItem({
               disabled={leaving}
             >
               {leaving ? <Loader2 className="size-4 motion-safe:animate-spin" /> : <LogOut className="size-4" />}
-              <span>{leaving ? "Leaving..." : "Leave project"}</span>
+              <span>{leaving ? t("components.sidebarProjects.leaving", { defaultValue: "Leaving..." }) : t("components.sidebarProjects.leaveProject", { defaultValue: "Leave project" })}</span>
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -409,20 +410,20 @@ export function SidebarProjects() {
 
   return (
     <SidebarSection
-      label="Projects"
+      label={t("components.sidebarProjects.projects", { defaultValue: "Projects" })}
       collapsible={{ open, onOpenChange: setOpen }}
       headerAction={{
-        ariaLabel: "New project",
+        ariaLabel: t("components.sidebarProjects.newProject", { defaultValue: "New project" }),
         icon: Plus,
         onClick: openNewProject,
       }}
       menu={{
-        ariaLabel: "Projects section actions",
+        ariaLabel: t("components.sidebarProjects.sectionActions", { defaultValue: "Projects section actions" }),
         actions: [
-          { type: "item", label: "Browse projects", icon: FolderOpen, href: "/projects" },
+          { type: "item", label: t("components.sidebarProjects.browseProjects", { defaultValue: "Browse projects" }), icon: FolderOpen, href: "/projects" },
           { type: "separator" },
         ],
-        radioLabel: "Project sort",
+        radioLabel: t("components.sidebarProjects.projectSort", { defaultValue: "Project sort" }),
         radioChoices: PROJECT_SORT_CHOICES,
         radioValue: sortMode,
         onRadioValueChange: persistSortMode,

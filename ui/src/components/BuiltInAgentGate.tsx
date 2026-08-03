@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -37,7 +38,7 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
   const [configureOpen, setConfigureOpen] = useState(false);
 
   const { data: states, isLoading } = useQuery({
-    queryKey: queryKeys.builtInAgents.list(companyId ?? "__none__"),
+    queryKey: queryKeys.builtInAgents.list(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")),
     queryFn: () => builtInAgentsApi.list(companyId!),
     enabled: Boolean(companyId),
   });
@@ -47,7 +48,7 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
   const resume = useMutation({
     mutationFn: (agentId: string) => agentsApi.resume(agentId, companyId ?? undefined),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: queryKeys.builtInAgents.list(companyId ?? "__none__") });
+      queryClient.invalidateQueries({ queryKey: queryKeys.builtInAgents.list(companyId ?? t("ui.components.appconnectionsidebar.fallback-none")) });
       if (companyId) queryClient.invalidateQueries({ queryKey: queryKeys.agents.list(companyId) });
     },
   });
@@ -100,21 +101,20 @@ export function BuiltInAgentGate({ agentKey, companyId, featureLabel, children }
           actions={
             <>
               <Button variant="ghost" size="sm" asChild>
-                <Link to={agentUrl(state.agent)}>View agent</Link>
+                <Link to={agentUrl(state.agent)}>{t("components.liveUpdates.viewAgent")}</Link>
               </Button>
               <Button
                 size="sm"
                 onClick={() => state.agent && resume.mutate(state.agent.id)}
                 disabled={resume.isPending}
               >
-                {resume.isPending ? "Resuming…" : "Resume agent"}
+                {resume.isPending ? t("pages.agentDetail.resuming") : t("components.sidebarAgents.resumeAgent")}
               </Button>
             </>
           }
         >
-          Its built-in agent was paused{pausedAt ? ` ${pausedAt}` : ""}, so new{" "}
-          {label.toLowerCase()} isn't being generated.
-        </InlineBanner>
+          {t("ui.components.builtinagentgate.built-agent-was-paused")}{pausedAt ? ` ${pausedAt}` : ""}{t("ui.components.builtinagentgate.so-new")}{" "}
+          {label.toLowerCase()} {t("ui.components.builtinagentgate.isn-being-generated")}</InlineBanner>
         {/* Paused ≠ hidden: keep existing content readable, marked stale. */}
         <div className="opacity-70">{children}</div>
       </div>

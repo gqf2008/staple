@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ActiveRunForIssue, LiveRunForIssue } from "../api/heartbeats";
 import type { RunTranscriptSource } from "../components/transcript/useLiveRunTranscripts";
 import type { IssueChatLinkedRun } from "./issue-chat-messages";

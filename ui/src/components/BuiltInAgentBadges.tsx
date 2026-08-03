@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { brandChipBadge } from "@/lib/status-colors";
@@ -29,11 +30,11 @@ export function BuiltInLifecycleChip({
       )}
       title={
         isPendingApproval
-          ? "Waiting on board hire approval before the feature can run"
+          ? t("ui.components.builtinagentbadges.waiting-board-hire-approval")
           : "Needs adapter/model setup before the feature can run"
       }
     >
-      {isPendingApproval ? (compact ? "Approval" : "Pending approval") : compact ? "Setup" : "Needs setup"}
+      {isPendingApproval ? (compact ? t("components.issueProperties.approval") : t("components.resourceStatusChip.pendingApproval")) : compact ? t("ui.components.builtinagentbadges.setup") : t("components.resourceStatusChip.needsSetup")}
     </Badge>
   );
 }

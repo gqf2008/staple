@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Client-side store for disabled adapter types.
  *

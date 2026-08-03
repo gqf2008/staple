@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   authSessionSchema,
   currentUserProfileSchema,
@@ -76,13 +77,13 @@ function resolveAuthUrl(path: string) {
 
 function logAuthNetworkFailure(method: string, path: string, error: unknown) {
   // eslint-disable-next-line no-console
-  console.error("[auth] request failed at the network layer (no HTTP response)", {
+  console.error(t("ui.api.auth.auth-request-failed-network"), {
     method,
     requestUrl: resolveAuthUrl(path),
-    pageOrigin: typeof window !== "undefined" ? window.location.origin : "(no window)",
-    pageHref: typeof window !== "undefined" ? redactUrlSecrets(window.location.href) : "(no window)",
+    pageOrigin: typeof window !== "undefined" ? window.location.origin : t("ui.api.auth.no-window"),
+    pageHref: typeof window !== "undefined" ? redactUrlSecrets(window.location.href) : t("ui.api.auth.no-window"),
     credentials: "include",
-    online: typeof navigator !== "undefined" ? navigator.onLine : "(no navigator)",
+    online: typeof navigator !== "undefined" ? navigator.onLine : t("ui.api.auth.no-navigator"),
     errorName: error instanceof Error ? error.name : typeof error,
     errorMessage: error instanceof Error ? error.message : String(error),
     error,
@@ -96,7 +97,7 @@ function logAuthNetworkFailure(method: string, path: string, error: unknown) {
 
 function logAuthHttpError(method: string, path: string, status: number, statusText: string, body: unknown) {
   // eslint-disable-next-line no-console
-  console.error("[auth] request returned an error status", {
+  console.error(t("ui.api.auth.auth-request-returned-error"), {
     method,
     requestUrl: resolveAuthUrl(path),
     status,
@@ -109,18 +110,18 @@ async function authPost(path: string, body: Record<string, unknown>) {
   let res: Response;
   try {
     res = await fetch(`/api/auth${path}`, {
-      method: "POST",
+      method: t("ui.api.auth.post"),
       credentials: "include",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),
     });
   } catch (networkError) {
-    logAuthNetworkFailure("POST", path, networkError);
+    logAuthNetworkFailure(t("ui.api.auth.post"), path, networkError);
     throw networkError;
   }
   const payload = await res.json().catch(() => null);
   if (!res.ok) {
-    logAuthHttpError("POST", path, res.status, res.statusText, payload);
+    logAuthHttpError(t("ui.api.auth.post"), path, res.status, res.statusText, payload);
     throw extractAuthError(payload as AuthErrorBody, res.status);
   }
   return payload;
@@ -128,7 +129,7 @@ async function authPost(path: string, body: Record<string, unknown>) {
 
 async function authPatch<T>(path: string, body: Record<string, unknown>, parse: (value: unknown) => T): Promise<T> {
   const res = await fetch(`/api/auth${path}`, {
-    method: "PATCH",
+    method: t("ui.api.auth.patch"),
     credentials: "include",
     headers: { "Content-Type": "application/json", Accept: "application/json" },
     body: JSON.stringify(body),

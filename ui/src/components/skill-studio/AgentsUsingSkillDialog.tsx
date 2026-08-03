@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
 import type {
@@ -56,7 +57,7 @@ export function AgentsUsingSkillBadge({
 }) {
   const [open, setOpen] = useState(false);
   const count = skill.usedByAgents.length;
-  const label = `${count} ${count === 1 ? "agent uses" : "agents use"} this skill`;
+  const label = `${count} ${count === 1 ? t("ui.components.skill-studio.agentsusingskilldialog.agent-uses") : t("ui.components.skill-studio.agentsusingskilldialog.agents-use")} this skill`;
 
   return (
     <>
@@ -201,11 +202,11 @@ export function AgentsUsingSkillDialog({
       ]);
     },
     onError: (error) => {
-      const message = error instanceof Error ? error.message : "Failed to update agent skills.";
+      const message = error instanceof Error ? error.message : t("components.agentsUsingSkillDialog.updateFailed", { defaultValue: "Failed to update agent skills." });
       toast?.pushToast({
         tone: "error",
-        title: "Update failed",
-        body: message.includes("403") ? "You don't have permission to change this agent's skills." : message,
+        title: t("components.agentsUsingSkillDialog.updateFailed2", { defaultValue: "Update failed" }),
+        body: message.includes("403") ? t("components.agentsUsingSkillDialog.noPermission", { defaultValue: "You don't have permission to change this agent's skills." }) : message,
       });
     },
   });
@@ -232,11 +233,11 @@ export function AgentsUsingSkillDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Agents using {skill.name}</DialogTitle>
+          <DialogTitle>{t("ui.components.skill-studio.agentsusingskilldialog.agents-using")}{skill.name}</DialogTitle>
           <DialogDescription>
             {count === 0
-              ? "No agents have this skill assigned yet."
-              : `${count} ${count === 1 ? "agent has" : "agents have"} this skill in their desired set.`}
+              ? t("components.agentsUsingSkillDialog.noAgentsAssigned", { defaultValue: "No agents have this skill assigned yet." })
+              : `${count} ${count === 1 ? t("ui.components.skill-studio.agentsusingskilldialog.agent-has") : t("ui.components.skill-studio.agentsusingskilldialog.agents-have")} this skill in their desired set.`}
           </DialogDescription>
         </DialogHeader>
 
@@ -244,8 +245,8 @@ export function AgentsUsingSkillDialog({
           {count === 0 ? (
             <div className="rounded-md border border-dashed border-border px-4 py-8 text-center text-sm text-muted-foreground">
               {canManage
-                ? "Add an agent below to assign this skill."
-                : "This skill isn't assigned to any agents."}
+                ? t("components.agentsUsingSkillDialog.addAgentHint", { defaultValue: "Add an agent below to assign this skill." })
+                : t("components.agentsUsingSkillDialog.notAssigned", { defaultValue: "This skill isn't assigned to any agents." })}
             </div>
           ) : (
             <ul className="divide-y divide-border">
@@ -354,7 +355,7 @@ function AgentRow({
             className="h-8 rounded-md border border-border bg-background px-2 text-xs text-foreground disabled:opacity-60"
           >
             <option value={LATEST_VALUE}>
-              Latest{latestRevision !== null ? ` (v${latestRevision})` : ""}
+              {t("components.summarySlotCard.latest")}{latestRevision !== null ? ` (v${latestRevision})` : ""}
             </option>
             {versions.map((version) => (
               <option key={version.id} value={version.id}>
@@ -372,8 +373,7 @@ function AgentRow({
         )}
         {behindLatest > 0 ? (
           <span className="text-(length:--text-nano) text-amber-500">
-            {behindLatest} version{behindLatest === 1 ? "" : "s"} behind latest
-          </span>
+            {behindLatest} version{behindLatest === 1 ? "" : "s"} {t("ui.components.skill-studio.agentsusingskilldialog.behind-latest")}</span>
         ) : null}
       </div>
 
@@ -387,11 +387,10 @@ function AgentRow({
               disabled={busy}
               aria-label={`Confirm removing this skill from ${agent.name}`}
             >
-              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Remove"}
+              {busy ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : t("components.agentsUsingSkillDialog.remove", { defaultValue: "Remove" })}
             </Button>
             <Button variant="ghost" size="sm" onClick={onCancelRemove} disabled={busy}>
-              Cancel
-            </Button>
+              {t("common.cancel")}</Button>
           </div>
         ) : (
           <Button
@@ -439,10 +438,10 @@ function AddAgentPicker({
       value=""
       groups={groups}
       loading={loading}
-      loadingMessage="Loading agents..."
-      placeholder="Add agent…"
-      searchPlaceholder="Search agents..."
-      emptyMessage="All eligible agents already have this skill."
+      loadingMessage={t("components.agentsUsingSkillDialog.loadingAgents", { defaultValue: "Loading agents..." })}
+      placeholder={t("components.agentsUsingSkillDialog.addAgent", { defaultValue: "Add agent…" })}
+      searchPlaceholder={t("components.agentsUsingSkillDialog.searchAgents", { defaultValue: "Search agents..." })}
+      emptyMessage={t("components.agentsUsingSkillDialog.allEligible", { defaultValue: "All eligible agents already have this skill." })}
       disabled={disabled}
       onValueChange={(_value, option) => {
         onSelect(option.agent);
@@ -453,8 +452,7 @@ function AddAgentPicker({
       renderValue={() => (
         <span className="flex items-center gap-1.5 text-muted-foreground">
           <Plus className="h-3.5 w-3.5" aria-hidden="true" />
-          Add agent…
-        </span>
+          {t("components.agentsUsingSkillDialog.addAgent")}</span>
       )}
       renderOption={(option) => (
         <span className="flex min-w-0 flex-col">

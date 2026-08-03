@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 
 const SECOND_MS = 1_000;
@@ -82,7 +83,7 @@ function formatDuration(durationMs: number): string {
 export function formatMonitorEta(nextCheckAt: MonitorDate, now: MonitorDate = new Date()): string {
   const deltaMs = toTimestamp(nextCheckAt) - toTimestamp(now);
   if (deltaMs > 0) return `in ${formatDuration(deltaMs)}`;
-  if (deltaMs > -DUE_NOW_GRACE_MS) return "due now";
+  if (deltaMs > -DUE_NOW_GRACE_MS) return t("components.issueMonitorBanner.dueNow");
   return `overdue by ${formatDuration(Math.abs(deltaMs))}`;
 }
 
@@ -261,6 +262,6 @@ export function formatMonitorOffset(nextCheckAt: MonitorDate): string {
   if (Math.round(Math.abs(deltaMs) / MINUTE_MS) === 0) return "now";
   const eta = formatMonitorEta(nextCheckAt, now);
   if (eta === "due now") return "now";
-  if (eta.startsWith("overdue by ")) return `${eta.slice("overdue by ".length)} ago`;
+  if (eta.startsWith("overdue by ")) return `${eta.slice(t("ui.lib.issue-monitor.overdue").length)} ago`;
   return eta;
 }

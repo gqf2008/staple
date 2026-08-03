@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 const TEST_DIRECTORY_NAMES = new Set([
   "__tests__",
   "_tests",

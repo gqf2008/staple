@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createContext, useContext, useCallback, useMemo, type ReactNode } from "react";
 import { useLocation, useNavigate, type NavigateOptions } from "@/lib/router";
 import type { WorkspaceFileSelector } from "@paperclipai/shared";

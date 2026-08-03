@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import type { Issue } from "@paperclipai/shared";
 import { Paperclip } from "lucide-react";
@@ -31,8 +32,7 @@ export function IssuePropertiesArtifactsTab({ issue }: IssuePropertiesArtifactsT
   if (attachments.length === 0) {
     return (
       <div className="px-1 py-6 text-sm text-muted-foreground">
-        No artifacts yet. Attachments and work products will appear here.
-      </div>
+        {t("ui.components.issue-properties.issuepropertiesartifactstab.no-artifacts-yet-attachments")}</div>
     );
   }
 

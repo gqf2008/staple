@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Flag } from "lucide-react";
 import type { Agent } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ export function IssueAssignedBacklogNotice({
   if (issueStatus !== "backlog") return null;
   if (!assigneeAgent && !assigneeUserId) return null;
 
-  const assigneeLabel = assigneeAgent?.name ?? "the assignee";
+  const assigneeLabel = assigneeAgent?.name ?? t("ui.components.issueassignedbacklognotice.fallback-assignee");
 
   return (
     <div
@@ -32,13 +33,11 @@ export function IssueAssignedBacklogNotice({
         <Flag className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-300" />
         <div className="min-w-0 flex-1 space-y-1.5">
           <p className="leading-5">
-            <span className="font-medium">Parked</span> —{" "}
-            <span className="font-medium">{assigneeLabel}</span> will not be asked to work on this until status changes to To do or In progress.
-          </p>
+            <span className="font-medium">{t("ui.components.issueassignedbacklognotice.parked")}</span> —{" "}
+            <span className="font-medium">{assigneeLabel}</span> {t("ui.components.issueassignedbacklognotice.will-not-asked-work")}</p>
           {assigneeAgent ? (
             <p className="text-xs leading-5 text-amber-800 dark:text-amber-200">
-              Comments still notify the assignee for questions or triage. Leave this parked only if the work is intentionally on hold.
-            </p>
+              {t("ui.components.issueassignedbacklognotice.comments-still-notify-assignee")}</p>
           ) : null}
           {onResume ? (
             <div className="pt-0.5">
@@ -50,7 +49,7 @@ export function IssueAssignedBacklogNotice({
                 disabled={resuming}
                 data-testid="issue-assigned-backlog-resume"
               >
-                {resuming ? "Resuming…" : "Resume now"}
+                {resuming ? t("pages.agentDetail.resuming") : t("ui.components.issueassignedbacklognotice.resume-now")}
               </Button>
             </div>
           ) : null}

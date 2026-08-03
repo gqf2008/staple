@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { t } from "../i18n";
 import type { FeedbackDataSharingPreference, FeedbackVoteValue } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -124,8 +125,7 @@ export function OutputFeedbackButtons({
           onClick={() => handleVote("up")}
         >
           <ThumbsUp className="mr-1.5 h-3.5 w-3.5" />
-          Helpful
-        </Button>
+          {t("components.agentBubbleActionRow.helpful")}</Button>
         <Button
           type="button"
           size="sm"
@@ -135,17 +135,16 @@ export function OutputFeedbackButtons({
           onClick={() => handleVote("down")}
         >
           <ThumbsDown className="mr-1.5 h-3.5 w-3.5" />
-          Needs work
-        </Button>
+          {t("components.agentBubbleActionRow.needsWork")}</Button>
         {rightSlot ? <div className="ml-auto">{rightSlot}</div> : null}
       </div>
       {collectingDownvoteReason ? (
         <div className="mt-2 rounded-md border border-border/60 bg-accent/20 p-3">
-          <div className="mb-2 text-sm font-medium">What could have been better?</div>
+          <div className="mb-2 text-sm font-medium">{t("components.outputFeedbackButtons.whatBetter", { defaultValue: "What could have been better?" })}</div>
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("components.outputFeedbackButtons.addNote", { defaultValue: "Add a short note" })}
             className="min-h-20 resize-y bg-background"
             disabled={disabled || isSaving}
           />
@@ -161,8 +160,7 @@ export function OutputFeedbackButtons({
                 setDownvoteAllowSharing(undefined);
               }}
             >
-              Dismiss
-            </Button>
+              {t("pages.inbox.dismiss")}</Button>
             <Button
               type="button"
               size="sm"
@@ -174,7 +172,7 @@ export function OutputFeedbackButtons({
                 });
               }}
             >
-              {isSaving ? "Saving..." : "Save note"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.saveNote", { defaultValue: "Save note" })}
             </Button>
           </div>
         </div>
@@ -191,25 +189,18 @@ export function OutputFeedbackButtons({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save your feedback sharing preference</DialogTitle>
+            <DialogTitle>{t("components.outputFeedbackButtons.feedbackPreference", { defaultValue: "Save your feedback sharing preference" })}</DialogTitle>
             <DialogDescription>
-              Choose whether voted AI outputs can be shared with Paperclip Labs. This
-              answer becomes the default for future thumbs up and thumbs down votes.
-            </DialogDescription>
+              {t("ui.components.agentbubbleactionrow.choose-whether-voted-ai")}</DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm text-muted-foreground">
             <p>
-              This vote is always saved locally.
-            </p>
+              {t("components.agentBubbleActionRow.voteLocal")}</p>
             <p>
-              Choose <span className="font-medium text-foreground">Always allow</span> to share
-              this vote and future voted AI outputs. Choose{" "}
-              <span className="font-medium text-foreground">Don't allow</span> to keep this vote
-              and future votes local.
-            </p>
+              {t("components.agentConfigPrimitives.choose")}<span className="font-medium text-foreground">{t("components.outputFeedbackButtons.alwaysAllow", { defaultValue: "Always allow" })}</span> {t("ui.components.agentbubbleactionrow.share-vote-future-voted")}{" "}
+              <span className="font-medium text-foreground">{t("components.outputFeedbackButtons.dontAllow", { defaultValue: "Don't allow" })}</span> {t("ui.components.agentbubbleactionrow.keep-vote-future-votes")}</p>
             <p>
-              You can change this later in Instance Settings &gt; General.
-            </p>
+              {t("ui.components.agentbubbleactionrow.you-can-change-later")}</p>
             {termsUrl ? (
               <a
                 href={termsUrl}
@@ -217,8 +208,7 @@ export function OutputFeedbackButtons({
                 rel="noreferrer"
                 className="inline-flex text-sm text-foreground underline underline-offset-4"
               >
-                Read our terms of service
-              </a>
+                {t("ui.components.agentbubbleactionrow.read-our-terms-service")}</a>
             ) : null}
           </div>
           <DialogFooter>
@@ -238,7 +228,7 @@ export function OutputFeedbackButtons({
                 );
               }}
             >
-              {isSaving ? "Saving..." : "Don't allow"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.dontAllow", { defaultValue: "Don't allow" })}
             </Button>
             <Button
               type="button"
@@ -258,7 +248,7 @@ export function OutputFeedbackButtons({
                 );
               }}
             >
-              {isSaving ? "Saving..." : "Always allow"}
+              {isSaving ? t("components.outputFeedbackButtons.saving", { defaultValue: "Saving..." }) : t("components.outputFeedbackButtons.alwaysAllow", { defaultValue: "Always allow" })}
             </Button>
           </DialogFooter>
         </DialogContent>

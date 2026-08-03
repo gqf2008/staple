@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type SkillSummaryInput = {
   tagline?: string | null;
   description?: string | null;

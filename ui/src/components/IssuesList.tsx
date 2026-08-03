@@ -1,4 +1,5 @@
 import { startTransition, useDeferredValue, useEffect, useMemo, useState, useCallback, useRef } from "react";
+import { t } from "../i18n";
 import type { ReactNode } from "react";
 import { useQueries, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useVisibilityRefetchInterval } from "@/lib/polling";
@@ -121,15 +122,9 @@ function findIssuesScrollContainer(element: HTMLElement | null): HTMLElement | n
   return null;
 }
 const boardIssueStatuses = ISSUE_STATUSES;
-const issueStatusLabels: Record<IssueStatus, string> = {
-  backlog: "Backlog",
-  todo: "Todo",
-  in_progress: "In progress",
-  in_review: "In review",
-  done: "Done",
-  blocked: "Blocked",
-  cancelled: "Cancelled",
-};
+function issueStatusLabel(status: IssueStatus): string {
+  return t(`status.${status}`, { defaultValue: status.replace(/_/g, " ") });
+}
 const progressSegmentClasses: Record<IssueStatus, string> = {
   backlog: "bg-muted-foreground/40",
   todo: "bg-blue-500",
@@ -319,7 +314,7 @@ export function issueAgeBucket(date: Date | string, now: number = Date.now()): 0
 }
 
 export function issueAgeSeparatorLabel(bucket: 1 | 2): string {
-  return bucket === 1 ? "Older than a day" : "Older than a week";
+  return bucket === 1 ? t("components.issuesList.bucketDay", { defaultValue: "Older than a day" }) : t("components.issuesList.bucketWeek", { defaultValue: "Older than a week" });
 }
 
 export function issueAgeBucketsCrossed(
@@ -550,9 +545,9 @@ function IssueSearchInput({
             e.currentTarget.blur();
           }
         }}
-        placeholder="Search tasks..."
+        placeholder={t("components.issuesList.searchTasks", { defaultValue: "Search tasks..." })}
         className="pl-7 text-xs sm:text-sm"
-        aria-label="Search tasks"
+        aria-label={t("components.issuesList.searchTasksAria", { defaultValue: "Search tasks" })}
         data-page-search-target="true"
       />
     </div>
@@ -601,8 +596,7 @@ function SubIssueProgressSummaryStrip({
               {summary.doneCount}/{summary.totalCount} done
             </span>
             <span className="text-muted-foreground">
-              {summary.inProgressCount} in progress
-            </span>
+              {summary.inProgressCount} {t("status.in_progress")}</span>
             <span className="text-muted-foreground">
               {summary.blockedCount} blocked
             </span>
@@ -626,7 +620,7 @@ function SubIssueProgressSummaryStrip({
           </div>
           <div
             role="progressbar"
-            aria-label="Sub-tasks completion progress"
+            aria-label={t("components.issuesList.subTasksProgress", { defaultValue: "Sub-tasks completion progress" })}
             aria-valuemin={0}
             aria-valuenow={summary.doneCount}
             aria-valuemax={summary.totalCount}
@@ -637,7 +631,7 @@ function SubIssueProgressSummaryStrip({
                 key={status}
                 className={cn("h-full", progressSegmentClasses[status])}
                 style={{ width: `${(count / summary.totalCount) * 100}%` }}
-                title={`${issueStatusLabels[status]}: ${count}`}
+                title={`${issueStatusLabel(status)}: ${count}`}
                 aria-hidden="true"
               />
             ))}
@@ -648,7 +642,7 @@ function SubIssueProgressSummaryStrip({
           {target && targetIssue ? (
             <>
               <div className="text-xs font-medium text-muted-foreground">
-                {target.kind === "next" ? "Next up" : "Waiting on blockers"}
+                {target.kind === "next" ? t("components.issuesList.nextUp", { defaultValue: "Next up" }) : t("components.issuesList.waitingOnBlockers", { defaultValue: "Waiting on blockers" })}
               </div>
               <Link
                 to={createIssueDetailPath(targetPathId)}
@@ -663,11 +657,11 @@ function SubIssueProgressSummaryStrip({
               </Link>
             </>
           ) : summary.totalCount === 0 ? (
-            <div className="text-sm font-medium text-foreground">No active sub-tasks</div>
+            <div className="text-sm font-medium text-foreground">{t("components.issuesList.noActiveSubTasks", { defaultValue: "No active sub-tasks" })}</div>
           ) : summary.doneCount === summary.totalCount ? (
-            <div className="text-sm font-medium text-foreground">All sub-tasks done</div>
+            <div className="text-sm font-medium text-foreground">{t("components.issuesList.allSubTasksDone", { defaultValue: "All sub-tasks done" })}</div>
           ) : (
-            <div className="text-sm font-medium text-foreground">No actionable sub-tasks</div>
+            <div className="text-sm font-medium text-foreground">{t("components.issuesList.noActionableSubTasks", { defaultValue: "No actionable sub-tasks" })}</div>
           )}
         </div>
       </div>
@@ -676,7 +670,7 @@ function SubIssueProgressSummaryStrip({
 }
 
 // Mobile-only indent for nested task rows (desktop uses IssueRow treeGuides).
-const MOBILE_TREE_INDENT = ["", "pl-4 sm:pl-0", "pl-8 sm:pl-0", "pl-12 sm:pl-0", "pl-16 sm:pl-0"];
+const MOBILE_TREE_INDENT = ["", t("ui.components.issueslist.pl-sm-pl"), t("ui.components.issueslist.pl-sm-pl.2"), "pl-12 sm:pl-0", "pl-16 sm:pl-0"];
 
 export function IssuesList({
   issues,
@@ -844,11 +838,11 @@ export function IssuesList({
   const boardIssueQueries = useQueries({
     queries: boardIssueStatuses.map((status) => ({
       queryKey: [
-        ...queryKeys.issues.list(selectedCompanyId ?? "__no-company__"),
+        ...queryKeys.issues.list(selectedCompanyId ?? t("ui.components.issueslist.fallback-no-company")),
         "board-column",
         status,
         normalizedIssueSearch,
-        projectId ?? "__all-projects__",
+        projectId ?? t("ui.components.issueslist.fallback-all-projects"),
         searchFilters ?? {},
         "compact",
         ISSUE_BOARD_COLUMN_RESULT_LIMIT,
@@ -982,9 +976,9 @@ export function IssuesList({
     if (currentUserId) {
       options.set(`user:${currentUserId}`, {
         id: `user:${currentUserId}`,
-        label: currentUserId === "local-board" ? "Board" : "Me",
+        label: currentUserId === "local-board" ? t("components.issuesList.board", { defaultValue: "Board" }) : t("components.issuesList.me", { defaultValue: "Me" }),
         kind: "user",
-        searchText: currentUserId === "local-board" ? "board me human local-board" : `me board human ${currentUserId}`,
+        searchText: currentUserId === "local-board" ? t("ui.components.issueslist.board-me-human-local") : `me board human ${currentUserId}`,
       });
     }
 
@@ -1231,7 +1225,7 @@ export function IssuesList({
     if (viewState.groupBy === "workspace") {
       const groups = groupBy(
         filtered,
-        (issue) => resolveIssueFilterWorkspaceId(issue, issueFilterWorkspaceContext) ?? "__no_workspace",
+        (issue) => resolveIssueFilterWorkspaceId(issue, issueFilterWorkspaceContext) ?? t("ui.components.issueslist.fallback-no-workspace"),
       );
       return Object.keys(groups)
         .sort((a, b) => {
@@ -1242,12 +1236,12 @@ export function IssuesList({
         })
         .map((key) => ({
           key,
-          label: key === "__no_workspace" ? "No Workspace" : (workspaceNameMap.get(key) ?? key.slice(0, 8)),
+          label: key === "__no_workspace" ? t("components.issuesList.noWorkspace", { defaultValue: "No Workspace" }) : (workspaceNameMap.get(key) ?? key.slice(0, 8)),
           items: groups[key]!,
         }));
     }
     if (viewState.groupBy === "project") {
-      const groups = groupBy(filtered, (issue) => issue.projectId ?? "__no_project");
+      const groups = groupBy(filtered, (issue) => issue.projectId ?? t("ui.components.issueslist.fallback-no-project"));
       return Object.keys(groups)
         .sort((a, b) => {
           if (a === "__no_project") return 1;
@@ -1258,12 +1252,12 @@ export function IssuesList({
         })
         .map((key) => ({
           key,
-          label: key === "__no_project" ? "No Project" : (projectById.get(key)?.name ?? key.slice(0, 8)),
+          label: key === "__no_project" ? t("components.issuesList.noProject", { defaultValue: "No Project" }) : (projectById.get(key)?.name ?? key.slice(0, 8)),
           items: groups[key]!,
         }));
     }
     if (viewState.groupBy === "parent") {
-      const groups = groupBy(filtered, (i) => i.parentId ?? "__no_parent");
+      const groups = groupBy(filtered, (i) => i.parentId ?? t("ui.components.issueslist.fallback-no-parent"));
       return Object.keys(groups)
         .sort((a, b) => {
           // Groups with items first, "no parent" last
@@ -1273,22 +1267,22 @@ export function IssuesList({
         })
         .map((key) => ({
           key,
-          label: key === "__no_parent" ? "No Parent" : (issueTitleMap.get(key) ?? key.slice(0, 8)),
+          label: key === "__no_parent" ? t("components.issuesList.noParent", { defaultValue: "No Parent" }) : (issueTitleMap.get(key) ?? key.slice(0, 8)),
           items: groups[key]!,
         }));
     }
     // assignee
     const groups = groupBy(
       filtered,
-      (issue) => issue.assigneeAgentId ?? (issue.assigneeUserId ? `__user:${issue.assigneeUserId}` : "__unassigned"),
+      (issue) => issue.assigneeAgentId ?? (issue.assigneeUserId ? `__user:${issue.assigneeUserId}` : t("ui.components.issueslist.unassigned")),
     );
     return Object.keys(groups).map((key) => ({
       key,
       label:
         key === "__unassigned"
-          ? "Unassigned"
+          ? t("components.issuesList.unassigned", { defaultValue: "Unassigned" })
           : key.startsWith("__user:")
-            ? (formatAssigneeUserLabel(key.slice("__user:".length), currentUserId, companyUserLabelMap) ?? "User")
+            ? (formatAssigneeUserLabel(key.slice("__user:".length), currentUserId, companyUserLabelMap) ?? t("components.issuesList.user", { defaultValue: "User" }))
             : (agentName(key) ?? key.slice(0, 8)),
       items: groups[key]!,
     }));
@@ -1375,7 +1369,7 @@ export function IssuesList({
     const row = rootRef.current?.querySelector(
       `[data-issue-row-id="${escapeAttrValue(navKey.slice("issue:".length))}"]`,
     );
-    const link = row?.querySelector("[data-inbox-issue-link]");
+    const link = row?.querySelector(t("ui.components.issueslist.data-inbox-issue-link"));
     return link instanceof HTMLElement ? link : null;
   }, []);
 
@@ -1621,8 +1615,8 @@ export function IssuesList({
     viewState.groupBy,
   ]);
 
-  const createActionLabel = createIssueLabel ? `Create ${createIssueLabel}` : "Create Task";
-  const createButtonLabel = createIssueLabel ? `New ${createIssueLabel}` : "New Task";
+  const createActionLabel = createIssueLabel ? t("components.issuesList.createWithLabel", { label: createIssueLabel }) : t("components.issuesList.createTask", { defaultValue: "Create Task" });
+  const createButtonLabel = createIssueLabel ? t("components.issuesList.newWithLabel", { label: createIssueLabel }) : t("components.issuesList.newTask", { defaultValue: "New Task" });
   const openCreateIssueDialog = useCallback((group?: { key: string; items: Issue[] }) => {
     openNewIssue(newIssueDefaults(group));
   }, [newIssueDefaults, openNewIssue]);
@@ -1681,12 +1675,12 @@ export function IssuesList({
 
         <div className="flex items-center gap-0.5 sm:gap-1 shrink-0">
           {/* View mode toggle */}
-          <div className="flex items-center border border-border rounded-md overflow-hidden mr-1" role="group" aria-label="View mode">
+          <div className="flex items-center border border-border rounded-md overflow-hidden mr-1" role="group" aria-label={t("components.issuesList.viewMode", { defaultValue: "View mode" })}>
             <button
               className={`flex h-8 w-8 items-center justify-center transition-colors ${viewState.viewMode === "list" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => updateView({ viewMode: "list" })}
-              title="List view"
-              aria-label="List view"
+              title={t("components.issuesList.listView", { defaultValue: "List view" })}
+              aria-label={t("components.issuesList.listView", { defaultValue: "List view" })}
               aria-pressed={viewState.viewMode === "list"}
             >
               <List className="h-3.5 w-3.5" />
@@ -1694,8 +1688,8 @@ export function IssuesList({
             <button
               className={`flex h-8 w-8 items-center justify-center transition-colors ${viewState.viewMode === "board" ? "bg-accent text-foreground" : "text-muted-foreground hover:text-foreground"}`}
               onClick={() => updateView({ viewMode: "board" })}
-              title="Board view"
-              aria-label="Board view"
+              title={t("components.issuesList.boardView", { defaultValue: "Board view" })}
+              aria-label={t("components.issuesList.boardView", { defaultValue: "Board view" })}
               aria-pressed={viewState.viewMode === "board"}
             >
               <SquareKanban className="h-3.5 w-3.5" />
@@ -1709,7 +1703,7 @@ export function IssuesList({
               size="icon"
               className={cn("hidden h-8 w-8 shrink-0 sm:inline-flex", viewState.nestingEnabled && "bg-accent")}
               onClick={() => updateView({ nestingEnabled: !viewState.nestingEnabled })}
-              title={viewState.nestingEnabled ? "Disable parent-child nesting" : "Enable parent-child nesting"}
+              title={viewState.nestingEnabled ? t("components.issuesList.disableNesting", { defaultValue: "Disable parent-child nesting" }) : t("components.issuesList.enableNesting", { defaultValue: "Enable parent-child nesting" })}
             >
               <ListTree className="h-3.5 w-3.5" />
             </Button>
@@ -1723,7 +1717,7 @@ export function IssuesList({
                 size="icon"
                 className={cn("h-8 w-8 shrink-0", boardCompactCards && "bg-accent")}
                 onClick={() => updateView({ boardCardDensity: boardCompactCards ? "comfortable" : "compact" })}
-                title={boardCompactCards ? "Use comfortable cards" : "Use compact cards"}
+                title={boardCompactCards ? t("components.issuesList.useComfortableCards", { defaultValue: "Use comfortable cards" }) : t("components.issuesList.useCompactCards", { defaultValue: "Use compact cards" })}
               >
                 <ChevronsDownUp className="h-3.5 w-3.5" />
               </Button>
@@ -1733,7 +1727,7 @@ export function IssuesList({
                 size="icon"
                 className={cn("h-8 w-8 shrink-0", boardCollapsedStatuses.length > 0 && "bg-accent")}
                 onClick={() => updateView({ boardColdLaneMode: boardCollapsedStatuses.length > 0 ? "expanded" : "collapsed" })}
-                title={boardCollapsedStatuses.length > 0 ? "Expand cold lanes" : "Collapse cold lanes"}
+                title={boardCollapsedStatuses.length > 0 ? t("components.issuesList.expandColdLanes", { defaultValue: "Expand cold lanes" }) : t("components.issuesList.collapseColdLanes", { defaultValue: "Collapse cold lanes" })}
               >
                 <PanelTopClose className="h-3.5 w-3.5" />
               </Button>
@@ -1747,7 +1741,7 @@ export function IssuesList({
                       "h-8 shrink-0 gap-1.5 px-2",
                       viewState.boardColumnPageSize !== KANBAN_COLUMN_DEFAULT_PAGE_SIZE && "bg-accent",
                     )}
-                    title="Cards per column"
+                    title={t("components.issuesList.cardsPerColumn", { defaultValue: "Cards per column" })}
                   >
                     <ListCollapse className="h-3.5 w-3.5" />
                     <span className="min-w-4 text-xs tabular-nums">{viewState.boardColumnPageSize}</span>
@@ -1767,7 +1761,7 @@ export function IssuesList({
                         )}
                         onClick={() => updateView({ boardColumnPageSize: pageSize })}
                       >
-                        <span>{pageSize} per column</span>
+                        <span>{t("components.issuesList.perColumn", { count: pageSize })}</span>
                         {viewState.boardColumnPageSize === pageSize && <Check className="h-3.5 w-3.5" />}
                       </button>
                     ))}
@@ -1785,7 +1779,7 @@ export function IssuesList({
                   boardColumnPageSize: KANBAN_COLUMN_DEFAULT_PAGE_SIZE,
                 })}
                 disabled={!boardDensityCustomized}
-                title="Reset board density"
+                title={t("components.issuesList.resetBoardDensity", { defaultValue: "Reset board density" })}
               >
                 <RotateCcw className="h-3.5 w-3.5" />
               </Button>
@@ -1797,7 +1791,7 @@ export function IssuesList({
             visibleColumnSet={visibleIssueColumnSet}
             onToggleColumn={toggleIssueColumn}
             onResetColumns={() => setIssueColumns(DEFAULT_INBOX_ISSUE_COLUMNS)}
-            title="Choose which task columns stay visible"
+            title={t("components.issuesList.chooseVisibleColumns", { defaultValue: "Choose which task columns stay visible" })}
             iconOnly
           />
 
@@ -1821,19 +1815,19 @@ export function IssuesList({
           {viewState.viewMode === "list" && (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Sort">
+                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("components.issuesList.sort", { defaultValue: "Sort" })}>
                   <ArrowUpDown className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-48 p-0">
                 <div className="p-2 space-y-0.5">
                   {([
-                    ["workflow", "Workflow"],
-                    ["status", "Status"],
-                    ["priority", "Priority"],
-                    ["title", "Title"],
-                    ["created", "Created"],
-                    ["updated", "Updated"],
+                    ["workflow", t("components.issuesList.sortWorkflow", { defaultValue: "Workflow" })],
+                    ["status", t("components.issuesList.sortStatus", { defaultValue: "Status" })],
+                    ["priority", t("components.issuesList.sortPriority", { defaultValue: "Priority" })],
+                    ["title", t("components.issuesList.sortTitle", { defaultValue: "Title" })],
+                    ["created", t("components.issuesList.sortCreated", { defaultValue: "Created" })],
+                    ["updated", t("components.issuesList.sortUpdated", { defaultValue: "Updated" })],
                   ] as const).map(([field, label]) => (
                     <button
                       key={field}
@@ -1865,20 +1859,20 @@ export function IssuesList({
           {viewState.viewMode === "list" && (
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Group">
+                <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("components.issuesList.group", { defaultValue: "Group" })}>
                   <Layers className="h-3.5 w-3.5" />
                 </Button>
               </PopoverTrigger>
               <PopoverContent align="end" className="w-44 p-0">
                 <div className="p-2 space-y-0.5">
                   {([
-                    ["status", "Status"],
-                    ["priority", "Priority"],
-                    ["assignee", "Responsible"],
-                    ["project", "Project"],
-                    ["workspace", "Workspace"],
-                    ["parent", "Parent Task"],
-                    ["none", "None"],
+                    ["status", t("components.issuesList.sortStatus", { defaultValue: "Status" })],
+                    ["priority", t("components.issuesList.sortPriority", { defaultValue: "Priority" })],
+                    ["assignee", t("components.issuesList.groupResponsible", { defaultValue: "Responsible" })],
+                    ["project", t("components.issuesList.groupProject", { defaultValue: "Project" })],
+                    ["workspace", t("components.issuesList.groupWorkspace", { defaultValue: "Workspace" })],
+                    ["parent", t("components.issuesList.groupParent", { defaultValue: "Parent Task" })],
+                    ["none", t("components.issuesList.groupNone", { defaultValue: "None" })],
                   ] as const).map(([value, label]) => (
                     <button
                       key={value}
@@ -1902,18 +1896,17 @@ export function IssuesList({
       {error && <p className="text-sm text-destructive">{error.message}</p>}
       {!searchWithinLoadedIssues && normalizedIssueSearch.length > 0 && searchedIssues.length === ISSUE_SEARCH_RESULT_LIMIT && (
         <p className="text-xs text-muted-foreground">
-          Showing up to {ISSUE_SEARCH_RESULT_LIMIT} matches. Refine the search to narrow further.
-        </p>
+          {t("ui.components.issueslist.showing-up")}{ISSUE_SEARCH_RESULT_LIMIT} {t("ui.components.issueslist.matches-refine-search-narrow")}</p>
       )}
       {boardColumnLimitReached && (
         <p className="text-xs text-muted-foreground">
-          Some board columns are showing up to {ISSUE_BOARD_COLUMN_RESULT_LIMIT} tasks. Refine filters or search to reveal the rest.
+          {t("components.issuesList.boardColumnLimit", { count: ISSUE_BOARD_COLUMN_RESULT_LIMIT })}
         </p>
       )}
       {!isLoading && !externalObjectFilterLoading && filtered.length === 0 && viewState.viewMode === "list" && (
         <EmptyState
           icon={CircleDot}
-          message="No tasks match the current filters or search."
+          message={t("components.issuesList.noTasksMatch", { defaultValue: "No tasks match the current filters or search." })}
           action={createActionLabel}
           onAction={() => openCreateIssueDialog()}
         />
@@ -2107,18 +2100,18 @@ export function IssuesList({
                           <>
                             {hasChildren && !isExpanded ? (
                               <span className="ml-1.5 text-xs text-muted-foreground">
-                                ({totalDescendants} sub-task{totalDescendants !== 1 ? "s" : ""})
+                                ({t("components.issuesList.subTaskCount", { count: totalDescendants })})
                               </span>
                             ) : null}
                             {issueBadge ? (
                               issueBadge === "Paused" ? (
                                 <Badge variant="ghost"
                                   className={cn("ml-1.5 px-1.5 text-(length:--text-nano)", statusBadge.paused)}
-                                  aria-label="Paused"
-                                  title="Paused"
+                                  aria-label={t("status.paused", { defaultValue: "Paused" })}
+                                  title={t("status.paused", { defaultValue: "Paused" })}
                                 >
                                   <CircleSlash2 className="h-3 w-3" />
-                                  Paused
+                                  {t("status.paused", { defaultValue: "Paused" })}
                                 </Badge>
                               ) : (
                                 <Badge variant="outline" className="ml-1.5 border-amber-500/40 bg-amber-500/10 px-1.5 text-(length:--text-nano) text-amber-700 dark:text-amber-300">
@@ -2129,11 +2122,11 @@ export function IssuesList({
                             {isSuccessfulRunHandoffRequired(issue) ? (
                               <Badge variant="outline"
                                 className="ml-1.5 border-amber-400/45 bg-amber-50/60 px-1.5 text-(length:--text-nano) text-amber-700 dark:border-amber-300/35 dark:bg-amber-400/10 dark:text-amber-300"
-                                aria-label="Needs next step"
-                                title="This task needs a next step"
+                                aria-label={t("components.issuesList.needsNextStep", { defaultValue: "Needs next step" })}
+                                title={t("components.issuesList.thisTaskNeedsNextStep", { defaultValue: "This task needs a next step" })}
                               >
                                 <CircleDot className="h-3 w-3" />
-                                Needs next step
+                                {t("components.issuesList.needsNextStep", { defaultValue: "Needs next step" })}
                               </Badge>
                             ) : null}
                           </>
@@ -2221,7 +2214,7 @@ export function IssuesList({
                                         <Identity name={agentName(issue.assigneeAgentId)!} size="sm" shape="square" className="min-w-0" />
                                       ) : issue.assigneeUserId ? (
                                         <Identity
-                                          name={assigneeUserLabel ?? "User"}
+                                          name={assigneeUserLabel ?? t("components.issuesList.user", { defaultValue: "User" })}
                                           avatarUrl={assigneeUserProfile?.image ?? null}
                                           size="sm"
                                           className="min-w-0"
@@ -2231,7 +2224,7 @@ export function IssuesList({
                                           <span className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-dashed border-muted-foreground/35 bg-muted/30">
                                             <User className="h-3.5 w-3.5" />
                                           </span>
-                                          Assignee
+                                          {t("components.issuesList.assignee", { defaultValue: "Assignee" })}
                                         </span>
                                       )}
                                     </button>
@@ -2244,7 +2237,7 @@ export function IssuesList({
                                   >
                                     <input
                                       className="mb-1 w-full border-b border-border bg-transparent px-2 py-1.5 text-xs outline-none placeholder:text-muted-foreground/50"
-                                      placeholder="Search responsible..."
+                                      placeholder={t("components.issuesList.searchResponsible", { defaultValue: "Search responsible..." })}
                                       value={assigneeSearch}
                                       onChange={(e) => setAssigneeSearch(e.target.value)}
                                       autoFocus
@@ -2261,8 +2254,7 @@ export function IssuesList({
                                           assignIssue(issue.id, null, null);
                                         }}
                                       >
-                                        No responsible
-                                      </button>
+                                        {t("components.commentThread.noResponsible")}</button>
                                       {currentUserId && (
                                         <button
                                           className={cn(
@@ -2276,7 +2268,7 @@ export function IssuesList({
                                           }}
                                         >
                                           <User className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                                          <span>Me</span>
+                                          <span>{t("components.issuesList.me")}</span>
                                         </button>
                                       )}
                                       {(agents ?? [])
@@ -2355,10 +2347,10 @@ export function IssuesList({
             <div className="py-2" data-testid="issues-load-more-sentinel">
               <p className="text-xs text-muted-foreground">
                 {isLoadingMoreIssues
-                  ? "Loading more tasks..."
+                  ? t("components.issuesList.loadingMore", { defaultValue: "Loading more tasks..." })
                   : remainingIssueRowCount > 0
-                    ? `Rendering ${Math.min(renderedIssueRowLimit, filtered.length)} of ${filtered.length} tasks`
-                    : "Scroll to load more tasks"}
+                    ? t("components.issuesList.renderingCount", { shown: Math.min(renderedIssueRowLimit, filtered.length), total: filtered.length })
+                    : t("components.issuesList.scrollToLoadMore", { defaultValue: "Scroll to load more tasks" })}
               </p>
             </div>
           )}

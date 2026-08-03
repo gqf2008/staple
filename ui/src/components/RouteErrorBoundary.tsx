@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { useLocation, useNavigate } from "@/lib/router";
 import { Button } from "@/components/ui/button";
@@ -20,7 +21,7 @@ class RouteErrorBoundaryInner extends Component<RouteErrorBoundaryInnerProps, Ro
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error("Page render failed", { error, componentStack: info.componentStack });
+    console.error(t("ui.components.routeerrorboundary.page-render-failed"), { error, componentStack: info.componentStack });
   }
 
   override componentDidUpdate(prevProps: RouteErrorBoundaryInnerProps): void {
@@ -39,21 +40,18 @@ class RouteErrorBoundaryInner extends Component<RouteErrorBoundaryInnerProps, Ro
     return (
       <div className="mx-auto max-w-2xl space-y-4 px-4 py-10">
         <div>
-          <h1 className="text-lg font-semibold">This page hit an error</h1>
+          <h1 className="text-lg font-semibold">{t("ui.components.routeerrorboundary.page-hit-error")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
-            Something went wrong while rendering this page. You can go back and try again, or reload.
-          </p>
+            {t("ui.components.routeerrorboundary.something-went-wrong-while")}</p>
         </div>
         <pre className="overflow-auto rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-xs text-destructive whitespace-pre-wrap">
           {error.message}
         </pre>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={this.props.onReset}>
-            Go back
-          </Button>
+            {t("ui.components.issuechatthread.go-back")}</Button>
           <Button size="sm" onClick={() => window.location.reload()}>
-            Reload page
-          </Button>
+            {t("ui.components.routeerrorboundary.reload-page")}</Button>
         </div>
       </div>
     );

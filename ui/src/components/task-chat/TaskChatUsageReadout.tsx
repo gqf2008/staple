@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { cn } from "@/lib/utils";
 import { Gauge } from "lucide-react";
 import type { TaskChatUsageItem } from "./task-chat-model";
@@ -15,7 +16,7 @@ export function TaskChatUsageReadout({ item }: { item: TaskChatUsageItem }) {
       <div className="flex items-center gap-1.5">
         <Gauge className="h-3 w-3" />
         <span>
-          {used.toLocaleString()}/{size.toLocaleString()} ctx ({pct}%)
+          {used.toLocaleString()}/{size.toLocaleString()} {t("ui.components.task-chat.taskchatusagereadout.ctx")}{pct}%)
         </span>
         {inputTokens != null || outputTokens != null ? (
           <span>

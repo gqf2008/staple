@@ -1,13 +1,14 @@
 import { useQuery } from "@tanstack/react-query";
+import { t } from "../i18n";
 import { Clock3, FileDiff, GitCommit, type LucideIcon } from "lucide-react";
 import { healthApi, type HealthStatus } from "@/api/health";
 import { instanceSettingsApi } from "@/api/instanceSettings";
 import { queryKeys } from "@/lib/queryKeys";
 
 function formatTimestamp(value: string | null | undefined): string {
-  if (!value) return "Unavailable";
+  if (!value) return t("components.sidebarServerInfo.unavailable", { defaultValue: "Unavailable" });
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return "Unavailable";
+  if (Number.isNaN(date.getTime())) return t("components.sidebarServerInfo.unavailable", { defaultValue: "Unavailable" });
   return new Intl.DateTimeFormat(undefined, {
     dateStyle: "medium",
     timeStyle: "short",
@@ -24,17 +25,17 @@ function restartTimestamp(health: HealthStatus | undefined): string | null {
 
 function commitLabel(health: HealthStatus | undefined): string {
   const git = health?.serverInfo?.git;
-  if (!git?.available) return "Commit unavailable";
+  if (!git?.available) return t("components.sidebarServerInfo.commitUnavailable", { defaultValue: "Commit unavailable" });
   return `${git.shortSha} · ${git.subject}`;
 }
 
 function localChangesLabel(health: HealthStatus | undefined): string {
   const git = health?.serverInfo?.git;
-  if (!git?.available) return "Unavailable";
+  if (!git?.available) return t("components.sidebarServerInfo.unavailable", { defaultValue: "Unavailable" });
   const localChanges = git.localChanges;
-  if (!localChanges) return "Change status unavailable";
-  if (!localChanges.available) return "Change status unavailable";
-  if (!localChanges.hasLocalChanges) return "Clean checkout";
+  if (!localChanges) return t("components.sidebarServerInfo.changeStatusUnavailable", { defaultValue: "Change status unavailable" });
+  if (!localChanges.available) return t("components.sidebarServerInfo.changeStatusUnavailable", { defaultValue: "Change status unavailable" });
+  if (!localChanges.hasLocalChanges) return t("components.sidebarServerInfo.cleanCheckout", { defaultValue: "Clean checkout" });
 
   const parts = [
     [localChanges.stagedFileCount, "staged"],
@@ -44,7 +45,7 @@ function localChangesLabel(health: HealthStatus | undefined): string {
     .filter(([count]) => Number(count) > 0)
     .map(([count, label]) => `${count} ${label}`);
 
-  return parts.length > 0 ? `Local changes present (${parts.join(", ")})` : "Local changes present";
+  return parts.length > 0 ? `Local changes present (${parts.join(", ")})` : t("components.sidebarServerInfo.localChanges", { defaultValue: "Local changes present" });
 }
 
 function ServerInfoRow({
@@ -106,34 +107,33 @@ export function SidebarServerInfo() {
   const restartedAt = restartTimestamp(health);
   const restartedAtIsValid = isValidTimestamp(restartedAt);
   const lastRestartedLabel = healthUnavailable
-    ? "Health unavailable"
+    ? t("components.sidebarServerInfo.healthUnavailable", { defaultValue: "Health unavailable" })
     : isWaitingForHealth
-      ? "Loading..."
+      ? t("components.sidebarServerInfo.loading", { defaultValue: "Loading..." })
       : formatTimestamp(restartedAt);
   const commit = healthUnavailable
-    ? "Health unavailable"
+    ? t("components.sidebarServerInfo.healthUnavailable", { defaultValue: "Health unavailable" })
     : isWaitingForHealth
-      ? "Loading..."
+      ? t("components.sidebarServerInfo.loading", { defaultValue: "Loading..." })
       : commitLabel(health);
   const localChanges = healthUnavailable
-    ? "Health unavailable"
+    ? t("components.sidebarServerInfo.healthUnavailable", { defaultValue: "Health unavailable" })
     : isWaitingForHealth
-      ? "Loading..."
+      ? t("components.sidebarServerInfo.loading", { defaultValue: "Loading..." })
       : localChangesLabel(health);
 
   return (
     <div className="mt-2 border-t border-border pt-2">
       <p className="px-3 pb-1 pt-1 text-(length:--text-micro) font-medium uppercase tracking-wide text-muted-foreground">
-        Server
-      </p>
+        {t("pages.instanceExperimental.server")}</p>
       <ServerInfoRow
         icon={Clock3}
-        label="Last restarted"
+        label={t("components.sidebarServerInfo.lastRestarted", { defaultValue: "Last restarted" })}
         value={lastRestartedLabel}
         dateTime={!healthUnavailable && !isWaitingForHealth && restartedAtIsValid ? restartedAt : null}
       />
-      <ServerInfoRow icon={GitCommit} label="Running commit" value={commit} />
-      <ServerInfoRow icon={FileDiff} label="Checkout state" value={localChanges} />
+      <ServerInfoRow icon={GitCommit} label={t("components.sidebarServerInfo.runningCommit", { defaultValue: "Running commit" })} value={commit} />
+      <ServerInfoRow icon={FileDiff} label={t("components.sidebarServerInfo.checkoutState", { defaultValue: "Checkout state" })} value={localChanges} />
     </div>
   );
 }

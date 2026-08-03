@@ -1,12 +1,13 @@
+import { t } from "../i18n";
 import type { ActivityEvent, Issue, SuccessfulRunHandoffState } from "@paperclipai/shared";
 
 export const SUCCESSFUL_RUN_HANDOFF_REQUIRED_ACTION = "issue.successful_run_handoff_required";
 export const SUCCESSFUL_RUN_HANDOFF_RESOLVED_ACTION = "issue.successful_run_handoff_resolved";
 export const SUCCESSFUL_RUN_HANDOFF_ESCALATED_ACTION = "issue.successful_run_handoff_escalated";
 export const SUCCESSFUL_RUN_HANDOFF_REQUIRED_NOTICE_BODY =
-  "Paperclip needs a disposition before this issue can continue.";
+  t("ui.lib.successful-run-handoff.paperclip-needs-disposition-before");
 export const SUCCESSFUL_RUN_HANDOFF_EXHAUSTED_NOTICE_BODY =
-  "Paperclip could not resolve this issue's missing disposition automatically. The issue is blocked on a recovery owner.";
+  t("ui.lib.successful-run-handoff.paperclip-could-not-resolve");
 
 export function isSuccessfulRunHandoffActivity(action: string) {
   return action === SUCCESSFUL_RUN_HANDOFF_REQUIRED_ACTION

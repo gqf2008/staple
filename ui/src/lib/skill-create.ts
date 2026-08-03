@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CompanySkillCreateRequest,
   CompanySkillDetail,
@@ -49,8 +50,8 @@ export function splitCategoryDraft(value: string) {
 }
 
 export function defaultSkillMarkdown(name: string, tagline: string) {
-  const title = name.trim() || "New Skill";
-  const summary = tagline.trim() || "Describe when agents should use this skill.";
+  const title = name.trim() || t("pages.companySkills.newSkill");
+  const summary = tagline.trim() || t("ui.lib.skill-create.fallback-describe-when-agents-should");
   return [
     "---",
     `name: ${title}`,
@@ -61,15 +62,15 @@ export function defaultSkillMarkdown(name: string, tagline: string) {
     "",
     summary,
     "",
-    "## When To Use",
+    t("ui.lib.skill-create.when-use"),
     "",
-    "- Use this skill when the task needs its specialized workflow.",
+    t("ui.lib.skill-create.use-skill-when-task"),
     "",
-    "## Workflow",
+    t("ui.lib.skill-create.workflow"),
     "",
-    "1. Inspect the task context.",
-    "2. Apply the workflow carefully.",
-    "3. Report what changed and how it was verified.",
+    t("ui.lib.skill-create.inspect-task-context"),
+    t("ui.lib.skill-create.apply-workflow-carefully"),
+    t("ui.lib.skill-create.report-what-changed-how"),
     "",
   ].join("\n");
 }

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Client-side "next N schedule fires" helper for the routine Delivery preview (§3.5).
  *
@@ -190,7 +191,7 @@ export function nextCronFires(
 ): Date[] {
   const cron = parseCronExpression(expression);
   if (!cron || count <= 0) return [];
-  const timeZone = options.timeZone ?? "UTC";
+  const timeZone = options.timeZone ?? t("components.routineSections.utc");
   const after = options.after ?? new Date();
 
   const cursor = new Date(after.getTime());
@@ -225,8 +226,8 @@ export interface FirePreviewEntry {
 
 const DISPOSITION_LABEL: Record<FireDisposition, string> = {
   queued: "queued",
-  coalesced: "would be coalesced",
-  skipped: "would be skipped",
+  coalesced: t("ui.lib.cron-fires.would-coalesced"),
+  skipped: t("ui.lib.cron-fires.would-skipped"),
 };
 
 /**
@@ -246,7 +247,7 @@ export function previewFirePolicies(
         at,
         disposition: "queued",
         label: DISPOSITION_LABEL.queued,
-        note: "runs immediately",
+        note: t("ui.lib.cron-fires.runs-immediately"),
       };
     }
     let disposition: FireDisposition;
@@ -266,7 +267,7 @@ export function previewFirePolicies(
       at,
       disposition,
       label: DISPOSITION_LABEL[disposition],
-      note: disposition === "queued" ? null : "if the previous run is still active",
+      note: disposition === "queued" ? null : t("ui.lib.cron-fires.if-previous-run-still"),
     };
   });
 }

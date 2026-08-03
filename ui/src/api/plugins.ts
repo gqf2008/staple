@@ -10,6 +10,7 @@
  * @see server/src/routes/plugins.ts for endpoint implementation details.
  */
 
+import { t } from "../i18n";
 import type {
   PluginLauncherDeclaration,
   PluginLauncherRenderContextSnapshot,

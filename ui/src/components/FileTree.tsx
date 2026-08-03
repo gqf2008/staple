@@ -1,4 +1,5 @@
 import type { KeyboardEvent, ReactNode } from "react";
+import { t } from "../i18n";
 import { useMemo, useRef, useState } from "react";
 import { cn } from "../lib/utils";
 import {
@@ -217,18 +218,18 @@ export function parseFrontmatter(content: string): { data: FrontmatterData; body
 }
 
 export const FRONTMATTER_FIELD_LABELS: Record<string, string> = {
-  name: "Name",
-  title: "Title",
-  kind: "Kind",
-  reportsTo: "Reports to",
-  skills: "Skills",
-  status: "Status",
-  description: "Description",
-  priority: "Priority",
-  assignee: "Responsible",
-  project: "Project",
-  recurring: "Recurring",
-  targetDate: "Target date",
+  name: t("components.fileTree.name", { defaultValue: "Name" }),
+  title: t("components.fileTree.title", { defaultValue: "Title" }),
+  kind: t("components.fileTree.kind", { defaultValue: "Kind" }),
+  reportsTo: t("components.fileTree.reportsTo", { defaultValue: "Reports to" }),
+  skills: t("components.fileTree.skills", { defaultValue: "Skills" }),
+  status: t("components.fileTree.status", { defaultValue: "Status" }),
+  description: t("components.fileTree.description", { defaultValue: "Description" }),
+  priority: t("components.fileTree.priority", { defaultValue: "Priority" }),
+  assignee: t("components.fileTree.responsible", { defaultValue: "Responsible" }),
+  project: t("components.fileTree.project", { defaultValue: "Project" }),
+  recurring: t("components.fileTree.recurring", { defaultValue: "Recurring" }),
+  targetDate: t("components.fileTree.targetDate", { defaultValue: "Target date" }),
 };
 
 // -- File tree component -----------------------------------------------------
@@ -275,7 +276,7 @@ export function FileTree({
   loading = false,
   error,
   empty,
-  ariaLabel = "Files",
+  ariaLabel = t("components.fileTree.files", { defaultValue: "Files" }),
 }: FileTreeProps) {
   const effectiveCheckedFiles = checkedFiles ?? new Set<string>();
   const visibleNodes = useMemo(
@@ -370,8 +371,7 @@ export function FileTree({
           </div>
           {error.retry && (
             <Button type="button" size="xs" variant="outline" onClick={error.retry}>
-              Retry
-            </Button>
+              {t("components.issueProperties.retry")}</Button>
           )}
         </div>
       </div>
@@ -382,9 +382,9 @@ export function FileTree({
     return (
       <div aria-label={ariaLabel} role="tree" className="p-3">
         <div className="rounded-md border border-dashed border-border px-4 py-8 text-center">
-          <div className="text-sm font-medium">{empty?.title ?? "No files"}</div>
+          <div className="text-sm font-medium">{empty?.title ?? t("components.fileTree.noFiles", { defaultValue: "No files" })}</div>
           <div className="mt-1 text-xs text-muted-foreground">
-            {empty?.description ?? "Files will appear here when they are available."}
+            {empty?.description ?? t("components.fileTree.noFilesHint", { defaultValue: "Files will appear here when they are available." })}
           </div>
         </div>
       </div>

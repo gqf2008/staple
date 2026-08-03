@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { Issue } from "@paperclipai/shared";
 import type { IssueSiblingNavigation as IssueSiblingNavigationState } from "@/lib/issue-detail-subissues";
@@ -16,7 +17,7 @@ export function IssueSiblingNavigation({ navigation, linkState }: IssueSiblingNa
 
   return (
     <nav
-      aria-label="Sub-task navigation"
+      aria-label={t("ui.components.issuesiblingnavigation.sub-task-navigation")}
       className="mt-4 flex flex-col gap-3 sm:mt-6 sm:grid sm:grid-cols-2"
     >
       {navigation.previous ? (
@@ -46,8 +47,8 @@ function SiblingLink({
   className?: string;
 }) {
   const issuePathId = issue.identifier ?? issue.id;
-  const label = direction === "previous" ? "Previous" : "Next";
-  const ariaDirection = direction === "previous" ? "Previous sub-task" : "Next sub-task";
+  const label = direction === "previous" ? t("ui.components.issuesiblingnavigation.previous") : t("ui.components.issuesiblingnavigation.next");
+  const ariaDirection = direction === "previous" ? t("ui.components.issuesiblingnavigation.previous-sub-task") : t("ui.components.issuesiblingnavigation.next-sub-task");
   const identifier = issue.identifier ?? issue.id.slice(0, 8);
   const Icon = direction === "previous" ? ChevronLeft : ChevronRight;
 

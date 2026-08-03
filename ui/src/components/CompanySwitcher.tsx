@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { ChevronsUpDown, Plus, Settings } from "lucide-react";
 import { Link } from "@/lib/router";
 import { useCompany } from "../context/CompanyContext";
@@ -56,7 +57,7 @@ export function CompanySwitcher({ open: controlledOpen, onOpenChange }: CompanyS
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-(--sz-220px)">
-        <DropdownMenuLabel>Companies</DropdownMenuLabel>
+        <DropdownMenuLabel>{t("pages.companies.title")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {sidebarCompanies.map((company) => (
           <DropdownMenuItem
@@ -69,20 +70,18 @@ export function CompanySwitcher({ open: controlledOpen, onOpenChange }: CompanyS
           </DropdownMenuItem>
         ))}
         {sidebarCompanies.length === 0 && (
-          <DropdownMenuItem disabled>No companies</DropdownMenuItem>
+          <DropdownMenuItem disabled>{t("components.sidebarCompanyMenu.noCompanies")}</DropdownMenuItem>
         )}
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
           <Link to="/company/settings" className="no-underline text-inherit">
             <Settings className="h-4 w-4 mr-2" />
-            Company Settings
-          </Link>
+            {t("components.sidebarCompanyMenu.companySettings")}</Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link to="/companies" className="no-underline text-inherit">
             <Plus className="h-4 w-4 mr-2" />
-            Manage Companies
-          </Link>
+            {t("ui.components.companyswitcher.manage-companies")}</Link>
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

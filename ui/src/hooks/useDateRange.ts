@@ -1,13 +1,14 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 
 export type DatePreset = "mtd" | "7d" | "30d" | "ytd" | "all" | "custom";
 
 export const PRESET_LABELS: Record<DatePreset, string> = {
-  mtd: "Month to Date",
-  "7d": "Last 7 Days",
-  "30d": "Last 30 Days",
-  ytd: "Year to Date",
-  all: "All Time",
+  mtd: t("ui.hooks.usedaterange.month-date"),
+  "7d": t("pages.tools.audit.last7d"),
+  "30d": t("pages.tools.audit.last30d"),
+  ytd: t("ui.hooks.usedaterange.year-date"),
+  all: t("ui.hooks.usedaterange.all-time"),
   custom: "Custom",
 };
 

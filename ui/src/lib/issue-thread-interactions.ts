@@ -34,6 +34,7 @@ export type {
   SuggestTasksResult,
   SuggestTasksResultCreatedTask,
 } from "@paperclipai/shared";
+import { t } from "../i18n";
 import type {
   AskUserQuestionsAnswer,
   AskUserQuestionsInteraction,
@@ -129,9 +130,9 @@ export function buildItemVerdictsSummary(
   }
   if (interaction.status === "expired") {
     const outcome = interaction.result?.outcome;
-    if (outcome === "superseded_by_comment") return "Verdicts expired after comment";
-    if (outcome === "stale_target") return "Verdicts expired after target changed";
-    return "Verdicts expired";
+    if (outcome === "superseded_by_comment") return t("ui.lib.issue-thread-interactions.verdicts-expired-after-comment");
+    if (outcome === "stale_target") return t("ui.lib.issue-thread-interactions.verdicts-expired-after-target");
+    return t("ui.lib.issue-thread-interactions.verdicts-expired");
   }
   return `${progress.decided} of ${progress.total} decided`;
 }
@@ -181,8 +182,8 @@ export function buildIssueThreadInteractionSummary(
   const administrativeOutcome = interaction.result && "outcome" in interaction.result
     ? interaction.result.outcome
     : null;
-  if (administrativeOutcome === "withdrawn") return "Withdrawn interaction";
-  if (administrativeOutcome === "issue_closed") return "Expired when issue closed";
+  if (administrativeOutcome === "withdrawn") return t("ui.lib.issue-thread-interactions.withdrawn-interaction");
+  if (administrativeOutcome === "issue_closed") return t("components.issueThreadInteraction.expiredWhenClosed");
   if (interaction.kind === "suggest_tasks") {
     const count = interaction.payload.tasks.length;
     if (interaction.status === "accepted") {
@@ -191,44 +192,44 @@ export function buildIssueThreadInteractionSummary(
       if (skippedCount > 0) {
         return `Accepted ${createdCount} of ${count} tasks`;
       }
-      return createdCount === 1 ? "Accepted 1 task" : `Accepted ${createdCount} tasks`;
+      return createdCount === 1 ? t("ui.lib.issue-thread-interactions.accepted-task") : `Accepted ${createdCount} tasks`;
     }
     if (interaction.status === "rejected") {
-      return count === 1 ? "Rejected 1 task" : `Rejected ${count} tasks`;
+      return count === 1 ? t("ui.lib.issue-thread-interactions.rejected-task") : `Rejected ${count} tasks`;
     }
-    return count === 1 ? "Suggested 1 task" : `Suggested ${count} tasks`;
+    return count === 1 ? t("ui.lib.issue-thread-interactions.suggested-task") : `Suggested ${count} tasks`;
   }
 
   if (interaction.kind === "request_confirmation") {
-    if (interaction.status === "accepted") return "Confirmed request";
-    if (interaction.status === "rejected") return "Declined request";
+    if (interaction.status === "accepted") return t("ui.lib.issue-thread-interactions.confirmed-request");
+    if (interaction.status === "rejected") return t("ui.lib.issue-thread-interactions.declined-request");
     if (interaction.status === "expired") {
       const outcome = interaction.result?.outcome;
-      if (outcome === "superseded_by_comment") return "Confirmation expired after comment";
-      if (outcome === "stale_target") return "Confirmation expired after target changed";
-      return "Confirmation expired";
+      if (outcome === "superseded_by_comment") return t("ui.lib.issue-thread-interactions.confirmation-expired-after-comment");
+      if (outcome === "stale_target") return t("ui.lib.issue-thread-interactions.confirmation-expired-after-target");
+      return t("ui.lib.issue-thread-interactions.confirmation-expired");
     }
-    return "Requested confirmation";
+    return t("ui.lib.issue-thread-interactions.requested-confirmation");
   }
 
   if (interaction.kind === "request_checkbox_confirmation") {
     const optionCount = interaction.payload.options.length;
     if (interaction.status === "accepted") {
       const selectedCount = interaction.result?.selectedOptionIds?.length ?? 0;
-      if (selectedCount === 0) return "Confirmed with no options selected";
+      if (selectedCount === 0) return t("components.issueThreadInteraction.confirmedNoOptions");
       return selectedCount === 1
         ? `Confirmed 1 of ${optionCount} options`
         : `Confirmed ${selectedCount} of ${optionCount} options`;
     }
-    if (interaction.status === "rejected") return "Declined selection";
+    if (interaction.status === "rejected") return t("ui.lib.issue-thread-interactions.declined-selection");
     if (interaction.status === "expired") {
       const outcome = interaction.result?.outcome;
-      if (outcome === "superseded_by_comment") return "Selection expired after comment";
-      if (outcome === "stale_target") return "Selection expired after target changed";
-      return "Selection expired";
+      if (outcome === "superseded_by_comment") return t("ui.lib.issue-thread-interactions.selection-expired-after-comment");
+      if (outcome === "stale_target") return t("ui.lib.issue-thread-interactions.selection-expired-after-target");
+      return t("ui.lib.issue-thread-interactions.selection-expired");
     }
     return optionCount === 1
-      ? "Requested a selection from 1 option"
+      ? t("ui.lib.issue-thread-interactions.requested-selection-from-option")
       : `Requested a selection from ${optionCount} options`;
   }
 
@@ -238,18 +239,18 @@ export function buildIssueThreadInteractionSummary(
 
   const count = interaction.payload.questions.length;
   if (interaction.status === "answered") {
-    return count === 1 ? "Answered 1 question" : `Answered ${count} questions`;
+    return count === 1 ? t("ui.lib.issue-thread-interactions.answered-question") : `Answered ${count} questions`;
   }
   if (interaction.status === "cancelled") {
-    return count === 1 ? "Cancelled 1 question" : `Cancelled ${count} questions`;
+    return count === 1 ? t("ui.lib.issue-thread-interactions.cancelled-question") : `Cancelled ${count} questions`;
   }
   if (interaction.status === "expired") {
     if (interaction.result?.expirationReason === "superseded_by_comment") {
-      return count === 1 ? "Question expired after comment" : "Questions expired after comment";
+      return count === 1 ? t("ui.lib.issue-thread-interactions.question-expired-after-comment") : t("ui.lib.issue-thread-interactions.questions-expired-after-comment");
     }
-    return count === 1 ? "Question expired" : "Questions expired";
+    return count === 1 ? t("ui.lib.issue-thread-interactions.question-expired") : t("ui.lib.issue-thread-interactions.questions-expired");
   }
-  return count === 1 ? "Asked 1 question" : `Asked ${count} questions`;
+  return count === 1 ? t("ui.lib.issue-thread-interactions.asked-question") : `Asked ${count} questions`;
 }
 
 export function buildSuggestedTaskTree(

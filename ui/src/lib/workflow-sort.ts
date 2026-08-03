@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export type WorkflowSortBlocker = { id: string };
 
 export type WorkflowSortIssue = {

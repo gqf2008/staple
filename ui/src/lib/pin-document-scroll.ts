@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 // Registers a capture-phase `scroll` listener on `win` that snaps the
 // `documentElement.scrollTop` and `body.scrollTop` back to 0 whenever they
 // drift. The desktop app shell expects neither to ever be non-zero — only

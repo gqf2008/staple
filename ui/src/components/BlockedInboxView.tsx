@@ -1,3 +1,4 @@
+import { t, localizeServerLabel } from "../i18n";
 import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { AlertTriangle, CheckCircle2 } from "lucide-react";
@@ -141,7 +142,7 @@ export function BlockedInboxView({
 
   if (error) {
     const message =
-      error instanceof Error ? error.message : "Couldn't load the Blocked tab.";
+      error instanceof Error ? error.message : t("ui.components.blockedinboxview.couldn-load-blocked-tab.2");
     return (
       <div
         data-testid="blocked-inbox-error"
@@ -151,9 +152,9 @@ export function BlockedInboxView({
         <div className="flex items-start gap-2">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
           <div className="flex-1 space-y-1">
-            <p className="text-sm font-medium">Couldn't load the Blocked tab.</p>
+            <p className="text-sm font-medium">{t("ui.components.blockedinboxview.couldn-load-blocked-tab")}</p>
             <p className="text-xs opacity-80">
-              Other Inbox tabs still work. {message}
+              {t("ui.components.blockedinboxview.other-inbox-tabs-still")}{message}
             </p>
           </div>
           <Button
@@ -164,7 +165,7 @@ export function BlockedInboxView({
             onClick={() => void refetch()}
             disabled={isFetching}
           >
-            {isFetching ? "Trying…" : "Try again"}
+            {isFetching ? t("ui.components.blockedinboxview.trying") : t("components.issueRecoveryAction.tryAgain")}
           </Button>
         </div>
       </div>
@@ -181,10 +182,9 @@ export function BlockedInboxView({
           <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
         </span>
         <div className="space-y-1">
-          <p className="text-sm font-medium text-foreground">No work is stopped.</p>
+          <p className="text-sm font-medium text-foreground">{t("ui.components.blockedinboxview.no-work-stopped")}</p>
           <p className="text-xs text-muted-foreground">
-            Tasks that need a decision, recovery, or external action will appear here.
-          </p>
+            {t("ui.components.blockedinboxview.tasks-need-decision-recovery")}</p>
         </div>
       </Card>
     );
@@ -197,8 +197,7 @@ export function BlockedInboxView({
           data-testid="blocked-inbox-no-search-results"
           className="block border-border/70 bg-card/40 px-4 py-6 text-center text-sm text-muted-foreground"
         >
-          No stopped items match your search.
-        </Card>
+          {t("ui.components.blockedinboxview.no-stopped-items-match")}</Card>
       </div>
     );
   }
@@ -279,7 +278,7 @@ function resolveOwnerName(
   userLabelById?: ReadonlyMap<string, string>,
 ): { label: string | null; isAgent: boolean } {
   const owner = row.attention.owner;
-  if (owner.label) return { label: owner.label, isAgent: owner.type === "agent" };
+  if (owner.label) return { label: localizeServerLabel(owner.label), isAgent: owner.type === "agent" };
   if (owner.agentId) {
     return { label: agentNameById.get(owner.agentId) ?? null, isAgent: true };
   }

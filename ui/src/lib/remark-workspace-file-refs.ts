@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { parseWorkspaceFileRef, type ParsedWorkspaceFileRef } from "./workspace-file-parser";
 
 const WORKSPACE_FILE_HREF_SCHEME = "workspace-file:";

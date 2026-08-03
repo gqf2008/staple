@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { PlaceholderDataFunction, QueryKey } from "@tanstack/react-query";
 
 export function keepPreviousDataForSameQueryTail<TQueryData, TQueryKey extends QueryKey = QueryKey>(

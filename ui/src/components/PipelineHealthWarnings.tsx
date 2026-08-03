@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { AlertTriangle, ChevronRight } from "lucide-react";
 import type { PipelineHealthWarning } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
@@ -59,7 +60,7 @@ export function PipelineHealthBar({
     >
       <h2 id="pipeline-health-bar-heading" className="flex items-center gap-2 text-sm font-semibold">
         <AlertTriangle className="h-4 w-4 shrink-0" />
-        <span>Some steps won't run yet — {warningCount(warnings.length)}</span>
+        <span>{t("ui.components.pipelinehealthwarnings.some-steps-won-run")}{warningCount(warnings.length)}</span>
       </h2>
       <ul className="mt-1.5 space-y-1 pl-6 text-sm">
         {shown.map((warning, index) => {
@@ -91,8 +92,7 @@ export function PipelineHealthBar({
       </ul>
       {overflow > 0 ? (
         <p className="mt-1.5 pl-6 text-xs text-amber-800/80 dark:text-amber-200/70">
-          +{overflow} more in stage settings
-        </p>
+          +{overflow} {t("ui.components.pipelinehealthwarnings.more-stage-settings")}</p>
       ) : null}
     </div>
   );
@@ -125,7 +125,7 @@ export function StageHealthWarnings({
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span>
           {warnings.length === 1
-            ? "This step won't run yet"
+            ? t("ui.components.pipelinehealthwarnings.step-won-run-yet")
             : `This step won't run yet — ${warnings.length} things to fix`}
         </span>
       </h2>

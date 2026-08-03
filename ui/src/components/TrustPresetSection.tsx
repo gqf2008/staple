@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import type { AgentPermissions, TrustPreset } from "@paperclipai/shared";
 import { Lock, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -45,9 +46,9 @@ export interface LowTrustBoundaryCandidate {
 type LowTrustBoundaryTargetType = LowTrustBoundaryTarget["type"];
 
 const BOUNDARY_TARGET_LABELS: Record<LowTrustBoundaryTargetType, string> = {
-  project: "Project",
-  root_issue: "Root issue",
-  issue: "Issue",
+  project: t("components.trustPreset.project", { defaultValue: "Project" }),
+  root_issue: t("components.trustPreset.rootIssue", { defaultValue: "Root issue" }),
+  issue: t("components.trustPreset.issue", { defaultValue: "Issue" }),
 };
 
 export function TrustPresetSection({
@@ -104,9 +105,9 @@ export function TrustPresetSection({
 
   return (
     <div>
-      <h3 className="mb-3 text-sm font-medium">Trust</h3>
+      <h3 className="mb-3 text-sm font-medium">{t("components.trustPreset.trust", { defaultValue: "Trust" })}</h3>
       <div className="rounded-lg border border-border p-4 space-y-3">
-        <Field label="Trust preset" hint="Choose how broadly this agent can read and act on Paperclip work objects.">
+        <Field label={t("components.trustPreset.trustPreset", { defaultValue: "Trust preset" })} hint={t("components.trustPreset.presetHint", { defaultValue: "Choose how broadly this agent can read and act on Paperclip work objects." })}>
           <select
             className={inputClass}
             value={preset}
@@ -138,27 +139,27 @@ export function TrustPresetSection({
             <div className="min-w-0 flex-1 space-y-2">
               <div>
                 <p className="font-medium">
-                  {hasScope ? "Containment active" : "Containment not configured"}
+                  {hasScope ? t("components.trustPreset.containmentActive", { defaultValue: "Containment active" }) : t("components.trustPreset.containmentNotConfigured", { defaultValue: "Containment not configured" })}
                 </p>
                 <p className="mt-1 text-xs leading-5">
                   {hasScope
-                    ? "This agent can only read and mutate work inside its assigned review boundary. Raw output is quarantined from higher-trust agents until a trusted reviewer promotes it."
+                    ? t("ui.components.trustpresetsection.agent-can-only-read")
                     : "This agent is set to low-trust review, but no project, root issue, or issue scope is set in the core policy. Add a scope before this agent can run without denial."}
                 </p>
               </div>
               {boundaryEditable ? (
                 <div className="rounded-md border border-border/70 bg-background/70 p-3 text-foreground space-y-3">
                   <div className="grid gap-3 sm:grid-cols-(--gtc-12)">
-                    <Field label="Boundary type">
+                    <Field label={t("components.trustPreset.boundaryType", { defaultValue: "Boundary type" })}>
                       <select
                         className={inputClass}
                         value={targetType}
                         onChange={(event) => setTargetType(event.target.value as LowTrustBoundaryTargetType)}
                         disabled={disabled}
                       >
-                        <option value="project">Project</option>
-                        <option value="root_issue">Root issue</option>
-                        <option value="issue">Issue</option>
+                        <option value="project">{t("components.trustPreset.project", { defaultValue: "Project" })}</option>
+                        <option value="root_issue">{t("components.trustPreset.rootIssue", { defaultValue: "Root issue" })}</option>
+                        <option value="issue">{t("components.trustPreset.issue", { defaultValue: "Issue" })}</option>
                       </select>
                     </Field>
                     <Field label={BOUNDARY_TARGET_LABELS[targetType]}>
@@ -170,10 +171,10 @@ export function TrustPresetSection({
                       >
                         <option value="">
                           {candidatesLoading
-                            ? "Loading…"
+                            ? t("components.trustPreset.loading", { defaultValue: "Loading…" })
                             : targetCandidates.length === 0
                               ? `No ${targetType === "project" ? "projects" : "issues"} available`
-                              : "Select boundary"}
+                              : t("components.trustPreset.selectBoundary", { defaultValue: "Select boundary" })}
                         </option>
                         {targetCandidates.map((candidate) => (
                           <option key={candidate.id} value={candidate.id}>
@@ -185,8 +186,7 @@ export function TrustPresetSection({
                   </div>
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <p className="text-xs text-muted-foreground">
-                      CE saves one containment boundary at a time. Saved policies include this company id.
-                    </p>
+                      {t("ui.components.trustpresetsection.ce-saves-one-containment")}</p>
                     {boundaryTarget ? (
                       <Button
                         type="button"
@@ -196,49 +196,46 @@ export function TrustPresetSection({
                         onClick={handleClearBoundary}
                         disabled={disabled}
                       >
-                        Clear boundary
-                      </Button>
+                        {t("ui.components.trustpresetsection.clear-boundary")}</Button>
                     ) : null}
                   </div>
                 </div>
               ) : (
                 <div className="rounded-md border border-border/70 bg-background/70 p-3 text-foreground">
-                  <p className="text-sm font-medium">Managed by EE/API</p>
+                  <p className="text-sm font-medium">{t("components.trustPreset.managedByEe", { defaultValue: "Managed by EE/API" })}</p>
                   <p className="mt-1 text-xs leading-5 text-muted-foreground">
-                    This policy has {summarizeLowTrustBoundaryTarget(boundary).toLowerCase()} and cannot be edited by the CE single-boundary editor.
-                  </p>
+                    {t("ui.components.trustpresetsection.policy-has")}{summarizeLowTrustBoundaryTarget(boundary).toLowerCase()} {t("ui.components.trustpresetsection.cannot-edited-ce-single")}</p>
                 </div>
               )}
               <p className="text-xs text-muted-foreground">
-                Want to set more than one containment boundary?{" "}
+                {t("ui.components.trustpresetsection.want-set-more-than")}{" "}
                 <a
                   className="underline underline-offset-2 hover:text-foreground"
                   href="https://paperclip.ing/ee"
                   target="_blank"
                   rel="noreferrer"
                 >
-                  Get Paperclip EE.
-                </a>
+                  {t("ui.components.trustpresetsection.get-paperclip-ee")}</a>
               </p>
               <CollapsibleSection
-                title="View policy"
+                title={t("components.trustPreset.viewPolicy", { defaultValue: "View policy" })}
                 open={policyOpen}
                 onToggle={() => setPolicyOpen((open) => !open)}
               >
                 <div className="divide-y divide-border/60 text-foreground">
-                  <PolicyRow label="Preset" value="Low-trust review v1" />
-                  <PolicyRow label="Raw output" value="Quarantined from higher-trust agents" />
-                  <PolicyRow label="Projects" value={formatCount(boundary?.projectIds, "project", "projects")} />
-                  <PolicyRow label="Root issue" value={boundary?.rootIssueId ? boundary.rootIssueId.slice(0, 8) : "-"} />
-                  <PolicyRow label="Explicit issues" value={formatCount(boundary?.issueIds, "issue", "issues")} />
-                  <PolicyRow label="Allowed agents" value={formatCount(boundary?.allowedAgentIds, "agent", "agents")} />
-                  <PolicyRow label="Allowed tools" value={boundary?.allowedToolClasses?.join(" · ") || "-"} />
-                  <PolicyRow label="Allowed secrets" value={formatCount(boundary?.allowedSecretBindingIds, "binding", "bindings")} />
-                  <PolicyRow label="Promotion target" value={boundary?.outputPromotionTarget?.issueId?.slice(0, 8) ?? "-"} />
+                  <PolicyRow label={t("components.trustPreset.preset", { defaultValue: "Preset" })} value={t("components.trustPreset.lowTrustV1", { defaultValue: "Low-trust review v1" })} />
+                  <PolicyRow label={t("components.trustPreset.rawOutput", { defaultValue: "Raw output" })} value={t("components.trustPreset.quarantined", { defaultValue: "Quarantined from higher-trust agents" })} />
+                  <PolicyRow label={t("components.trustPreset.projects", { defaultValue: "Projects" })} value={formatCount(boundary?.projectIds, "project", "projects")} />
+                  <PolicyRow label={t("components.trustPreset.rootIssue", { defaultValue: "Root issue" })} value={boundary?.rootIssueId ? boundary.rootIssueId.slice(0, 8) : "-"} />
+                  <PolicyRow label={t("components.trustPreset.explicitIssues", { defaultValue: "Explicit issues" })} value={formatCount(boundary?.issueIds, "issue", "issues")} />
+                  <PolicyRow label={t("components.trustPreset.allowedAgents", { defaultValue: "Allowed agents" })} value={formatCount(boundary?.allowedAgentIds, "agent", "agents")} />
+                  <PolicyRow label={t("components.trustPreset.allowedTools", { defaultValue: "Allowed tools" })} value={boundary?.allowedToolClasses?.join(" · ") || "-"} />
+                  <PolicyRow label={t("components.trustPreset.allowedSecrets", { defaultValue: "Allowed secrets" })} value={formatCount(boundary?.allowedSecretBindingIds, "binding", "bindings")} />
+                  <PolicyRow label={t("components.trustPreset.promotionTarget", { defaultValue: "Promotion target" })} value={boundary?.outputPromotionTarget?.issueId?.slice(0, 8) ?? "-"} />
                   <PolicyRow
-                    label="EE fields"
+                    label={t("components.trustPreset.eeFields", { defaultValue: "EE fields" })}
                     value={Object.keys(policy ?? {}).some((key) => !["trustPreset", "reviewPreset", "trustBoundary"].includes(key))
-                      ? "Custom advanced policy fields preserved"
+                      ? t("components.trustPreset.customFields", { defaultValue: "Custom advanced policy fields preserved" })
                       : "-"}
                   />
                 </div>
@@ -249,8 +246,7 @@ export function TrustPresetSection({
 
         {managedPermissions.authorizationPolicy?.reviewPreset ? null : (
           <p className="text-xs text-muted-foreground">
-            Advanced permissions remain editable through the EE permissions extension when installed.
-          </p>
+            {t("ui.components.trustpresetsection.advanced-permissions-remain-editable")}</p>
         )}
       </div>
     </div>

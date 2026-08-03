@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Sandboxed Worker bootstrap for external adapter UI parsers.
  *

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState, useRef, useEffect, useCallback } from "react";
 import { cn } from "../lib/utils";
 import { MarkdownBody, type MarkdownExternalReferenceMap } from "./MarkdownBody";
@@ -362,11 +363,11 @@ export function InlineEditor({
             )}
           >
             {autosaveState === "saving"
-              ? "Autosaving..."
+              ? t("components.issueDocuments.autosaving")
               : autosaveState === "saved"
-                ? "Saved"
+                ? t("components.inboxAgentPolicy.saved")
                 : autosaveState === "error"
-                  ? "Could not save"
+                  ? t("components.issueDocuments.saveFailed2")
                   : "Idle"}
           </span>
         </div>

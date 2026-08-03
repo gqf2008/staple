@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Project } from "@paperclipai/shared";
 
 export const PROJECT_ORDER_UPDATED_EVENT = "paperclip:project-order-updated";

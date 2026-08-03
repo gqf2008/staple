@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { CompanySkill, CompanySkillDetail, CompanySkillListItem } from "@paperclipai/shared";
 
 export type CompanySkillRouteSubject = Pick<CompanySkill | CompanySkillDetail | CompanySkillListItem, "id" | "key" | "slug">;
@@ -34,7 +35,7 @@ export function encodeSkillFilePath(filePath: string) {
 }
 
 export function decodeSkillFilePath(filePath: string | undefined) {
-  if (!filePath) return "SKILL.md";
+  if (!filePath) return t("pages.skills.importFromProject.skillMd");
   return filePath
     .split("/")
     .filter(Boolean)
@@ -55,7 +56,7 @@ function decodeSkillRouteToken(tokenPath: string | undefined) {
 export function parseSkillRoute(routePath: string | undefined): ParsedCompanySkillRoute {
   const segments = (routePath ?? "").split("/").filter(Boolean);
   if (segments.length === 0) {
-    return { skillToken: null, filePath: "SKILL.md", hasExplicitFilePath: false };
+    return { skillToken: null, filePath: t("pages.skills.importFromProject.skillMd"), hasExplicitFilePath: false };
   }
 
   const filesIndex = segments.indexOf("files");
@@ -63,12 +64,12 @@ export function parseSkillRoute(routePath: string | undefined): ParsedCompanySki
   const tokenSegments = filesIndex >= 0 ? segments.slice(0, filesIndex) : segments;
   const skillToken = decodeSkillRouteToken(tokenSegments.join("/"));
   if (!skillToken) {
-    return { skillToken: null, filePath: "SKILL.md", hasExplicitFilePath };
+    return { skillToken: null, filePath: t("pages.skills.importFromProject.skillMd"), hasExplicitFilePath };
   }
 
   return {
     skillToken,
-    filePath: filesIndex >= 0 ? decodeSkillFilePath(segments.slice(filesIndex + 1).join("/")) : "SKILL.md",
+    filePath: filesIndex >= 0 ? decodeSkillFilePath(segments.slice(filesIndex + 1).join("/")) : t("pages.skills.importFromProject.skillMd"),
     hasExplicitFilePath,
   };
 }

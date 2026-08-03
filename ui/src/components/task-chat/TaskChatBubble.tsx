@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { cn } from "@/lib/utils";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
@@ -68,7 +69,7 @@ export function TaskChatBubble({ item }: TaskChatBubbleProps) {
       </div>
       {item.optimistic ? (
         <span className="px-1 text-(length:--text-micro) text-muted-foreground">
-          {item.optimistic === "queued" ? "Queued" : "Sending…"}
+          {item.optimistic === "queued" ? "Queued" : t("components.documentAnnotation.sending")}
         </span>
       ) : item.timestamp ? (
         <span className="px-1 text-(length:--text-micro) text-muted-foreground opacity-0 transition-opacity group-hover:opacity-100">

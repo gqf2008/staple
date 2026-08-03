@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect } from "react";
 import { Link, useLocation } from "@/lib/router";
 import { AlertTriangle, Compass } from "lucide-react";
@@ -19,7 +20,7 @@ export function NotFoundPage({ scope = "global", requestedPrefix }: NotFoundPage
   const { companies, selectedCompany } = useCompany();
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Not Found" }]);
+    setBreadcrumbs([{ label: t("ui.pages.notfound.not-found") }]);
   }, [setBreadcrumbs]);
 
   const fallbackCompany = selectedCompany ?? companies[0] ?? null;
@@ -27,11 +28,11 @@ export function NotFoundPage({ scope = "global", requestedPrefix }: NotFoundPage
   const currentPath = `${location.pathname}${location.search}${location.hash}`;
   const normalizedPrefix = requestedPrefix?.toUpperCase();
 
-  const title = scope === "invalid_company_prefix" ? "Company not found" : "Page not found";
+  const title = scope === "invalid_company_prefix" ? t("ui.pages.notfound.company-not-found") : t("ui.pages.notfound.page-not-found");
   const description =
     scope === "invalid_company_prefix"
       ? `No company matches prefix "${normalizedPrefix ?? "unknown"}".`
-      : "This route does not exist.";
+      : t("ui.pages.notfound.route-does-not-exist");
 
   return (
     <div className="mx-auto max-w-2xl py-10">
@@ -47,18 +48,17 @@ export function NotFoundPage({ scope = "global", requestedPrefix }: NotFoundPage
         </div>
 
         <div className="mt-4 rounded-md border border-border bg-muted/20 px-3 py-2 text-xs text-muted-foreground">
-          Requested path: <code className="font-mono">{currentPath}</code>
+          {t("ui.pages.notfound.requested-path")}<code className="font-mono">{currentPath}</code>
         </div>
 
         <div className="mt-5 flex flex-wrap gap-2">
           <Button asChild>
             <Link to={dashboardHref}>
               <Compass className="mr-1.5 h-4 w-4" />
-              Open dashboard
-            </Link>
+              {t("ui.pages.notfound.open-dashboard")}</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link to="/">Go home</Link>
+            <Link to="/">{t("ui.pages.notfound.go-home")}</Link>
           </Button>
         </div>
       </Card>

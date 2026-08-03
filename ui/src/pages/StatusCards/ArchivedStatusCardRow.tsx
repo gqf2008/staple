@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import { Loader2 } from "lucide-react";
 
@@ -36,7 +37,7 @@ export function ArchivedStatusCardRow({
       <div className="min-w-0">
         <p className="truncate text-sm font-semibold">{card.title ?? "Untitled card"}</p>
         <p className="mt-0.5 text-xs text-muted-foreground" title={card.archivedAt ? formatDateTime(card.archivedAt) : undefined}>
-          archived {shortDate(card.archivedAt)} · last summary {shortDate(card.lastGeneratedAt)}
+          archived {shortDate(card.archivedAt)} {t("ui.pages.statuscards.archivedstatuscardrow.last-summary")}{shortDate(card.lastGeneratedAt)}
           {rollup ? ` · lifetime ${formatTokens(rollup.totalTokens)} / ${formatCents(rollup.totalCostCents)}` : ""}
         </p>
       </div>
@@ -45,12 +46,10 @@ export function ArchivedStatusCardRow({
           stale and never auto-runs. */}
       <div className="flex shrink-0 gap-2">
         <Button size="sm" onClick={onView}>
-          View
-        </Button>
+          {t("components.builtInBundle.view")}</Button>
         <Button variant="outline" size="sm" onClick={onRestore} disabled={restorePending}>
           {restorePending ? <Loader2 className="animate-spin" /> : null}
-          Restore
-        </Button>
+          {t("components.routineList.restore")}</Button>
       </div>
     </div>
   );

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from "react";
 import type { Agent } from "@paperclipai/shared";
 import {
@@ -51,7 +52,7 @@ export function ReportsToPicker({
           {unknownManager ? (
             <>
               <User className="h-3 w-3 shrink-0 text-muted-foreground" />
-              <span className="min-w-0 truncate text-muted-foreground">Unknown manager (stale ID)</span>
+              <span className="min-w-0 truncate text-muted-foreground">{t("ui.components.reportstopicker.unknown-manager-stale-id")}</span>
             </>
           ) : current ? (
             <>
@@ -62,7 +63,7 @@ export function ReportsToPicker({
                   terminatedManager && "text-amber-900 dark:text-amber-200",
                 )}
               >
-                {`Reports to ${current.name}${terminatedManager ? " (terminated)" : ""}`}
+                {`Reports to ${current.name}${terminatedManager ? t("ui.components.reportstopicker.terminated.2") : ""}`}
               </span>
             </>
           ) : (
@@ -87,20 +88,17 @@ export function ReportsToPicker({
             setOpen(false);
           }}
         >
-          No manager
-        </button>
+          {t("ui.components.reportstopicker.no-manager")}</button>
         {terminatedManager && (
           <div className="flex min-w-0 items-center gap-2 overflow-hidden px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-0.5">
             <AgentIcon icon={current.icon} className="shrink-0 h-3 w-3" />
             <span className="min-w-0 truncate">
-              Current: {current.name} (terminated)
-            </span>
+              {t("ui.components.issueworkspacecard.current")}{current.name} {t("ui.components.reportstopicker.terminated")}</span>
           </div>
         )}
         {unknownManager && (
           <div className="px-2 py-1.5 text-xs text-muted-foreground border-b border-border mb-0.5">
-            Saved manager is missing from this company. Choose a new manager or clear.
-          </div>
+            {t("ui.components.reportstopicker.saved-manager-missing-from")}</div>
         )}
         {rows.map((a) => (
           <button

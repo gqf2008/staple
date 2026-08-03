@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { OnboardingWizard } from "./OnboardingWizard";
 
 /**

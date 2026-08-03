@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useState, type ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { Check, ChevronRight, X } from "lucide-react";
@@ -21,7 +22,7 @@ export function turnSummaryMetrics(summary: TaskChatTurnItem["summary"]): string
 /** "✓ Worked · 38s · 3 tools · +34 −3 · 12.3k tokens" (parts omitted when unknown). */
 export function turnSummaryText(summary: TaskChatTurnItem["summary"]): string {
   const metrics = turnSummaryMetrics(summary);
-  const label = summary.failed ? "Stopped" : "Worked";
+  const label = summary.failed ? t("components.workspaceServiceControlBar.stopped") : t("components.issueChatThread.worked");
   return metrics ? `${label} · ${metrics}` : label;
 }
 
@@ -63,7 +64,7 @@ export function TaskChatTurn({ item, renderChild }: TaskChatTurnProps) {
           data-testid="task-chat-turn-summary"
         >
           <SummaryIcon className="h-3.5 w-3.5 shrink-0" />
-          <span>{item.summary.failed ? "Stopped" : "Worked"}</span>
+          <span>{item.summary.failed ? "Stopped" : t("components.issueChatThread.worked")}</span>
           {turnSummaryMetrics(item.summary) ? (
             <span className="font-mono text-(length:--text-micro)">{turnSummaryMetrics(item.summary)}</span>
           ) : null}

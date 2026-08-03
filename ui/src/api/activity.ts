@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ActivityEvent, RunLivenessState } from "@paperclipai/shared";
 import { api, type RequestOptions } from "./client";
 

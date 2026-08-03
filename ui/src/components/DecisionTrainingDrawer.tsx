@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Clock,
@@ -42,7 +43,7 @@ import {
 } from "./ui/alert-dialog";
 
 const NOTES_PLACEHOLDER =
-  "How you thought about it, what signals mattered, what you decided and why…";
+  t("components.decisionTraining.hint", { defaultValue: "How you thought about it, what signals mattered, what you decided and why…" });
 
 interface DecisionTrainingDrawerProps {
   open: boolean;
@@ -87,19 +88,18 @@ export function DecisionTrainingDrawer({
         <SheetHeader className="border-b border-border">
           <SheetTitle className="flex items-center gap-2">
             <GraduationCap className="size-4 text-muted-foreground" />
-            {savedExampleId ? "Training example" : "Train this decision"}
+            {savedExampleId ? t("components.decisionTraining.title", { defaultValue: "Training example" }) : t("components.decisionTraining.trainDecision", { defaultValue: "Train this decision" })}
           </SheetTitle>
           <SheetDescription>
             {savedExampleId
-              ? "The frozen state is read-only; your notes stay editable."
-              : "Freeze this decision's state and record how you'd want it decided."}
+              ? t("ui.components.decisiontrainingdrawer.frozen-state-read-only")
+              : t("components.decisionTraining.trainHint", { defaultValue: "Freeze this decision's state and record how you'd want it decided." })}
           </SheetDescription>
         </SheetHeader>
 
         {!item || !target ? (
           <div className="p-4 text-sm text-muted-foreground">
-            This decision can't be trained — it isn't anchored to an issue.
-          </div>
+            {t("ui.components.decisiontrainingdrawer.decision-can-trained-isn")}</div>
         ) : savedExampleId ? (
           <SavedState
             exampleId={savedExampleId}
@@ -152,13 +152,13 @@ function CreateState({
     onSuccess: (example) => {
       queryClient.invalidateQueries({ queryKey: queryKeys.attention(companyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.decisionTraining.list(companyId) });
-      pushToast({ title: "Decision trained", tone: "success" });
+      pushToast({ title: t("components.decisionTraining.trained", { defaultValue: "Decision trained" }), tone: "success" });
       onCreated(example);
     },
     onError: (error) => {
       pushToast({
-        title: "Could not train this decision",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("components.decisionTraining.trainFailed", { defaultValue: "Could not train this decision" }),
+        body: error instanceof Error ? error.message : t("components.decisionTraining.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });
     },
@@ -171,8 +171,7 @@ function CreateState({
 
         <section className="space-y-2">
           <label htmlFor="training-notes" className="text-sm font-medium text-foreground">
-            Your notes
-          </label>
+            {t("ui.components.decisiontrainingdrawer.your-notes")}</label>
           <Textarea
             id="training-notes"
             value={notes}
@@ -183,7 +182,7 @@ function CreateState({
         </section>
 
         <SnapshotPreview
-          heading="State frozen with this example"
+          heading={t("components.decisionTraining.stateFrozen", { defaultValue: "State frozen with this example" })}
           snapshot={preview.data?.snapshot ?? null}
           cutoffAt={preview.data?.cutoffAt ?? null}
           loading={preview.isLoading}
@@ -193,12 +192,10 @@ function CreateState({
 
       <div className="flex items-center justify-end gap-2 border-t border-border p-4">
         <Button variant="ghost" onClick={onCancel} disabled={create.isPending}>
-          Cancel
-        </Button>
+          {t("common.cancel")}</Button>
         <Button onClick={() => create.mutate()} disabled={create.isPending || preview.isError}>
           {create.isPending && <Loader2 className="size-4 animate-spin" />}
-          Save example
-        </Button>
+          {t("ui.components.decisiontrainingdrawer.save-example")}</Button>
       </div>
     </div>
   );
@@ -230,13 +227,13 @@ function SavedState({
     onSuccess: (updated) => {
       queryClient.setQueryData(queryKeys.decisionTraining.detail(exampleId), updated);
       queryClient.invalidateQueries({ queryKey: queryKeys.decisionTraining.list(companyId) });
-      pushToast({ title: "Notes updated", tone: "success" });
+      pushToast({ title: t("components.decisionTraining.notesUpdated", { defaultValue: "Notes updated" }), tone: "success" });
       setEditing(false);
     },
     onError: (error) => {
       pushToast({
-        title: "Could not update notes",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("components.decisionTraining.notesUpdateFailed", { defaultValue: "Could not update notes" }),
+        body: error instanceof Error ? error.message : t("components.decisionTraining.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });
     },
@@ -247,13 +244,13 @@ function SavedState({
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.attention(companyId) });
       queryClient.invalidateQueries({ queryKey: queryKeys.decisionTraining.list(companyId) });
-      pushToast({ title: "Training example deleted", tone: "info" });
+      pushToast({ title: t("components.decisionTraining.exampleDeleted", { defaultValue: "Training example deleted" }), tone: "info" });
       onDeleted();
     },
     onError: (error) => {
       pushToast({
-        title: "Could not delete example",
-        body: error instanceof Error ? error.message : "Please try again.",
+        title: t("components.decisionTraining.exampleDeleteFailed", { defaultValue: "Could not delete example" }),
+        body: error instanceof Error ? error.message : t("components.decisionTraining.tryAgain", { defaultValue: "Please try again." }),
         tone: "error",
       });
     },
@@ -262,14 +259,13 @@ function SavedState({
   if (example.isLoading) {
     return (
       <div className="flex flex-1 items-center justify-center p-4 text-sm text-muted-foreground">
-        <Loader2 className="mr-2 size-4 animate-spin" /> Loading example…
-      </div>
+        <Loader2 className="mr-2 size-4 animate-spin" /> {t("ui.components.decisiontrainingdrawer.loading-example")}</div>
     );
   }
   if (example.isError || !example.data) {
     return (
       <div className="p-4 text-sm text-destructive">
-        {example.isError ? (example.error as Error).message : "Example not found."}
+        {example.isError ? (example.error as Error).message : t("components.decisionTraining.exampleNotFound", { defaultValue: "Example not found." })}
       </div>
     );
   }
@@ -277,7 +273,7 @@ function SavedState({
   const record = example.data;
   const edited = record.updatedAt !== record.createdAt;
   const authorLabel = currentUserId && record.createdByUserId === currentUserId
-    ? "You"
+    ? t("components.decisionTraining.you", { defaultValue: "You" })
     : `User ${record.createdByUserId.slice(0, 8)}`;
 
   const startEditing = () => {
@@ -296,13 +292,13 @@ function SavedState({
           <span className="font-medium text-foreground">{authorLabel}</span>
           <span>·</span>
           <span title={new Date(record.createdAt).toLocaleString()}>
-            Created {relativeTime(record.createdAt)}
+            {t("components.agentProperties.created")}{relativeTime(record.createdAt)}
           </span>
           {edited && (
             <>
               <span>·</span>
               <span title={new Date(record.updatedAt).toLocaleString()}>
-                Edited {relativeTime(record.updatedAt)}
+                {t("pages.training.edited")}{relativeTime(record.updatedAt)}
               </span>
             </>
           )}
@@ -311,11 +307,10 @@ function SavedState({
         {/* Notes — the one editable surface */}
         <section className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium text-foreground">Notes</span>
+            <span className="text-sm font-medium text-foreground">{t("components.decisionTraining.notes", { defaultValue: "Notes" })}</span>
             {!editing && (
               <Button variant="ghost" size="xs" onClick={startEditing}>
-                <Pencil className="size-3.5" /> Edit
-              </Button>
+                <Pencil className="size-3.5" /> {t("components.issueProperties.edit")}</Button>
             )}
           </div>
           {editing ? (
@@ -328,18 +323,16 @@ function SavedState({
               />
               <div className="flex justify-end gap-2">
                 <Button variant="ghost" size="sm" onClick={() => setEditing(false)} disabled={saveNotes.isPending}>
-                  Cancel
-                </Button>
+                  {t("common.cancel")}</Button>
                 <Button size="sm" onClick={() => saveNotes.mutate()} disabled={saveNotes.isPending}>
                   {saveNotes.isPending && <Loader2 className="size-4 animate-spin" />}
-                  Save notes
-                </Button>
+                  {t("pages.training.saveNotes")}</Button>
               </div>
             </div>
           ) : record.notes ? (
             <p className="whitespace-pre-wrap text-sm text-foreground">{record.notes}</p>
           ) : (
-            <p className="text-sm italic text-muted-foreground">No notes yet.</p>
+            <p className="text-sm italic text-muted-foreground">{t("components.decisionTraining.noNotes", { defaultValue: "No notes yet." })}</p>
           )}
           {record.notesHistory.length > 0 && (
             <p className="text-(length:--text-nano) text-muted-foreground">
@@ -349,7 +342,7 @@ function SavedState({
         </section>
 
         <SnapshotPreview
-          heading="Frozen state"
+          heading={t("components.decisionTraining.frozenState", { defaultValue: "Frozen state" })}
           snapshot={record.snapshot}
           cutoffAt={record.cutoffAt}
           readOnly
@@ -362,32 +355,28 @@ function SavedState({
           <AlertDialogTrigger asChild>
             <Button variant="ghost" size="sm" className="text-destructive hover:text-destructive" disabled={remove.isPending}>
               {remove.isPending ? <Loader2 className="size-4 animate-spin" /> : <Trash2 className="size-4" />}
-              Delete
-            </Button>
+              {t("common.delete")}</Button>
           </AlertDialogTrigger>
           <AlertDialogContent>
             <AlertDialogHeader>
-              <AlertDialogTitle>Delete this training example?</AlertDialogTitle>
+              <AlertDialogTitle>{t("components.decisionTraining.deleteConfirm", { defaultValue: "Delete this training example?" })}</AlertDialogTitle>
               <AlertDialogDescription>
-                This removes the frozen snapshot and your notes. This can't be undone.
-              </AlertDialogDescription>
+                {t("ui.components.decisiontrainingdrawer.removes-frozen-snapshot-your")}</AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel>{t("components.decisionTraining.cancel", { defaultValue: "Cancel" })}</AlertDialogCancel>
               <AlertDialogAction
                 className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                 onClick={() => remove.mutate()}
               >
-                Delete
-              </AlertDialogAction>
+                {t("common.delete")}</AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
 
         <Button asChild variant="outline" size="sm">
           <Link to={decisionTrainingHref(record.id)}>
-            Open full record
-            <ExternalLink className="size-3.5" />
+            {t("ui.components.decisiontrainingdrawer.open-full-record")}<ExternalLink className="size-3.5" />
           </Link>
         </Button>
       </div>
@@ -400,11 +389,10 @@ function DecisionContext({ item, outcome }: { item: AttentionItem; outcome: stri
   return (
     <section className="space-y-1 rounded-md border border-border bg-muted/30 px-3 py-2" data-testid="training-context">
       <p className="text-(length:--text-nano) font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-        Decision
-      </p>
-      <p className="line-clamp-2 text-sm font-medium text-foreground">{item.subject.title ?? "Decision"}</p>
+        {t("components.decisionTraining.decision")}</p>
+      <p className="line-clamp-2 text-sm font-medium text-foreground">{item.subject.title ?? t("components.decisionTraining.decision", { defaultValue: "Decision" })}</p>
       <p className="text-xs text-muted-foreground">
-        {outcome ? `Resolved · ${outcome}` : "Decision pending — cutoff will be now"}
+        {outcome ? `Resolved · ${outcome}` : t("components.decisionTraining.cutoffNow", { defaultValue: "Decision pending — cutoff will be now" })}
       </p>
     </section>
   );
@@ -438,15 +426,13 @@ function SnapshotPreview({
         <span className="text-sm font-medium text-foreground">{heading}</span>
         {readOnly && (
           <span className="inline-flex items-center gap-1 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-            <Lock className="size-3" /> Read-only
-          </span>
+            <Lock className="size-3" /> {t("pages.tools.pasteConfig.readOnly")}</span>
         )}
       </div>
 
       {loading && (
         <p className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="size-4 animate-spin" /> Capturing current state…
-        </p>
+          <Loader2 className="size-4 animate-spin" /> {t("ui.components.decisiontrainingdrawer.capturing-current-state")}</p>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}
 
@@ -454,29 +440,29 @@ function SnapshotPreview({
         <div className="divide-y divide-border rounded-md border border-border">
           <SnapshotRow
             icon={<Clock className="size-4" />}
-            label="Cutoff"
+            label={t("components.decisionTraining.cutoff", { defaultValue: "Cutoff" })}
             value={cutoffAt ? new Date(cutoffAt).toLocaleString() : "now"}
             href={exampleId ? decisionTrainingHref(exampleId) : undefined}
           />
           <SnapshotRow
             icon={<MessageSquare className="size-4" />}
-            label="Comments"
+            label={t("components.decisionTraining.comments", { defaultValue: "Comments" })}
             value={
               snapshot.cutoff.commentCount === 0
-                ? "None before cutoff"
+                ? t("components.decisionTraining.noneBeforeCutoff", { defaultValue: "None before cutoff" })
                 : `${snapshot.cutoff.commentCount} · last ${snapshot.cutoff.lastCommentId?.slice(0, 8) ?? "—"}`
             }
             href={exampleId ? decisionTrainingHref(exampleId) : undefined}
           />
           <SnapshotRow
             icon={<Play className="size-4" />}
-            label="Runs"
-            value={snapshot.runs.length === 0 ? "None before cutoff" : `${snapshot.runs.length} before cutoff`}
+            label={t("components.decisionTraining.runs", { defaultValue: "Runs" })}
+            value={snapshot.runs.length === 0 ? t("components.decisionTraining.noneBeforeCutoff", { defaultValue: "None before cutoff" }) : `${snapshot.runs.length} before cutoff`}
             href={exampleId ? decisionTrainingHref(exampleId) : undefined}
           />
           <SnapshotRow
             icon={<GitCommitHorizontal className="size-4" />}
-            label="Commit"
+            label={t("components.decisionTraining.commit", { defaultValue: "Commit" })}
             value={
               snapshot.code.commitSha
                 ? `${snapshot.code.commitSha.slice(0, 10)} · ${codeResolutionLabel(snapshot.code.resolution)}`
@@ -513,8 +499,7 @@ function SnapshotRow({
           to={href}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground"
         >
-          <FileText className="size-3.5" /> View
-        </Link>
+          <FileText className="size-3.5" /> {t("components.builtInBundle.view")}</Link>
       )}
     </div>
   );

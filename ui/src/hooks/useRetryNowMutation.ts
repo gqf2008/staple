@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback } from "react";
 import { useMutation, useQueryClient, type UseMutationResult } from "@tanstack/react-query";
 import type { IssueRetryNowOutcome, IssueRetryNowResponse } from "@paperclipai/shared";
@@ -18,14 +19,14 @@ function readErrorMessage(error: unknown): string {
     return `Request failed (${error.status})`;
   }
   if (error instanceof Error && error.message) return error.message;
-  return "The request failed. Try again in a moment.";
+  return t("ui.hooks.useretrynowmutation.request-failed-try-again");
 }
 
 export const RETRY_NOW_OUTCOME_HEADLINE: Record<IssueRetryNowOutcome, string> = {
-  promoted: "Retry promoted",
-  already_promoted: "Retry already running",
-  no_scheduled_retry: "No scheduled retry",
-  gate_suppressed: "Couldn't retry now",
+  promoted: t("ui.hooks.useretrynowmutation.retry-promoted"),
+  already_promoted: t("ui.hooks.useretrynowmutation.retry-already-running"),
+  no_scheduled_retry: t("ui.hooks.useretrynowmutation.no-scheduled-retry"),
+  gate_suppressed: t("components.issueScheduledRetry.retryFailed"),
 };
 
 export function useRetryNowMutation(
@@ -65,7 +66,7 @@ export function useRetryNowMutation(
     },
     onError: (error) => {
       pushToast({
-        title: "Couldn't retry now",
+        title: t("components.issueScheduledRetry.retryFailed"),
         body: readErrorMessage(error),
         tone: "error",
       });

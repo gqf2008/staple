@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useState } from "react";
 import type { IssueBlockerAttention } from "@paperclipai/shared";
 import { cn } from "../lib/utils";
@@ -29,7 +30,7 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
       return `Blocked · waiting on active sub-task ${blockerAttention.sampleBlockerIdentifier}`;
     }
-    if (count === 1) return "Blocked · waiting on 1 active sub-task";
+    if (count === 1) return t("ui.components.statusicon.blocked-waiting-active-sub");
     return `Blocked · waiting on ${count} active sub-tasks`;
   }
 
@@ -38,7 +39,7 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
       return `Blocked · covered by active dependency ${blockerAttention.sampleBlockerIdentifier}`;
     }
-    if (count === 1) return "Blocked · covered by 1 active dependency";
+    if (count === 1) return t("ui.components.statusicon.blocked-covered-active-dependency");
     return `Blocked · covered by ${count} active dependencies`;
   }
 
@@ -46,13 +47,13 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     const count = blockerAttention.stalledBlockerCount;
     const leaf = blockerAttention.sampleStalledBlockerIdentifier ?? blockerAttention.sampleBlockerIdentifier;
     if (count === 1 && leaf) return `Blocked · review stalled on ${leaf}`;
-    if (count === 1) return "Blocked · review stalled with no clear next step";
+    if (count === 1) return t("ui.components.statusicon.blocked-review-stalled-no");
     return `Blocked · ${count} reviews stalled with no clear next step`;
   }
 
   if (blockerAttention.reason === "attention_required") {
     const count = blockerAttention.attentionBlockerCount || blockerAttention.unresolvedBlockerCount;
-    const attentionCopy = `${count} ${count === 1 ? "blocker needs" : "blockers need"} attention`;
+    const attentionCopy = `${count} ${count === 1 ? t("ui.components.statusicon.blocker-needs") : t("ui.components.statusicon.blockers-need")} attention`;
     const coveredCount = blockerAttention.coveredBlockerCount;
     if (coveredCount > 0) {
       return `Blocked · ${attentionCopy}; ${coveredCount} covered by active work`;

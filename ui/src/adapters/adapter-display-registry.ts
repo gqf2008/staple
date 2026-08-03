@@ -5,6 +5,7 @@
  * adapters get sensible defaults derived from their type string via
  * `getAdapterDisplay()`.
  */
+import { t } from "../i18n";
 import type { ComponentType } from "react";
 import {
   Bot,
@@ -60,44 +61,44 @@ export interface AdapterDisplayInfo {
 
 const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   acpx_local: {
-    label: "ACPX (retired)",
-    description: "Retired standalone ACPX adapter",
+    label: t("ui.adapters.adapter-display-registry.acpx-retired"),
+    description: t("ui.adapters.adapter-display-registry.retired-standalone-acpx-adapter"),
     icon: Bot,
     comingSoon: true,
-    disabledLabel: "Use Claude Code or Codex with the ACP engine",
+    disabledLabel: t("ui.adapters.adapter-display-registry.use-claude-code-codex"),
     hideFromVisualSelection: true,
   },
   claude_local: {
-    label: "Claude Code",
-    description: "Claude Code CLI harness",
+    label: t("pages.inviteUxLab.claudeCode"),
+    description: t("ui.adapters.adapter-display-registry.claude-code-cli-harness"),
     icon: Sparkles,
     recommended: true,
   },
   codex_local: {
-    label: "Codex",
-    description: "Codex CLI harness",
+    label: t("pages.inviteUxLab.codex"),
+    description: t("ui.adapters.adapter-display-registry.codex-cli-harness"),
     icon: Code,
     recommended: true,
   },
   gemini_local: {
-    label: "Gemini CLI",
-    description: "Gemini CLI harness",
+    label: t("components.geminiConfig.geminiCli"),
+    description: t("ui.adapters.adapter-display-registry.gemini-cli-harness"),
     icon: Gem,
   },
   grok_local: {
-    label: "Grok Build",
-    description: "Grok Build harness",
+    label: t("ui.adapters.adapter-display-registry.grok-build"),
+    description: t("ui.adapters.adapter-display-registry.grok-build-harness"),
     icon: Bot,
   },
   hermes_gateway: {
-    label: "Hermes Gateway",
-    description: "Remote Hermes API server",
+    label: t("ui.adapters.adapter-display-registry.hermes-gateway"),
+    description: t("ui.adapters.adapter-display-registry.remote-hermes-api-server"),
     icon: Bot,
     hideFromVisualSelection: true,
   },
   hermes_local: {
-    label: "Hermes",
-    description: "Hermes harness",
+    label: t("ui.adapters.adapter-display-registry.hermes"),
+    description: t("ui.adapters.adapter-display-registry.hermes-harness"),
     icon: Bot,
   },
   opencode_local: {
@@ -107,36 +108,36 @@ const adapterDisplayMap: Record<string, AdapterDisplayInfo> = {
   },
   pi_local: {
     label: "Pi",
-    description: "Pi harness",
+    description: t("ui.adapters.adapter-display-registry.pi-harness"),
     icon: Terminal,
   },
   cursor: {
-    label: "Cursor",
-    description: "Cursor CLI harness",
+    label: t("pages.inviteUxLab.cursor"),
+    description: t("ui.adapters.adapter-display-registry.cursor-cli-harness"),
     icon: MousePointer2,
   },
   cursor_cloud: {
-    label: "Cursor Cloud",
-    description: "Managed remote Cursor agent",
+    label: t("ui.adapters.adapter-display-registry.cursor-cloud"),
+    description: t("ui.adapters.adapter-display-registry.managed-remote-cursor-agent"),
     icon: MousePointer2,
   },
   openclaw_gateway: {
     label: "OpenClaw Gateway",
-    description: "External gateway adapter",
+    description: t("ui.adapters.adapter-display-registry.external-gateway-adapter"),
     icon: Bot,
     comingSoon: true,
-    disabledLabel: "Invite external agents from the add-agent modal",
+    disabledLabel: t("ui.adapters.adapter-display-registry.invite-external-agents-from"),
     hideFromVisualSelection: true,
   },
   process: {
-    label: "Process",
-    description: "Internal process adapter",
+    label: t("ui.adapters.adapter-display-registry.process"),
+    description: t("ui.adapters.adapter-display-registry.internal-process-adapter"),
     icon: Cpu,
     comingSoon: true,
   },
   http: {
-    label: "HTTP",
-    description: "Internal HTTP adapter",
+    label: t("ui.adapters.adapter-display-registry.http"),
+    description: t("ui.adapters.adapter-display-registry.internal-http-adapter"),
     icon: Cpu,
     comingSoon: true,
   },
@@ -183,7 +184,7 @@ export function getAdapterDisplay(type: string): AdapterDisplayInfo {
   const label = withSuffix(humanizeType(type), suffix);
   return {
     label,
-    description: suffix ? `External ${suffix} adapter` : "External adapter",
+    description: suffix ? `External ${suffix} adapter` : t("ui.adapters.adapter-display-registry.external-adapter"),
     icon: Cpu,
   };
 }

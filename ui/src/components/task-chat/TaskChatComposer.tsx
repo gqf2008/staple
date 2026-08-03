@@ -8,6 +8,7 @@ import {
   type DragEvent as ReactDragEvent,
 } from "react";
 import { cn } from "@/lib/utils";
+import { t } from "../../i18n";
 import { AlertTriangle, ArrowUp, Check, ChevronDown, Loader2, Plus } from "lucide-react";
 import {
   DropdownMenu,
@@ -50,13 +51,13 @@ const MODE_HUE: Partial<Record<IssueWorkMode, string>> = {
 };
 
 function modeHue(mode: IssueWorkMode): string {
-  return MODE_HUE[mode] ?? "var(--tc-mode-agent)";
+  return MODE_HUE[mode] ?? t("ui.components.task-chat.taskchatcomposer.fallback-var-tc-mode-agent");
 }
 
 const MODE_DESCRIPTION: Partial<Record<IssueWorkMode, string>> = {
-  standard: "Make changes and run work",
-  planning: "Draft a plan before acting",
-  ask: "Answer questions only, no changes",
+  standard: t("components.taskChatComposer.standardMode", { defaultValue: "Make changes and run work" }),
+  planning: t("components.taskChatComposer.planMode", { defaultValue: "Draft a plan before acting" }),
+  ask: t("components.taskChatComposer.askMode", { defaultValue: "Answer questions only, no changes" }),
 };
 
 /** v7 per-mode placeholder copy; `{agent}` is the pending assignee's name. */
@@ -100,7 +101,7 @@ function parseAssigneeValue(value: string): CommentReassignment | undefined {
 }
 
 function hasFilePayload(evt: ReactDragEvent<HTMLDivElement>) {
-  return Array.from(evt.dataTransfer?.types ?? []).includes("Files");
+  return Array.from(evt.dataTransfer?.types ?? []).includes(t("components.taskChatComposer.files", { defaultValue: "Files" }));
 }
 
 /**
@@ -156,8 +157,8 @@ export function TaskChatComposer({
   const showAssignee = Boolean(enableReassign && reassignOptions && reassignOptions.length > 0);
   const assigneeValue = pendingAssignee ?? currentAssigneeValue;
   const assigneeLabel =
-    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? "Unassigned";
-  const assigneeName = assigneeLabel === "Unassigned" ? "the agent" : assigneeLabel;
+    reassignOptions?.find((o) => o.id === assigneeValue)?.label ?? t("components.taskChatComposer.unassigned", { defaultValue: "Unassigned" });
+  const assigneeName = assigneeLabel === t("components.taskChatComposer.unassigned", { defaultValue: "Unassigned" }) ? t("ui.components.task-chat.taskchatcomposer.agent") : assigneeLabel;
   const effectivePlaceholder = placeholder ?? modePlaceholder(pendingMode, assigneeName);
 
   function insertReference(name: string, url: string, asImage: boolean) {
@@ -197,7 +198,7 @@ export function TaskChatComposer({
         setAttachments((prev) =>
           prev.map((item) =>
             item.id === id
-              ? { ...item, status: "error", error: "This file type cannot be attached here" }
+              ? { ...item, status: "error", error: t("components.taskChatComposer.fileTypeBlocked", { defaultValue: "This file type cannot be attached here" }) }
               : item,
           ),
         );
@@ -206,7 +207,7 @@ export function TaskChatComposer({
       setAttachments((prev) =>
         prev.map((item) =>
           item.id === id
-            ? { ...item, status: "error", error: err instanceof Error ? err.message : "Upload failed" }
+            ? { ...item, status: "error", error: err instanceof Error ? err.message : t("components.taskChatComposer.uploadFailed", { defaultValue: "Upload failed" }) }
             : item,
         ),
       );
@@ -318,7 +319,7 @@ export function TaskChatComposer({
         }}
         onPaste={handlePaste}
         disabled={disabled}
-        placeholder={disabled ? (disabledReason ?? "Composer disabled") : effectivePlaceholder}
+        placeholder={disabled ? (disabledReason ?? t("components.taskChatComposer.composerDisabled", { defaultValue: "Composer disabled" })) : effectivePlaceholder}
         rows={2}
         className="w-full resize-none bg-transparent px-1 py-1 text-sm outline-none placeholder:text-muted-foreground disabled:opacity-60"
         data-testid="task-chat-composer-input"
@@ -354,10 +355,10 @@ export function TaskChatComposer({
               <span className="shrink-0">
                 ·{" "}
                 {attachment.status === "uploading"
-                  ? "Uploading…"
+                  ? t("components.taskChatComposer.uploading", { defaultValue: "Uploading…" })
                   : attachment.status === "error"
-                    ? (attachment.error ?? "Upload failed")
-                    : "Attached"}
+                    ? (attachment.error ?? t("components.taskChatComposer.uploadFailed", { defaultValue: "Upload failed" }))
+                    : t("components.taskChatComposer.attached", { defaultValue: "Attached" })}
               </span>
             </span>
           ))}
@@ -378,8 +379,8 @@ export function TaskChatComposer({
               type="button"
               onClick={() => fileInputRef.current?.click()}
               disabled={disabled}
-              title="Attach file"
-              aria-label="Attach file"
+              title={t("components.taskChatComposer.attachFile", { defaultValue: "Attach file" })}
+              aria-label={t("components.taskChatComposer.attachFile", { defaultValue: "Attach file" })}
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-50"
               data-testid="task-chat-composer-attach"
             >
@@ -458,8 +459,8 @@ export function TaskChatComposer({
           type="button"
           onClick={() => void submit()}
           disabled={disabled || submitting || body.trim().length === 0}
-          title="Send (⌘+Enter)"
-          aria-label="Send"
+          title={t("ui.components.task-chat.taskchatcomposer.send-enter")}
+          aria-label={t("components.taskChatComposer.send", { defaultValue: "Send" })}
           className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md bg-primary text-primary-foreground transition-transform hover:scale-105 disabled:scale-100 disabled:bg-muted disabled:text-muted-foreground"
           data-testid="task-chat-composer-send"
         >

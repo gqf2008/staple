@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   AttentionDetailImage,
   AttentionFeed,
@@ -40,17 +41,17 @@ interface SourceMeta {
 }
 
 const SOURCE_META: Record<AttentionSourceKind, SourceMeta> = {
-  approval: { label: "Approval" },
-  decision: { label: "Decision" },
-  issue_thread_interaction: { label: "Decision requested" },
-  join_request: { label: "Join request" },
-  recovery_action: { label: "Recovery" },
-  productivity_review: { label: "Productivity review" },
-  blocker_attention: { label: "Blocked dependency" },
+  approval: { label: t("components.issueProperties.approval") },
+  decision: { label: t("components.decisionTraining.decision") },
+  issue_thread_interaction: { label: t("ui.lib.attention.decision-requested") },
+  join_request: { label: t("pages.companyInvites.joinRequest") },
+  recovery_action: { label: t("ui.lib.attention.recovery") },
+  productivity_review: { label: t("components.productivityReviewBadge.productivityReview") },
+  blocker_attention: { label: t("ui.lib.attention.blocked-dependency") },
   review: { label: "Review" },
-  failed_run: { label: "Failed run" },
-  budget_alert: { label: "Budget" },
-  agent_error_alert: { label: "Agent error" },
+  failed_run: { label: t("ui.lib.attention.failed-run") },
+  budget_alert: { label: t("components.budgetPolicy.budget") },
+  agent_error_alert: { label: t("ui.lib.attention.agent-error") },
 };
 
 export function sourceMeta(kind: AttentionSourceKind): SourceMeta {
@@ -65,9 +66,9 @@ interface SeverityStyle {
 }
 
 const SEVERITY_STYLE: Record<AttentionSeverity, SeverityStyle> = {
-  critical: { accent: "bg-red-500", dot: "bg-red-500", label: "Critical" },
-  high: { accent: "bg-orange-500", dot: "bg-orange-500", label: "High" },
-  medium: { accent: "bg-yellow-500", dot: "bg-yellow-500", label: "Medium" },
+  critical: { accent: "bg-red-500", dot: "bg-red-500", label: t("pages.designGuide.critical") },
+  high: { accent: "bg-orange-500", dot: "bg-orange-500", label: t("components.agentConfigForm.high") },
+  medium: { accent: "bg-yellow-500", dot: "bg-yellow-500", label: t("components.agentConfigForm.medium") },
   low: { accent: "bg-blue-500", dot: "bg-blue-500", label: "Low" },
 };
 
@@ -468,12 +469,12 @@ export const ATTENTION_GROUP_BY_OPTIONS: ReadonlyArray<[AttentionGroupBy, string
   ["date", "Date"],
   ["type", "Type"],
   ["project", "Project"],
-  ["severity", "Severity"],
+  ["severity", t("pages.decisions.severity")],
 ];
 
 export const ATTENTION_SORT_OPTIONS: ReadonlyArray<[AttentionSortOrder, string]> = [
-  ["newest", "Newest first"],
-  ["oldest", "Oldest first"],
+  ["newest", t("ui.lib.attention.newest-first")],
+  ["oldest", t("ui.lib.attention.oldest-first")],
 ];
 
 /**
@@ -753,10 +754,10 @@ const DATE_BUCKET_ORDER = ["today", "yesterday", "this_week", "earlier"] as cons
 type DateBucket = (typeof DATE_BUCKET_ORDER)[number];
 
 const DATE_BUCKET_LABELS: Record<DateBucket, string> = {
-  today: "Today",
-  yesterday: "Yesterday",
-  this_week: "This week",
-  earlier: "Earlier",
+  today: t("pages.timeline.today"),
+  yesterday: t("ui.lib.attention.yesterday"),
+  this_week: t("ui.lib.attention.week"),
+  earlier: t("components.routineOperate.earlier"),
 };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
@@ -776,9 +777,9 @@ export function attentionDateBucket(activityAt: string, now: number): DateBucket
 }
 
 const SEVERITY_LABEL: Record<AttentionSeverity, string> = {
-  critical: "Critical",
-  high: "High",
-  medium: "Medium",
+  critical: t("pages.designGuide.critical"),
+  high: t("components.agentConfigForm.high"),
+  medium: t("components.agentConfigForm.medium"),
   low: "Low",
 };
 
@@ -838,7 +839,7 @@ export function groupAttentionItems(
         ? { key: `type:${item.sourceKind}`, label: sourceMeta(item.sourceKind).label }
         : item.project
           ? { key: `project:${item.project.id}`, label: item.project.name }
-          : { key: `project:${NO_GROUP_SENTINEL}`, label: "No project" };
+          : { key: `project:${NO_GROUP_SENTINEL}`, label: t("components.dialogs.newIssue.noProject") };
     const existing = groups.get(resolved.key);
     const ts = attentionActivityTimestamp(item);
     if (existing) {

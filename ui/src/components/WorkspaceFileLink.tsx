@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { MouseEvent, ReactNode } from "react";
 import { FileCode2, FolderOpen } from "lucide-react";
 import { useLocation } from "@/lib/router";
@@ -38,10 +39,10 @@ export function WorkspaceFileLink({
     ? ` line ${workspaceFileRef.line}${workspaceFileRef.column ? ` column ${workspaceFileRef.column}` : ""}`
     : "";
   const ariaLabel = canOpen
-    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? "workspace browser" : "file viewer"}`
+    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? t("ui.components.workspacefilelink.workspace-browser") : t("ui.components.workspacefilelink.file-viewer")}`
     : `Workspace ${isDirectory ? "folder" : "file"} ${workspaceFileRef.path}${lineSuffix}`;
   const tooltip = title ?? (canOpen
-    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? "workspace browser" : "file viewer"}`
+    ? `Open ${workspaceFileRef.path}${lineSuffix} in the ${isDirectory ? t("ui.components.workspacefilelink.workspace-browser") : t("ui.components.workspacefilelink.file-viewer")}`
     : `Workspace ${isDirectory ? "folder" : "file"} ${workspaceFileRef.path}${lineSuffix}`);
 
   const deepLinkSearch = isDirectory

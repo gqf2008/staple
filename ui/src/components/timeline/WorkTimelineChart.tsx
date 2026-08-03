@@ -8,6 +8,7 @@
  * in-progress fade to "now", a hover tooltip, and a full-window mini-map with a
  * draggable brush.
  */
+import { t } from "../../i18n";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useLocation } from "@/lib/router";
 import type { WorkTimelineActor, WorkTimelineResult } from "@paperclipai/shared";
@@ -120,7 +121,7 @@ interface DragSelectionState {
 function fmtClock(ms: number): string {
   const d = new Date(ms);
   const hasMinutes = d.getMinutes() !== 0;
-  return d.toLocaleTimeString("en-US", {
+  return d.toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), {
     hour: "numeric",
     minute: hasMinutes ? "2-digit" : undefined,
     hour12: true,
@@ -129,7 +130,7 @@ function fmtClock(ms: number): string {
 
 function fmtTick(ms: number, stepMs: number): string {
   const d = new Date(ms);
-  const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const date = d.toLocaleDateString(t("ui.components.timeline.worktimelinechart.en-us"), { month: "short", day: "numeric" });
   if (stepMs >= 24 * 60 * 60 * 1000) {
     return date;
   }
@@ -198,7 +199,7 @@ function ActorGlyph({
   }
 
   const stroke = "var(--color-foreground)";
-  const fill = actor.type === "system" ? "var(--color-muted)" : "var(--color-card)";
+  const fill = actor.type === "system" ? t("ui.components.timeline.worktimelinechart.var-color-muted") : t("ui.components.timeline.worktimelinechart.var-color-card");
   const label = shortLabel(actor.name);
 
   if (actor.type === "user" && actor.avatar) {
@@ -452,8 +453,8 @@ export function WorkTimelineChart({
     const related = layout.connectors.filter((c) => c.sourceRunId === bar.span.runId || c.targetRunId === bar.span.runId);
     if (related.length === 0) return null;
     return related.some((c) => c.dashed)
-      ? "dashed handoff: retry or changes requested"
-      : "solid handoff: delegation or assignment";
+      ? t("ui.components.timeline.worktimelinechart.dashed-handoff-retry-changes")
+      : t("ui.components.timeline.worktimelinechart.solid-handoff-delegation-assignment");
   };
 
   const showTooltip = (evt: React.MouseEvent, bar: PositionedBar) => {
@@ -805,8 +806,8 @@ function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
       </div>
       {bar.kickoff && (
         <div className="text-muted-foreground">
-          kicked off by: {(bar.kickoff as WorkTimelineActor).name}
-          {bar.span.retryOfRunId ? " · retry" : ""}
+          {t("ui.components.timeline.worktimelinechart.kicked-off")}{(bar.kickoff as WorkTimelineActor).name}
+          {bar.span.retryOfRunId ? t("ui.components.timeline.worktimelinechart.retry") : ""}
         </div>
       )}
       {tooltip.connectorHint && (
@@ -954,7 +955,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-left-handle"
-          label="Drag left edge to resize visible range"
+          label={t("ui.components.timeline.worktimelinechart.drag-left-edge-resize")}
           onMouseDown={(e) => startRangeDrag("left", e)}
         />
         <MiniMapHandle
@@ -963,7 +964,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-right-handle"
-          label="Drag right edge to resize visible range"
+          label={t("ui.components.timeline.worktimelinechart.drag-right-edge-resize")}
           onMouseDown={(e) => startRangeDrag("right", e)}
         />
       </svg>

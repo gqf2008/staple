@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Agent, CompanyPortabilitySidebarOrder, Project } from "@paperclipai/shared";
 import { deriveProjectUrlKey, normalizeAgentUrlKey } from "@paperclipai/shared";
 

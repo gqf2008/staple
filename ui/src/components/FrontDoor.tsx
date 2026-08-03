@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { Rocket, Zap } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -10,11 +11,9 @@ export function FrontDoor({ onChoose }: FrontDoorProps) {
     <div className="flex flex-col items-center justify-center min-h-(--sz-60vh) px-8">
       <div className="text-center mb-10">
         <h2 className="text-2xl font-bold tracking-tight">
-          Welcome to Paperclip
-        </h2>
+          {t("ui.components.frontdoor.welcome-paperclip")}</h2>
         <p className="text-sm text-muted-foreground mt-2">
-          How would you like to get started?
-        </p>
+          {t("ui.components.frontdoor.how-would-you-like")}</p>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-lg w-full">
@@ -30,10 +29,9 @@ export function FrontDoor({ onChoose }: FrontDoorProps) {
             <Rocket className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Build a new company</h3>
+            <h3 className="font-semibold text-sm">{t("ui.components.frontdoor.build-new-company")}</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Begin with a mission, bring on a lead agent, and grow a team of agents to do the work.
-            </p>
+              {t("ui.components.frontdoor.begin-mission-bring-lead")}</p>
           </div>
         </button>
 
@@ -49,10 +47,9 @@ export function FrontDoor({ onChoose }: FrontDoorProps) {
             <Zap className="h-6 w-6" />
           </div>
           <div>
-            <h3 className="font-semibold text-sm">Add agents to your org</h3>
+            <h3 className="font-semibold text-sm">{t("ui.components.frontdoor.add-agents-your-org")}</h3>
             <p className="text-xs text-muted-foreground mt-1">
-              Bring AI agents into your existing team or workflows.
-            </p>
+              {t("ui.components.frontdoor.bring-ai-agents-into")}</p>
           </div>
         </button>
       </div>

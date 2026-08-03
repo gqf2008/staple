@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Agent } from "@paperclipai/shared";
 import type { LiveRunForIssue } from "../api/heartbeats";
 import type {

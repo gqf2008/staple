@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn, relativeTime } from "../lib/utils";
@@ -128,9 +129,9 @@ export function DocumentFrameHeader({
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
-                <DropdownMenuLabel>Revision history</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("ui.components.documentframeheader.revision-history")}</DropdownMenuLabel>
                 {revisionMenu.loading && revisionMenu.revisions.length === 0 ? (
-                  <DropdownMenuItem disabled>Loading revisions...</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t("ui.components.documentdiffmodal.loading-revisions")}</DropdownMenuItem>
                 ) : revisionMenu.revisions.length > 0 ? (
                   <DropdownMenuRadioGroup value={revisionMenu.selectedRevisionId ?? revisionMenu.currentRevisionId ?? ""}>
                     {revisionMenu.revisions.map((revision) => {
@@ -147,8 +148,7 @@ export function DocumentFrameHeader({
                               <span className="font-medium">rev {revision.revisionNumber}</span>
                               {isCurrentRevision ? (
                                 <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                                  Current
-                                </Badge>
+                                  {t("components.secretPicker.current")}</Badge>
                               ) : null}
                             </div>
                             <div className="mt-1 flex min-w-0 items-center gap-1.5 text-(length:--text-micro) text-muted-foreground">
@@ -163,7 +163,7 @@ export function DocumentFrameHeader({
                     })}
                   </DropdownMenuRadioGroup>
                 ) : (
-                  <DropdownMenuItem disabled>No revisions yet</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t("ui.components.documentframeheader.no-revisions-yet")}</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>

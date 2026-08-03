@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../../i18n";
 import {
   ArrowRight,
   Braces,
@@ -40,68 +41,68 @@ import type { EnvBinding, RoutineDetail as RoutineDetailType } from "@paperclipa
 const concurrencyPolicyOptions = [
   {
     value: "coalesce_if_active",
-    title: "Coalesce if active",
-    description: "Keep one follow-up run queued while an active run is still working.",
+    title: t("components.routineSections.coalesce", { defaultValue: "Coalesce if active" }),
+    description: t("components.routineSections.coalesceDesc", { defaultValue: "Keep one follow-up run queued while an active run is still working." }),
   },
   {
     value: "always_enqueue",
-    title: "Always enqueue",
-    description: "Queue every trigger occurrence, even if several runs stack up.",
+    title: t("components.routineSections.alwaysEnqueue", { defaultValue: "Always enqueue" }),
+    description: t("components.routineSections.alwaysEnqueueDesc", { defaultValue: "Queue every trigger occurrence, even if several runs stack up." }),
   },
   {
     value: "skip_if_active",
-    title: "Skip if active",
-    description: "Drop overlapping trigger occurrences while the routine is already active.",
+    title: t("components.routineSections.skipIfActive", { defaultValue: "Skip if active" }),
+    description: t("components.routineSections.skipIfActiveDesc", { defaultValue: "Drop overlapping trigger occurrences while the routine is already active." }),
   },
 ];
 
 const catchUpPolicyOptions = [
   {
     value: "skip_missed",
-    title: "Skip missed",
-    description: "Ignore schedule windows that were missed while paused.",
+    title: t("components.routineSections.skipMissed", { defaultValue: "Skip missed" }),
+    description: t("components.routineSections.skipMissedDesc", { defaultValue: "Ignore schedule windows that were missed while paused." }),
   },
   {
     value: "enqueue_missed_with_cap",
-    title: "Enqueue missed with cap",
-    description: "Catch up missed schedule windows after recovery; sub-hourly schedules are combined into one catch-up run, slower schedules replay each missed window up to a cap.",
+    title: t("components.routineSections.enqueueMissedCap", { defaultValue: "Enqueue missed with cap" }),
+    description: t("ui.components.routine-sections.editable-sections.catch-up-missed-schedule"),
   },
 ];
 
 const activityGatePolicyOptions = [
   {
     value: "always",
-    title: "Run on every scheduled tick",
-    description: "Fire on the schedule no matter what — the default behavior.",
+    title: t("components.routineSections.runEveryTick", { defaultValue: "Run on every scheduled tick" }),
+    description: t("components.routineSections.runEveryTickDesc", { defaultValue: "Fire on the schedule no matter what — the default behavior." }),
   },
   {
     value: "require_external_activity",
-    title: "Skip when there's been no activity since the last run",
+    title: t("components.routineSections.skipNoActivity", { defaultValue: "Skip when there's been no activity since the last run" }),
     description:
-      "On a scheduled tick, only run if something happened since the last run that finished. Lets a watcher-style routine stay asleep while the system is settled instead of burning tokens.",
+      t("ui.components.routine-sections.editable-sections.scheduled-tick-only-run"),
   },
 ];
 
 const activityGateScopeOptions = [
   {
     value: "company",
-    title: "Company-wide",
-    description: "Any activity across the company counts as a reason to run.",
+    title: t("components.routineSections.companyWide", { defaultValue: "Company-wide" }),
+    description: t("components.routineSections.companyWideDesc", { defaultValue: "Any activity across the company counts as a reason to run." }),
   },
   {
     value: "project",
-    title: "This project",
-    description: "Only activity in the routine's project counts as a reason to run.",
+    title: t("components.routineSections.thisProject", { defaultValue: "This project" }),
+    description: t("components.routineSections.thisProjectDesc", { defaultValue: "Only activity in the routine's project counts as a reason to run." }),
   },
 ];
 
 const triggerKinds = ["schedule", "webhook"];
 const signingModes = ["bearer", "hmac_sha256", "github_hmac", "none"];
 const signingModeDescriptions: Record<string, string> = {
-  bearer: "Expect a shared bearer token in the Authorization header.",
-  hmac_sha256: "Expect an HMAC SHA-256 signature over the request using the shared secret.",
-  github_hmac: "Accept GitHub-style X-Hub-Signature-256 header (HMAC over raw body, no timestamp).",
-  none: "No authentication — the webhook URL itself acts as a shared secret.",
+  bearer: t("components.routineSections.bearerAuth", { defaultValue: "Expect a shared bearer token in the Authorization header." }),
+  hmac_sha256: t("components.routineSections.hmacAuth", { defaultValue: "Expect an HMAC SHA-256 signature over the request using the shared secret." }),
+  github_hmac: t("components.routineSections.githubAuth", { defaultValue: "Accept GitHub-style X-Hub-Signature-256 header (HMAC over raw body, no timestamp)." }),
+  none: t("components.routineSections.noAuth", { defaultValue: "No authentication — the webhook URL itself acts as a shared secret." }),
 };
 const SIGNING_MODES_WITHOUT_REPLAY_WINDOW = new Set(["github_hmac", "none"]);
 
@@ -153,16 +154,16 @@ export function OverviewSection({
       {/* Assignment row */}
       <div className="overflow-x-auto overscroll-x-contain">
         <div className="inline-flex min-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground sm:min-w-max sm:flex-nowrap">
-          <span>For</span>
+          <span>{t("components.routineSections.forLabel", { defaultValue: "For" })}</span>
           <InlineEntitySelector
             ref={assigneeSelectorRef}
             value={editDraft.assigneeAgentId}
             options={assigneeOptions}
             recentOptionIds={recentAssigneeIds}
-            placeholder="Responsible"
-            noneLabel="No responsible"
-            searchPlaceholder="Search responsible..."
-            emptyMessage="No responsible found."
+            placeholder={t("components.routineSections.responsible", { defaultValue: "Responsible" })}
+            noneLabel={t("components.routineSections.noResponsible", { defaultValue: "No responsible" })}
+            searchPlaceholder={t("components.routineSections.searchResponsible", { defaultValue: "Search responsible..." })}
+            emptyMessage={t("components.routineSections.noResponsibleFound", { defaultValue: "No responsible found." })}
             onChange={(assigneeAgentId) =>
               setEditDraft((current) => ({ ...current, assigneeAgentId }))
             }
@@ -184,7 +185,7 @@ export function OverviewSection({
                   <span className="truncate">{option.label}</span>
                 )
               ) : (
-                <span className="text-muted-foreground">Responsible</span>
+                <span className="text-muted-foreground">{t("components.routineSections.responsible", { defaultValue: "Responsible" })}</span>
               )
             }
             renderOption={(option) => {
@@ -206,10 +207,10 @@ export function OverviewSection({
             value={editDraft.projectId}
             options={projectOptions}
             recentOptionIds={recentProjectIds}
-            placeholder="Project"
-            noneLabel="No project"
-            searchPlaceholder="Search projects..."
-            emptyMessage="No projects found."
+            placeholder={t("components.routineSections.project", { defaultValue: "Project" })}
+            noneLabel={t("components.routineSections.noProject", { defaultValue: "No project" })}
+            searchPlaceholder={t("components.routineSections.searchProjects", { defaultValue: "Search projects..." })}
+            emptyMessage={t("components.routineSections.noProjectsFound", { defaultValue: "No projects found." })}
             onChange={(projectId) => setEditDraft((current) => ({ ...current, projectId }))}
             onConfirm={() => descriptionEditorRef.current?.focus()}
             renderTriggerValue={(option) =>
@@ -222,7 +223,7 @@ export function OverviewSection({
                   <span className="truncate">{option.label}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Project</span>
+                <span className="text-muted-foreground">{t("components.routineSections.project", { defaultValue: "Project" })}</span>
               )
             }
             renderOption={(option) => {
@@ -244,9 +245,7 @@ export function OverviewSection({
 
       {!routine.assigneeAgentId ? (
         <div className="rounded-lg border border-amber-500/30 bg-amber-500/5 p-4 text-sm text-amber-900 dark:text-amber-200">
-          Default agent required. This routine can stay as a draft and still run manually, but
-          automation stays paused until you assign a default agent.
-        </div>
+          {t("ui.components.routine-sections.editable-sections.default-agent-required-routine")}</div>
       ) : null}
 
       {/* Instructions */}
@@ -279,7 +278,7 @@ export function OverviewSection({
               ref={descriptionEditorRef}
               value={editDraft.description}
               onChange={(description) => setEditDraft((current) => ({ ...current, description }))}
-              placeholder="Add instructions..."
+              placeholder={t("components.routineSections.addInstructions", { defaultValue: "Add instructions..." })}
               bordered={false}
               contentClassName="min-h-(--sz-120px) text-sm leading-7"
               mentions={mentionOptions}
@@ -295,7 +294,7 @@ export function OverviewSection({
             ref={descriptionEditorRef}
             value={editDraft.description}
             onChange={(description) => setEditDraft((current) => ({ ...current, description }))}
-            placeholder="Add instructions..."
+            placeholder={t("components.routineSections.addInstructions", { defaultValue: "Add instructions..." })}
             bordered={false}
             contentClassName="min-h-(--sz-120px) text-sm leading-7"
             mentions={mentionOptions}
@@ -323,37 +322,36 @@ export function OverviewSection({
       <div className="grid gap-3 sm:grid-cols-3">
         <SummaryCard
           icon={Clock3}
-          label="Triggers"
-          value={activeTriggers === 0 ? "None" : `${activeTriggers} active`}
-          hint={nextFire ? `Next fire ${nextFire}` : "No schedule"}
+          label={t("components.routineSections.triggers", { defaultValue: "Triggers" })}
+          value={activeTriggers === 0 ? t("components.routineSections.none", { defaultValue: "None" }) : `${activeTriggers} active`}
+          hint={nextFire ? `Next fire ${nextFire}` : t("components.routineSections.noSchedule", { defaultValue: "No schedule" })}
           to={() => navigateToSection("triggers")}
           ariaLabel={`${activeTriggers} triggers. Open triggers.`}
         />
         <SummaryCard
           icon={KeyRound}
-          label="Secrets"
-          value={boundSecrets === 0 ? "None" : `${boundSecrets} bound`}
-          hint="Manage bound secrets"
+          label={t("components.routineSections.secrets", { defaultValue: "Secrets" })}
+          value={boundSecrets === 0 ? t("components.routineSections.none", { defaultValue: "None" }) : `${boundSecrets} bound`}
+          hint={t("components.routineSections.manageSecrets", { defaultValue: "Manage bound secrets" })}
           to={() => navigateToSection("secrets")}
           ariaLabel={`${boundSecrets} secrets bound. Open secrets.`}
         />
         <SummaryCard
           icon={Play}
-          label="Last run"
-          value={lastRun ? lastRun.status.replaceAll("_", " ") : "No runs"}
-          hint={lastRun ? timeAgo(lastRun.triggeredAt) : "Trigger a run"}
+          label={t("components.routineSections.lastRun", { defaultValue: "Last run" })}
+          value={lastRun ? lastRun.status.replaceAll("_", " ") : t("components.routineSections.noRuns", { defaultValue: "No runs" })}
+          hint={lastRun ? timeAgo(lastRun.triggeredAt) : t("components.routineSections.triggerRun", { defaultValue: "Trigger a run" })}
           to={() => navigateToSection("runs")}
-          ariaLabel={lastRun ? `Last run ${lastRun.status}. Open runs.` : "No runs. Open runs."}
+          ariaLabel={lastRun ? `Last run ${lastRun.status}. Open runs.` : t("components.routineSections.noRunsHint", { defaultValue: "No runs. Open runs." })}
         />
       </div>
 
       {/* Recent activity */}
       <div className="space-y-2">
         <p className="text-xs font-medium uppercase tracking-wide text-muted-foreground">
-          Recent activity
-        </p>
+          {t("pages.appActivityPanel.recentActivity")}</p>
         {recentActivity.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No activity yet.</p>
+          <p className="text-xs text-muted-foreground">{t("components.routineSections.noActivity", { defaultValue: "No activity yet." })}</p>
         ) : (
           <div className="divide-y divide-border/60">
             {recentActivity.map((event) => (
@@ -374,7 +372,7 @@ export function OverviewSection({
               onClick={() => navigateToSection("activity")}
               className="flex items-center gap-1 pt-2 text-xs text-muted-foreground hover:text-foreground"
             >
-              View all activity <ArrowRight className="h-3 w-3" />
+              {t("ui.components.routine-sections.editable-sections.view-all-activity")}<ArrowRight className="h-3 w-3" />
             </button>
           </div>
         )}
@@ -438,7 +436,7 @@ export function TriggersSection() {
       <div className="flex items-center justify-between">
         <p className="text-sm font-medium text-muted-foreground">
           {routine.triggers.length === 0
-            ? "No triggers yet"
+            ? t("components.routineSections.noTriggers", { defaultValue: "No triggers yet" })
             : `${routine.triggers.length} trigger${routine.triggers.length === 1 ? "" : "s"}`}
         </p>
         <Button
@@ -450,13 +448,11 @@ export function TriggersSection() {
           {addOpen ? (
             <>
               <X className="mr-1.5 h-3.5 w-3.5" />
-              Cancel
-            </>
+              {t("common.cancel")}</>
           ) : (
             <>
               <Plus className="mr-1.5 h-3.5 w-3.5" />
-              New trigger
-            </>
+              {t("ui.components.routine-sections.editable-sections.new-trigger")}</>
           )}
         </Button>
       </div>
@@ -464,10 +460,10 @@ export function TriggersSection() {
       {/* Add trigger form — expand-on-click drawer */}
       {addOpen ? (
       <div className="space-y-3 rounded-lg border border-border p-4">
-        <p className="text-sm font-medium">Add trigger</p>
+        <p className="text-sm font-medium">{t("components.routineSections.addTrigger", { defaultValue: "Add trigger" })}</p>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label className="text-xs">Kind</Label>
+            <Label className="text-xs">{t("components.routineSections.kind", { defaultValue: "Kind" })}</Label>
             <Select
               value={newTrigger.kind}
               onValueChange={(kind) => setNewTrigger((current) => ({ ...current, kind }))}
@@ -487,7 +483,7 @@ export function TriggersSection() {
           </div>
           {newTrigger.kind === "schedule" && (
             <div className="space-y-1.5 md:col-span-2">
-              <Label className="text-xs">Schedule</Label>
+              <Label className="text-xs">{t("components.routineSections.schedule", { defaultValue: "Schedule" })}</Label>
               <ScheduleEditor
                 value={newTrigger.cronExpression}
                 onChange={(cronExpression) =>
@@ -500,7 +496,7 @@ export function TriggersSection() {
           {newTrigger.kind === "webhook" && (
             <>
               <div className="space-y-1.5">
-                <Label className="text-xs">Signing mode</Label>
+                <Label className="text-xs">{t("components.routineSections.signingMode", { defaultValue: "Signing mode" })}</Label>
                 <Select
                   value={newTrigger.signingMode}
                   onValueChange={(signingMode) =>
@@ -524,7 +520,7 @@ export function TriggersSection() {
               </div>
               {!SIGNING_MODES_WITHOUT_REPLAY_WINDOW.has(newTrigger.signingMode) && (
                 <div className="space-y-1.5">
-                  <Label className="text-xs">Replay window (seconds)</Label>
+                  <Label className="text-xs">{t("components.routineSections.replayWindow", { defaultValue: "Replay window (seconds)" })}</Label>
                   <Input
                     value={newTrigger.replayWindowSec}
                     onChange={(event) =>
@@ -538,8 +534,7 @@ export function TriggersSection() {
         </div>
         <div className="flex items-center justify-end gap-2">
           <Button size="sm" variant="ghost" onClick={() => setAddOpen(false)}>
-            Cancel
-          </Button>
+            {t("common.cancel")}</Button>
           <Button
             size="sm"
             onClick={() =>
@@ -552,7 +547,7 @@ export function TriggersSection() {
             }
             disabled={addDisabled}
           >
-            {createTrigger.isPending ? "Adding..." : "Add trigger"}
+            {createTrigger.isPending ? t("components.routineSections.adding", { defaultValue: "Adding..." }) : t("components.routineSections.addTrigger", { defaultValue: "Add trigger" })}
           </Button>
         </div>
       </div>
@@ -562,8 +557,8 @@ export function TriggersSection() {
       {routine.triggers.length === 0 ? (
         <EmptyState
           icon={Clock3}
-          message="No triggers yet."
-          action="Add a schedule"
+          message={t("components.routineSections.noTriggers2", { defaultValue: "No triggers yet." })}
+          action={t("components.routineSections.addSchedule", { defaultValue: "Add a schedule" })}
           onAction={() => setAddOpen(true)}
         />
       ) : (
@@ -592,14 +587,10 @@ export function VariablesSection() {
     <div className="space-y-4">
       <div className="flex items-center gap-3 rounded-md border border-border bg-muted/20 px-4 py-3 text-xs">
         <span className="flex-1 text-muted-foreground">
-          Variables are auto-detected from <code className="font-mono">{"{{placeholders}}"}</code> in
-          the title &amp; instructions. The variable name is read-only — rename by editing the
-          placeholder.
-        </span>
+          {t("ui.components.routine-sections.editable-sections.variables-auto-detected-from")}<code className="font-mono">{"{{placeholders}}"}</code> {t("ui.components.routine-sections.editable-sections.title-amp-instructions-variable")}</span>
         <Button variant="secondary" size="sm" onClick={() => navigateToSection("overview")}>
           <Edit3 className="mr-1.5 h-3.5 w-3.5" />
-          Edit instructions
-        </Button>
+          {t("components.routineSections.editInstructions")}</Button>
       </div>
 
       {hasVariables ? (
@@ -613,7 +604,7 @@ export function VariablesSection() {
         <EmptyState
           icon={Braces}
           message="No variables yet. Add a {{placeholder}} in the title or instructions to create one."
-          action="Edit instructions"
+          action={t("components.routineSections.editInstructions", { defaultValue: "Edit instructions" })}
           onAction={() => navigateToSection("overview")}
         />
       )}
@@ -643,32 +634,27 @@ export function SecretsSection() {
   return (
     <div className="space-y-4">
       <div className="rounded-md border border-border bg-muted/20 px-4 py-3 text-xs text-muted-foreground">
-        Routine secrets apply to every task this routine creates. They override matching keys in
-        project and agent env. <span className="font-mono">PAPERCLIP_*</span> names are reserved.
-      </div>
+        {t("ui.components.routine-sections.editable-sections.routine-secrets-apply-every")}<span className="font-mono">{t("ui.components.stagesecretspanel.paperclip")}</span> {t("ui.components.routine-sections.editable-sections.names-reserved")}</div>
 
       {secretMessage ? (
         <div className="space-y-3 rounded-lg border border-blue-500/30 bg-blue-500/5 p-4 text-sm">
           <div>
             <p className="font-medium">{secretMessage.title}</p>
             <p className="text-xs text-muted-foreground">
-              Save this now. Paperclip will not show the secret value again.
-            </p>
+              {t("ui.components.routine-sections.editable-sections.save-now-paperclip-will")}</p>
           </div>
           <div className="space-y-3">
             {secretMessage.entries.map((entry, index) => (
               <div key={`${entry.webhookUrl}-${index}`} className="space-y-2">
                 <div className="flex items-center gap-2">
                   <Input value={entry.webhookUrl} readOnly className="flex-1" />
-                  <Button variant="outline" size="sm" onClick={() => copySecretValue("Webhook URL", entry.webhookUrl)}>
-                    URL
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => copySecretValue(t("components.routineSections.webhookUrl", { defaultValue: "Webhook URL" }), entry.webhookUrl)}>
+                    {t("pages.companySkills.url")}</Button>
                 </div>
                 <div className="flex items-center gap-2">
                   <Input value={entry.webhookSecret} readOnly className="flex-1" />
-                  <Button variant="outline" size="sm" onClick={() => copySecretValue("Webhook secret", entry.webhookSecret)}>
-                    Secret
-                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => copySecretValue(t("components.routineSections.webhookSecret", { defaultValue: "Webhook secret" }), entry.webhookSecret)}>
+                    {t("components.secretBindingPicker.secret")}</Button>
                 </div>
               </div>
             ))}
@@ -702,10 +688,9 @@ export function DeliverySection() {
     <div className="space-y-6">
       <div className="space-y-3">
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Concurrency
-        </p>
+          {t("components.routineHistory.concurrency")}</p>
         <RadioCardGroup
-          ariaLabel="Concurrency policy"
+          ariaLabel={t("components.routineSections.concurrencyPolicy", { defaultValue: "Concurrency policy" })}
           value={editDraft.concurrencyPolicy}
           onValueChange={(concurrencyPolicy) =>
             setEditDraft((current) => ({ ...current, concurrencyPolicy }))
@@ -715,10 +700,9 @@ export function DeliverySection() {
       </div>
       <div className="space-y-3">
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Catch-up
-        </p>
+          {t("components.routineHistory.catchUp")}</p>
         <RadioCardGroup
-          ariaLabel="Catch-up policy"
+          ariaLabel={t("components.routineSections.catchUpPolicy", { defaultValue: "Catch-up policy" })}
           value={editDraft.catchUpPolicy}
           onValueChange={(catchUpPolicy) =>
             setEditDraft((current) => ({ ...current, catchUpPolicy }))
@@ -728,10 +712,9 @@ export function DeliverySection() {
       </div>
       <div className="space-y-3">
         <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-          Advanced run policy
-        </p>
+          {t("components.agentConfigForm.advancedRunPolicy")}</p>
         <RadioCardGroup
-          ariaLabel="Advanced run policy"
+          ariaLabel={t("components.routineSections.advancedRunPolicy", { defaultValue: "Advanced run policy" })}
           value={editDraft.activityGatePolicy}
           onValueChange={(activityGatePolicy) =>
             setEditDraft((current) => ({ ...current, activityGatePolicy }))
@@ -741,14 +724,12 @@ export function DeliverySection() {
         />
         {!hasScheduleTrigger ? (
           <p className="text-xs text-muted-foreground">
-            Add a schedule trigger to gate runs on activity. Webhook, manual, and API fires always
-            run.
-          </p>
+            {t("ui.components.routine-sections.editable-sections.add-schedule-trigger-gate")}</p>
         ) : gateEnabled ? (
           <div className="space-y-2 rounded-lg border border-border p-3">
-            <Label className="text-xs font-medium">Activity scope</Label>
+            <Label className="text-xs font-medium">{t("components.routineSections.activityScope", { defaultValue: "Activity scope" })}</Label>
             <RadioCardGroup
-              ariaLabel="Activity gate scope"
+              ariaLabel={t("components.routineSections.activityGateScope", { defaultValue: "Activity gate scope" })}
               value={editDraft.activityGateScope}
               onValueChange={(activityGateScope) =>
                 setEditDraft((current) => ({ ...current, activityGateScope }))
@@ -773,7 +754,7 @@ const dispositionToneClass: Record<string, string> = {
 };
 
 /**
- * "Next 5 fires" preview (§3.5) — the strongest "what does this policy mean?"
+ * t("components.routineSections.next5Fires", { defaultValue: "Next 5 fires" }) preview (§3.5) — the strongest "what does this policy mean?"
  * surface. Picks the soonest-firing schedule trigger, computes its next fires
  * client-side, and annotates each with how the chosen concurrency policy would
  * treat it.
@@ -790,7 +771,7 @@ function NextFiresPreview({
       .filter((trigger) => trigger.kind === "schedule" && trigger.enabled && trigger.cronExpression)
       .map((trigger) => {
         const fires = nextCronFires(trigger.cronExpression, 5, {
-          timeZone: trigger.timezone ?? "UTC",
+          timeZone: trigger.timezone ?? t("components.routineSections.utc", { defaultValue: "UTC" }),
         });
         return { trigger, fires };
       })
@@ -798,7 +779,7 @@ function NextFiresPreview({
       .sort((a, b) => a.fires[0]!.getTime() - b.fires[0]!.getTime())[0];
     if (!schedule) return null;
     return {
-      timeZone: schedule.trigger.timezone ?? "UTC",
+      timeZone: schedule.trigger.timezone ?? t("components.routineSections.utc", { defaultValue: "UTC" }),
       entries: previewFirePolicies(schedule.fires, concurrencyPolicy),
     };
   }, [triggers, concurrencyPolicy]);
@@ -806,8 +787,7 @@ function NextFiresPreview({
   return (
     <div className="space-y-3">
       <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">
-        Next 5 fires
-      </p>
+        {t("components.routineSections.next5Fires")}</p>
       {preview ? (
         <>
           <div className="space-y-1.5 rounded-lg border border-border p-3 font-mono text-xs">
@@ -826,15 +806,13 @@ function NextFiresPreview({
             ))}
           </div>
           <p className="text-(length:--text-micro) text-muted-foreground/60">
-            Preview assumes the previous run is still in flight when the next fires. Times shown in{" "}
+            {t("ui.components.routine-sections.editable-sections.preview-assumes-previous-run")}{" "}
             {preview.timeZone}.
           </p>
         </>
       ) : (
         <p className="rounded-lg border border-dashed border-border p-3 text-xs text-muted-foreground">
-          No enabled schedule trigger to preview. Add a schedule in Triggers to see how this policy
-          treats upcoming fires.
-        </p>
+          {t("ui.components.routine-sections.editable-sections.no-enabled-schedule-trigger")}</p>
       )}
     </div>
   );
