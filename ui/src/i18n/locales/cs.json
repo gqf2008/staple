@@ -49,6 +49,66 @@
     "viewProfileDesc": "Open your activity, task, and usage ledger.",
     "editProfileDesc": "Update your display name and avatar.",
     "documentationDesc": "Open Paperclip docs in a new tab.",
-    "feedbackDesc": "Share feedback or report an issue."
+    "feedbackDesc": "Share feedback or report an issue.",
+    "unlimitedBudget": "Unlimited budget",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "deleting": "Deleting…",
+    "pending": "Pending",
+    "all": "All",
+    "selectCompanyFirst": "Select a company first."
+  },
+  "pages": {
+    "dashboard": {
+      "welcome": "Welcome to Paperclip. Set up your first company and agent to get started.",
+      "getStarted": "Get Started",
+      "selectCompany": "Create or select a company to view the dashboard.",
+      "noAgents": "You have no agents.",
+      "createOneHere": "Create one here",
+      "activeIncidents_one": "{{count}} active budget incident",
+      "activeIncidents_other": "{{count}} active budget incidents",
+      "pausedSummary": "{{agents}} agents paused · {{projects}} projects paused · {{approvals}} pending budget approvals",
+      "openBudgets": "Open budgets",
+      "agentsEnabled": "Agents Enabled",
+      "agentsEnabledDesc": "{{running}} running, {{paused}} paused, {{errors}} errors",
+      "tasksInProgress": "Tasks In Progress",
+      "tasksInProgressDesc": "{{open}} open, {{blocked}} blocked",
+      "monthSpend": "Month Spend",
+      "monthSpendDesc": "{{percent}}% of {{budget}} budget",
+      "pendingApprovals": "Pending Approvals",
+      "budgetOverridesReview": "{{count}} budget overrides awaiting board review",
+      "awaitingBoardReview": "Awaiting board review",
+      "chartRunActivity": "Run Activity",
+      "chartTasksByPriority": "Tasks by Priority",
+      "chartTasksByStatus": "Tasks by Status",
+      "chartSuccessRate": "Success Rate",
+      "last14Days": "Last 14 days",
+      "recentActivity": "Recent Activity",
+      "recentTasks": "Recent Tasks",
+      "noTasksYet": "No tasks yet."
+    },
+    "companies": {
+      "title": "Companies",
+      "newCompany": "New Company",
+      "loading": "Loading companies...",
+      "rename": "Rename",
+      "deleteCompany": "Delete Company",
+      "agentsCount_one": "{{count}} agent",
+      "agentsCount_other": "{{count}} agents",
+      "tasksCount_one": "{{count}} task",
+      "tasksCount_other": "{{count}} tasks",
+      "created": "Created {{time}}",
+      "deleteConfirm": "Delete this company and all its data? This cannot be undone."
+    },
+    "approvals": {
+      "title": "Approvals",
+      "failedApprove": "Failed to approve",
+      "failedReject": "Failed to reject",
+      "noPending": "No pending approvals.",
+      "none": "No approvals yet."
+    },
+    "issues": {
+      "selectCompany": "Select a company to view tasks."
+    }
   }
 }

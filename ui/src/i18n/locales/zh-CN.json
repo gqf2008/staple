@@ -49,6 +49,66 @@
     "viewProfileDesc": "查看你的动态、任务和使用明细。",
     "editProfileDesc": "更新你的显示名称和头像。",
     "documentationDesc": "在新标签页中打开 Paperclip 文档。",
-    "feedbackDesc": "分享反馈或报告问题。"
+    "feedbackDesc": "分享反馈或报告问题。",
+    "unlimitedBudget": "无限预算",
+    "cancel": "取消",
+    "delete": "删除",
+    "deleting": "正在删除…",
+    "pending": "待处理",
+    "all": "全部",
+    "selectCompanyFirst": "请先选择公司。"
+  },
+  "pages": {
+    "dashboard": {
+      "welcome": "欢迎使用 Paperclip。创建你的第一家公司与智能体，开始上手。",
+      "getStarted": "开始使用",
+      "selectCompany": "创建或选择一家公司以查看仪表盘。",
+      "noAgents": "你还没有智能体。",
+      "createOneHere": "在此创建",
+      "activeIncidents_one": "{{count}} 个进行中的预算事件",
+      "activeIncidents_other": "{{count}} 个进行中的预算事件",
+      "pausedSummary": "{{agents}} 个智能体已暂停 · {{projects}} 个项目已暂停 · {{approvals}} 个预算审批待处理",
+      "openBudgets": "打开预算",
+      "agentsEnabled": "已启用智能体",
+      "agentsEnabledDesc": "{{running}} 运行中，{{paused}} 已暂停，{{errors}} 错误",
+      "tasksInProgress": "进行中的任务",
+      "tasksInProgressDesc": "{{open}} 待处理，{{blocked}} 已阻塞",
+      "monthSpend": "本月花费",
+      "monthSpendDesc": "已用预算的 {{percent}}%（{{budget}}）",
+      "pendingApprovals": "待审批",
+      "budgetOverridesReview": "{{count}} 个预算调整等待董事会审批",
+      "awaitingBoardReview": "等待董事会审批",
+      "chartRunActivity": "运行动态",
+      "chartTasksByPriority": "按优先级统计任务",
+      "chartTasksByStatus": "按状态统计任务",
+      "chartSuccessRate": "成功率",
+      "last14Days": "最近 14 天",
+      "recentActivity": "最近动态",
+      "recentTasks": "最近任务",
+      "noTasksYet": "暂无任务。"
+    },
+    "companies": {
+      "title": "公司",
+      "newCompany": "新公司",
+      "loading": "正在加载公司...",
+      "rename": "重命名",
+      "deleteCompany": "删除公司",
+      "agentsCount_one": "{{count}} 个智能体",
+      "agentsCount_other": "{{count}} 个智能体",
+      "tasksCount_one": "{{count}} 个任务",
+      "tasksCount_other": "{{count}} 个任务",
+      "created": "创建于 {{time}}",
+      "deleteConfirm": "删除这家公司及其全部数据？此操作无法撤销。"
+    },
+    "approvals": {
+      "title": "审批",
+      "failedApprove": "审批失败",
+      "failedReject": "拒绝失败",
+      "noPending": "暂无待处理的审批。",
+      "none": "暂无审批。"
+    },
+    "issues": {
+      "selectCompany": "请选择一家公司以查看任务。"
+    }
   }
 }

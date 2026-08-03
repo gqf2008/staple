@@ -49,6 +49,66 @@
     "viewProfileDesc": "查看你的動態、任務和使用明細。",
     "editProfileDesc": "更新你的顯示名稱和大頭照。",
     "documentationDesc": "在新分頁中開啟 Paperclip 文件。",
-    "feedbackDesc": "分享意見回饋或回報問題。"
+    "feedbackDesc": "分享意見回饋或回報問題。",
+    "unlimitedBudget": "無限預算",
+    "cancel": "取消",
+    "delete": "刪除",
+    "deleting": "正在刪除…",
+    "pending": "待處理",
+    "all": "全部",
+    "selectCompanyFirst": "請先選擇公司。"
+  },
+  "pages": {
+    "dashboard": {
+      "welcome": "歡迎使用 Paperclip。建立你的第一家公司與智慧體，開始上手。",
+      "getStarted": "開始使用",
+      "selectCompany": "建立或選擇一家公司以檢視儀表板。",
+      "noAgents": "你還沒有智慧體。",
+      "createOneHere": "在此建立",
+      "activeIncidents_one": "{{count}} 個進行中的預算事件",
+      "activeIncidents_other": "{{count}} 個進行中的預算事件",
+      "pausedSummary": "{{agents}} 個智慧體已暫停 · {{projects}} 個專案已暫停 · {{approvals}} 個預算審批待處理",
+      "openBudgets": "開啟預算",
+      "agentsEnabled": "已啟用智慧體",
+      "agentsEnabledDesc": "{{running}} 執行中，{{paused}} 已暫停，{{errors}} 錯誤",
+      "tasksInProgress": "進行中的任務",
+      "tasksInProgressDesc": "{{open}} 待處理，{{blocked}} 已封鎖",
+      "monthSpend": "本月花費",
+      "monthSpendDesc": "已用預算的 {{percent}}%（{{budget}}）",
+      "pendingApprovals": "待審批",
+      "budgetOverridesReview": "{{count}} 個預算調整等待董事會審批",
+      "awaitingBoardReview": "等待董事會審批",
+      "chartRunActivity": "執行活動",
+      "chartTasksByPriority": "依優先權統計任務",
+      "chartTasksByStatus": "依狀態統計任務",
+      "chartSuccessRate": "成功率",
+      "last14Days": "最近 14 天",
+      "recentActivity": "最近活動",
+      "recentTasks": "最近任務",
+      "noTasksYet": "暫無任務。"
+    },
+    "companies": {
+      "title": "公司",
+      "newCompany": "新公司",
+      "loading": "正在載入公司...",
+      "rename": "重新命名",
+      "deleteCompany": "刪除公司",
+      "agentsCount_one": "{{count}} 個智慧體",
+      "agentsCount_other": "{{count}} 個智慧體",
+      "tasksCount_one": "{{count}} 個任務",
+      "tasksCount_other": "{{count}} 個任務",
+      "created": "建立於 {{time}}",
+      "deleteConfirm": "刪除這家公司及其全部資料？此操作無法復原。"
+    },
+    "approvals": {
+      "title": "審批",
+      "failedApprove": "審批失敗",
+      "failedReject": "拒絕失敗",
+      "noPending": "暫無待處理的審批。",
+      "none": "暫無審批。"
+    },
+    "issues": {
+      "selectCompany": "請選擇一家公司以檢視任務。"
+    }
   }
 }

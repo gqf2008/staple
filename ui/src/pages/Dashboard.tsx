@@ -18,6 +18,7 @@ import { StatusIcon } from "../components/StatusIcon";
 import { usePublishSharedQueryData, useSharedPollingQuery } from "../hooks/useSharedPolling";
 
 import { ActivityRow } from "../components/ActivityRow";
+import { t } from "../i18n";
 import { Identity } from "../components/Identity";
 import { timeAgo } from "../lib/timeAgo";
 import { cn, formatCents } from "../lib/utils";
@@ -53,7 +54,7 @@ export function Dashboard() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Dashboard" }]);
+    setBreadcrumbs([{ label: t("nav.dashboard", { defaultValue: "Dashboard" }) }]);
   }, [setBreadcrumbs]);
 
   const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
@@ -195,14 +196,14 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message="Welcome to Paperclip. Set up your first company and agent to get started."
-          action="Get Started"
+          message={t("pages.dashboard.welcome", { defaultValue: "Welcome to Paperclip. Set up your first company and agent to get started." })}
+          action={t("pages.dashboard.getStarted", { defaultValue: "Get Started" })}
           onAction={openOnboarding}
         />
       );
     }
     return (
-      <EmptyState icon={LayoutDashboard} message="Create or select a company to view the dashboard." />
+      <EmptyState icon={LayoutDashboard} message={t("pages.dashboard.selectCompany", { defaultValue: "Create or select a company to view the dashboard." })} />
     );
   }
 
@@ -221,14 +222,14 @@ export function Dashboard() {
           <div className="flex items-center gap-2.5">
             <Bot className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-sm text-amber-900 dark:text-amber-100">
-              You have no agents.
+              {t("pages.dashboard.noAgents", { defaultValue: "You have no agents." })}
             </p>
           </div>
           <button
             onClick={() => openOnboarding({ initialStep: 2, companyId: selectedCompanyId! })}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 underline underline-offset-2 shrink-0"
           >
-            Create one here
+            {t("pages.dashboard.createOneHere", { defaultValue: "Create one here" })}
           </button>
         </div>
       )}
@@ -243,15 +244,15 @@ export function Dashboard() {
                 <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-red-300" />
                 <div>
                   <p className="text-sm font-medium text-red-950 dark:text-red-50">
-                    {data.budgets.activeIncidents} active budget incident{data.budgets.activeIncidents === 1 ? "" : "s"}
+                    {t("pages.dashboard.activeIncidents", { count: data.budgets.activeIncidents, defaultValue: "{{count}} active budget incident(s)" })}
                   </p>
                   <p className="text-xs text-red-900/70 dark:text-red-100/70">
-                    {data.budgets.pausedAgents} agents paused · {data.budgets.pausedProjects} projects paused · {data.budgets.pendingApprovals} pending budget approvals
+                    {t("pages.dashboard.pausedSummary", { agents: data.budgets.pausedAgents, projects: data.budgets.pausedProjects, approvals: data.budgets.pendingApprovals })}
                   </p>
                 </div>
               </div>
               <Link to="/costs" className="text-sm underline underline-offset-2 text-red-900 dark:text-red-100">
-                Open budgets
+                {t("pages.dashboard.openBudgets", { defaultValue: "Open budgets" })}
               </Link>
             </div>
           ) : null}
@@ -260,69 +261,46 @@ export function Dashboard() {
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label="Agents Enabled"
+              label={t("pages.dashboard.agentsEnabled", { defaultValue: "Agents Enabled" })}
               to="/agents"
-              description={
-                <span>
-                  {data.agents.running} running{", "}
-                  {data.agents.paused} paused{", "}
-                  {data.agents.error} errors
-                </span>
-              }
+              description={t("pages.dashboard.agentsEnabledDesc", { running: data.agents.running, paused: data.agents.paused, errors: data.agents.error })}
             />
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label="Tasks In Progress"
+              label={t("pages.dashboard.tasksInProgress", { defaultValue: "Tasks In Progress" })}
               to="/issues"
-              description={
-                <span>
-                  {data.tasks.open} open{", "}
-                  {data.tasks.blocked} blocked
-                </span>
-              }
+              description={t("pages.dashboard.tasksInProgressDesc", { open: data.tasks.open, blocked: data.tasks.blocked })}
             />
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label="Month Spend"
+              label={t("pages.dashboard.monthSpend", { defaultValue: "Month Spend" })}
               to="/costs"
-              description={
-                <span>
-                  {data.costs.monthBudgetCents > 0
-                    ? `${data.costs.monthUtilizationPercent}% of ${formatCents(data.costs.monthBudgetCents)} budget`
-                    : "Unlimited budget"}
-                </span>
-              }
+              description={data.costs.monthBudgetCents > 0 ? t("pages.dashboard.monthSpendDesc", { percent: data.costs.monthUtilizationPercent, budget: formatCents(data.costs.monthBudgetCents) }) : t("common.unlimitedBudget", { defaultValue: "Unlimited budget" })}
             />
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label="Pending Approvals"
+              label={t("pages.dashboard.pendingApprovals", { defaultValue: "Pending Approvals" })}
               to="/approvals"
-              description={
-                <span>
-                  {data.budgets.pendingApprovals > 0
-                    ? `${data.budgets.pendingApprovals} budget overrides awaiting board review`
-                    : "Awaiting board review"}
-                </span>
-              }
+              description={data.budgets.pendingApprovals > 0 ? t("pages.dashboard.budgetOverridesReview", { count: data.budgets.pendingApprovals }) : t("pages.dashboard.awaitingBoardReview", { defaultValue: "Awaiting board review" })}
             />
           </div>
 
           <SmokeLabDashboardCard companyId={selectedCompanyId!} />
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+            <ChartCard title={t("pages.dashboard.chartRunActivity", { defaultValue: "Run Activity" })} subtitle={t("pages.dashboard.last14Days", { defaultValue: "Last 14 days" })}>
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
-            <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
+            <ChartCard title={t("pages.dashboard.chartTasksByPriority", { defaultValue: "Tasks by Priority" })} subtitle={t("pages.dashboard.last14Days", { defaultValue: "Last 14 days" })}>
               <PriorityChart issues={issues ?? []} />
             </ChartCard>
-            <ChartCard title="Tasks by Status" subtitle="Last 14 days">
+            <ChartCard title={t("pages.dashboard.chartTasksByStatus", { defaultValue: "Tasks by Status" })} subtitle={t("pages.dashboard.last14Days", { defaultValue: "Last 14 days" })}>
               <IssueStatusChart issues={issues ?? []} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title={t("pages.dashboard.chartSuccessRate", { defaultValue: "Success Rate" })} subtitle={t("pages.dashboard.last14Days", { defaultValue: "Last 14 days" })}>
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
@@ -340,7 +318,7 @@ export function Dashboard() {
             {recentActivity.length > 0 && (
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Recent Activity
+                  {t("pages.dashboard.recentActivity", { defaultValue: "Recent Activity" })}
                 </h3>
                 <Card className="block py-0 divide-y divide-border overflow-hidden">
                   {recentActivity.map((event) => (
@@ -361,11 +339,11 @@ export function Dashboard() {
             {/* Recent Tasks */}
             <div className="min-w-0">
               <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Recent Tasks
+                {t("pages.dashboard.recentTasks", { defaultValue: "Recent Tasks" })}
               </h3>
               {recentIssues.length === 0 ? (
                 <Card className="block p-4">
-                  <p className="text-sm text-muted-foreground">No tasks yet.</p>
+                  <p className="text-sm text-muted-foreground">{t("pages.dashboard.noTasksYet", { defaultValue: "No tasks yet." })}</p>
                 </Card>
               ) : (
                 <Card className="block py-0 divide-y divide-border overflow-hidden">

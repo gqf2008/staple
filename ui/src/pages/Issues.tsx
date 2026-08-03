@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useCallback, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useLocation, useSearchParams } from "@/lib/router";
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { issuesApi } from "../api/issues";
@@ -120,7 +121,7 @@ export function Issues() {
   const issueLinkState = useMemo(
     () =>
       createIssueDetailLocationState(
-        "Tasks",
+        t("nav.tasks", { defaultValue: "Tasks" }),
         `${location.pathname}${location.search}${location.hash}`,
         "issues",
       ),
@@ -128,7 +129,7 @@ export function Issues() {
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Tasks" }]);
+    setBreadcrumbs([{ label: t("nav.tasks", { defaultValue: "Tasks" }) }]);
   }, [setBreadcrumbs]);
 
   const issuePageSize = workspaceIdFilter ? WORKSPACE_FILTER_ISSUE_LIMIT : ISSUES_PAGE_SIZE;
@@ -188,7 +189,7 @@ export function Issues() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={CircleDot} message="Select a company to view tasks." />;
+    return <EmptyState icon={CircleDot} message={t("pages.issues.selectCompany", { defaultValue: "Select a company to view tasks." })} />;
   }
 
   return (
