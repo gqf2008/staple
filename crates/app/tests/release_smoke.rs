@@ -6,15 +6,15 @@ use std::sync::Arc;
 use http::{Method, Request, header::CONTENT_TYPE};
 use serde_json::{Value, json};
 use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
-use staple_app::{router, state::AppState};
 use staple_app::storage::LocalStorage;
+use staple_app::{router, state::AppState};
 use staple_data::{
-    DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository, TursoApprovalRepository,
-    TursoAssetRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
-    TursoDocumentRepository, TursoExternalObjectRepository, TursoGoalRepository,
-    TursoHeartbeatRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, migrate, open,
+    DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
+    TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
+    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -34,7 +34,10 @@ async fn send_json(
     let status = response.status();
     let (_, body) = response.into_parts();
     let bytes = to_bytes(body, usize::MAX).await.unwrap();
-    (status, serde_json::from_slice(&bytes).unwrap_or(Value::Null))
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
 }
 
 #[tokio::test]
