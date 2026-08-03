@@ -2640,10 +2640,18 @@ async fn ui_internationalization_zh_cn_and_switcher() {
     let (_, html) = send(&app, Method::GET, "/?lang=zh-CN", None).await;
     assert!(html.contains("公司"));
     assert!(
-        html.contains(">English<"),
-        "language switcher back to English missing"
+        html.contains(">繁體<"),
+        "language switcher to zh-TW missing (cycle En -> zh-CN -> zh-TW)"
     );
     assert!(html.contains("Acme"));
+
+    // zh-TW: full upstream locale loads and switches back to English.
+    let (_, html) = send(&app, Method::GET, "/?lang=zh-TW", None).await;
+    assert!(html.contains("公司"));
+    assert!(
+        html.contains(">English<"),
+        "language switcher back to English missing on zh-TW"
+    );
 
     // zh-CN company overview: sections localized, issue title present.
     let (_, html) = send(

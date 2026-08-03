@@ -48,7 +48,8 @@ pub use agent_runtime::{
     NewTaskSession, NewWakeupRequest, TursoAgentRuntimeRepository,
 };
 pub use agents::{
-    AgentBudgetRecord, AgentError, AgentHierarchyRow, AgentRepository, TursoAgentRepository,
+    AgentBudgetRecord, AgentError, AgentHierarchyRow, AgentRecord, AgentRepository,
+    TursoAgentRepository,
 };
 pub use api_keys::{
     AgentApiKeyRecord, AgentPrincipal, ApiKeyError, ApiKeyRepository, NewAgentApiKey,

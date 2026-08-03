@@ -18,11 +18,13 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
         .unwrap_or_else(|| "/".to_owned());
     let switch_lang = match lang {
         Lang::En => Lang::ZhCn,
-        Lang::ZhCn => Lang::En,
+        Lang::ZhCn => Lang::ZhTw,
+        Lang::ZhTw => Lang::En,
     };
     let switch_label = match switch_lang {
         Lang::En => "English",
         Lang::ZhCn => "中文",
+        Lang::ZhTw => "繁體",
     };
     let html_lang = lang_code(lang);
     view! {
@@ -38,6 +40,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                 <nav class="app-nav">
                     <a href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
                     <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
+                    <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
                     <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
                 </nav>
                 <main class="app-main">(slot?)</main>
