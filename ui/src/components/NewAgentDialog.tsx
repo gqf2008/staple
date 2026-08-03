@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router";
 import { useDialog } from "../context/DialogContext";
@@ -75,7 +76,7 @@ export function NewAgentDialog() {
     staleTime: 5 * 60 * 1000,
   });
 
-  // Fetch existing agents for the "Ask CEO" flow
+  // Fetch existing agents for the Ask CEO flow
   const { data: agents } = useQuery({
     queryKey: queryKeys.agents.list(selectedCompanyId!),
     queryFn: () => agentsApi.list(selectedCompanyId!),
@@ -120,7 +121,7 @@ export function NewAgentDialog() {
     closeNewAgent();
     openNewIssue({
       assigneeAgentId: ceoAgent?.id,
-      title: "Create a new agent",
+      title: t("components.dialogs.newAgent.createNewAgent", { defaultValue: "Create a new agent" }),
       description: "(type in what kind of agent you want here)",
     });
   }
@@ -150,7 +151,7 @@ export function NewAgentDialog() {
     }
 
     pushToast({
-      title: "Clipboard unavailable",
+      title: t("components.dialogs.newAgent.clipboardUnavailable", { defaultValue: "Clipboard unavailable" }),
       body: unavailableBody,
       tone: "warn",
     });
@@ -196,19 +197,19 @@ export function NewAgentDialog() {
       setLatestAgentPrompt(prompt);
       setLatestAgentPromptCopied(false);
       setMode("prompt");
-      const copied = await copyText(prompt, "Copy the agent onboarding prompt manually from the field below.");
+      const copied = await copyText(prompt, t("components.dialogs.newAgent.promptHintBelow", { defaultValue: "Copy the agent onboarding prompt manually from the field below." }));
 
       await queryClient.invalidateQueries({ queryKey: inviteHistoryQueryKey });
       pushToast({
-        title: "Agent invite created",
-        body: copied ? "Agent onboarding prompt ready below and copied to clipboard." : "Agent onboarding prompt ready below.",
+        title: t("components.dialogs.newAgent.inviteCreated", { defaultValue: "Agent invite created" }),
+        body: copied ? t("components.dialogs.newAgent.promptReadyCopied", { defaultValue: "Agent onboarding prompt ready below and copied to clipboard." }) : t("components.dialogs.newAgent.promptReady", { defaultValue: "Agent onboarding prompt ready below." }),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to create agent invite",
-        body: error instanceof Error ? error.message : "Unknown error",
+        title: t("components.dialogs.newAgent.failedCreateInvite", { defaultValue: "Failed to create agent invite" }),
+        body: error instanceof Error ? error.message : t("components.dialogs.newAgent.unknownError", { defaultValue: "Unknown error" }),
         tone: "error",
       });
     },
@@ -349,7 +350,7 @@ export function NewAgentDialog() {
                   value={agentMessage}
                   onChange={(event) => setAgentMessage(event.target.value)}
                   className="min-h-24 resize-y"
-                  placeholder="Add onboarding context, expected role, or first instructions."
+                  placeholder={t("components.dialogs.newAgent.addContext", { defaultValue: "Add onboarding context, expected role, or first instructions." })}
                   maxLength={4000}
                 />
               </label>
@@ -363,7 +364,7 @@ export function NewAgentDialog() {
                   onClick={() => createAgentInviteMutation.mutate()}
                   disabled={!selectedCompanyId || createAgentInviteMutation.isPending}
                 >
-                  {createAgentInviteMutation.isPending ? "Generating…" : "Generate onboarding prompt"}
+                  {createAgentInviteMutation.isPending ? t("components.dialogs.newAgent.generating", { defaultValue: "Generating…" }) : t("components.dialogs.newAgent.generatePrompt", { defaultValue: "Generate onboarding prompt" })}
                 </Button>
               </div>
             </div>
@@ -404,11 +405,11 @@ export function NewAgentDialog() {
                 disabled={!latestAgentPrompt}
                 onClick={async () => {
                   if (!latestAgentPrompt) return;
-                  const copied = await copyText(latestAgentPrompt, "Copy the agent onboarding prompt manually from the field above.");
+                  const copied = await copyText(latestAgentPrompt, t("components.dialogs.newAgent.promptHintAbove", { defaultValue: "Copy the agent onboarding prompt manually from the field above." }));
                   setLatestAgentPromptCopied(copied);
                 }}
               >
-                {latestAgentPromptCopied ? "Copied prompt" : "Copy prompt"}
+                {latestAgentPromptCopied ? t("components.dialogs.newAgent.copiedPrompt", { defaultValue: "Copied prompt" }) : t("components.dialogs.newAgent.copyPrompt", { defaultValue: "Copy prompt" })}
               </Button>
             </div>
           )}

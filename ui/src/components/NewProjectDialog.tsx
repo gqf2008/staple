@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDialog } from "../context/DialogContext";
 import { useCompany } from "../context/CompanyContext";
@@ -38,13 +39,15 @@ import { MarkdownEditor, type MarkdownEditorRef, type MentionOption } from "./Ma
 import { StatusBadge } from "./StatusBadge";
 import { ChoosePathButton } from "./PathInstructionsModal";
 
-const projectStatuses = [
-  { value: "backlog", label: "Backlog" },
-  { value: "planned", label: "Planned" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-];
+function projectStatuses() {
+  return [
+    { value: "backlog", label: t("status.backlog", { defaultValue: "Backlog" }) },
+    { value: "planned", label: t("status.planned", { defaultValue: "Planned" }) },
+    { value: "in_progress", label: t("status.in_progress", { defaultValue: "In Progress" }) },
+    { value: "completed", label: t("status.done", { defaultValue: "Completed" }) },
+    { value: "cancelled", label: t("status.cancelled", { defaultValue: "Cancelled" }) },
+  ];
+}
 
 export function NewProjectDialog() {
   const { newProjectOpen, closeNewProject } = useDialog();
@@ -96,7 +99,7 @@ export function NewProjectDialog() {
 
   const uploadDescriptionImage = useMutation({
     mutationFn: async (file: File) => {
-      if (!selectedCompanyId) throw new Error("No company selected");
+      if (!selectedCompanyId) throw new Error(t("components.dialogs.common.noCompanySelected", { defaultValue: "No company selected" }));
       return assetsApi.uploadImage(selectedCompanyId, file, "projects/drafts");
     },
   });
@@ -129,7 +132,7 @@ export function NewProjectDialog() {
   const deriveWorkspaceNameFromPath = (value: string) => {
     const normalized = value.trim().replace(/[\\/]+$/, "");
     const segments = normalized.split(/[\\/]/).filter(Boolean);
-    return segments[segments.length - 1] ?? "Local folder";
+    return segments[segments.length - 1] ?? t("components.dialogs.newProject.localFolder", { defaultValue: "Local folder" });
   };
 
   const deriveWorkspaceNameFromRepo = (value: string) => {
@@ -137,9 +140,9 @@ export function NewProjectDialog() {
       const parsed = new URL(value);
       const segments = parsed.pathname.split("/").filter(Boolean);
       const repo = segments[segments.length - 1]?.replace(/\.git$/i, "") ?? "";
-      return repo || "GitHub repo";
+      return repo || t("components.dialogs.newProject.githubRepo", { defaultValue: "GitHub repo" });
     } catch {
-      return "GitHub repo";
+      return t("components.dialogs.newProject.githubRepo", { defaultValue: "GitHub repo" });
     }
   };
 
@@ -149,11 +152,11 @@ export function NewProjectDialog() {
     const repoUrl = workspaceRepoUrl.trim();
 
     if (localPath && !isAbsolutePath(localPath)) {
-      setWorkspaceError("Local folder must be a full absolute path.");
+      setWorkspaceError(t("components.dialogs.newProject.localFolderHint", { defaultValue: "Local folder must be a full absolute path." }));
       return;
     }
     if (repoUrl && !looksLikeRepoUrl(repoUrl)) {
-      setWorkspaceError("Repo must use a valid GitHub or GitHub Enterprise repo URL.");
+      setWorkspaceError(t("components.dialogs.newProject.repoUrlHint", { defaultValue: "Repo must use a valid GitHub or GitHub Enterprise repo URL." }));
       return;
     }
 
@@ -249,7 +252,7 @@ export function NewProjectDialog() {
         <div className="px-4 pt-4 pb-2 shrink-0">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Project name"
+            placeholder={t("components.dialogs.newProject.projectName", { defaultValue: "Project name" })}
             value={name}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
@@ -268,7 +271,7 @@ export function NewProjectDialog() {
             ref={descriptionEditorRef}
             value={description}
             onChange={setDescription}
-            placeholder="Add description..."
+            placeholder={t("components.dialogs.common.addDescription", { defaultValue: "Add description..." })}
             bordered={false}
             mentions={mentionOptions}
             contentClassName={cn("text-sm text-muted-foreground", expanded ? "min-h-(--sz-220px)" : "min-h-(--sz-120px)")}
@@ -340,7 +343,7 @@ export function NewProjectDialog() {
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-40 p-1" align="start">
-              {projectStatuses.map((s) => (
+              {projectStatuses().map((s) => (
                 <button
                   key={s.value}
                   className={cn(
@@ -380,7 +383,7 @@ export function NewProjectDialog() {
                 disabled={selectedGoals.length > 0 && availableGoals.length === 0}
               >
                 {selectedGoals.length > 0 ? <Plus className="h-3 w-3 text-muted-foreground" /> : <Target className="h-3 w-3 text-muted-foreground" />}
-                {selectedGoals.length > 0 ? "+ Goal" : "Goal"}
+                {selectedGoals.length > 0 ? t("components.dialogs.newProject.plusGoal", { defaultValue: "+ Goal" }) : t("components.dialogs.newProject.goal", { defaultValue: "Goal" })}
               </button>
             </PopoverTrigger>
             <PopoverContent className="w-56 p-1" align="start">
@@ -420,7 +423,7 @@ export function NewProjectDialog() {
               className="bg-transparent outline-none text-xs w-24"
               value={targetDate}
               onChange={(e) => setTargetDate(e.target.value)}
-              placeholder="Target date"
+              placeholder={t("components.dialogs.newProject.targetDate", { defaultValue: "Target date" })}
             />
           </div>
         </div>
@@ -437,7 +440,7 @@ export function NewProjectDialog() {
             disabled={!name.trim() || createProject.isPending}
             onClick={handleSubmit}
           >
-            {createProject.isPending ? "Creating…" : "Create project"}
+            {createProject.isPending ? t("components.dialogs.common.creating", { defaultValue: "Creating…" }) : t("components.dialogs.newProject.createProject", { defaultValue: "Create project" })}
           </Button>
         </div>
       </DialogContent>
