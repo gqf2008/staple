@@ -20,6 +20,7 @@ pub mod issue_structure;
 pub mod issues;
 pub mod projects;
 pub mod relations;
+pub mod routines;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
