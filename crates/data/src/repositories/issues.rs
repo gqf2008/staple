@@ -190,6 +190,20 @@ pub trait IssueRepository: Send + Sync {
     ///
     /// Returns [`IssueError`] on database failure.
     async fn delete(&self, id: &str) -> Result<Option<IssueRecord>, IssueError>;
+
+    /// Archives (hides) or restores an issue by setting `hidden_at`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IssueError`] on database failure.
+    async fn set_hidden(&self, id: &str, hidden: bool) -> Result<Option<IssueRecord>, IssueError>;
+
+    /// Lists unarchived issues for a company (inbox), newest first.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IssueError`] on database failure.
+    async fn list_inbox(&self, company_id: &str) -> Result<Vec<IssueRecord>, IssueError>;
 }
 
 /// Turso/libSQL implementation of [`IssueRepository`].
@@ -461,6 +475,38 @@ impl IssueRepository for TursoIssueRepository {
             }
             Err(error) => Err(error.into()),
         }
+    }
+
+    async fn set_hidden(&self, id: &str, hidden: bool) -> Result<Option<IssueRecord>, IssueError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "UPDATE issues
+                 SET hidden_at = CASE WHEN ?1 THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE NULL END,
+                     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE id = ?2",
+                libsql::params![i64::from(hidden), id],
+            )
+            .await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        self.get(id).await
+    }
+
+    async fn list_inbox(&self, company_id: &str) -> Result<Vec<IssueRecord>, IssueError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let sql = format!(
+            "SELECT {ISSUE_COLUMNS} FROM issues
+             WHERE company_id = ?1 AND hidden_at IS NULL
+             ORDER BY updated_at DESC"
+        );
+        let mut rows = conn.query(&sql, libsql::params![company_id]).await?;
+        let mut issues = Vec::new();
+        while let Some(row) = rows.next().await? {
+            issues.push(row_to_issue(&row)?);
+        }
+        Ok(issues)
     }
 }
 

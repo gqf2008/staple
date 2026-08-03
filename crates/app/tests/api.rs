@@ -11,9 +11,10 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoApiKeyRepository,
     TursoApprovalRepository, TursoAssetRepository, TursoCompanyRepository, TursoCostRepository,
-    TursoDocumentRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoSecretRepository, TursoWorkProductRepository, migrate, open,
+    TursoDecisionRepository, TursoDocumentRepository, TursoExternalObjectRepository,
+    TursoGoalRepository, TursoHeartbeatRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoProjectRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -72,6 +73,15 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let api_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let decisions_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let external_objects_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let skills_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -93,6 +103,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         activity: Arc::new(TursoActivityRepository::new(activity_db)),
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
+        decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
+        external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
+        skills: Arc::new(TursoSkillRepository::new(skills_db)),
     };
     (state, seed_db)
 }
@@ -2067,5 +2080,253 @@ async fn three_identity_permission_matrix() {
         Some(&plaintext),
     )
     .await;
+    assert_eq!(status, StatusCode::UNAUTHORIZED);
+}
+
+#[tokio::test]
+async fn decision_desk_and_inbox_and_external_objects() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "T").await;
+
+    // Decision queue.
+    let (status, queue) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues"),
+        json!({ "name": "approvals", "retentionDays": 30 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(queue["name"], "approvals");
+    let queue_id = queue["id"].as_str().unwrap().to_owned();
+
+    // Duplicate queue -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues"),
+        json!({ "name": "approvals" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Queue item.
+    let (status, item) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-queues/{queue_id}/items"),
+        json!({ "sourceKind": "issue", "sourceId": issue_id, "payload": { "n": 1 } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(item["sourceId"], issue_id);
+    let (status, items) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/decision-queues/{queue_id}/items"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(items.as_array().unwrap().len(), 1);
+
+    // Triage.
+    let (status, triage) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decision-triage"),
+        json!({ "sourceKind": "issue", "sourceId": issue_id, "decision": "keep", "decidedByUserId": "board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(triage["decision"], "keep");
+
+    // Inbox: issue present; archive -> gone; unarchive -> back.
+    let (status, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(inbox.as_array().unwrap().len(), 1);
+
+    let (status, archived) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/archive"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(archived["hiddenAt"].is_string());
+
+    let (_, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(inbox.as_array().unwrap().len(), 0);
+
+    let (_, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/unarchive"),
+        json!({}),
+    )
+    .await;
+    let (_, inbox) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(inbox.as_array().unwrap().len(), 1);
+
+    // External objects.
+    let (status, external) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/external-objects"),
+        json!({ "kind": "github_pr", "externalId": "42", "url": "https://github.com/x/y/pull/42" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(external["status"], "pending");
+    let external_id = external["id"].as_str().unwrap().to_owned();
+
+    let (status, refreshed) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/external-objects/{external_id}/refresh"),
+        json!({ "status": "merged" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(refreshed["status"], "merged");
+    assert!(refreshed["lastSyncedAt"].is_string());
+
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/issues/{issue_id}/external-objects"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn skills_policy_evaluation() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local'),
+                ('22222222-2222-2222-2222-222222222222', 'c1', 'two', 'senior', 'codex_local'),
+                ('33333333-3333-3333-3333-333333333333', 'c2', 'three', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Board creates a skill restricted to senior role.
+    let (status, skill) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        json!({
+            "name": "code_review",
+            "description": "review",
+            "restrictionPolicy": { "allowedRoles": ["senior"] }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(skill["name"], "code_review");
+
+    // List.
+    let (status, list) = send_json(&app, Method::GET, "/api/companies/c1/skills", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Senior allowed.
+    let (status, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "22222222-2222-2222-2222-222222222222", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(evaluation["allowed"], true);
+
+    // Engineer denied by role allow-list.
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+    assert!(evaluation["reason"].as_str().unwrap().contains("role"));
+
+    // Cross-company agent denied (company boundary in the evaluator).
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "33333333-3333-3333-3333-333333333333", "skill": "code_review" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+    // Cross-company agents resolve to "not found" (existence is not leaked).
+    assert!(evaluation["reason"].as_str().unwrap().contains("not found"));
+
+    // Unknown skill denied.
+    let (_, evaluation) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/evaluate",
+        json!({ "agentId": "22222222-2222-2222-2222-222222222222", "skill": "nope" }),
+    )
+    .await;
+    assert_eq!(evaluation["allowed"], false);
+
+    // Duplicate skill -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        json!({ "name": "code_review" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Agent cannot create skills (board-only).
+    let (status, _) = send_with_auth(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills",
+        Some(r#"{"name":"x"}"#),
+        Some("sk-agent"),
+    )
+    .await;
+    // Invalid key -> 401 (no key was created for the agent).
     assert_eq!(status, StatusCode::UNAUTHORIZED);
 }

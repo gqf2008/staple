@@ -323,6 +323,52 @@ pub async fn delete_issue(cx: &Cx) -> Result<StatusCode, ApiError> {
     }
 }
 
+/// `GET /api/companies/{companyId}/inbox` — unarchived issues, newest first.
+#[route(GET "/api/companies/{company_id}/inbox")]
+pub async fn list_inbox(cx: &Cx) -> Result<Json<Vec<IssueDto>>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let state = app_context::<AppState>(cx);
+    let issues = state
+        .issues
+        .list_inbox(&company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(issues.into_iter().map(IssueDto::from).collect()))
+}
+
+/// `POST /api/issues/{id}/archive` — archives an issue (hidden from inbox).
+#[route(POST "/api/issues/{id}/archive")]
+pub async fn archive_issue(cx: &Cx) -> Result<Json<IssueDto>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    match state
+        .issues
+        .set_hidden(&id, true)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+    {
+        Some(issue) => Ok(Json(issue.into())),
+        None => Err(ApiError::not_found("Issue not found")),
+    }
+}
+
+/// `POST /api/issues/{id}/unarchive` — restores an archived issue.
+#[route(POST "/api/issues/{id}/unarchive")]
+pub async fn unarchive_issue(cx: &Cx) -> Result<Json<IssueDto>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    match state
+        .issues
+        .set_hidden(&id, false)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+    {
+        Some(issue) => Ok(Json(issue.into())),
+        None => Err(ApiError::not_found("Issue not found")),
+    }
+}
+
 fn issue_error_to_api(error: staple_data::IssueError) -> ApiError {
     use staple_data::IssueError as E;
     match error {
