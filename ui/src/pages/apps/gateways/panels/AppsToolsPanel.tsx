@@ -62,7 +62,7 @@ export function AppsToolsPanel({
                             : "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300",
                         )}
                       >
-                        {app.needsAttention ? "Needs attention" : "Healthy"}
+                        {app.needsAttention ? t("components.appsSidebar.needsAttention") : t("components.budgetPolicy.healthy")}
                       </span>
                     </td>
                     <td className="px-4 py-3 text-right">

@@ -31,7 +31,7 @@ export function PendingDecisionStrip({ companyId, issueId }: { companyId: string
     >
       <Scale className="h-4 w-4 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden />
       <span className="font-medium">
-        {count === 1 ? "1 pending decision affects this issue" : `${count} pending decisions affect this issue`}
+        {count === 1 ? t("ui.components.pendingdecisionstrip.pending-decision-affects-issue") : `${count} pending decisions affect this issue`}
       </span>
       <span className="text-xs text-muted-foreground">{t("ui.components.pendingdecisionstrip.review-decisions")}</span>
     </Link>

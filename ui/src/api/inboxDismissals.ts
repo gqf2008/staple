@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { InboxDismissal } from "@paperclipai/shared";
 import { api } from "./client";
 

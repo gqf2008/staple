@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ServerInfoSnapshot } from "@paperclipai/shared";
 
 export type DevServerHealthStatus = {
@@ -43,7 +44,7 @@ export const healthApi = {
   },
   requestDevServerRestart: async (): Promise<void> => {
     const res = await fetch("/api/health/dev-server/restart", {
-      method: "POST",
+      method: t("ui.api.auth.post"),
       credentials: "include",
       headers: { Accept: "application/json" },
     });

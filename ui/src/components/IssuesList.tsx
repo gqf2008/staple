@@ -670,7 +670,7 @@ function SubIssueProgressSummaryStrip({
 }
 
 // Mobile-only indent for nested task rows (desktop uses IssueRow treeGuides).
-const MOBILE_TREE_INDENT = ["", "pl-4 sm:pl-0", "pl-8 sm:pl-0", "pl-12 sm:pl-0", "pl-16 sm:pl-0"];
+const MOBILE_TREE_INDENT = ["", t("ui.components.issueslist.pl-sm-pl"), t("ui.components.issueslist.pl-sm-pl.2"), "pl-12 sm:pl-0", "pl-16 sm:pl-0"];
 
 export function IssuesList({
   issues,
@@ -1369,7 +1369,7 @@ export function IssuesList({
     const row = rootRef.current?.querySelector(
       `[data-issue-row-id="${escapeAttrValue(navKey.slice("issue:".length))}"]`,
     );
-    const link = row?.querySelector("[data-inbox-issue-link]");
+    const link = row?.querySelector(t("ui.components.issueslist.data-inbox-issue-link"));
     return link instanceof HTMLElement ? link : null;
   }, []);
 

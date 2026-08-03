@@ -1768,7 +1768,7 @@ function CatalogList({
             <SkillTree
               nodes={tree}
               skillId={skill.id}
-              selectedPath={isSelected ? selectedPath : "SKILL.md"}
+              selectedPath={isSelected ? selectedPath : t("pages.skills.importFromProject.skillMd")}
               expandedDirs={expandedDirs[skill.id] ?? new Set<string>()}
               onToggleDir={(path) => onToggleDir(skill.id, path)}
               onSelectPath={(path) => onSelectPath(skill.id, path)}
@@ -2089,7 +2089,7 @@ function InstallPreviewDialog({
 
           {conflict ? (
             <div className="rounded-md border border-amber-500/40 bg-amber-500/10 p-3 text-xs text-amber-800 dark:text-amber-200">
-              {t("ui.pages.companyskills.existing-skill-key")}<span className="font-mono">{conflict.key}</span> {t("ui.pages.companyskills.installed-alt")}{conflict.sourceLabel ?? conflict.sourceType}{t("ui.pages.companyskills.installing-will")}{defaultAction === "update" ? "overwrite the catalog content" : "replace the existing skill"}.
+              {t("ui.pages.companyskills.existing-skill-key")}<span className="font-mono">{conflict.key}</span> {t("ui.pages.companyskills.installed-alt")}{conflict.sourceLabel ?? conflict.sourceType}{t("ui.pages.companyskills.installing-will")}{defaultAction === "update" ? t("ui.pages.companyskills.overwrite-catalog-content") : t("ui.pages.companyskills.replace-existing-skill")}.
             </div>
           ) : null}
 
@@ -2209,7 +2209,7 @@ function AttachAgentsPopover({
       }}
       getDescription={(agent) => {
         const option = agent as AttachAgentOption;
-        return `${option.adapterType}${option.required ? " · required" : ""}${!option.supportsSkills ? " · skills not supported" : ""}`;
+        return `${option.adapterType}${option.required ? t("ui.pages.companyskills.required") : ""}${!option.supportsSkills ? t("ui.pages.companyskills.skills-not-supported") : ""}`;
       }}
       renderNameSuffix={(agent) => (agent as AttachAgentOption).paused ? (
         <Badge variant="outline" className="[&>svg]:size-2.5 border-amber-500/30 bg-amber-500/10 px-1.5 text-(length:--text-nano) uppercase tracking-wide text-amber-500">
@@ -2497,7 +2497,7 @@ function SkillVersionDiffDialog({
       return a.localeCompare(b);
     });
   }, [left, right]);
-  const [selectedPath, setSelectedPath] = useState("SKILL.md");
+  const [selectedPath, setSelectedPath] = useState(t("pages.skills.importFromProject.skillMd"));
   const effectivePath = allPaths.includes(selectedPath) ? selectedPath : allPaths[0] ?? t("pages.skills.importFromProject.skillMd");
   const leftFile = left?.fileInventory.find((file) => file.path === effectivePath);
   const rightFile = right?.fileInventory.find((file) => file.path === effectivePath);
@@ -3097,7 +3097,7 @@ export function SkillDetailPage({
         <div className="flex items-center justify-between gap-3">
           <p className="text-sm text-muted-foreground">
             {attached.length} {attached.length === 1 ? "agent" : "agents"} attached
-            {selectedVersion ? ` · ${versionLabel(selectedVersion)}` : " · Latest"}
+            {selectedVersion ? ` · ${versionLabel(selectedVersion)}` : t("ui.pages.companyskills.latest")}
           </p>
           <AttachAgentsPopover
             agents={attachAgents}
@@ -3897,7 +3897,7 @@ export function CompanySkills() {
   const [catalogFilter, setCatalogFilter] = useState("");
   const [catalogKindFilter, setCatalogKindFilter] = useState<"all" | "bundled" | "optional">("all");
   const [catalogCategoryFilter, setCatalogCategoryFilter] = useState<string>("");
-  const [catalogSelectedPath, setCatalogSelectedPath] = useState<string>("SKILL.md");
+  const [catalogSelectedPath, setCatalogSelectedPath] = useState<string>(t("pages.skills.importFromProject.skillMd"));
   const [expandedCatalogSkillId, setExpandedCatalogSkillId] = useState<string | null>(null);
   const [expandedCatalogDirs, setExpandedCatalogDirs] = useState<Record<string, Set<string>>>({});
   const [installDialogState, setInstallDialogState] = useState<{

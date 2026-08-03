@@ -1113,7 +1113,7 @@ export function IssueProperties({
             </div>
             <div>
               <div className="text-xs text-muted-foreground">{t("components.issueProperties.lastTriggered", { defaultValue: "Last triggered" })}</div>
-              <div className="text-sm">{monitorLastTriggeredAt ? formatMonitorAbsoluteFull(monitorLastTriggeredAt) : "— not yet triggered"}</div>
+              <div className="text-sm">{monitorLastTriggeredAt ? formatMonitorAbsoluteFull(monitorLastTriggeredAt) : t("ui.components.issue-properties.issueproperties.not-yet-triggered")}</div>
             </div>
           </div>
           <div className="flex gap-2 border-t border-border px-4 py-3">

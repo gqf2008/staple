@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export function parseOnboardingGoalInput(raw: string): {
   title: string;
   description: string | null;

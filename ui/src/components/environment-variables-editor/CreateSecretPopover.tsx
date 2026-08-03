@@ -48,7 +48,7 @@ export function SecretPopoverForm({
     if (!trimmedName) return touched ? t("components.createSecretPopover.nameRequired", { defaultValue: "Name is required" }) : null;
     if (!SECRET_NAME_RE.test(trimmedName)) return t("components.createSecretPopover.nameHint", { defaultValue: "Use lowercase letters, digits and _" });
     if (existingSecretNames?.some((existing) => existing.toLowerCase() === trimmedName)) {
-      return "A secret with this name already exists";
+      return t("ui.components.environment-variables-editor.createsecretpopover.secret-name-already-exists");
     }
     return null;
   })();

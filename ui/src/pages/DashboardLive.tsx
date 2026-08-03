@@ -24,7 +24,7 @@ export function DashboardLive() {
     return (
       <EmptyState
         icon={RadioTower}
-        message={companies.length === 0 ? "Create a company to view live runs." : "Select a company to view live runs."}
+        message={companies.length === 0 ? t("ui.pages.dashboardlive.create-company-view-live") : t("ui.pages.dashboardlive.select-company-view-live")}
       />
     );
   }

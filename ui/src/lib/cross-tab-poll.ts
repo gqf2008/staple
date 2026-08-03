@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Cross-tab shared polling coordination (PAP-12557 / Phase 2 of PAP-12542).
  *
@@ -230,7 +231,7 @@ function stableFingerprint(value: unknown): string {
 
     const object = entry as Record<string, unknown>;
     if (seen.has(object)) {
-      write("[Circular]");
+      write(t("ui.lib.cross-tab-poll.circular"));
       return;
     }
     seen.add(object);

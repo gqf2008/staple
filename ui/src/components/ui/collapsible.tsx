@@ -1,5 +1,6 @@
-"use client"
+t("ui.components.ui.checkbox.use-client")
 
+import { t } from "../../i18n";
 import { Collapsible as CollapsiblePrimitive } from "radix-ui"
 
 function Collapsible({

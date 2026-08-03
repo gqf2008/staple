@@ -90,7 +90,7 @@ export function TaskChatLab() {
           {(["live", "tier-b"] as const).map((tier) => (
             <div key={tier} className="mb-3">
               <p className="mb-1 px-1 text-(length:--text-nano) font-semibold uppercase tracking-wide text-muted-foreground">
-                {tier === "live" ? "Live states" : "Tier-B (synthetic)"}
+                {tier === "live" ? t("ui.pages.taskchatlab.live-states") : t("ui.pages.taskchatlab.tier-synthetic")}
               </p>
               <ul className="flex flex-col gap-0.5">
                 {TASK_CHAT_STATE_LIST.filter((m) => m.tier === tier).map((m) => (
@@ -125,7 +125,7 @@ export function TaskChatLab() {
               className="flex items-center gap-1 rounded border border-border px-2 py-1 hover:bg-accent"
             >
               {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-              {playing ? "Pause" : "Play"}
+              {playing ? t("components.agentActionButtons.pause") : t("ui.pages.taskchatlab.play")}
             </button>
             <button
               type="button"

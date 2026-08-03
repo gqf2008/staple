@@ -23,10 +23,10 @@ const instructions: Record<Platform, { steps: string[]; tip?: string }> = {
     steps: [
       t("components.pathInstructions.finder1", { defaultValue: "Open Finder and navigate to the folder." }),
       t("components.pathInstructions.finder2", { defaultValue: "Right-click (or Control-click) the folder." }),
-      "Hold the Option (⌥) key — \"Copy\" changes to \"Copy as Pathname\".",
-      "Click \"Copy as Pathname\", then paste here.",
+      t("ui.components.pathinstructionsmodal.hold-option-key-copy"),
+      t("ui.components.pathinstructionsmodal.click-copy-pathname-then"),
     ],
-    tip: "You can also open Terminal, type cd, drag the folder into the terminal window, and press Enter. Then type pwd to see the full path.",
+    tip: t("ui.components.pathinstructionsmodal.you-can-also-open"),
   },
   windows: {
     steps: [

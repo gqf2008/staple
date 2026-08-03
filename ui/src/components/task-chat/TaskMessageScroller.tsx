@@ -15,7 +15,7 @@ type PillPhase = "hidden" | "in" | "out";
  */
 function motionDisabled(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return true;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce")).matches;
 }
 
 interface TaskMessageScrollerProps {

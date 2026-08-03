@@ -77,7 +77,7 @@ function resourceActionCopy(
   if (resource.stockStatus === "stock_update_available") {
     return {
       title: `Update ${label} to the newest default?`,
-      body: `You haven't edited this, so Paperclip will replace it with the newer shipped version. Nothing you customized is affected, and your adapter credentials and settings are not touched.`,
+      body: t("ui.components.builtinbundlepanel.you-haven-edited-so"),
       confirmLabel: t("components.builtInBundle.update", { defaultValue: "Update" }),
       triggerLabel: t("components.builtInBundle.update", { defaultValue: "Update" }),
     };
@@ -85,7 +85,7 @@ function resourceActionCopy(
   if (resource.stockStatus === "operator_modified") {
     return {
       title: `Reset ${label} to the shipped default?`,
-      body: `This replaces your edited version with Paperclip's current default. Your edits can't be recovered. Adapter credentials and settings are not touched.`,
+      body: t("ui.components.builtinbundlepanel.replaces-your-edited-version"),
       confirmLabel: `Reset ${label}`,
       triggerLabel: t("components.builtInBundle.reset", { defaultValue: "Reset" }),
     };
@@ -93,7 +93,7 @@ function resourceActionCopy(
   if (resource.stockStatus === "missing") {
     return {
       title: `Recreate ${label}?`,
-      body: `This resource is missing. Paperclip will recreate it from the shipped default. Adapter credentials and settings are not touched.`,
+      body: t("ui.components.builtinbundlepanel.resource-missing-paperclip-will"),
       confirmLabel: t("components.builtInBundle.recreate", { defaultValue: "Recreate" }),
       triggerLabel: t("components.builtInBundle.recreate", { defaultValue: "Recreate" }),
     };
@@ -377,7 +377,7 @@ export function BuiltInBundlePanel({
                 {onRunRoutine && (
                   <ConfirmActionButton
                     title={t("components.builtInBundle.runOnceConfirm", { defaultValue: "Run Reflection Coach once?" })}
-                    body="Paperclip will create one routine task now. This does not enable the weekly schedule or turn on background work."
+                    body={t("ui.components.builtinbundlepanel.paperclip-will-create-one")}
                     triggerLabel={t("components.builtInBundle.runOnce", { defaultValue: "Run once" })}
                     confirmLabel={t("components.builtInBundle.runOnce", { defaultValue: "Run once" })}
                     pending={routineActionPending === "run"}
@@ -398,7 +398,7 @@ export function BuiltInBundlePanel({
                   : onEnableSchedule && (
                     <ConfirmActionButton
                       title={t("components.builtInBundle.enableConfirm", { defaultValue: "Enable the weekly schedule?" })}
-                      body="Paperclip will allow Reflection Coach to create routine tasks on the weekly schedule. It can spend tokens when those tasks run."
+                      body={t("ui.components.builtinbundlepanel.paperclip-will-allow-reflection")}
                       triggerLabel={t("components.builtInBundle.enableWeekly", { defaultValue: "Enable weekly" })}
                       confirmLabel={t("components.builtInBundle.enableWeekly", { defaultValue: "Enable weekly" })}
                       pending={routineActionPending === "enable"}
@@ -421,7 +421,7 @@ export function BuiltInBundlePanel({
           <BundleRow
             label={t("components.builtInBundle.proposal", { defaultValue: "Proposal" })}
             chips={<ResourceStatusChip variant="proposal_pending" />}
-            detail="A proposed Reflection Coach update is waiting for review."
+            detail={t("ui.components.builtinbundlepanel.proposed-reflection-coach-update")}
             actions={
               <Button asChild variant="link" size="sm">
                 <Link to={proposalHref}>{t("components.builtInBundle.reviewProposal", { defaultValue: "Review proposal" })}</Link>

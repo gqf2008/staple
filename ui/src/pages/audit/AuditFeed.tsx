@@ -130,7 +130,7 @@ function AuditEntityNode({ record }: { record: AuditActionRecord }) {
   if (issueRef) {
     return (
       <Link to={`/issues/${issueRef}`} className="font-medium text-primary hover:underline">
-        {issue?.identifier ? `${issue.identifier}${issue.title ? ` · ${issue.title}` : ""}` : "the task"}
+        {issue?.identifier ? `${issue.identifier}${issue.title ? ` · ${issue.title}` : ""}` : t("ui.pages.audit.auditfeed.task")}
       </Link>
     );
   }

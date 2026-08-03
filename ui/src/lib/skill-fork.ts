@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CompanySkillForkSummary,
   CompanySkillOriginalSummary,
@@ -37,7 +38,7 @@ function sourceTypeFallbackLabel(sourceType: CompanySkillSourceType): string {
     case "local_path":
       return "a local path";
     default:
-      return "its source";
+      return t("ui.lib.skill-fork.source");
   }
 }
 
@@ -96,7 +97,7 @@ export function pickReusableFork(
 
 /** Unmissable agent-usage sentence for the dialog body (P3 hard requirement). */
 export function agentUsageSentence(count: number): string {
-  if (count <= 0) return "No agents currently use this skill";
+  if (count <= 0) return t("ui.lib.skill-fork.no-agents-currently-use");
   return `${count} ${count === 1 ? "agent" : "agents"} currently use${count === 1 ? "s" : ""} this skill`;
 }
 

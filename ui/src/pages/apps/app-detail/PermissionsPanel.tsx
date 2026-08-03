@@ -239,7 +239,7 @@ function InstalledSection({
                 ? t("pages.appPermissionsPanel.chooseAgents", { defaultValue: "Choose agents to install on" })
                 : `${install.agentIds.size} ${install.agentIds.size === 1 ? "agent" : "agents"} installed`
             }
-            getDescription={(agent) => (hasAccess(agent.id) ? "has access" : "no access yet")}
+            getDescription={(agent) => (hasAccess(agent.id) ? t("ui.pages.apps.app-detail.permissionspanel.has-access") : t("ui.pages.apps.app-detail.permissionspanel.no-access-yet"))}
             renderNameSuffix={(agent) =>
               !hasAccess(agent.id) && install.agentIds.has(agent.id) ? (
                 <span className={cn("rounded border px-1 py-0 text-xs font-medium", brandChipBadge.amber)}>

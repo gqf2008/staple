@@ -78,13 +78,13 @@ function isFilesystemLikeLabel(value: string) {
 
 function displayLocalSourceLabel(label: string | null | undefined) {
   const trimmed = label?.trim();
-  if (!trimmed || isFilesystemLikeLabel(trimmed)) return "Local folder";
+  if (!trimmed || isFilesystemLikeLabel(trimmed)) return t("components.dialogs.newProject.localFolder");
   return trimmed;
 }
 
 function displayCatalogSourceLabel(label: string | null | undefined) {
   const trimmed = label?.trim();
-  if (!trimmed || isFilesystemLikeLabel(trimmed)) return "Catalog";
+  if (!trimmed || isFilesystemLikeLabel(trimmed)) return t("components.actionCard.catalog");
   return trimmed;
 }
 

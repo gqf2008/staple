@@ -112,7 +112,7 @@ export function AppDetailSidebar(props: AppDetailSidebarProps) {
               end
               badge={tab.key === "review" && reviewCount > 0 ? reviewCount : undefined}
               badgeTone="danger"
-              badgeLabel="needing review"
+              badgeLabel={t("ui.components.appconnectionsidebar.needing-review")}
             />
           ))}
         </div>

@@ -66,12 +66,12 @@ const TONE_PALETTES: Record<LivenessBannerTone, TonePalette> = {
 
 function blockerLinkLabel(link: LivenessBannerLink): string {
   if (link.identifier) return `Open ${link.identifier}`;
-  return "Open blocker";
+  return t("ui.components.pipelinelivenessbanner.open-blocker");
 }
 
 function automationLinkLabel(link: LivenessBannerLink): string {
   if (link.identifier) return `Open ${link.identifier}`;
-  return "Open automation task";
+  return t("ui.components.pipelinelivenessbanner.open-automation-task");
 }
 
 export function PipelineLivenessBanner({
@@ -169,7 +169,7 @@ export function PipelineLivenessBanner({
           ) : (
             <RefreshCw className="mr-2 h-4 w-4" />
           )}
-          {retryPending ? "Retrying…" : view.retryLabel}
+          {retryPending ? t("pages.agentDetail.retrying") : view.retryLabel}
         </Button>
       ) : null}
     </section>

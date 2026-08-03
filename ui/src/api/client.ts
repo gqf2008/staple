@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { getPageVisibility, getVisibilityHeaderValue } from "@/lib/page-visibility";
 
 const BASE = "/api";
@@ -149,14 +150,14 @@ export const api = {
   get: <T>(path: string, options?: RequestOptions) => coalescedGet<T>(path, options),
   post: <T>(path: string, body: unknown, options?: RequestOptions) =>
     request<T>(path, {
-      method: "POST",
+      method: t("ui.api.auth.post"),
       body: JSON.stringify(body),
       signal: options?.signal,
       ...(options?.headers ? { headers: options.headers } : {}),
     }),
   postForm: <T>(path: string, body: FormData, options?: RequestOptions) =>
     request<T>(path, {
-      method: "POST",
+      method: t("ui.api.auth.post"),
       body,
       signal: options?.signal,
       // Never set Content-Type here — the browser sets multipart/form-data with
@@ -166,12 +167,12 @@ export const api = {
   put: <T>(path: string, body: unknown, options?: RequestOptions) =>
     request<T>(path, { method: "PUT", body: JSON.stringify(body), signal: options?.signal }),
   patch: <T>(path: string, body: unknown, options?: RequestOptions) =>
-    request<T>(path, { method: "PATCH", body: JSON.stringify(body), signal: options?.signal }),
+    request<T>(path, { method: t("ui.api.auth.patch"), body: JSON.stringify(body), signal: options?.signal }),
   delete: <T>(path: string, bodyOrOptions?: unknown, options?: RequestOptions) => {
     const requestOptions = isRequestOptions(bodyOrOptions) ? bodyOrOptions : options;
     const body = bodyOrOptions === undefined || isRequestOptions(bodyOrOptions) ? undefined : JSON.stringify(bodyOrOptions);
-    return request<T>(path, { method: "DELETE", ...(body === undefined ? {} : { body }), signal: requestOptions?.signal });
+    return request<T>(path, { method: t("common.delete"), ...(body === undefined ? {} : { body }), signal: requestOptions?.signal });
   },
   deleteWithBody: <T>(path: string, body: unknown, options?: RequestOptions) =>
-    request<T>(path, { method: "DELETE", body: JSON.stringify(body), signal: options?.signal }),
+    request<T>(path, { method: t("common.delete"), body: JSON.stringify(body), signal: options?.signal }),
 };

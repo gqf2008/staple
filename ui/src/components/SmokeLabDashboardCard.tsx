@@ -17,10 +17,10 @@ const HEALTH_DOT: Record<SmokeHealth, string> = {
 };
 
 const HEALTH_LABEL: Record<SmokeHealth, string> = {
-  green: "All paths passing",
-  amber: "Needs a run",
-  red: "Failing paths",
-  unknown: "No runs yet",
+  green: t("ui.components.smokelabdashboardcard.all-paths-passing"),
+  amber: t("ui.components.smokelabdashboardcard.needs-run"),
+  red: t("ui.components.smokelabdashboardcard.failing-paths"),
+  unknown: t("components.activityCharts.noRuns"),
 };
 
 function formatTime(value: string | Date | null | undefined): string {
@@ -80,7 +80,7 @@ export function SmokeLabDashboardCard({ companyId }: { companyId: string }) {
             {failing.length > 0 && `: ${failing.join(", ")}`}
           </p>
           <p className="mt-0.5 truncate text-(length:--text-micro) text-muted-foreground/80">
-            {latestRun ? `Last run ${formatTime(latestRun.startedAt)}` : "Run one from the Smoke Lab tab"}
+            {latestRun ? `Last run ${formatTime(latestRun.startedAt)}` : t("ui.components.smokelabdashboardcard.run-one-from-smoke")}
           </p>
         </div>
       </div>

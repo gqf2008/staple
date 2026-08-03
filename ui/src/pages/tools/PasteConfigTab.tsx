@@ -154,7 +154,7 @@ export function PasteConfigTab({ companyId }: { companyId: string }) {
       JSON.parse(trimmed);
       return null;
     } catch {
-      return "That doesn't look like valid JSON yet — paste the whole snippet, including the outer braces.";
+      return t("ui.pages.tools.pasteconfigtab.doesn-look-like-valid");
     }
   }, [draftText]);
 

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useSyncExternalStore } from "react";
 import type { QueryClient, QueryKey } from "@tanstack/react-query";
 import type { Issue } from "@paperclipai/shared";

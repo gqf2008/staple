@@ -318,13 +318,13 @@ function stopReasonLabel(run: RunForIssue) {
   if (timeoutFired || stopReason === "timeout") {
     return timeoutText ? `timeout (${timeoutText})` : "timeout";
   }
-  if (stopReason === "max_turns_exhausted" || stopReason === "turn_limit_exhausted") return "max turns exhausted";
-  if (stopReason === "budget_paused") return "budget paused";
+  if (stopReason === "max_turns_exhausted" || stopReason === "turn_limit_exhausted") return t("ui.components.issuerunledger.max-turns-exhausted");
+  if (stopReason === "budget_paused") return t("components.sidebarAgents.budgetPaused");
   if (stopReason === "cancelled") return "cancelled";
-  if (stopReason === "paused") return "paused by board";
-  if (stopReason === "process_lost") return "process lost";
-  if (stopReason === "unmanaged_background_task_stopped") return "unmanaged background task stopped";
-  if (stopReason === "adapter_failed") return "adapter failed";
+  if (stopReason === "paused") return t("ui.components.issuerunledger.paused-board");
+  if (stopReason === "process_lost") return t("ui.components.issuerunledger.process-lost");
+  if (stopReason === "unmanaged_background_task_stopped") return t("ui.components.issuerunledger.unmanaged-background-task-stopped");
+  if (stopReason === "adapter_failed") return t("ui.components.issuerunledger.adapter-failed");
   if (stopReason === "completed") return timeoutText ? `completed (${timeoutText})` : "completed";
   return timeoutText;
 }
@@ -373,7 +373,7 @@ function compactAgentName(run: LedgerRun, agentMap: ReadonlyMap<string, Pick<Age
 function formatSilenceAge(ms: number | null | undefined) {
   if (!ms || ms <= 0) return null;
   const totalMinutes = Math.floor(ms / 60_000);
-  if (totalMinutes < 1) return "under 1 minute";
+  if (totalMinutes < 1) return t("ui.components.issuerunledger.under-minute");
   if (totalMinutes < 60) return `${totalMinutes} minute${totalMinutes === 1 ? "" : "s"}`;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;

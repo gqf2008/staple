@@ -907,7 +907,7 @@ function MarkdownBodyImpl({
         <a
           href={href}
           {...(isExternal
-            ? { target: "_blank", rel: "noopener noreferrer" }
+            ? { target: "_blank", rel: t("ui.components.markdownbody.noopener-noreferrer") }
             : { rel: "noreferrer" })}
           style={mergeWrapStyle(linkStyle as React.CSSProperties | undefined)}
         >

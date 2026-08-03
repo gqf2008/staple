@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { AgentSkillEntry } from "@paperclipai/shared";
 
 export interface AgentSkillDraftState {

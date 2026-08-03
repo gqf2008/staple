@@ -66,7 +66,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
   const accept = useMutation({
     mutationFn: (interactionId: string) => issuesApi.acceptInteraction(issue.id, interactionId),
     onSuccess: invalidate,
-    onError: () => setActionError("Couldn't confirm — try again."),
+    onError: () => setActionError(t("ui.components.issue-properties.issueplanconfirmationactionbar.couldn-confirm-try-again")),
   });
   const reject = useMutation({
     mutationFn: ({ interactionId, reason }: { interactionId: string; reason?: string }) =>
@@ -76,7 +76,7 @@ export function IssuePlanConfirmationActionBar({ issue, inline }: IssuePlanConfi
       setRejectReason("");
       invalidate();
     },
-    onError: () => setActionError("Couldn't send that back — try again."),
+    onError: () => setActionError(t("ui.components.issue-properties.issueplanconfirmationactionbar.couldn-send-back-try")),
   });
 
   // Interaction changed under us (resolved elsewhere, superseded): reset.

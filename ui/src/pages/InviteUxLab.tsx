@@ -35,19 +35,19 @@ const inviteRoleOptions = [
     value: "operator",
     label: t("pages.companyInvites.operator"),
     description: t("pages.companyInvites.operatorDesc"),
-    gets: "Can assign tasks.",
+    gets: t("pages.companyInvites.operatorDesc2"),
   },
   {
     value: "admin",
     label: t("pages.companyInvites.admin"),
     description: t("pages.companyInvites.adminDesc"),
-    gets: "Can create agents, invite users, assign tasks, and approve join requests.",
+    gets: t("pages.companyInvites.adminDesc2"),
   },
   {
     value: "owner",
     label: t("components.issueRecoveryAction.owner"),
     description: t("pages.companyInvites.ownerDesc"),
-    gets: "Everything in Admin, plus managing members.",
+    gets: t("pages.companyInvites.ownerDesc2"),
   },
 ] as const;
 
@@ -56,40 +56,40 @@ const inviteHistory = [
     id: "invite-active",
     state: "Active",
     humanRole: "operator",
-    invitedBy: "Board User 25",
+    invitedBy: t("ui.pages.inviteuxlab.board-user-25"),
     email: "board25@paperclip.local",
     createdAt: "Apr 25, 2026, 9:00 AM",
-    action: "Revoke",
-    relatedLabel: "Review request",
+    action: t("ui.pages.inviteuxlab.revoke"),
+    relatedLabel: t("ui.pages.inviteuxlab.review-request"),
   },
   {
     id: "invite-accepted",
-    state: "Accepted",
+    state: t("components.issueThreadInteraction.accepted"),
     humanRole: "viewer",
-    invitedBy: "Board User 24",
+    invitedBy: t("ui.pages.inviteuxlab.board-user-24"),
     email: "board24@paperclip.local",
     createdAt: "Apr 24, 2026, 8:15 AM",
-    action: "Inactive",
+    action: t("pages.companyInvites.inactive"),
     relatedLabel: "—",
   },
   {
     id: "invite-revoked",
-    state: "Revoked",
+    state: t("ui.pages.inviteuxlab.revoked"),
     humanRole: "admin",
-    invitedBy: "Board User 20",
+    invitedBy: t("ui.pages.inviteuxlab.board-user-20"),
     email: "board20@paperclip.local",
     createdAt: "Apr 20, 2026, 2:45 PM",
-    action: "Inactive",
+    action: t("pages.companyInvites.inactive"),
     relatedLabel: "—",
   },
   {
     id: "invite-expired",
     state: "Expired",
     humanRole: "owner",
-    invitedBy: "Board User 19",
+    invitedBy: t("ui.pages.inviteuxlab.board-user-19"),
     email: "board19@paperclip.local",
     createdAt: "Apr 19, 2026, 7:10 PM",
-    action: "Inactive",
+    action: t("pages.companyInvites.inactive"),
     relatedLabel: "—",
   },
 ] as const;
@@ -200,7 +200,7 @@ function InviteSummaryPanel({
       {/* token-extraction: allowlisted — brandColor feeds CompanyPatternIcon's hexToHue() color math via a canvas fill; demo/showcase-only prop, not a rendered CSS value. */}
       <div className="flex items-start gap-4">
         <CompanyPatternIcon
-          companyName="Acme Robotics"
+          companyName={t("ui.pages.inviteuxlab.acme-robotics")}
           logoUrl="/api/invites/pcp_invite_test/logo"
           brandColor="#114488"
           className="h-16 w-16 rounded-none border border-zinc-800"
@@ -257,12 +257,12 @@ function InlineAuthPreview({
     <div className="space-y-5">
       <div>
         <h3 className="text-lg font-semibold text-zinc-100">
-          {mode === "sign_up" ? "Create your account" : "Sign in to continue"}
+          {mode === "sign_up" ? t("pages.inviteLanding.createAccount") : t("pages.inviteLanding.signInToContinue")}
         </h3>
         <p className="mt-1 text-sm text-zinc-400">
           {mode === "sign_up"
-            ? "Start with a Paperclip account. After that, you'll come right back here to accept the invite for Acme Robotics."
-            : "Use the Paperclip account that already matches this invite. If you do not have one yet, switch back to create account."}
+            ? t("ui.pages.inviteuxlab.start-paperclip-account-after")
+            : t("ui.pages.invitelanding.use-paperclip-account-already")}
         </p>
       </div>
 
@@ -310,14 +310,14 @@ function InlineAuthPreview({
           </p>
         ) : null}
         <Button type="button" className="w-full rounded-none" disabled={working}>
-          {working ? "Working..." : mode === "sign_in" ? "Sign in and continue" : "Create account and continue"}
+          {working ? t("pages.inviteLanding.working") : mode === "sign_in" ? t("pages.inviteLanding.signInAndContinue") : t("pages.inviteLanding.createAndContinue")}
         </Button>
       </form>
 
       <p className="text-xs leading-5 text-zinc-500">
         {mode === "sign_up"
-          ? "Already signed up before? Use the existing-account option instead so the invite lands on the right Paperclip user."
-          : "No account yet? Switch back to create account so you can accept the invite with a new login."}
+          ? t("ui.pages.invitelanding.already-signed-up-before")
+          : t("ui.pages.invitelanding.no-account-yet-switch")}
       </p>
     </div>
   );
@@ -373,10 +373,10 @@ function AcceptInvitePreview({
         <h3 className="text-lg font-semibold text-zinc-100">{t("pages.inviteUxLab.acceptCompanyInvite", { defaultValue: "Accept company invite" })}</h3>
         <p className="mt-1 text-sm text-zinc-400">
           {autoAccept
-            ? "Granting your access to Acme Robotics."
+            ? t("ui.pages.inviteuxlab.granting-your-access-acme")
             : isCurrentMember
-              ? "This account already belongs to Acme Robotics."
-              : "This will grant or complete your access to Acme Robotics."}
+              ? t("ui.pages.inviteuxlab.account-already-belongs-acme")
+              : t("ui.pages.inviteuxlab.will-grant-complete-your")}
         </p>
       </div>
       {error ? <p className="text-xs text-red-400">{error}</p> : null}
@@ -407,7 +407,7 @@ function InviteResultPreview({
     <div className="mx-auto max-w-md border border-zinc-800 bg-zinc-950 p-6 text-zinc-100">
       <div className="flex items-center gap-3">
         <CompanyPatternIcon
-          companyName="Acme Robotics"
+          companyName={t("ui.pages.inviteuxlab.acme-robotics")}
           logoUrl="/api/invites/pcp_invite_test/logo"
           brandColor="#114488"
           className="h-12 w-12 rounded-none border border-zinc-800"
@@ -458,12 +458,12 @@ function AuthScreenPreview({ mode, error }: { mode: "sign_in" | "sign_up"; error
               <span className="text-sm font-medium">{t("pages.inviteUxLab.paperclip", { defaultValue: "Paperclip" })}</span>
             </div>
             <h3 className="text-xl font-semibold">
-              {mode === "sign_in" ? "Sign in to Paperclip" : "Create your Paperclip account"}
+              {mode === "sign_in" ? t("pages.auth.signInTitle") : t("pages.auth.createAccountTitle")}
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
               {mode === "sign_in"
-                ? "Use your email and password to access this instance."
-                : "Create an account for this instance. Email confirmation is not required in v1."}
+                ? t("pages.auth.signInDesc")
+                : t("pages.auth.createAccountDesc")}
             </p>
             <div className="mt-6 space-y-4">
               {mode === "sign_up" ? (
@@ -494,13 +494,13 @@ function AuthScreenPreview({ mode, error }: { mode: "sign_in" | "sign_up"; error
               </label>
               {error ? <p className="text-xs text-destructive">{error}</p> : null}
               <Button type="button" className="w-full">
-                {mode === "sign_in" ? "Sign In" : "Create Account"}
+                {mode === "sign_in" ? t("pages.auth.signIn") : t("pages.auth.createAccount")}
               </Button>
             </div>
             <div className="mt-5 text-sm text-muted-foreground">
-              {mode === "sign_in" ? "Need an account?" : "Already have an account?"}{" "}
+              {mode === "sign_in" ? t("pages.auth.needAccount") : t("pages.auth.haveAccount")}{" "}
               <span className="font-medium text-foreground underline underline-offset-2">
-                {mode === "sign_in" ? "Create one" : "Sign in"}
+                {mode === "sign_in" ? t("pages.auth.createOne") : t("pages.auth.signIn")}
               </span>
             </div>
           </div>
@@ -707,11 +707,11 @@ export function InviteUxLab() {
               {t("ui.pages.inviteuxlab.covered-states")}</div>
             <div className="space-y-3">
               {[
-                "Invite loading, access-check, missing-token, and unavailable states",
+                t("ui.pages.inviteuxlab.invite-loading-access-check"),
                 "Inline account creation and sign-in variants, including feedback/error copy",
                 "Human accept, agent request, and auto-accept transitions",
-                "Pending approval, joined-now, claim secret, and onboarding result screens",
-                "Company invite creation, copied-link, history, empty, and permission-error states",
+                t("ui.pages.inviteuxlab.pending-approval-joined-now"),
+                t("ui.pages.inviteuxlab.company-invite-creation-copied"),
               ].map((highlight) => (
                 <div
                   key={highlight}
@@ -740,7 +740,7 @@ export function InviteUxLab() {
           <StatusCard
             icon={<Clock3 className="h-4 w-4" />}
             title={t("pages.inviteUxLab.checkingAccess", { defaultValue: "Checking your access" })}
-            body="Shown after sign-in while the app verifies whether the current user already belongs to the invited company."
+            body={t("ui.pages.inviteuxlab.shown-after-sign-while")}
           />
           <StatusCard
             icon={<KeyRound className="h-4 w-4" />}
@@ -768,12 +768,12 @@ export function InviteUxLab() {
           <StatusCard
             icon={<Users className="h-4 w-4" />}
             title={t("pages.inviteUxLab.alreadyMember", { defaultValue: "Already a member" })}
-            body="Acceptance stays disabled and the page redirects into the company once membership is confirmed."
+            body={t("ui.pages.inviteuxlab.acceptance-stays-disabled-page")}
           />
           <StatusCard
             icon={<UserPlus className="h-4 w-4" />}
             title={t("pages.inviteUxLab.resultSurfaces", { defaultValue: "Invite result surfaces" })}
-            body="Both pending-approval and joined-now confirmations are included below with claim and onboarding extras."
+            body={t("ui.pages.inviteuxlab.both-pending-approval-joined")}
             tone="success"
           />
         </div>
@@ -792,7 +792,7 @@ export function InviteUxLab() {
                 title={t("pages.inviteUxLab.joinAcme", { defaultValue: "Join Acme Robotics" })}
                 description={t("ui.pages.inviteuxlab.create-your-paperclip-account")}
                 inviteMessage={t("pages.inviteUxLab.welcomeAboard", { defaultValue: "Welcome aboard." })}
-                requestedAccess="Operator"
+                requestedAccess={t("pages.companyInvites.operator")}
               />
             }
             right={<InlineAuthPreview mode="sign_up" />}
@@ -804,7 +804,7 @@ export function InviteUxLab() {
                 title={t("pages.inviteUxLab.joinAcme", { defaultValue: "Join Acme Robotics" })}
                 description={t("ui.pages.inviteuxlab.create-your-paperclip-account")}
                 inviteMessage={t("pages.inviteUxLab.welcomeAboard", { defaultValue: "Welcome aboard." })}
-                requestedAccess="Operator"
+                requestedAccess={t("pages.companyInvites.operator")}
               />
             }
             right={
@@ -824,8 +824,8 @@ export function InviteUxLab() {
                 title={t("pages.inviteUxLab.joinAcme", { defaultValue: "Join Acme Robotics" })}
                 description={t("pages.inviteUxLab.accountReady", { defaultValue: "Your account is ready. Review the invite details, then accept it to continue." })}
                 inviteMessage={t("pages.inviteUxLab.welcomeAboard", { defaultValue: "Welcome aboard." })}
-                requestedAccess="Operator"
-                signedInLabel="Jane Example"
+                requestedAccess={t("pages.companyInvites.operator")}
+                signedInLabel={t("ui.pages.inviteuxlab.jane-example")}
               />
             }
             right={<AcceptInvitePreview autoAccept />}
@@ -847,8 +847,8 @@ export function InviteUxLab() {
               <InviteSummaryPanel
                 title={t("pages.inviteUxLab.joinAcme", { defaultValue: "Join Acme Robotics" })}
                 description={t("pages.inviteUxLab.accountReady", { defaultValue: "Your account is ready. Review the invite details, then accept it to continue." })}
-                requestedAccess="Operator"
-                signedInLabel="Jane Example"
+                requestedAccess={t("pages.companyInvites.operator")}
+                signedInLabel={t("ui.pages.inviteuxlab.jane-example")}
               />
             }
             right={<AcceptInvitePreview error={t("pages.inviteUxLab.alreadyBelongs", { defaultValue: "This account already belongs to the company." })} isCurrentMember />}

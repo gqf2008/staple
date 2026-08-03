@@ -19,15 +19,15 @@ import { cn, relativeTime } from "@/lib/utils";
 const EVENT_LABEL: Record<CaseEventKind, string> = {
   created: "created",
   updated: "updated",
-  fields_changed: "fields changed",
-  status_changed: "status changed",
-  issue_linked: "issue linked",
-  issue_unlinked: "issue unlinked",
-  document_revised: "document revised",
-  child_linked: "child linked",
-  attachment_added: "attachment added",
-  label_added: "label added",
-  label_removed: "label removed",
+  fields_changed: t("ui.components.caseactivityfeed.fields-changed"),
+  status_changed: t("ui.components.caseactivityfeed.status-changed"),
+  issue_linked: t("ui.components.caseactivityfeed.issue-linked"),
+  issue_unlinked: t("ui.components.caseactivityfeed.issue-unlinked"),
+  document_revised: t("ui.components.caseactivityfeed.document-revised"),
+  child_linked: t("ui.components.caseactivityfeed.child-linked"),
+  attachment_added: t("ui.components.caseactivityfeed.attachment-added"),
+  label_added: t("ui.components.caseactivityfeed.label-added"),
+  label_removed: t("ui.components.caseactivityfeed.label-removed"),
 };
 
 /** Human label for the actor, preferring the resolved agent name. */

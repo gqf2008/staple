@@ -704,7 +704,7 @@ export function ProjectWorkspaceDetail() {
                   : t("pages.projectWorkspaceDetail.noCommands", { defaultValue: "No workspace command config is defined for this workspace yet." })
               }
               jobEmptyMessage={t("pages.projectWorkspaceDetail.noJobs", { defaultValue: "No one-shot jobs are configured for this workspace yet." })}
-              disabledHint="Project workspaces need a working directory before local commands can run, and services also need runtime config."
+              disabledHint={t("ui.pages.projectworkspacedetail.project-workspaces-need-working")}
               onAction={(request) => controlRuntimeServices.mutate(request)}
             />
           </Card>

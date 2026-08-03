@@ -1146,7 +1146,7 @@ function formatRelativeTime(isoString: string): string {
   const then = new Date(isoString).getTime();
   const diffMs = now - then;
 
-  if (diffMs < 0) return "just now";
+  if (diffMs < 0) return t("pages.apps.testPanel.justNow");
   const seconds = Math.floor(diffMs / 1000);
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);

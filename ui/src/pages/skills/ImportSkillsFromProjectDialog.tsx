@@ -745,7 +745,7 @@ function SelectStep({
           </p>
           <p className="mt-1.5 text-sm text-muted-foreground">
             {grant
-              ? "Your account doesn't have permission to add skills to this company. Ask an owner to grant the skills permission, then try again."
+              ? t("ui.pages.skills.importskillsfromprojectdialog.your-account-doesn-have")
               : readableErrorMessage(scanError)}
           </p>
           {!grant && (

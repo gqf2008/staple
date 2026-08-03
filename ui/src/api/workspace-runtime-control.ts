@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { WorkspaceRuntimeControlTarget } from "@paperclipai/shared";
 
 export function sanitizeWorkspaceRuntimeControlTarget(

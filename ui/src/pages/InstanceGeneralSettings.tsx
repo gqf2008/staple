@@ -114,10 +114,10 @@ export function InstanceGeneralSettings() {
           </div>
           <div className="text-sm text-muted-foreground">
             {healthQuery.data?.deploymentMode === "local_trusted"
-              ? "Local trusted mode is optimized for a local operator. Browser requests run as local board context and no sign-in is required."
+              ? t("ui.pages.instancegeneralsettings.local-trusted-mode-optimized")
               : healthQuery.data?.deploymentExposure === "public"
-                ? "Authenticated public mode requires sign-in for board access and is intended for public URLs."
-                : "Authenticated private mode requires sign-in and is intended for LAN, VPN, or other private-network deployments."}
+                ? t("ui.pages.instancegeneralsettings.authenticated-public-mode-requires")
+                : t("ui.pages.instancegeneralsettings.authenticated-private-mode-requires")}
           </div>
           <div className="grid gap-3 md:grid-cols-3">
             <StatusBox
@@ -210,7 +210,7 @@ export function InstanceGeneralSettings() {
             <div className="flex flex-wrap gap-2">
               {WEEKLY_RETENTION_PRESETS.map((weeks) => {
                 const active = backupRetention.weeklyWeeks === weeks;
-                const label = weeks === 1 ? "1 week" : `${weeks} weeks`;
+                const label = weeks === 1 ? t("ui.pages.instancegeneralsettings.week") : `${weeks} weeks`;
                 return (
                   <button
                     key={weeks}
@@ -240,7 +240,7 @@ export function InstanceGeneralSettings() {
             <div className="flex flex-wrap gap-2">
               {MONTHLY_RETENTION_PRESETS.map((months) => {
                 const active = backupRetention.monthlyMonths === months;
-                const label = months === 1 ? "1 month" : `${months} months`;
+                const label = months === 1 ? t("ui.pages.instancegeneralsettings.month") : `${months} months`;
                 return (
                   <button
                     key={months}

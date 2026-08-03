@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import * as React from "react";
 
 import { cn } from "@/lib/utils";
@@ -45,9 +46,9 @@ const SIZE_PRESETS: Record<AgentCapsuleSizePreset, { width: number; height: numb
 };
 
 const STATE_ARIA: Record<AgentCapsuleState, string> = {
-  slot: "empty agent slot",
-  configured: "agent configured, offline",
-  online: "agent online",
+  slot: t("ui.components.agentcapsule.empty-agent-slot"),
+  configured: t("ui.components.agentcapsule.agent-configured-offline"),
+  online: t("ui.components.agentcapsule.agent-online"),
 };
 
 export interface AgentCapsuleProps

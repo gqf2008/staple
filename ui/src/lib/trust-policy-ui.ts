@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   DEFAULT_TRUST_PRESET,
   LOW_TRUST_REVIEW_PRESET,
@@ -21,9 +22,9 @@ export const TRUST_PRESET_LABELS: Record<TrustPreset, string> = {
 };
 
 export const TRUST_PRESET_DESCRIPTIONS: Record<TrustPreset, string> = {
-  standard: "Company-visible collaboration. This is the default for normal work.",
+  standard: t("ui.lib.trust-policy-ui.company-visible-collaboration-default"),
   low_trust_review:
-    "Contained for hostile or untrusted input. Narrow Paperclip API, quarantined output. Use for PR review and external-content triage.",
+    t("ui.lib.trust-policy-ui.contained-hostile-untrusted-input"),
 };
 
 export function getTrustPreset(permissions: Partial<AgentPermissions> | null | undefined): TrustPreset {
@@ -162,7 +163,7 @@ export function summarizeLowTrustBoundaryTarget(
   if (target?.type === "project") return `Project ${target.id.slice(0, 8)}`;
   if (target?.type === "root_issue") return `Root issue ${target.id.slice(0, 8)}`;
   if (target?.type === "issue") return `Issue ${target.id.slice(0, 8)}`;
-  if (!boundary || countBoundaryTargets(boundary) === 0) return "No boundary selected";
+  if (!boundary || countBoundaryTargets(boundary) === 0) return t("ui.lib.trust-policy-ui.no-boundary-selected");
   return `${countBoundaryTargets(boundary)} boundaries`;
 }
 

@@ -41,9 +41,9 @@ export function ZeroResultsRecovery({
       <div className="space-y-1">
         <div className="text-base font-semibold">{t("ui.components.search.zeroresultsrecovery.no-results-these-filters")}</div>
         <p className="text-sm text-muted-foreground">
-          {unfilteredTotal === 1 ? "1 result matches" : `${unfilteredTotal} results match`}
+          {unfilteredTotal === 1 ? t("ui.components.search.zeroresultsrecovery.result-matches") : `${unfilteredTotal} results match`}
           {query ? <> {t("ui.components.commandpalette.ldquo")}{query}{t("ui.components.commandpalette.rdquo")}</> : null}{t("ui.components.search.zeroresultsrecovery.but-your")}{" "}
-          {activeCount === 1 ? "active filter hides" : `${activeCount} active filters hide`} {t("ui.components.search.zeroresultsrecovery.all-them")}</p>
+          {activeCount === 1 ? t("ui.components.search.zeroresultsrecovery.active-filter-hides") : `${activeCount} active filters hide`} {t("ui.components.search.zeroresultsrecovery.all-them")}</p>
       </div>
 
       {suggestions.length > 0 ? (

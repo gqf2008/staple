@@ -387,7 +387,7 @@ export function IssueAttachmentsSection({
             <Button variant="ghost" size="sm" onClick={() => setConfirmDeleteId(null)} disabled={deletePending}>
               {t("common.cancel")}</Button>
             <Button variant="destructive" size="sm" onClick={() => confirmDelete(confirmDeleteId)} disabled={deletePending}>
-              {deletePending ? "Deleting..." : "Delete"}
+              {deletePending ? t("components.folderControls.deleting") : t("common.delete")}
             </Button>
           </div>
         </div>

@@ -572,7 +572,7 @@ function formatPipelineActivity(value: string | Date | null) {
   const then = new Date(value).getTime();
   if (!Number.isFinite(then)) return t("pages.pipelines.noActivity", { defaultValue: "No activity" });
   const diffSeconds = Math.max(0, Math.round((Date.now() - then) / 1000));
-  if (diffSeconds < 60) return "just now";
+  if (diffSeconds < 60) return t("pages.apps.testPanel.justNow");
   const diffMinutes = Math.round(diffSeconds / 60);
   if (diffMinutes < 60) return `${diffMinutes} min ago`;
   const diffHours = Math.round(diffMinutes / 60);
@@ -580,9 +580,9 @@ function formatPipelineActivity(value: string | Date | null) {
   const diffDays = Math.round(diffHours / 24);
   if (diffDays === 1) return "yesterday";
   if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 14) return "last week";
+  if (diffDays < 14) return t("ui.pages.pipelines.last-week");
   if (diffDays < 30) return `${Math.round(diffDays / 7)} weeks ago`;
-  return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  return new Date(value).toLocaleDateString(t("ui.components.timeline.worktimelinechart.en-us"), { month: "short", day: "numeric" });
 }
 
 function PipelineStatusChip({ archivedAt }: { archivedAt: Date | string | null }) {
@@ -1088,7 +1088,7 @@ export function hasThisChanged(caseItem: BoardCase) {
   if (fields.changeAcknowledgedAt) return false;
   return (
     asBoardBoolean(fields.thisChanged) ||
-    asBoardBoolean(fields["this changed"]) ||
+    asBoardBoolean(fields[t("ui.pages.pipelines.changed.2")]) ||
     asBoardBoolean(fields.this_changed) ||
     asBoardBoolean(fields.hasThisChanged) ||
     Boolean(fields.upstreamChanged) ||

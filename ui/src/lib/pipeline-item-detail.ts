@@ -80,12 +80,12 @@ export function humanizePipelineItemStatus(status: string | null | undefined) {
   if (!normalized) return "Open";
   const labels: Record<string, string> = {
     open: "Open",
-    working: "In progress",
+    working: t("components.activityCharts.inProgress"),
     done: "Done",
-    cancelled: "Removed",
-    in_review: "In review",
-    review: "In review",
-    in_progress: "In progress",
+    cancelled: t("ui.lib.pipeline-item-detail.removed"),
+    in_review: t("components.activityCharts.inReview"),
+    review: t("components.activityCharts.inReview"),
+    in_progress: t("components.activityCharts.inProgress"),
   };
   return labels[normalized] ?? humanizeKey(normalized);
 }
@@ -249,8 +249,8 @@ export function itemHasChangedNotice(item: Pick<PipelineCase, "fields"> & {
   if (item.changeAcknowledgedAt || fields.changeAcknowledgedAt) return null;
   if (item.thisChanged || fields.thisChanged || fields.upstreamChanged || fields.upstreamDrift) {
     return {
-      title: "This changed",
-      body: "Upstream work changed after this item was created. Review the latest details before continuing.",
+      title: t("ui.lib.pipeline-item-detail.changed"),
+      body: t("ui.lib.pipeline-item-detail.upstream-work-changed-after"),
     };
   }
   return null;
@@ -273,8 +273,8 @@ export function eventsHaveUnacknowledgedDrift(events: PipelineCaseEvent[]) {
 export function changedNoticeFromEvents(events: PipelineCaseEvent[]) {
   if (!eventsHaveUnacknowledgedDrift(events)) return null;
   return {
-    title: "This changed",
-    body: "Upstream work changed after this item was created. Review the latest details before continuing.",
+    title: t("ui.lib.pipeline-item-detail.changed"),
+    body: t("ui.lib.pipeline-item-detail.upstream-work-changed-after"),
   };
 }
 
@@ -292,14 +292,14 @@ function readDecision(payload: Record<string, unknown>) {
 function actorName(event: PipelineCaseEvent) {
   if (event.actorAgent?.name) return event.actorAgent.name;
   if (event.actorType === "user") return "Board";
-  if (event.actorType === "system") return "Paperclip";
+  if (event.actorType === "system") return t("components.issueChatThread.paperclip");
   return null;
 }
 
 function movementReason(payload: Record<string, unknown>) {
   const reason = readString(payload.reason);
   if (!reason) return null;
-  if (reason === "children_terminal") return "all child items done";
+  if (reason === "children_terminal") return t("ui.lib.pipeline-item-detail.all-child-items-done");
   return reason;
 }
 
@@ -324,15 +324,15 @@ function humanizeReason(reason: string) {
 export function formatPipelineItemEvent(event: PipelineCaseEvent, stages?: StageLookup) {
   const kind = event.type.startsWith("case.") ? event.type.slice("case.".length) : event.type;
   const payload = event.payload ?? {};
-  if (kind === "ingested") return "Item added.";
+  if (kind === "ingested") return t("ui.lib.pipeline-item-detail.item-added");
   if (kind === "updated") {
-    if (payload.action === "stage_automation_rerun_requested") return "Stage automation re-run requested.";
-    return "Item details updated.";
+    if (payload.action === "stage_automation_rerun_requested") return t("ui.lib.pipeline-item-detail.stage-automation-re-run");
+    return t("ui.lib.pipeline-item-detail.item-details-updated");
   }
   if (kind === "transitioned") {
     const from = stageName(event, stages, "from");
     const to = stageName(event, stages, "to");
-    const movement = from && to ? `Moved from ${from} to ${to}` : to ? `Moved to ${to}` : "Moved to another stage";
+    const movement = from && to ? `Moved from ${from} to ${to}` : to ? `Moved to ${to}` : t("ui.lib.pipeline-item-detail.moved-another-stage");
     const reason = movementReason(payload);
     const transitionClass = movementClass(event, payload);
     if (transitionClass === "automatic") {
@@ -352,29 +352,29 @@ export function formatPipelineItemEvent(event: PipelineCaseEvent, stages?: Stage
   }
   if (kind === "suggestion_resolved") {
     const decision = readDecision(payload);
-    if (decision === "accept") return "Suggestion approved.";
-    if (decision === "dismiss") return "Suggestion dismissed.";
-    return "Suggestion resolved.";
+    if (decision === "accept") return t("ui.lib.pipeline-item-detail.suggestion-approved");
+    if (decision === "dismiss") return t("ui.lib.pipeline-item-detail.suggestion-dismissed");
+    return t("ui.lib.pipeline-item-detail.suggestion-resolved");
   }
   if (kind === "reviewed" || kind === "review_decided") {
     const decision = readDecision(payload);
-    if (decision === "request_changes") return "Review requested changes.";
-    if (decision === "drop" || decision === "reject") return "Review removed this item.";
-    if (decision === "approve") return "Review approved this item.";
-    return "Review completed.";
+    if (decision === "request_changes") return t("ui.lib.pipeline-item-detail.review-requested-changes");
+    if (decision === "drop" || decision === "reject") return t("ui.lib.pipeline-item-detail.review-removed-item");
+    if (decision === "approve") return t("ui.lib.pipeline-item-detail.review-approved-item");
+    return t("ui.lib.pipeline-item-detail.review-completed");
   }
-  if (kind === "conversation_opened") return "Conversation started.";
-  if (kind === "issue_linked") return "Linked to work.";
-  if (kind === "issue_unlinked") return "Work link removed.";
-  if (kind === "blockers_set") return "Waiting items updated.";
-  if (kind === "blockers_resolved") return "Waiting items cleared.";
-  if (kind === "children_terminal") return "Built-from items completed.";
+  if (kind === "conversation_opened") return t("ui.lib.pipeline-item-detail.conversation-started");
+  if (kind === "issue_linked") return t("ui.lib.pipeline-item-detail.linked-work");
+  if (kind === "issue_unlinked") return t("ui.lib.pipeline-item-detail.work-link-removed");
+  if (kind === "blockers_set") return t("ui.lib.pipeline-item-detail.waiting-items-updated");
+  if (kind === "blockers_resolved") return t("ui.lib.pipeline-item-detail.waiting-items-cleared");
+  if (kind === "children_terminal") return t("ui.lib.pipeline-item-detail.built-from-items-completed");
   if (kind === "upstream_drift") {
     const upstreamCaseKey = readString(payload.upstreamCaseKey);
     if (upstreamCaseKey) return `Upstream change detected from ${upstreamCaseKey}.`;
-    return "Upstream change detected.";
+    return t("ui.lib.pipeline-item-detail.upstream-change-detected");
   }
-  if (kind === "drift_acknowledged") return "Upstream change acknowledged.";
+  if (kind === "drift_acknowledged") return t("ui.lib.pipeline-item-detail.upstream-change-acknowledged");
   if (kind === "automation_executed") {
     const routineName = event.automation?.routine?.title ?? t("ui.lib.pipeline-item-detail.fallback-automation");
     const issueLabel = automationIssueLabel(event);
@@ -384,7 +384,7 @@ export function formatPipelineItemEvent(event: PipelineCaseEvent, stages?: Stage
     const reason = readString(payload.error);
     return `Automation needs attention${reason ? ` — ${humanizeReason(reason)}` : ""}.`;
   }
-  if (kind === "claimed") return "Work started.";
-  if (kind === "lease_released" || kind === "lease_expired") return "Work handoff cleared.";
-  return "Activity recorded.";
+  if (kind === "claimed") return t("ui.lib.pipeline-item-detail.work-started");
+  if (kind === "lease_released" || kind === "lease_expired") return t("ui.lib.pipeline-item-detail.work-handoff-cleared");
+  return t("ui.lib.pipeline-item-detail.activity-recorded");
 }

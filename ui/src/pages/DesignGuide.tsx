@@ -381,7 +381,7 @@ export function DesignGuide() {
   const [inlineText, setInlineText] = useState(t("pages.designGuide.clickToEdit", { defaultValue: "Click to edit this text" }));
   const [inlineTitle, setInlineTitle] = useState(t("pages.designGuide.editableTitle", { defaultValue: "Editable Title" }));
   const [inlineDesc, setInlineDesc] = useState(
-    "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift."
+    t("ui.pages.designguide.editable-description-click-edit")
   );
   const [filters, setFilters] = useState<FilterValue[]>([
     { key: "status", label: t("pages.designGuide.status", { defaultValue: "Status" }), value: t("pages.designGuide.active", { defaultValue: "Active" }) },
@@ -424,7 +424,7 @@ export function DesignGuide() {
             <div className="flex flex-wrap gap-2">
               {[
                 "StatusBadge", "StatusIcon", "PriorityIcon", "EntityRow", "EmptyState", "MetricCard",
-                "FilterBar", "InlineEditor", "PageSkeleton", "Identity", "CommentThread", "MarkdownEditor",
+                "FilterBar", "InlineEditor", "PageSkeleton", t("components.agentConfigForm.identity"), "CommentThread", "MarkdownEditor",
                 "PropertiesPanel", "Sidebar", "CommandPalette", "EnvironmentVariablesEditor",
                 "InlineBanner", "BuiltInAgentGate", "BuiltInLifecycleChip",
               ].map((name) => (
@@ -679,11 +679,11 @@ export function DesignGuide() {
           <p className="text-xs text-muted-foreground">
             {t("ui.pages.designguide.used-wherever-task-referenced")}<code className="font-mono">status</code> {t("ui.pages.designguide.show-target-issue-apos")}<code className="font-mono">strikethrough</code> {t("ui.pages.designguide.quot-removed-quot-contexts")}</p>
           <div className="flex items-center gap-2 flex-wrap">
-            <IssueReferencePill issue={{ id: "demo-1", identifier: "PAP-123", title: "Identifier only — no status yet" }} />
-            <IssueReferencePill issue={{ id: "demo-2", identifier: "PAP-456", title: "With in_progress status", status: "in_progress" }} />
-            <IssueReferencePill issue={{ id: "demo-3", identifier: "PAP-789", title: "Done status", status: "done" }} />
-            <IssueReferencePill issue={{ id: "demo-4", identifier: "PAP-101", title: "Blocked status", status: "blocked" }} />
-            <IssueReferencePill strikethrough issue={{ id: "demo-5", identifier: "PAP-202", title: "Removed (strikethrough)", status: "todo" }} />
+            <IssueReferencePill issue={{ id: "demo-1", identifier: "PAP-123", title: t("ui.pages.designguide.identifier-only-no-status") }} />
+            <IssueReferencePill issue={{ id: "demo-2", identifier: "PAP-456", title: t("ui.pages.designguide.progress-status"), status: "in_progress" }} />
+            <IssueReferencePill issue={{ id: "demo-3", identifier: "PAP-789", title: t("ui.pages.designguide.done-status"), status: "done" }} />
+            <IssueReferencePill issue={{ id: "demo-4", identifier: "PAP-101", title: t("ui.pages.designguide.blocked-status"), status: "blocked" }} />
+            <IssueReferencePill strikethrough issue={{ id: "demo-5", identifier: "PAP-202", title: t("ui.pages.designguide.removed-strikethrough"), status: "todo" }} />
           </div>
         </SubSection>
       </Section>
@@ -1105,7 +1105,7 @@ export function DesignGuide() {
             }
             identifier="PAP-001"
             title={t("pages.designGuide.entityTitle1", { defaultValue: "Implement authentication flow" })}
-            subtitle="Responsible: Agent Alpha"
+            subtitle={t("ui.pages.designguide.responsible-agent-alpha")}
             trailing={<IssueStatusBadge status="in_progress" />}
             onClick={() => {}}
           />
@@ -1118,7 +1118,7 @@ export function DesignGuide() {
             }
             identifier="PAP-002"
             title={t("pages.designGuide.entityTitle2", { defaultValue: "Set up CI/CD pipeline" })}
-            subtitle="Completed 2 days ago"
+            subtitle={t("ui.pages.designguide.completed-days-ago")}
             trailing={<IssueStatusBadge status="done" />}
             onClick={() => {}}
           />
@@ -1143,7 +1143,7 @@ export function DesignGuide() {
             }
             identifier="PAP-004"
             title={t("pages.designGuide.entityTitle4", { defaultValue: "Deploy to production" })}
-            subtitle="Blocked by PAP-001"
+            subtitle={t("ui.pages.designguide.blocked-pap-001")}
             trailing={<IssueStatusBadge status="blocked" />}
             selected
           />
@@ -1152,7 +1152,7 @@ export function DesignGuide() {
           <div className="border border-border rounded-md">
             <EntityRow
               title={t("pages.designGuide.joinedResource", { defaultValue: "Joined resource" })}
-              subtitle="Hover or focus the row to reveal the reserved action slot."
+              subtitle={t("ui.pages.designguide.hover-focus-row-reveal")}
               className="group"
               trailing={
                 <MembershipAction
@@ -1353,9 +1353,9 @@ export function DesignGuide() {
       <Section title={t("pages.designGuide.progressBars", { defaultValue: "Progress Bars (Budget)" })}>
         <div className="space-y-3">
           {[
-            { label: "Under budget (40%)", pct: 40, color: "bg-green-400" },
-            { label: "Warning (75%)", pct: 75, color: "bg-yellow-400" },
-            { label: "Over budget (95%)", pct: 95, color: "bg-red-400" },
+            { label: t("ui.pages.designguide.under-budget-40"), pct: 40, color: "bg-green-400" },
+            { label: t("ui.pages.designguide.warning-75"), pct: 75, color: "bg-yellow-400" },
+            { label: t("ui.pages.designguide.over-budget-95"), pct: 95, color: "bg-red-400" },
           ].map(({ label, pct, color }) => (
             <div key={label} className="space-y-1">
               <div className="flex items-center justify-between">
@@ -1675,22 +1675,22 @@ export function DesignGuide() {
       <Section title={t("ui.pages.designguide.common-icons-lucide")}>
         <div className="grid grid-cols-4 md:grid-cols-6 gap-4">
           {[
-            ["Inbox", Inbox],
+            [t("nav.inbox"), Inbox],
             ["ListTodo", ListTodo],
             ["CircleDot", CircleDot],
-            ["Hexagon", Hexagon],
-            ["Target", Target],
+            [t("ui.pages.designguide.hexagon"), Hexagon],
+            [t("pages.companyImport.target"), Target],
             ["LayoutDashboard", LayoutDashboard],
             ["Bot", Bot],
             ["DollarSign", DollarSign],
-            ["History", History],
-            ["Search", Search],
-            ["Plus", Plus],
-            ["Trash2", Trash2],
+            [t("components.routineSubSidebar.history"), History],
+            [t("components.commandPalette.search"), Search],
+            [t("ui.pages.designguide.plus"), Plus],
+            [t("ui.pages.designguide.trash2"), Trash2],
             ["Settings", Settings],
             ["User", User],
-            ["Mail", Mail],
-            ["Upload", Upload],
+            [t("ui.pages.designguide.mail"), Mail],
+            [t("pages.issueDetail.upload"), Upload],
             ["Zap", Zap],
           ].map(([name, Icon]) => {
             const LucideIcon = Icon as React.FC<{ className?: string }>;
@@ -1758,12 +1758,12 @@ export function DesignGuide() {
             <EnforcementBanner
               tone="info"
               title={t("ui.pages.designguide.effective-access-server-resolved")}
-              body="This is exactly what the tool gateway will accept. Profile and policy edits reflect within ~5s; the prompt cannot expand it."
+              body={t("ui.pages.designguide.exactly-what-tool-gateway")}
             />
             <EnforcementBanner
               tone="warning"
               title={t("ui.pages.designguide.local-stdio-local-code")}
-              body="A local-stdio slot runs with the orchestrator's privileges. Only bind trusted commands; quarantine anything you would not run yourself."
+              body={t("ui.pages.designguide.local-stdio-slot-runs")}
             />
             <EnforcementBanner
               tone="error"
@@ -1790,10 +1790,10 @@ export function DesignGuide() {
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
+              input={{ channel: t("ui.pages.designguide.launch"), text: t("ui.pages.designguide.deploy-v2-live"), unfurl_links: false }}
               reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
-              expiresInLabel="expires in 23h 51m"
+              expiresInLabel={t("ui.pages.designguide.expires-23h-51m")}
             />
             <ActionCard
               variant="stale"
@@ -1808,10 +1808,10 @@ export function DesignGuide() {
                 previousCatalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉", unfurl_links: false }}
+              input={{ channel: t("ui.pages.designguide.launch"), text: t("ui.pages.designguide.deploy-v2-live"), unfurl_links: false }}
               reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
-              expiresInLabel="expires in 18h 02m"
+              expiresInLabel={t("ui.pages.designguide.expires-18h-02m")}
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -1832,10 +1832,10 @@ export function DesignGuide() {
                 catalogSha256: "sha256:9f86d081884c7d659a2feaa0c55ad015a3bf4f1b2b0b822cd15d6c15b0f00a08",
                 payloadSha256: "sha256:2c26b46b68ffc68ff99b453c1d30413413422d706483bfa0f98a5e886266e7ae",
               }}
-              input={{ channel: "#launch", text: "Deploy v2 is live 🎉" }}
+              input={{ channel: t("ui.pages.designguide.launch"), text: t("ui.pages.designguide.deploy-v2-live") }}
               reason={t("pages.designGuide.toolApprovalHint", { defaultValue: "This tool can write to your workspace, so a human signs off before the agent posts." })}
               policyNumber={7}
-              expiresInLabel="expires in 23h 51m"
+              expiresInLabel={t("ui.pages.designguide.expires-23h-51m")}
             />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -1845,10 +1845,10 @@ export function DesignGuide() {
         <SubSection title={t("ui.pages.designguide.bindingstable-reused-audit-row")}>
           <BindingsTable
             rows={[
-              { label: "Application", value: "Slack · manifest v2.4.1" },
-              { label: "Connection", value: "https://slack.com/api · acme-workspace", mono: true },
-              { label: "Catalog", value: "sha256:9f86d081…f00a08", mono: true },
-              { label: "Payload", value: "sha256:2c26b46b…66e7ae", mono: true },
+              { label: t("components.actionCard.application"), value: t("ui.pages.designguide.slack-manifest-v2") },
+              { label: t("components.actionCard.connection"), value: "https://slack.com/api · acme-workspace", mono: true },
+              { label: t("components.actionCard.catalog"), value: "sha256:9f86d081…f00a08", mono: true },
+              { label: t("components.actionCard.payload"), value: "sha256:2c26b46b…66e7ae", mono: true },
             ]}
           />
           <p className="mt-2 text-xs text-muted-foreground">

@@ -95,7 +95,7 @@ export function TokensPanel({
       setExpiresAt(defaultExpiry());
       pushToast({
         title: t("pages.gatewayTokensPanel.tokenMinted", { defaultValue: "Token minted" }),
-        body: "Copy it now — you won’t see the full value again.",
+        body: t("ui.pages.apps.gateways.panels.tokenspanel.copy-now-you-won"),
         tone: "success",
       });
       onTokenCreated?.(token);

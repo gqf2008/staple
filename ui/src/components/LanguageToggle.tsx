@@ -26,7 +26,7 @@ interface LanguageToggleProps {
 const LOCALE_CYCLE = ["en", "zh-CN", "zh-TW"] as const;
 
 const LOCALE_NAMES: Record<(typeof LOCALE_CYCLE)[number], string> = {
-  en: "English",
+  en: t("ui.components.languagetoggle.english"),
   "zh-CN": "简体中文",
   "zh-TW": "繁體中文",
 };

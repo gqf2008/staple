@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { QueryClient } from "@tanstack/react-query";
 import type { Issue, IssueComment } from "@paperclipai/shared";
 import { issuesApi } from "@/api/issues";

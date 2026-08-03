@@ -134,10 +134,10 @@ function effectSummary(
 }
 
 const FAILURE_CAUSE: Record<string, string> = {
-  deny_decision_intersection: "blocked by the permission boundary (fail-closed)",
-  invalid_effect_reference: "a referenced issue no longer exists",
-  target_changed: "the target changed since this was proposed",
-  effect_execution_failed: "the effect errored while running",
+  deny_decision_intersection: t("ui.components.decisioncard.blocked-permission-boundary-fail"),
+  invalid_effect_reference: t("ui.components.decisioncard.referenced-issue-no-longer"),
+  target_changed: t("ui.components.decisioncard.target-changed-since-was"),
+  effect_execution_failed: t("ui.components.decisioncard.effect-errored-while-running"),
 };
 
 interface ResultRow {
@@ -550,7 +550,7 @@ export function DecisionCard({
                 <Clock className="h-4 w-4" aria-hidden /> {t("ui.components.decisioncard.decision-window-closed")}</div>
               <p className="mt-1">
                 {((decision.metadata as { expiredReason?: string } | null)?.expiredReason === "target_gone")
-                  ? "A target issue was cancelled before this was decided."
+                  ? t("ui.components.decisioncard.target-issue-was-cancelled")
                   : t("components.decisionCard.noResponse", { defaultValue: "No response before the expiry deadline." })}
                 {decision.continuationPolicy === "wake_origin_agent" && " The proposer was re-woken."}
               </p>

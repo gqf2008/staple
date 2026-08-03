@@ -318,7 +318,7 @@ function RiskBanner({ team }: { team: CatalogTeam }) {
           <li key={`${s.type}:${s.ref}`} className="font-mono">
             {s.ref}{" "}
             <span className="not-italic font-sans opacity-80">
-              ({sourceWarningCode(s) === "unsupported_in_ui" ? "unsupported in browser install" : "unpinned"})
+              ({sourceWarningCode(s) === "unsupported_in_ui" ? t("pages.teamCatalog.browserUnsupported") : "unpinned"})
             </span>
           </li>
         ))}

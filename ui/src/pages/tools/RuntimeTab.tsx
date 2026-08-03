@@ -160,12 +160,12 @@ const ALERT_COPY: Record<string, { title: string; body: (a: ToolRuntimeAlertReco
   },
   mcp_runtime_connection_health_degraded: {
     title: t("pages.tools.runtime.needsReconnecting", { defaultValue: "An app needs reconnecting" }),
-    body: () => "A connected app isn't healthy. Open it to check the key or reconnect.",
+    body: () => t("ui.pages.tools.runtimetab.connected-app-isn-healthy"),
     action: "reviewApps",
   },
   mcp_runtime_missing_secret_failures: {
     title: t("pages.tools.runtime.missingKey", { defaultValue: "An app is missing a key" }),
-    body: () => "A saved key couldn't be found, so some actions failed. Reconnect the app to fix it.",
+    body: () => t("ui.pages.tools.runtimetab.saved-key-couldn-found"),
     action: "reviewApps",
   },
   mcp_runtime_audit_write_failures: {
@@ -370,15 +370,15 @@ export function RuntimeTab({ companyId }: { companyId: string }) {
             metrics?.averageToolLatencyMsLastHour == null
               ? t("pages.tools.runtime.noCalls", { defaultValue: "No calls in the last hour" })
               : (metrics?.timeoutRateLastHour ?? 0) >= 10
-                ? "slower than usual"
-                : "across all apps"
+                ? t("ui.pages.tools.runtimetab.slower-than-usual")
+                : t("ui.pages.tools.runtimetab.across-all-apps")
           }
           detail={`Slowest 5% (P95): ${formatTypicalLatency(metrics?.p95ToolLatencyMsLastHour)} · timeout rate ${metrics?.timeoutRateLastHour ?? 0}%`}
         />
         <SummaryCard
           label={t("pages.tools.runtime.errorsLastHour", { defaultValue: "Errors in the last hour" })}
           value={String(errors)}
-          note={errors === 0 ? t("pages.tools.runtime.none", { defaultValue: "None" }) : "across your apps"}
+          note={errors === 0 ? t("pages.tools.runtime.none", { defaultValue: "None" }) : t("ui.pages.tools.runtimetab.across-your-apps")}
           detail={`${metrics?.toolFailuresLastHour ?? 0} failed · ${metrics?.toolTimeoutsLastHour ?? 0} timed out · ${metrics?.capacityDeferralsLastHour ?? 0} waited for capacity`}
         />
       </div>

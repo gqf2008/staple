@@ -222,20 +222,20 @@ export function SystemNoticeUxLab() {
       >
         <div className="space-y-4 rounded-2xl border border-border/70 bg-background/70 p-4">
           <MockUserBubble
-            authorName="Riley Board"
-            body="Why does this issue keep waking back up without a clear next step?"
+            authorName={t("ui.pages.systemnoticeuxlab.riley-board")}
+            body={t("ui.pages.systemnoticeuxlab.why-does-issue-keep")}
             alignEnd
           />
           <MockAgentBubble
             agentName="CodexCoder"
-            body="The previous run completed without picking a disposition. I'll wait for the new system notice to surface so the recovery owner is unambiguous."
+            body={t("ui.pages.systemnoticeuxlab.previous-run-completed-without")}
           />
           <SystemNotice
             tone="danger"
             label={t("pages.systemNoticeUxLab.systemAlert", { defaultValue: "System alert" })}
-            source={{ label: "Paperclip", href: "/PAP/agents" }}
+            source={{ label: t("components.issueChatThread.paperclip"), href: "/PAP/agents" }}
             timestamp="2026-05-04T16:48:00.000Z"
-            body="Paperclip could not resolve this issue's missing disposition automatically. The issue is blocked on a recovery owner."
+            body={t("ui.lib.successful-run-handoff.paperclip-could-not-resolve")}
             metadata={[
               {
                 title: t("pages.systemNoticeUxLab.recoveryOwner", { defaultValue: "Recovery owner" }),
@@ -270,7 +270,7 @@ export function SystemNoticeUxLab() {
             ]}
           />
           <MockUserBubble
-            authorName="Riley Board"
+            authorName={t("ui.pages.systemnoticeuxlab.riley-board")}
             body={t("pages.systemNoticeUxLab.thanksAssigning", { defaultValue: "Thanks — assigning the recovery owner now." })}
             alignEnd
           />

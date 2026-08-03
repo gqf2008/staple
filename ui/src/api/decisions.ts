@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DecisionInput, DecisionOption } from "@paperclipai/shared";
 import { api } from "./client";
 

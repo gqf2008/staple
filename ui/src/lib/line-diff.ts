@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export type DiffRowKind = "context" | "removed" | "added";
 
 export type DiffRow = {

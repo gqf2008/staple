@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
 import { Loader2, ShieldQuestion, OctagonX, Ban, Scissors } from "lucide-react";

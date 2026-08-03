@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   Approval,
   DashboardSummary,
@@ -497,7 +498,7 @@ export function getInboxSearchSupplementIssues({
 
 function formatDefaultWorkspaceGroupLabel(name: string | null | undefined): string {
   const normalizedName = name?.trim();
-  return normalizedName ? `${normalizedName} (default)` : "Default workspace";
+  return normalizedName ? `${normalizedName} (default)` : t("ui.lib.inbox.default-workspace");
 }
 
 function resolveDefaultProjectWorkspaceInfo(
@@ -613,7 +614,7 @@ export function resolveIssueWorkspaceGroup(
 
   return {
     key: "workspace:none",
-    label: "No workspace",
+    label: t("components.issuesList.noWorkspace"),
   };
 }
 
@@ -832,10 +833,10 @@ const inboxWorkItemKindOrder: InboxWorkItem["kind"][] = [
 ];
 
 const inboxWorkItemKindLabels: Record<InboxWorkItem["kind"], string> = {
-  issue: "Tasks",
-  approval: "Approvals",
-  failed_run: "Failed runs",
-  join_request: "Join requests",
+  issue: t("nav.tasks"),
+  approval: t("pages.approvalDetail.approvals"),
+  failed_run: t("pages.inbox.failedRuns"),
+  join_request: t("pages.inbox.joinRequests"),
 };
 
 function resolveIssueAssigneeGroup(
@@ -868,7 +869,7 @@ function resolveIssueProjectGroup(
   issue: Pick<Issue, "projectId">,
   { projectById }: Pick<InboxWorkspaceGroupingOptions, "projectById">,
 ): { key: string; label: string } {
-  if (!issue.projectId) return { key: "project:none", label: "No project" };
+  if (!issue.projectId) return { key: "project:none", label: t("components.dialogs.newIssue.noProject") };
 
   const projectName = projectById?.get(issue.projectId)?.name?.trim();
   return {

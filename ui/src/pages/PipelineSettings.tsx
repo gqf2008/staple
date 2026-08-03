@@ -1048,7 +1048,7 @@ function buildAutomationVariableGroups(input: {
     fieldVariables.push({
       key,
       label: key.replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2"),
-      description: `Field copied from the current item data.`,
+      description: t("ui.pages.pipelinesettings.field-copied-from-current"),
       example: value,
       exampleSource,
     });
@@ -2838,7 +2838,7 @@ export function PipelineSettings() {
                               {([
                                 [t("pages.pipelineSettings.approvedMoveTo", { defaultValue: "Approved items move to" }), approveTarget, setApproveTarget, t("pages.pipelineSettings.chooseStage", { defaultValue: "Choose a stage" })],
                                 [t("pages.pipelineSettings.declinedMoveTo", { defaultValue: "Declined items move to" }), rejectTarget, setRejectTarget, t("pages.pipelineSettings.chooseStage", { defaultValue: "Choose a stage" })],
-                                ["Items needing changes move to", requestChangesTarget, setRequestChangesTarget, t("pages.pipelineSettings.stayInReview", { defaultValue: "Stay in review" })],
+                                [t("ui.pages.pipelinesettings.items-needing-changes-move"), requestChangesTarget, setRequestChangesTarget, t("pages.pipelineSettings.stayInReview", { defaultValue: "Stay in review" })],
                               ] as const).map(([label, value, setValue, emptyLabel]) => (
                                 <div
                                   key={label}
@@ -2975,7 +2975,7 @@ export function PipelineSettings() {
                                     <option value="">{t("pages.pipelineSettings.projectFallback", { defaultValue: "Project fallback" })}</option>
                                     {(selectedAutomationProject.workspaces ?? []).map((workspace) => (
                                       <option key={workspace.id} value={workspace.id}>
-                                        {workspace.name}{workspace.isPrimary ? " · primary" : ""}
+                                        {workspace.name}{workspace.isPrimary ? t("ui.pages.pipelinesettings.primary") : ""}
                                       </option>
                                     ))}
                                   </select>
@@ -3022,7 +3022,7 @@ export function PipelineSettings() {
                                   ) : (
                                     <div className="flex h-10 items-center rounded-md border border-dashed border-border px-3 text-sm text-muted-foreground">
                                       {stageExecutionWorkspacePreference === "isolated_workspace"
-                                        ? "A new workspace will be created"
+                                        ? t("ui.pages.pipelinesettings.new-workspace-will-created")
                                         : t("pages.pipelineSettings.projectDefaultWorkspace", { defaultValue: "Project default workspace" })}
                                     </div>
                                   )}
@@ -3097,7 +3097,7 @@ export function PipelineSettings() {
                       ) : (
                         <EmptyState
                           icon={Pause}
-                          message="Nothing runs here automatically. Items wait until a person moves them, or you can pick an agent to run this step."
+                          message={t("ui.pages.pipelinesettings.nothing-runs-here-automatically")}
                         />
                       )}
                       <div className="space-y-3">
@@ -3164,8 +3164,8 @@ export function PipelineSettings() {
                             </div>
                             <p className="max-w-2xl text-sm text-muted-foreground">
                               {strictTransitionsEnabled
-                                ? "Items can only move to configured next steps. Operators can force an off-path move by giving a reason."
-                                : "Items can move to any step. Saved allowed-next-step choices are kept, but they are not enforced."}
+                                ? t("ui.pages.pipelinesettings.items-can-only-move")
+                                : t("ui.pages.pipelinesettings.items-can-move-any")}
                             </p>
                           </div>
                         </FieldRow>

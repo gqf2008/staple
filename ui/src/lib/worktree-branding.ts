@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { READABLE_TEXT_LIGHT, READABLE_TEXT_DARK } from "./color-contrast";
 
 export type WorktreeUiBranding = {

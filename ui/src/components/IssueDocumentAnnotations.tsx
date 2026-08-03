@@ -94,7 +94,7 @@ export function IssueDocumentAnnotations({
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") return;
-    const mediaQuery = window.matchMedia("(max-width: 1023px)");
+    const mediaQuery = window.matchMedia(t("ui.components.issuedocumentannotations.max-width-1023px"));
     const handler = () => setIsMobile(mediaQuery.matches);
     handler();
     if (typeof mediaQuery.addEventListener === "function") {

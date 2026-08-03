@@ -254,7 +254,7 @@ export function ActionCard({
           <EnforcementBanner
             tone="warning"
             title={t("components.actionCard.catalogChanged", { defaultValue: "Catalog changed since this request was signed." })}
-            body="The application's tool catalog hash no longer matches the one this approval was issued against. Approval is disabled — the agent must edit & re-sign to request again."
+            body={t("ui.components.actions.actioncard.application-tool-catalog-hash")}
           />
         ) : null}
 

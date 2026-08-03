@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 import type { IssueWorkMode } from "@paperclipai/shared";
 

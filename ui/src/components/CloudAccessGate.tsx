@@ -83,7 +83,7 @@ export function CloudAccessGate() {
           ? healthQuery.error.message
           : boardAccessQuery.error instanceof Error
             ? boardAccessQuery.error.message
-            : "Failed to load app state"}
+            : t("ui.components.cloudaccessgate.failed-load-app-state")}
       </div>
     );
   }

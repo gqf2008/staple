@@ -60,32 +60,32 @@ export interface SkillDenial {
 }
 
 const DEFAULT_POLICY_REMEDIATION =
-  "A company administrator can change the skill policy to allow this.";
+  t("ui.lib.skill-policy-denial.company-administrator-can-change");
 const DEFAULT_ADMIN_REMEDIATION =
-  "This requires company administration access. Ask an administrator to make this change.";
+  t("ui.lib.skill-policy-denial.requires-company-administration-access");
 
 /** Human-readable titles for the platform-invariant codes (State C). */
 const PLATFORM_TITLES: Record<string, string> = {
-  skill_authentication_required: "Sign in to manage skills.",
-  skill_company_boundary_denied: "This skill belongs to another company.",
-  skill_workspace_boundary_denied: "This skill source is outside an allowed workspace.",
-  skill_source_validation_failed: "This skill source failed validation.",
-  skill_unsafe_content_blocked: "This skill contains unsafe content.",
-  skill_secret_handling_blocked: "This skill exposes a secret value.",
-  skill_actor_restricted: "This action isn't available for the current actor.",
+  skill_authentication_required: t("ui.lib.skill-policy-denial.sign-manage-skills"),
+  skill_company_boundary_denied: t("ui.lib.skill-policy-denial.skill-belongs-another-company"),
+  skill_workspace_boundary_denied: t("ui.lib.skill-policy-denial.skill-source-outside-allowed"),
+  skill_source_validation_failed: t("ui.lib.skill-policy-denial.skill-source-failed-validation"),
+  skill_unsafe_content_blocked: t("ui.lib.skill-policy-denial.skill-contains-unsafe-content"),
+  skill_secret_handling_blocked: t("ui.lib.skill-policy-denial.skill-exposes-secret-value"),
+  skill_actor_restricted: t("ui.lib.skill-policy-denial.action-isn-available-current"),
 };
 
 /** Default remediation copy per platform-invariant code — framed as a fix, never a grant. */
 const PLATFORM_REMEDIATIONS: Record<string, string> = {
-  skill_authentication_required: "Sign in and try again.",
-  skill_company_boundary_denied: "Open the skill from the company that owns it.",
+  skill_authentication_required: t("ui.lib.skill-policy-denial.sign-try-again"),
+  skill_company_boundary_denied: t("ui.lib.skill-policy-denial.open-skill-from-company"),
   skill_workspace_boundary_denied:
-    "Import from a configured Paperclip workspace or the company managed-skill directory.",
-  skill_source_validation_failed: "Fix the flagged source and retry.",
+    t("ui.lib.skill-policy-denial.import-from-configured-paperclip"),
+  skill_source_validation_failed: t("ui.lib.skill-policy-denial.fix-flagged-source-retry"),
   skill_unsafe_content_blocked:
     "Remove the fetch-and-execute or unsafe pattern before saving.",
-  skill_secret_handling_blocked: "Remove the secret value before saving.",
-  skill_actor_restricted: "Retry from an account with access to this action.",
+  skill_secret_handling_blocked: t("ui.lib.skill-policy-denial.remove-secret-value-before"),
+  skill_actor_restricted: t("ui.lib.skill-policy-denial.retry-from-account-access"),
 };
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -121,7 +121,7 @@ export function classifySkillDenial(
   if (isPolicyDenial) {
     const title = actionLabel
       ? `${actionLabel} is restricted by your company policy.`
-      : "This action is restricted by your company policy.";
+      : t("ui.lib.skill-policy-denial.action-restricted-your-company");
     return {
       state: "policy",
       code,
@@ -137,7 +137,7 @@ export function classifySkillDenial(
       state: "platform_admin",
       code,
       reason,
-      title: "This change needs administration access.",
+      title: t("ui.lib.skill-policy-denial.change-needs-administration-access"),
       remediation: remediation ?? DEFAULT_ADMIN_REMEDIATION,
     };
   }

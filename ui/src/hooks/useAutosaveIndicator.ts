@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 export type AutosaveState = "idle" | "saving" | "saved" | "error";

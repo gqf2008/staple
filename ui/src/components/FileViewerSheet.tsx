@@ -1019,7 +1019,7 @@ function FileViewerBody({
       <FileViewerStateView
         icon={<Cloud aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
         title={t("components.fileViewer.remoteComingSoon", { defaultValue: "Remote workspace preview coming soon" })}
-        body="This workspace is hosted remotely; inline previews are not supported yet."
+        body={t("ui.components.fileviewersheet.workspace-hosted-remotely-inline")}
       />
     );
   }

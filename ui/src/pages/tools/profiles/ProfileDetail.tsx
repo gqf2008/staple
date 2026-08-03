@@ -768,10 +768,10 @@ function entryMatchesTool(entry: ToolProfileEntry, tool: ToolCatalogEntry): bool
 }
 
 function sourceLabel(entry: ToolProfileEntry | null, app: string): string {
-  if (!entry) return "added directly";
+  if (!entry) return t("ui.pages.tools.profiles.profiledetail.added-directly");
   if (entry.selectorType === "application" || entry.selectorType === "connection") return `added by rule: all ${app}`;
   if (entry.selectorType === "risk_level" && entry.riskLevel) return `added by rule: ${entry.riskLevel} tools`;
-  return "added directly";
+  return t("ui.pages.tools.profiles.profiledetail.added-directly");
 }
 
 function capabilityLabel(tool: ToolCatalogEntry): string {

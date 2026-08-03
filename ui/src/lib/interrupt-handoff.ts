@@ -74,11 +74,11 @@ export function resolveRunStatusPresentation(
     return {
       label: "interrupted",
       className: "text-amber-700 dark:text-amber-300",
-      srHint: "interrupted by board comment",
+      srHint: t("ui.lib.interrupt-handoff.interrupted-board-comment"),
     };
   }
   return {
-    label: status === "timed_out" ? "timed out" : status.replace(/_/g, " "),
+    label: status === "timed_out" ? t("components.runTranscript.timedOut") : status.replace(/_/g, " "),
     className: runStatusClassName(status),
     srHint: null,
   };
@@ -226,13 +226,13 @@ export function computeComposerHandoffPreview(
         ? {
             kind: "interrupt_handoff_agent",
             tone: "neutral",
-            text: "Interrupt current run, hand off to",
+            text: t("ui.lib.interrupt-handoff.interrupt-current-run-hand"),
             chip: { kind: "agent", id: target.id },
           }
         : {
             kind: "wake_agent",
             tone: "neutral",
-            text: "Wake",
+            text: t("ui.lib.interrupt-handoff.wake"),
             chip: { kind: "agent", id: target.id },
           };
     }
@@ -240,16 +240,16 @@ export function computeComposerHandoffPreview(
       return {
         kind: "user_handoff",
         tone: "neutral",
-        text: "Hand off to",
+        text: t("ui.lib.interrupt-handoff.hand-off"),
         chip: { kind: "user", id: target.id },
-        suffix: "— no agent will be notified",
+        suffix: t("ui.lib.interrupt-handoff.no-agent-will-notified"),
       };
     }
     // Cleared / no target chosen for the mutation.
     return {
       kind: "clear_assignee",
       tone: "neutral",
-      text: "Clear responsible — no agent will be notified",
+      text: t("ui.lib.interrupt-handoff.clear-responsible-no-agent"),
     };
   }
 
@@ -257,9 +257,9 @@ export function computeComposerHandoffPreview(
     return {
       kind: "notify_agent",
       tone: "neutral",
-      text: "Notify",
+      text: t("ui.lib.interrupt-handoff.notify"),
       chip: input.mentionedAgentId ? { kind: "agent", id: input.mentionedAgentId } : undefined,
-      suffix: input.mentionedAgentId ? undefined : "the mentioned agent",
+      suffix: input.mentionedAgentId ? undefined : t("ui.lib.interrupt-handoff.mentioned-agent"),
     };
   }
 
@@ -300,13 +300,13 @@ export function classifyAssigneeHandoff(
 ): AssigneeHandoffInfo {
   if (to.agentId) {
     const who = opts.agentName ?? t("ui.components.stagesecretspanel.fallback-responsible-agent");
-    const suffix = opts.interruptedRunAttached ? " (interrupted run attached)" : "";
+    const suffix = opts.interruptedRunAttached ? t("ui.lib.interrupt-handoff.interrupted-run-attached") : "";
     return { kind: "agent_wake", wakeText: `queued for ${who}${suffix}` };
   }
   if (to.userId) {
     return {
       kind: "user_handoff",
-      wakeText: "not created — this is a handoff to a board user",
+      wakeText: t("ui.lib.interrupt-handoff.not-created-handoff-board"),
     };
   }
   return {
@@ -338,9 +338,9 @@ export function describeReassignInterrupt(opts: { runningAgentName?: string | nu
   const who = opts.runningAgentName?.trim() || t("pages.appActivityPanel.anAgent");
   return {
     banner: `${who} is running — changing the responsible will interrupt this run.`,
-    confirmTitle: "Interrupt the current run?",
-    confirmAction: "Interrupt & assign",
-    cancelAction: "Cancel",
+    confirmTitle: t("ui.lib.interrupt-handoff.interrupt-current-run"),
+    confirmAction: t("ui.lib.interrupt-handoff.interrupt-assign"),
+    cancelAction: t("common.cancel"),
   };
 }
 
@@ -377,19 +377,19 @@ export interface PauseAffectsSummary {
 }
 
 const PAUSE_BUCKET_LABEL: Record<PauseAffectsBucketKey, string> = {
-  live_runs: "Live agent runs",
-  queued_wakes: "Queued wakes",
-  agent_owned: "Agent-owned",
-  human_owned: "Human-owned",
-  static: "Static",
+  live_runs: t("ui.lib.interrupt-handoff.live-agent-runs"),
+  queued_wakes: t("ui.lib.interrupt-handoff.queued-wakes"),
+  agent_owned: t("ui.lib.interrupt-handoff.agent-owned"),
+  human_owned: t("ui.lib.interrupt-handoff.human-owned"),
+  static: t("ui.lib.interrupt-handoff.static"),
 };
 
 const PAUSE_BUCKET_DETAIL: Record<PauseAffectsBucketKey, string> = {
-  live_runs: "interrupted now, re-queued when you resume",
-  queued_wakes: "held — they won't start until you resume",
-  agent_owned: "responsible agent; no run is live",
-  human_owned: "owned by a board user; pausing won't notify them",
-  static: "no responsible; nothing was going to run",
+  live_runs: t("ui.lib.interrupt-handoff.interrupted-now-re-queued"),
+  queued_wakes: t("ui.lib.interrupt-handoff.held-they-won-start"),
+  agent_owned: t("ui.lib.interrupt-handoff.responsible-agent-no-run"),
+  human_owned: t("ui.lib.interrupt-handoff.owned-board-user-pausing"),
+  static: t("ui.lib.interrupt-handoff.no-responsible-nothing-was"),
 };
 
 /**

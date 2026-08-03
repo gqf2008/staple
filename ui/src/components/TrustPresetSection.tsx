@@ -143,7 +143,7 @@ export function TrustPresetSection({
                 </p>
                 <p className="mt-1 text-xs leading-5">
                   {hasScope
-                    ? "This agent can only read and mutate work inside its assigned review boundary. Raw output is quarantined from higher-trust agents until a trusted reviewer promotes it."
+                    ? t("ui.components.trustpresetsection.agent-can-only-read")
                     : "This agent is set to low-trust review, but no project, root issue, or issue scope is set in the core policy. Add a scope before this agent can run without denial."}
                 </p>
               </div>

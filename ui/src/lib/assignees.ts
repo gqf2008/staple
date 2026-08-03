@@ -67,7 +67,7 @@ export function currentUserAssigneeOption(currentUserId: string | null | undefin
   return [{
     id: assigneeValueFromSelection({ assigneeUserId: currentUserId }),
     label: "Me",
-    searchText: currentUserId === "local-board" ? "me board human local-board" : `me human ${currentUserId}`,
+    searchText: currentUserId === "local-board" ? t("ui.lib.assignees.me-board-human-local") : `me human ${currentUserId}`,
   }];
 }
 

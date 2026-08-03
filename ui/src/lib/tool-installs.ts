@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ToolConnectionInstall } from "@paperclipai/shared";
 
 /**
@@ -49,11 +50,11 @@ export function installInfoNotice(appName: string): string {
 }
 
 export const INSTALL_ALL_WARNING =
-  "Adds context cost to every run of every agent — a deliberate choice. New agents you add later are installed automatically.";
+  t("ui.lib.tool-installs.adds-context-cost-every");
 
 export function autoExtendNotice(agentName: string): string {
   return `Installing on ${agentName} will also grant access. A tool can't be installed on an agent that isn't allowed to use it, so we'll add ${agentName} to who can use it. This is logged.`;
 }
 
 export const INSTALLED_HINT =
-  "Has access — tick to load its tools into this agent's context.";
+  t("ui.lib.tool-installs.has-access-tick-load");

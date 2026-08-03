@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { RunLogChunk } from "../adapters";
 
 /**
@@ -16,8 +17,8 @@ import type { RunLogChunk } from "../adapters";
  * trigger a false draft.
  */
 
-export const SUMMARY_DRAFT_START = "<<<SUMMARY-DRAFT>>>";
-export const SUMMARY_DRAFT_END = "<<<END-SUMMARY-DRAFT>>>";
+export const SUMMARY_DRAFT_START = t("ui.lib.summary-draft-stream.summary-draft");
+export const SUMMARY_DRAFT_END = t("ui.lib.summary-draft-stream.end-summary-draft");
 
 const STATUS_LINE_RE = /^STATUS:[ \t]?(.*)$/gm;
 const DRAFT_START_RE = /^<<<SUMMARY-DRAFT>>>[ \t]*$/m;

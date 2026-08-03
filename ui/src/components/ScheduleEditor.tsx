@@ -162,7 +162,7 @@ export function getScheduleCronValidation(cron: string): {
   if (!trimmed) {
     return {
       valid: false,
-      message: "Enter a 5-field cron expression.",
+      message: t("ui.components.scheduleeditor.enter-field-cron-expression"),
       nextFires: [],
     };
   }

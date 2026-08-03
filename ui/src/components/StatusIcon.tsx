@@ -30,7 +30,7 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
       return `Blocked · waiting on active sub-task ${blockerAttention.sampleBlockerIdentifier}`;
     }
-    if (count === 1) return "Blocked · waiting on 1 active sub-task";
+    if (count === 1) return t("ui.components.statusicon.blocked-waiting-active-sub");
     return `Blocked · waiting on ${count} active sub-tasks`;
   }
 
@@ -39,7 +39,7 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
       return `Blocked · covered by active dependency ${blockerAttention.sampleBlockerIdentifier}`;
     }
-    if (count === 1) return "Blocked · covered by 1 active dependency";
+    if (count === 1) return t("ui.components.statusicon.blocked-covered-active-dependency");
     return `Blocked · covered by ${count} active dependencies`;
   }
 
@@ -47,7 +47,7 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
     const count = blockerAttention.stalledBlockerCount;
     const leaf = blockerAttention.sampleStalledBlockerIdentifier ?? blockerAttention.sampleBlockerIdentifier;
     if (count === 1 && leaf) return `Blocked · review stalled on ${leaf}`;
-    if (count === 1) return "Blocked · review stalled with no clear next step";
+    if (count === 1) return t("ui.components.statusicon.blocked-review-stalled-no");
     return `Blocked · ${count} reviews stalled with no clear next step`;
   }
 

@@ -429,7 +429,7 @@ export function PipelineItemBodyDocument({
           onSelectRevision: (revisionId: string, isCurrent: boolean) => setSelectedRevisionId(isCurrent ? null : revisionId),
         } : undefined}
         updatedAt={hasDocument ? doc?.updatedAt : null}
-        updatedHref="#pipeline-item-body-document"
+        updatedHref={t("ui.components.pipelineitembodydocument.pipeline-item-body-document")}
         annotationSlot={annotationsLinked && conversationIssueId ? (
           <DocumentAnnotationsCountChip
             issueId={conversationIssueId}

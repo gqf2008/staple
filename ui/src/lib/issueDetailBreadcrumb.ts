@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Issue } from "@paperclipai/shared";
 
 type IssueDetailSource = "issues" | "inbox";
@@ -141,8 +142,8 @@ function inferIssueDetailSource(
 }
 
 function breadcrumbForSource(source: IssueDetailSource): IssueDetailBreadcrumb {
-  if (source === "inbox") return { label: "Inbox", href: "/inbox" };
-  return { label: "Tasks", href: "/issues" };
+  if (source === "inbox") return { label: t("nav.inbox"), href: "/inbox" };
+  return { label: t("nav.tasks"), href: "/issues" };
 }
 
 export function createIssueDetailLocationState(

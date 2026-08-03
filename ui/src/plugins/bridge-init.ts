@@ -316,7 +316,7 @@ function PluginSdkIssuesList({
   });
 
   if (!companyId) {
-    return createElement("div", { className: "text-sm text-muted-foreground" }, "Select a company to view tasks.");
+    return createElement("div", { className: "text-sm text-muted-foreground" }, t("pages.issues.selectCompany"));
   }
 
   return createElement(HostIssuesList, {
@@ -572,7 +572,7 @@ type PluginDataTableProps = {
 };
 
 function PluginSdkDataTable({ columns, rows, loading, emptyMessage = "No rows." }: PluginDataTableProps) {
-  if (loading) return createElement("div", { className: "text-sm text-muted-foreground" }, "Loading...");
+  if (loading) return createElement("div", { className: "text-sm text-muted-foreground" }, t("components.sidebarServerInfo.loading"));
   if (!rows.length) return createElement("div", { className: "text-sm text-muted-foreground" }, emptyMessage);
   const gridColumns = columns.map((column) => column.width ?? t("ui.plugins.bridge-init.fallback-minmax-1fr")).join(" ");
   return createElement(
@@ -652,7 +652,7 @@ class PluginSdkErrorBoundary extends Component<{ children: ReactNode; fallback?:
 
   override render() {
     if (this.state.hasError) {
-      return this.props.fallback ?? createElement("div", { className: "rounded-md border border-destructive/30 p-3 text-sm text-destructive" }, "Plugin UI failed to render.");
+      return this.props.fallback ?? createElement("div", { className: "rounded-md border border-destructive/30 p-3 text-sm text-destructive" }, t("ui.plugins.bridge-init.plugin-ui-failed-render"));
     }
     return this.props.children;
   }

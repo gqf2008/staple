@@ -725,7 +725,7 @@ function GalleryStep({
             {zapierSource
               ? t("pages.appsConnect.zapierUrlHint", { defaultValue: "Paste the complete MCP URL Zapier gives you, including its token." })
               : byo
-              ? "Paste your MCP server’s URL and we’ll walk you through permissions and review."
+              ? t("ui.pages.apps.appsconnect.paste-your-mcp-server")
               : t("pages.appsConnect.setupLinkHint", { defaultValue: "Paste a setup link from an app that is not listed here." })}
           </p>
           {!zapierSource && (

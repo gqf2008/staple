@@ -337,7 +337,7 @@ export const IssueLinkQuicklook = React.forwardRef<
       // gone: `:hover` is authoritative about stacking and overlap, geometry
       // survives the cases where hover state is not updated. Either one holding
       // keeps the card open, so a real pointer resting on it is never dropped.
-      if (trigger?.matches(":hover") || content?.matches(":hover")) return true;
+      if (trigger?.matches(":hover") || content?.matches(t("ui.components.issuelinkquicklook.hover"))) return true;
       if (nearBox(trigger, x, y) || nearBox(content, x, y)) return true;
       // Opened by keyboard: hold while focus is still inside.
       const active = document.activeElement;

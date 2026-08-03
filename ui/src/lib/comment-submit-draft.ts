@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export function restoreSubmittedCommentDraft(params: {
   currentBody: string;
   submittedBody: string;

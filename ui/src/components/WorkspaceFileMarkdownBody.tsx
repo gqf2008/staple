@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { MouseEvent } from "react";
 import { readFileViewerStateFromSearch, useFileViewer } from "@/context/FileViewerContext";
 import { parseWorkspaceFileRef } from "@/lib/workspace-file-parser";

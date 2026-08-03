@@ -3395,7 +3395,7 @@ export function IssueDetail() {
   useEffect(() => {
     const hash = location.hash;
     if (!hash.startsWith("#document-")) return;
-    const documentKey = decodeURIComponent(hash.slice("#document-".length));
+    const documentKey = decodeURIComponent(hash.slice(t("ui.components.issuedocumentssection.document").length));
     if (documentKey !== ISSUE_CONTINUATION_SUMMARY_DOCUMENT_KEY) return;
     setDetailTab("activity");
     setHandoffFocusSignal((current) => current + 1);
@@ -3842,12 +3842,12 @@ export function IssueDetail() {
         variables.mode === "quarantine_restore"
           ? {
               title: t("pages.issueDetail.workspaceRepaired", { defaultValue: "Workspace repaired" }),
-              body: "Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume.",
+              body: t("ui.components.runworkspacerecoverysurface.dirty-changes-were-quarantined"),
               tone: "success",
             }
           : {
               title: t("pages.issueDetail.branchReconciled", { defaultValue: "Workspace branch reconciled" }),
-              body: "The recorded branch now matches the live branch; the task will resume.",
+              body: t("ui.components.runworkspacerecoverysurface.recorded-branch-now-matches"),
               tone: "success",
             },
       );
@@ -4584,13 +4584,13 @@ export function IssueDetail() {
                 </span>
                 <span className="text-xs text-amber-900/80 dark:text-amber-100/80">
                   {childIssues.length === 0
-                    ? "Task execution is held until resume. Human comments can still wake the assignee for triage."
-                    : "Root and descendant execution is held until resume. Human comments can still wake assignee agents for triage."}
+                    ? t("ui.pages.issuedetail.task-execution-held-until")
+                    : t("ui.pages.issuedetail.root-descendant-execution-held")}
                 </span>
               </div>
               <div className="text-xs text-amber-900/80 dark:text-amber-100/80">
                 {childIssues.length === 0
-                  ? "1 task held"
+                  ? t("ui.pages.issuedetail.task-held")
                   : `${heldDescendantCount} descendant${heldDescendantCount === 1 ? "" : "s"} held`}
                 {activeRootPauseHold?.createdAt ? ` · started ${relativeTime(activeRootPauseHold.createdAt)}` : ""}
               </div>

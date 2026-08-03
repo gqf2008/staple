@@ -1,6 +1,7 @@
+import { t } from "../i18n";
 import { useEffect, useState } from "react";
 
-const QUERY = "(prefers-reduced-motion: reduce)";
+const QUERY = t("ui.components.asciiartanimation.prefers-reduced-motion-reduce");
 
 function getInitialValue(): boolean {
   if (typeof window === "undefined" || !window.matchMedia) return false;

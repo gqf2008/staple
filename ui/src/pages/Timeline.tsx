@@ -391,8 +391,8 @@ export function Timeline() {
         }}
         options={[
           { value: "today", label: t("pages.timeline.today", { defaultValue: "Today" }) },
-          { value: "7d", label: "7 days" },
-          { value: "30d", label: "30 days" },
+          { value: "7d", label: t("ui.pages.timeline.days") },
+          { value: "30d", label: t("ui.pages.timeline.30-days") },
         ]}
       />
       <Input
@@ -512,7 +512,7 @@ export function Timeline() {
               <p className="text-xs text-muted-foreground">
                 {data.spans.length} run{data.spans.length === 1 ? "" : "s"} ·{" "}
                 {new Date(data.window.from).toLocaleString()} to {new Date(data.window.to).toLocaleString()}
-                {data.window.capped ? " · window capped" : ""}
+                {data.window.capped ? t("ui.pages.timeline.window-capped") : ""}
               </p>
               {rangeControls}
             </div>

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { AlertTriangle, Clock, Pause, User, Wrench } from "lucide-react";
 import type { ComponentType } from "react";
 import type { IssueBlockedInboxSeverity } from "@paperclipai/shared";

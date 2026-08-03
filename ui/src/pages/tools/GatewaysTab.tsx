@@ -239,7 +239,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
   function submitCreateGateway(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!createDraft.profileId) {
-      pushToast({ title: t("pages.tools.gateways.pickProfile", { defaultValue: "Pick a profile" }), body: "A gateway needs an access profile before it can be created.", tone: "warn" });
+      pushToast({ title: t("pages.tools.gateways.pickProfile", { defaultValue: "Pick a profile" }), body: t("ui.pages.tools.gatewaystab.gateway-needs-access-profile"), tone: "warn" });
       return;
     }
     createGatewayMutation.mutate();
@@ -548,7 +548,7 @@ export function GatewaysTab({ companyId }: { companyId: string }) {
                                         expires <RelativeTime value={token.expiresAt} />
                                       </>
                                     ) : (
-                                      "no expiry"
+                                      t("ui.pages.tools.gatewaystab.no-expiry")
                                     )}
                                   </span>
                                   {!revoked ? (

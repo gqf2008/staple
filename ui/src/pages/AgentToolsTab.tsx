@@ -208,9 +208,9 @@ const POLICY_EFFECT_LABEL: Record<string, string> = {
   allow: "allow",
   block: "block",
   deny: "deny",
-  require_approval: "require approval",
+  require_approval: t("ui.pages.agenttoolstab.require-approval"),
   redact: "redact",
-  rate_limit: "rate limit",
+  rate_limit: t("ui.pages.agenttoolstab.rate-limit"),
 };
 
 const DENIED_TOOLS_DISPLAY_LIMIT = 30;

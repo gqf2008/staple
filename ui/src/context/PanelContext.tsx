@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createContext, useCallback, useContext, useState, type ReactNode } from "react";
 
 const STORAGE_KEY = "paperclip:panel-visible";

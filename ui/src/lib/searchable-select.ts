@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export function normalizeSearchText(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }

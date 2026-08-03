@@ -236,7 +236,7 @@ export function ConfigureBuiltInAgentModal({
             }}
             disabled={!canSubmit || provision.isPending}
           >
-            {provision.isPending ? "Configuring…" : submitLabel}
+            {provision.isPending ? t("ui.components.configurebuiltinagentmodal.configuring") : submitLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

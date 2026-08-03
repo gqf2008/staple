@@ -89,11 +89,11 @@ export function BillerSpendCard({
         )}
 
         <div className="text-xs text-muted-foreground">
-          {row.apiRunCount > 0 ? `${row.apiRunCount} metered run${row.apiRunCount === 1 ? "" : "s"}` : "0 metered runs"}
+          {row.apiRunCount > 0 ? `${row.apiRunCount} metered run${row.apiRunCount === 1 ? "" : "s"}` : t("ui.components.billerspendcard.metered-runs")}
           {" · "}
           {row.subscriptionRunCount > 0
             ? `${row.subscriptionRunCount} subscription run${row.subscriptionRunCount === 1 ? "" : "s"}`
-            : "0 subscription runs"}
+            : t("ui.components.billerspendcard.subscription-runs")}
           {" · "}
           {formatCents(weekSpendCents)} {t("ui.components.billerspendcard.week")}</div>
 

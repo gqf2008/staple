@@ -47,7 +47,7 @@ function formatMentionSourceLabel(mention: ExternalObjectMention): string {
     case "plugin":
       return "Plugin";
     default:
-      return "Source";
+      return t("components.routineOperate.source");
   }
 }
 

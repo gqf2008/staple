@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createRootEditorSubscription$, realmPlugin } from "@mdxeditor/editor";
 import { COMMAND_PRIORITY_CRITICAL, PASTE_COMMAND } from "lexical";
 import { looksLikeMarkdownPaste } from "./markdownPaste";

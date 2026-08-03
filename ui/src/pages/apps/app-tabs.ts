@@ -2,12 +2,12 @@ import { t } from "../../i18n";
 import { Activity, Beaker, Inbox, Settings2, ShieldCheck, Wrench } from "lucide-react";
 
 export const APP_TABS = [
-  { key: "setup", label: "Setup", icon: Settings2 },
+  { key: "setup", label: t("ui.components.builtinagentbadges.setup"), icon: Settings2 },
   { key: "review", label: "Review", icon: Inbox },
-  { key: "permissions", label: "Permissions", icon: ShieldCheck },
-  { key: "activity", label: "Activity", icon: Activity },
-  { key: "test", label: "Test", icon: Beaker },
-  { key: "advanced", label: "Advanced", icon: Wrench },
+  { key: "permissions", label: t("pages.agentDetail.permissions"), icon: ShieldCheck },
+  { key: "activity", label: t("nav.activity"), icon: Activity },
+  { key: "test", label: t("components.agentConfigForm.test"), icon: Beaker },
+  { key: "advanced", label: t("components.issueRunLedger.advanced"), icon: Wrench },
 ] as const;
 
 export type AppTabKey = (typeof APP_TABS)[number]["key"];

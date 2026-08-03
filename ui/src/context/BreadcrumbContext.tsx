@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react";
 
 export interface Breadcrumb {
@@ -47,7 +48,7 @@ export function buildDocumentTitle(breadcrumbs: Breadcrumb[], companyName?: stri
     ? []
     : [...breadcrumbs].reverse().map((breadcrumb) => breadcrumb.label);
   const companyPart = companyName?.trim() ? [companyName.trim()] : [];
-  const parts = [...pageParts, ...companyPart, "Paperclip"];
+  const parts = [...pageParts, ...companyPart, t("components.issueChatThread.paperclip")];
   return parts.join(" • ");
 }
 

@@ -28,7 +28,7 @@ export function MyIssues() {
   });
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={ListTodo} message="Select a company to view your tasks." />;
+    return <EmptyState icon={ListTodo} message={t("ui.pages.myissues.select-company-view-your")} />;
   }
 
   if (isLoading) {
@@ -45,7 +45,7 @@ export function MyIssues() {
       {error && <p className="text-sm text-destructive">{error.message}</p>}
 
       {myIssues.length === 0 && (
-        <EmptyState icon={ListTodo} message="No tasks assigned to you." />
+        <EmptyState icon={ListTodo} message={t("ui.pages.myissues.no-tasks-assigned-you")} />
       )}
 
       {myIssues.length > 0 && (

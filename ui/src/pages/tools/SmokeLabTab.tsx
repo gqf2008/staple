@@ -373,7 +373,7 @@ export function SmokeLabTab({ companyId }: { companyId: string }) {
             <h2 className="text-sm font-semibold text-foreground">{t("pages.tools.smokeLab.runs", { defaultValue: "Runs" })}</h2>
             <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
               <span className={cn("h-2 w-2 rounded-full", HEALTH_STYLES[health])} />
-              {health === "unknown" ? "no runs yet" : health}
+              {health === "unknown" ? t("components.activityCharts.noRuns") : health}
               {failing.length > 0 && ` · failing: ${failing.join(", ")}`}
             </span>
           </div>

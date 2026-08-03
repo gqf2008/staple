@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Issue, IssueBlockerAttention } from "@paperclipai/shared";
 
 type InboxLiveDescendantIssue = Pick<Issue, "status" | "blockerAttention" | "liveDescendantCount">;

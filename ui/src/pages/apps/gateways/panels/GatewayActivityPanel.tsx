@@ -8,9 +8,9 @@ import { ErrorState, RelativeTime } from "@/pages/tools/shared";
 import { cn } from "@/lib/utils";
 
 const OUTCOME_LABEL: Record<ToolAuditOutcome, string> = {
-  allowed: "Allowed",
+  allowed: t("components.runTranscript.allowed"),
   blocked: "Blocked",
-  asked_first: "Ask first",
+  asked_first: t("pages.apps.testPanel.askFirst"),
   waiting: "Waiting",
   failed: "Failed",
   unknown: "—",

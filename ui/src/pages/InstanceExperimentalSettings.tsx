@@ -198,7 +198,7 @@ function RecoveryPreviewDialog({
         {preview && preview.skippedOutsideLookback > 0 ? (
           <p className="text-xs text-muted-foreground">
             {preview.skippedOutsideLookback} current{" "}
-            {preview.skippedOutsideLookback === 1 ? "finding is" : "findings are"} {t("ui.pages.instanceexperimentalsettings.outside-configured-lookback-will")}</p>
+            {preview.skippedOutsideLookback === 1 ? t("ui.pages.instanceexperimentalsettings.finding") : t("ui.pages.instanceexperimentalsettings.findings")} {t("ui.pages.instanceexperimentalsettings.outside-configured-lookback-will")}</p>
         ) : null}
 
         <DialogFooter>
@@ -494,7 +494,7 @@ export function InstanceExperimentalSettings() {
                   <p className="font-medium text-foreground">{t("pages.instanceExperimental.executionSuppressed", { defaultValue: "Execution is suppressed — effectively off." })}</p>
                   <p className="text-muted-foreground">
                     {worktreeRunExecutionState.reason === "instance_mismatch"
-                      ? "This setting was armed in a different instance and copied here, so no tasks run automatically."
+                      ? t("ui.pages.instanceexperimentalsettings.setting-was-armed-different")
                       : t("pages.instanceExperimental.cutoffMissing", { defaultValue: "This setting is missing its activation cutoff, so no tasks run automatically." })}{" "}
                     {t("ui.pages.instanceexperimentalsettings.toggle-off-back-arm")}</p>
                 </div>
@@ -519,7 +519,7 @@ export function InstanceExperimentalSettings() {
         title={t("pages.instanceExperimental.cases", { defaultValue: "Cases" })}
         experimental
         description={t("ui.pages.instanceexperimentalsettings.durable-work-products-blog")}
-        footnote="Turning Cases off hides the tab and blocks the case API; existing case data is kept."
+        footnote={t("ui.pages.instanceexperimentalsettings.turning-cases-off-hides")}
         checked={enableCases}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableCases: checked })}
         disabled={toggleMutation.isPending}

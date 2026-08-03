@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { accessApi } from "../api/access";
@@ -25,7 +26,7 @@ import {
   READ_ITEMS_KEY,
 } from "../lib/inbox";
 
-const INBOX_ISSUE_STATUSES = "backlog,todo,in_progress,in_review,blocked,done";
+const INBOX_ISSUE_STATUSES = t("ui.hooks.useinboxbadge.backlog-todo-progress-review");
 const INBOX_BADGE_ISSUE_LIMIT = 500;
 const INBOX_BADGE_HEARTBEAT_RUN_LIMIT = 200;
 const INBOX_BADGE_HOT_PATH_STALE_MS = 30_000;

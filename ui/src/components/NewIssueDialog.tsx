@@ -2139,7 +2139,7 @@ export function NewIssueDialog() {
               <button
                 type="button"
                 data-issue-work-mode-chip={workMode}
-                aria-keyshortcuts="Meta+Period Control+Period"
+                aria-keyshortcuts={t("ui.components.issuechatthread.meta-period-control-period")}
                 className={cn(
                   "inline-flex items-center gap-1.5 rounded-md border px-2 py-1 text-xs transition-colors",
                   currentWorkMode.classes.chip,

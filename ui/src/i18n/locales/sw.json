@@ -7250,18 +7250,21 @@
         "config-fields": {
           "optional-override-claude-acp": "Optional override for the Claude ACP server command. Defaults to the package-local claude-agent-acp binary.",
           "optional-acp-session-state": "Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage.",
-          "defaults-which-closes-acp": "Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
+          "defaults-which-closes-acp": "Defaults to 0, which closes the ACP process after each run while retaining persistent session state.",
+          "absolute-path-markdown-file": "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime."
         }
       },
       "codex-local": {
         "config-fields": {
           "optional-override-codex-acp": "Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary.",
-          "fast-mode-will-passed": "Fast mode will be passed through for this manual model. If Codex rejects it, turn the toggle off."
+          "fast-mode-will-passed": "Fast mode will be passed through for this manual model. If Codex rejects it, turn the toggle off.",
+          "absolute-path-markdown-file": "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the system prompt at runtime. Note: Codex may still auto-apply repo-scoped AGENTS.md files from the workspace."
         }
       },
       "gemini-local": {
         "config-fields": {
-          "gemini-acp": "gemini --acp"
+          "gemini-acp": "gemini --acp",
+          "absolute-path-markdown-file": "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Prepended to the Gemini prompt at runtime."
         }
       },
       "hermes-gateway": {
@@ -7283,6 +7286,9 @@
           "node-python": "e.g. node, python",
           "args-comma-separated": "Args (comma-separated)",
           "script-js-flag": "e.g. script.js, --flag"
+        },
+        "index": {
+          "shell-process": "Shell Process"
         }
       },
       "runtime-json-fields": {
@@ -7295,6 +7301,46 @@
       },
       "transcript": {
         "fallback-unknown-parser-error": "unknown parser error"
+      },
+      "adapter-display-registry": {
+        "acpx-retired": "ACPX (retired)",
+        "retired-standalone-acpx-adapter": "Retired standalone ACPX adapter",
+        "use-claude-code-codex": "Use Claude Code or Codex with the ACP engine",
+        "claude-code-cli-harness": "Claude Code CLI harness",
+        "codex-cli-harness": "Codex CLI harness",
+        "gemini-cli-harness": "Gemini CLI harness",
+        "grok-build": "Grok Build",
+        "grok-build-harness": "Grok Build harness",
+        "hermes-gateway": "Hermes Gateway",
+        "remote-hermes-api-server": "Remote Hermes API server",
+        "hermes": "Hermes",
+        "hermes-harness": "Hermes harness",
+        "pi-harness": "Pi harness",
+        "cursor-cli-harness": "Cursor CLI harness",
+        "cursor-cloud": "Cursor Cloud",
+        "managed-remote-cursor-agent": "Managed remote Cursor agent",
+        "external-gateway-adapter": "External gateway adapter",
+        "invite-external-agents-from": "Invite external agents from the add-agent modal",
+        "process": "Process",
+        "internal-process-adapter": "Internal process adapter",
+        "http": "HTTP",
+        "internal-http-adapter": "Internal HTTP adapter",
+        "external-adapter": "External adapter"
+      },
+      "cursor": {
+        "config-fields": {
+          "absolute-path-markdown-file": "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Injected into the prompt at runtime."
+        }
+      },
+      "grok-local": {
+        "config-fields": {
+          "absolute-path-markdown-file": "Absolute path to a markdown file (e.g. AGENTS.md) that defines this agent's behavior. Paperclip stages it into the Grok workspace as Agents.md when possible."
+        }
+      },
+      "http": {
+        "index": {
+          "http-webhook": "HTTP Webhook"
+        }
       }
     },
     "components": {
@@ -7304,7 +7350,15 @@
         "request-scoped-usage-billed": "Request-scoped usage and billed runs from cost_events.",
         "account-level-charges-not": "Account-level charges that are not one prompt-response pair.",
         "live-quotas": "Live quotas",
-        "provider-biller-windows-can": "Provider or biller windows that can stop traffic in real time."
+        "provider-biller-windows-can": "Provider or biller windows that can stop traffic in real time.",
+        "tokens-billed-dollars": "tokens + billed dollars",
+        "provider-biller-model": "provider, biller, model",
+        "subscription-overage-aware": "subscription and overage aware",
+        "bedrock-provisioned-training-charges": "Bedrock provisioned or training charges",
+        "credit-expiries-adjustments": "credit expiries and adjustments",
+        "provider-quota-windows": "provider quota windows",
+        "biller-credit-systems": "biller credit systems",
+        "errors-surfaced-directly": "errors surfaced directly"
       },
       "activeagentspanel": {
         "more-active-recent-run": "more active/recent run"
@@ -7387,13 +7441,16 @@
         "snooze-until": "Snooze until…",
         "request-revision": "Request revision",
         "hour": "1 hour",
-        "hours": "4 hours"
+        "hours": "4 hours",
+        "sent-revision": "sent for revision"
       },
       "billerspendcard": {
         "period-spend": "Period spend",
         "week": "this week",
         "billing-types": "Billing types",
-        "upstream-providers": "Upstream providers"
+        "upstream-providers": "Upstream providers",
+        "metered-runs": "0 metered runs",
+        "subscription-runs": "0 subscription runs"
       },
       "blockedinboxview": {
         "couldn-load-blocked-tab": {
@@ -7402,7 +7459,8 @@
         "other-inbox-tabs-still": "Other Inbox tabs still work.",
         "no-work-stopped": "No work is stopped.",
         "tasks-need-decision-recovery": "Tasks that need a decision, recovery, or external action will appear here.",
-        "no-stopped-items-match": "No stopped items match your search."
+        "no-stopped-items-match": "No stopped items match your search.",
+        "trying": "Trying…"
       },
       "bootstrappendingpage": {
         "prefer-finish-setup-from": "Prefer to finish setup from the host?",
@@ -7421,14 +7479,21 @@
         "no-admin-has-claimed-alt": "No admin has claimed this instance yet. Claim it now to become the first admin and start onboarding.",
         "someone-else-has-already": "Someone else has already claimed this instance.",
         "your-session-expired-sign": "Your session expired. Sign in again to claim this instance.",
-        "we-couldn-reach-server": "We couldn't reach the server. Try again in a moment."
+        "we-couldn-reach-server": "We couldn't reach the server. Try again in a moment.",
+        "bootstrap-invite-already-active": "A bootstrap invite is already active. Check your Paperclip startup logs for the first-admin URL, or run this command on the host to rotate it:",
+        "run-command-host-runs": "Run this command on the host that runs Paperclip to print a one-time first-admin invite URL:",
+        "refresh-sign-ask-existing": "Refresh to sign in, or ask the existing admin to invite you from Instance settings -> Access.",
+        "claiming": "Claiming...",
+        "claim-instance": "Claim this instance"
       },
       "breadcrumbbar": {
         "open-sidebar": "Open sidebar"
       },
       "budgetpolicycard": {
         "soft-alert": "Soft alert at",
-        "budget-usd": "Budget (USD)"
+        "budget-usd": "Budget (USD)",
+        "execution-paused-project-until": "Execution is paused for this project until the budget is raised or the incident is dismissed.",
+        "heartbeats-paused-scope-until": "Heartbeats are paused for this scope until the budget is raised or the incident is dismissed."
       },
       "builtinagentgate": {
         "built-agent-was-paused": "Its built-in agent was paused",
@@ -7436,14 +7501,29 @@
         "isn-being-generated": "isn't being generated."
       },
       "builtinbundlepanel": {
-        "configure": "Configure"
+        "configure": "Configure",
+        "you-haven-edited-so": "You haven't edited this, so Paperclip will replace it with the newer shipped version. Nothing you customized is affected, and your adapter credentials and settings are not touched.",
+        "replaces-your-edited-version": "This replaces your edited version with Paperclip's current default. Your edits can't be recovered. Adapter credentials and settings are not touched.",
+        "resource-missing-paperclip-will": "This resource is missing. Paperclip will recreate it from the shipped default. Adapter credentials and settings are not touched.",
+        "paperclip-will-create-one": "Paperclip will create one routine task now. This does not enable the weekly schedule or turn on background work.",
+        "paperclip-will-allow-reflection": "Paperclip will allow Reflection Coach to create routine tasks on the weekly schedule. It can spend tokens when those tasks run.",
+        "proposed-reflection-coach-update": "A proposed Reflection Coach update is waiting for review."
       },
       "caseactivityfeed": {
         "activity-filter": "Activity filter",
         "all-activity": {
           "2": "All activity"
         },
-        "no-events-match-filter": "No events match this filter."
+        "no-events-match-filter": "No events match this filter.",
+        "fields-changed": "fields changed",
+        "status-changed": "status changed",
+        "issue-linked": "issue linked",
+        "issue-unlinked": "issue unlinked",
+        "document-revised": "document revised",
+        "child-linked": "child linked",
+        "attachment-added": "attachment added",
+        "label-added": "label added",
+        "label-removed": "label removed"
       },
       "caseattachmentsgallery": {
         "no-attachments": "No attachments."
@@ -7482,7 +7562,8 @@
       "cloudaccessgate": {
         "no-company-access": "No company access",
         "account-signed-but-does": "This account is signed in, but it does not have an active company membership or instance-admin access on\n          this Paperclip instance.",
-        "use-company-invite-sign": "Use a company invite or sign in with an account that already belongs to this org."
+        "use-company-invite-sign": "Use a company invite or sign in with an account that already belongs to this org.",
+        "failed-load-app-state": "Failed to load app state"
       },
       "codexsubscriptionpanel": {
         "codex-subscription": "Codex subscription",
@@ -7510,7 +7591,8 @@
         "timeline": "Timeline (",
         "queued-comments": "Queued Comments (",
         "requested-follow-up": "requested follow-up",
-        "updated-task": "updated this task"
+        "updated-task": "updated this task",
+        "comment": "#comment-"
       },
       "companyswitcher": {
         "manage-companies": "Manage Companies"
@@ -7524,7 +7606,8 @@
         "monthly-budget-optional": "Monthly budget (optional)",
         "leave-blank-no-cap": "Leave blank for no cap.",
         "not-now": "Not now",
-        "failed-configure-built-agent": "Failed to configure the built-in agent."
+        "failed-configure-built-agent": "Failed to configure the built-in agent.",
+        "configuring": "Configuring…"
       },
       "decisioncard": {
         "proposed": "Proposed by",
@@ -7542,7 +7625,12 @@
         "dismissed-no-effects-were": "Dismissed — no effects were run.",
         "some-effects-may-already": "Some effects may already have been applied. Review the results before asking the proposer to re-propose.",
         "new-issue": "a new issue",
-        "fallback-effect-could-not-run": "the effect could not run"
+        "fallback-effect-could-not-run": "the effect could not run",
+        "blocked-permission-boundary-fail": "blocked by the permission boundary (fail-closed)",
+        "referenced-issue-no-longer": "a referenced issue no longer exists",
+        "target-changed-since-was": "the target changed since this was proposed",
+        "effect-errored-while-running": "the effect errored while running",
+        "target-issue-was-cancelled": "A target issue was cancelled before this was decided."
       },
       "decisiontrainingdrawer": {
         "decision-can-trained-isn": "This decision can't be trained — it isn't anchored to an issue.",
@@ -7551,7 +7639,8 @@
         "loading-example": "Loading example…",
         "removes-frozen-snapshot-your": "This removes the frozen snapshot and your notes. This can't be undone.",
         "open-full-record": "Open full record",
-        "capturing-current-state": "Capturing current state…"
+        "capturing-current-state": "Capturing current state…",
+        "frozen-state-read-only": "The frozen state is read-only; your notes stay editable."
       },
       "devrestartbanner": {
         "restart-required": "Restart Required",
@@ -7564,12 +7653,20 @@
         "pnpm-dev-once": "pnpm dev:once",
         "after-active-work-safe": "after the active work is safe to interrupt",
         "restart-paperclip-now": "Restart Paperclip now?",
-        "failed-request-restart": "Failed to request restart"
+        "failed-request-restart": "Failed to request restart",
+        "backend-files-changed-migrations": "backend files changed and migrations are pending",
+        "pending-migrations-need-fresh": "pending migrations need a fresh boot",
+        "backend-files-changed-since": "backend files changed since this server booted",
+        "restart-requested": "Restart requested",
+        "restart-now": "Restart now"
       },
       "documentannotationlayer": {
         "open-annotation-thread": "Open annotation thread",
         "anchor-moved-needs-review": "Anchor moved — needs review",
-        "selection-actions": "Selection actions"
+        "selection-actions": "Selection actions",
+        "input-textarea-select-contenteditable": "input, textarea, select, [contenteditable]",
+        "input-textarea-select": "input, textarea, select",
+        "add-comment-selection": "Add comment on selection (⌘⇧M)"
       },
       "documentannotationpanel": {
         "comments": "Comments on",
@@ -7589,7 +7686,8 @@
         "governed-tool-call": "governed tool call",
         "denied-failed-last-hour": "denied or failed in the last hour. Access is enforced\n            server-side by the tool gateway — review what was blocked and why in the audit log.",
         "tool-access-enforced-server": "Tool access is enforced server-side by the tool gateway. These screens configure and observe that\n            enforcement — they do not replace it. Agents see and call only the tools their profiles and policies\n            allow; everything else is denied by default.",
-        "view-audit": "View audit →"
+        "view-audit": "View audit →",
+        "were": "s were"
       },
       "executionworkspaceclosedialog": {
         "clean-up-any-owned": "and clean up any owned workspace\n            artifacts. Paperclip keeps the workspace record and task history, but removes it from active workspace views.",
@@ -7597,13 +7695,15 @@
         "cleanup-previously-failed-workspace": "Cleanup previously failed on this workspace. Retrying close will rerun the cleanup flow and update the\n                workspace status if it succeeds.",
         "workspace-already-archived": "This workspace is already archived.",
         "workspace-path": "Workspace path:",
-        "last-checked": "Last checked"
+        "last-checked": "Last checked",
+        "shared-workspace-session-archiving": "This is a shared workspace session. Archiving it removes this session record but keeps the underlying project workspace."
       },
       "fileviewersheet": {
         "line": "Line",
         "loading-file-preview": "Loading file preview...",
         "try-project-workspace": "Try project workspace",
-        "fallback-application-octet-stream": "application/octet-stream"
+        "fallback-application-octet-stream": "application/octet-stream",
+        "workspace-hosted-remotely-inline": "This workspace is hosted remotely; inline previews are not supported yet."
       },
       "financekindcard": {
         "financial-event-mix": "Financial event mix",
@@ -7647,7 +7747,8 @@
         "parked": "Parked",
         "will-not-asked-work": "will not be asked to work on this until status changes to To do or In progress.",
         "comments-still-notify-assignee": "Comments still notify the assignee for questions or triage. Leave this parked only if the work is intentionally on hold.",
-        "fallback-assignee": "the assignee"
+        "fallback-assignee": "the assignee",
+        "resume-now": "Resume now"
       },
       "issueattachmentssection": {
         "browse-gallery": "Browse gallery",
@@ -7690,13 +7791,17 @@
         "ultimately-waiting": "Ultimately waiting on",
         "but-chain-stalled-review-alt": ", but the chain is stalled in review without a clear next step. Resolve the stalled review below or remove it as a blocker.",
         "linked-task": "the linked task",
-        "linked-tasks": "the linked tasks"
+        "linked-tasks": "the linked tasks",
+        "text": "it is",
+        "they": "they are"
       },
       "issuechatthread": {
         "paused-new-runs-will": "is paused. New runs will not start until the agent is resumed.",
         "showing-safe-fallback-transcript": "Showing a safe fallback transcript instead of crashing the tasks page.",
         "will-replace-comment-deleted": "This will replace the comment with a deleted-comment marker.",
-        "updated-task": "updated this task",
+        "updated-task": {
+          "2": "updated this task"
+        },
         "stale-disposition-warning": "Stale disposition warning",
         "deleted-comment": "deleted this comment",
         "images-insert-into-reply": "Images insert into the reply. Other files are added to this task.",
@@ -7706,7 +7811,10 @@
         "send-anyway": "Send anyway",
         "jump-latest": "Jump to latest",
         "legacy-recovery-task-newer": "Legacy recovery task. Newer recovery actions live on the source task",
-        "deferred-wake": "⏸ Deferred wake"
+        "deferred-wake": "⏸ Deferred wake",
+        "issue-chat-renderer-failed": "Issue chat renderer failed; falling back to safe transcript view",
+        "data-anchor-id-data": "[data-anchor-id][data-index]",
+        "meta-period-control-period": "Meta+Period Control+Period"
       },
       "issuecolumns": {
         "desktop-task-rows": "Desktop task rows",
@@ -7727,7 +7835,9 @@
         "keep-my-draft": "Keep my draft",
         "reload-remote": "Reload remote",
         "remote-revision": "Remote revision",
-        "delete-document-cannot-undone": "Delete this document? This cannot be undone."
+        "delete-document-cannot-undone": "Delete this document? This cannot be undone.",
+        "document-key-must-start": "Document key must start with a letter or number and use only lowercase letters, numbers, -, or _.",
+        "document": "#document-"
       },
       "issuefilterspopover": {
         "creator": "Creator",
@@ -7738,7 +7848,8 @@
         "hide-routine-runs": "Hide routine runs"
       },
       "issuelinkquicklook": {
-        "unable-load-task-preview": "Unable to load task preview."
+        "unable-load-task-preview": "Unable to load task preview.",
+        "hover": ":hover"
       },
       "issuemonitorbanner": {
         "sending-reply-wakes-agent": "Sending a reply wakes the agent now — before the scheduled check."
@@ -7749,7 +7860,8 @@
         "repeat-attempts-fingerprint-reuse": "Repeat attempts with this fingerprint reuse this record instead of creating new children",
         "idempotent-claim": "Idempotent claim",
         "owner": "Owner:",
-        "plan-document": "Plan document"
+        "plan-document": "Plan document",
+        "accepted-plan-revision": "1 accepted plan revision"
       },
       "issuerecoveryactioncard": {
         "detached-unknown": "detached / unknown",
@@ -7778,7 +7890,15 @@
         "creates-fresh-copy-task": "Creates a fresh copy of this task on an isolated git worktree based on the live\n                    branch. Your current workspace and its commits are left untouched.",
         "recovery-observing-without-interrupting": "Recovery is observing without interrupting the live run.",
         "card-stays-open-until": "The card stays open until an explicit decision is recorded.",
-        "another-task": "another task"
+        "another-task": "another task",
+        "task-run-finished-but": "This task's run finished, but no next step was chosen. Choose what happens next — try the task again, mark it done, or send it for review.",
+        "paperclip-retried-task-last": "Paperclip retried this task's last run, but there is still no queued run, reviewer, blocker, or other next owner. To get it moving, choose what happens next — try the task again, mark it done, or send it for review.",
+        "paperclip-could-not-find": "Paperclip could not find a clear next step for this open task. Choose whether to continue work, send it for review, mark it done, or record what is blocking it.",
+        "handed-back-original-owner": "handed back to original owner",
+        "completed-recovery-owner": "completed by recovery owner",
+        "false-positive": "false positive",
+        "active-run": "(active run)",
+        "claim-held": "(claim held)"
       },
       "issuereferenceactivitysummary": {
         "added-references": "Added references",
@@ -7792,7 +7912,9 @@
         "issue-does-not-reference": "This issue does not reference any external objects yet.",
         "other-tasks-task-currently": "Other tasks this task currently points at in its title, description, comments, or documents.",
         "referenced": "Referenced by",
-        "other-tasks-currently-point": "Other tasks that currently point at this task."
+        "other-tasks-currently-point": "Other tasks that currently point at this task.",
+        "task-does-not-reference": "This task does not reference any other tasks yet.",
+        "no-other-tasks-reference": "No other tasks reference this task yet."
       },
       "issuerow": {
         "blocked-parked-work-least": "Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee.",
@@ -7807,7 +7929,13 @@
         "behalf": "on behalf of",
         "exhausted": "Exhausted",
         "retry": "Retry of",
-        "older-items-not-shown": "older items not shown"
+        "older-items-not-shown": "older items not shown",
+        "max-turns-exhausted": "max turns exhausted",
+        "paused-board": "paused by board",
+        "process-lost": "process lost",
+        "unmanaged-background-task-stopped": "unmanaged background task stopped",
+        "adapter-failed": "adapter failed",
+        "under-minute": "under 1 minute"
       },
       "issuescheduledretrycard": {
         "attempt": "Attempt",
@@ -7828,7 +7956,9 @@
         "will-skipped-if-you": "will be skipped if you accept this interaction.",
         "accepting": "Accepting...",
         "reset-selection": "Reset selection",
-        "question": "Question",
+        "question": {
+          "2": "1 question"
+        },
         "submit-once-after-you": "Submit once after you finish the full form.",
         "submitted-summary": "Submitted summary",
         "agent-resume-failed": "Agent resume failed",
@@ -7873,7 +8003,10 @@
         "approved-alt": "approved ·",
         "reason-required-alt": "A reason is required to",
         "approval-window-closed-auto": "Approval window closed · auto-declines any moment",
-        "fallback-board": "the board"
+        "fallback-board": "the board",
+        "draft-issue": "1 draft issue",
+        "board-comment-superseded-confirmation": "A board comment superseded this confirmation before it was resolved.",
+        "item-was": "1 item was"
       },
       "issueworkspacecard": {
         "environment": "Environment:",
@@ -7881,7 +8014,10 @@
         "view-workspace-details": "View workspace details →",
         "current": "Current:",
         "browse-files": "Browse files…",
-        "open-file-path": "Open file by path…"
+        "open-file-path": "Open file by path…",
+        "reused-workspace": "· reused workspace",
+        "project-default": "· project default",
+        "fresh-isolated-workspace-will": "A fresh isolated workspace will be created when this task runs."
       },
       "issueslist": {
         "showing-up": "Showing up to",
@@ -7892,7 +8028,11 @@
         "fallback-all-projects": "__all-projects__",
         "fallback-no-workspace": "__no_workspace",
         "fallback-no-project": "__no_project",
-        "fallback-no-parent": "__no_parent"
+        "fallback-no-parent": "__no_parent",
+        "pl-sm-pl": {
+          "2": "pl-8 sm:pl-0"
+        },
+        "data-inbox-issue-link": "[data-inbox-issue-link]"
       },
       "jsonschemaform": {
         "hide-raw-value-input": "Hide raw value input",
@@ -7906,7 +8046,8 @@
       },
       "keyboardshortcutscheatsheet": {
         "press": "Press",
-        "close-middot-shortcuts-disabled": "to close · Shortcuts are disabled in text fields"
+        "close-middot-shortcuts-disabled": "to close · Shortcuts are disabled in text fields",
+        "enter": "Enter"
       },
       "layout": {
         "skip-main-content": "Skip to Main Content",
@@ -7920,7 +8061,12 @@
       "markdowneditor": {
         "retry-rich-editor": "Retry rich editor",
         "drop": "Drop",
-        "upload": "to upload"
+        "upload": "to upload",
+        "markdown-rich-editor-failed": "Markdown rich editor failed; falling back to raw textarea",
+        "table": "TABLE",
+        "video": "VIDEO",
+        "python": "Python",
+        "pre-code": "pre, code"
       },
       "missingplugintabplaceholder": {
         "workspace-plugin-tab-not": "Workspace plugin tab is not available."
@@ -7981,7 +8127,8 @@
         "our-mission": "Our mission is:",
         "ready-put-together-plan": "I'm ready to put together a plan for who we should bring on. Want me to get started?",
         "let-discuss-first": "Let's discuss first",
-        "yes-get-started": "Yes, get started!"
+        "yes-get-started": "Yes, get started!",
+        "want-discuss-plan-before": "I want to discuss the plan before you get started."
       },
       "onboardingwizard": {
         "name-your-lead-they": "Name your lead. They'll help drive",
@@ -8028,7 +8175,18 @@
         "we-ll-create-first": "We'll create the first task for",
         "take-you-dashboard": "and take you to the dashboard.",
         "can-produce-content-fast-alt": "e.g. Can't produce content fast enough across multiple channels",
-        "no-opencode-models-discovered": "No OpenCode models discovered. Run `opencode models` and authenticate providers."
+        "no-opencode-models-discovered": "No OpenCode models discovered. Run `opencode models` and authenticate providers.",
+        "you-ceo-you-set": "You are the CEO. You set the direction for the company.\n\n- hire a founding engineer\n- write a hiring plan\n- break the roadmap into concrete tasks and start delegating work",
+        "retried-anthropic-api-key": "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing.",
+        "empty-slot-agent": "an empty slot for an agent",
+        "your-team-lead-taking": "your team lead, taking shape",
+        "cursor-api-key": "CURSOR_API_KEY",
+        "gemini-api-key": "GEMINI_API_KEY",
+        "openai-api-key": "OPENAI_API_KEY",
+        "agent-login": "agent login",
+        "codex-login": "codex login",
+        "gemini-auth": "gemini auth",
+        "opencode-auth-login": "opencode auth login"
       },
       "opencodelogoicon": {
         "opencode": "OpenCode"
@@ -8039,30 +8197,39 @@
       "pathinstructionsmodal": {
         "paste-absolute-path": "Paste the absolute path (e.g.",
         "into-input-field": ") into the input field.",
-        "macos": "macOS"
+        "macos": "macOS",
+        "hold-option-key-copy": "Hold the Option (⌥) key — \"Copy\" changes to \"Copy as Pathname\".",
+        "click-copy-pathname-then": "Click \"Copy as Pathname\", then paste here.",
+        "you-can-also-open": "You can also open Terminal, type cd, drag the folder into the terminal window, and press Enter. Then type pwd to see the full path."
       },
       "pendingdecisionstrip": {
-        "review-decisions": "Review in Decisions →"
+        "review-decisions": "Review in Decisions →",
+        "pending-decision-affects-issue": "1 pending decision affects this issue"
       },
       "pipelinehealthwarnings": {
         "some-steps-won-run": "Some steps won't run yet —",
-        "more-stage-settings": "more in stage settings"
+        "more-stage-settings": "more in stage settings",
+        "step-won-run-yet": "This step won't run yet"
       },
       "pipelineitembodydocument": {
         "saving-creates-rev": "Saving creates rev",
         "save-esc-cancel": "· ⌘↵ to save · Esc to cancel",
         "historical-preview-new-comments": "Historical preview. New comments are disabled while previewing a historical revision. Restoring it\n                creates a new latest revision and keeps history append-only.",
-        "editing-unsaved": "● Editing · unsaved"
+        "editing-unsaved": "● Editing · unsaved",
+        "pipeline-item-body-document": "#pipeline-item-body-document"
       },
       "pipelinelivenessbanner": {
         "required-permission": "Required permission:",
-        "target-pipeline": "on the target pipeline."
+        "target-pipeline": "on the target pipeline.",
+        "open-blocker": "Open blocker",
+        "open-automation-task": "Open automation task"
       },
       "pipelinestagehistorypanel": {
         "past-versions-these-instructions": "Past versions of these instructions.",
         "no-history-yet-save": "No history yet. Save the instructions to create the first revision.",
         "no-revisions-recorded-yet": "No revisions recorded yet.",
-        "revision": "Revision"
+        "revision": "Revision",
+        "could-not-load-revisions": "Could not load revisions."
       },
       "pipelineworkreferences": {
         "no-linked-work-yet": "No linked work yet."
@@ -8090,7 +8257,9 @@
         "cleanup-attention-needed": "Cleanup attention needed"
       },
       "propertiespanel": {
-        "resize-panel": "Resize panel"
+        "resize-panel": "Resize panel",
+        "restore-panel": "Restore panel",
+        "maximize-panel": "Maximize panel"
       },
       "providerquotacard": {
         "week": "This week",
@@ -8102,16 +8271,21 @@
       "reportstopicker": {
         "unknown-manager-stale-id": "Unknown manager (stale ID)",
         "no-manager": "No manager",
-        "terminated": "(terminated)",
+        "terminated": {
+          "2": "(terminated)"
+        },
         "saved-manager-missing-from": "Saved manager is missing from this company. Choose a new manager or clear."
       },
       "reusableexecutionworkspaceselect": {
-        "search-workspaces": "Search workspaces..."
+        "search-workspaces": "Search workspaces...",
+        "workspaces-failed-load": "Workspaces failed to load.",
+        "no-matching-workspaces": "No matching workspaces."
       },
       "routeerrorboundary": {
         "page-hit-error": "This page hit an error",
         "something-went-wrong-while": "Something went wrong while rendering this page. You can go back and try again, or reload.",
-        "reload-page": "Reload page"
+        "reload-page": "Reload page",
+        "page-render-failed": "Page render failed"
       },
       "routinehistorytab": {
         "revision-only-history-routine": "Revision 1 is the only history this routine has. Saving an edit creates the first\n              additional revision.",
@@ -8149,7 +8323,11 @@
         "restore-rev": "Restore rev",
         "new-revision": "as new revision",
         "trigger-enabled-state-was": "Trigger enabled state was restored from the snapshot. New webhook secrets are available in the banner above.",
-        "fallback-missing-secret": "<missing-secret>"
+        "fallback-missing-secret": "<missing-secret>",
+        "routine": "the routine",
+        "plain-set": "plain (set)",
+        "plain-changed": "plain (changed)",
+        "none": "(none)"
       },
       "routinerunvariablesdialog": {
         "choose-agent-optional-project": "Choose the agent and optional project for this one run. Routine defaults are prefilled and won't be changed.",
@@ -8173,7 +8351,8 @@
       },
       "routinetriggercard": {
         "rotate-secret": "Rotate secret",
-        "save-trigger": "Save trigger"
+        "save-trigger": "Save trigger",
+        "webhook": "Webhook"
       },
       "routinevariableseditor": {
         "detected-from": "Detected from `",
@@ -8205,7 +8384,8 @@
       "scheduleeditor": {
         "five-fields-minute-hour": "Five fields: minute hour day-of-month month day-of-week",
         "minute": "at minute",
-        "day": "on day"
+        "day": "on day",
+        "enter-field-cron-expression": "Enter a 5-field cron expression."
       },
       "scrolltobottom": {
         "scroll-bottom": "Scroll to bottom"
@@ -8217,7 +8397,8 @@
         "previously-selected-secret-no": "The previously selected secret is no longer available. Pick another or remove the binding.",
         "openai-api-key": "OPENAI_API_KEY",
         "value-stored-once-never": "The value is stored once and never re-displayed. Rotate to replace.",
-        "create-amp-bind": "Create & bind"
+        "create-amp-bind": "Create & bind",
+        "another-company": "another company"
       },
       "sidebaraccountmenu": {
         "open-account-menu": "Open account menu",
@@ -8255,7 +8436,10 @@
         "paperclip": "PAPERCLIP_*",
         "names-reserved": "names\n          are reserved.",
         "loading-secrets": "Loading secrets…",
-        "fallback-responsible-agent": "the responsible agent"
+        "fallback-responsible-agent": "the responsible agent",
+        "secrets-available-only-step": "Secrets are available only to step automation. Pick an agent to run this step, then add the secrets it needs.",
+        "set-up-automation": "Set up automation",
+        "save-secrets": "Save secrets"
       },
       "summaryslotcard": {
         "summaries-generated-paperclip-built": "Summaries are generated by Paperclip's built-in Summarizer agent. Configure its adapter and model\n                  before requesting this summary.",
@@ -8273,7 +8457,8 @@
         "cannot-edited-ce-single": "and cannot be edited by the CE single-boundary editor.",
         "want-set-more-than": "Want to set more than one containment boundary?",
         "get-paperclip-ee": "Get Paperclip EE.",
-        "advanced-permissions-remain-editable": "Advanced permissions remain editable through the EE permissions extension when installed."
+        "advanced-permissions-remain-editable": "Advanced permissions remain editable through the EE permissions extension when installed.",
+        "agent-can-only-read": "This agent can only read and mutate work inside its assigned review boundary. Raw output is quarantined from higher-trust agents until a trusted reviewer promotes it."
       },
       "workspacefilebrowser": {
         "showing-first": "Showing first",
@@ -8295,7 +8480,8 @@
           "requested-approval-call": "requested approval to call",
           "why-apos-asking": "Why I'm asking",
           "policy": "Policy #",
-          "requires-approval-here": "requires approval here."
+          "requires-approval-here": "requires approval here.",
+          "application-tool-catalog-hash": "The application's tool catalog hash no longer matches the one this approval was issued against. Approval is disabled — the agent must edit & re-sign to request again."
         }
       },
       "agent-config-primitives": {
@@ -8306,7 +8492,18 @@
         "click": "Click",
         "users-yourname-documents-project": "C:\\Users\\yourname\\Documents\\project",
         "cd-path-folder": "cd /path/to/folder",
-        "ok": "OK"
+        "ok": "OK",
+        "deprecated-legacy-working-directory": "Deprecated legacy working directory fallback for local adapters. Existing agents may still carry this value, but new configurations should use project workspaces instead.",
+        "how-paperclip-should-realize": "How Paperclip should realize an execution workspace for this agent. Keep project_primary for normal cwd execution, or use git_worktree for issue-scoped isolated checkouts.",
+        "base-git-ref-used": "Base git ref used when creating a worktree branch. Leave blank to use the resolved workspace ref or HEAD.",
+        "optional-workspace-runtime-service": "Optional workspace runtime service definitions. Use this for shared app servers, workers, or other long-lived companion processes attached to the workspace.",
+        "environment-variables-injected-into": "Environment variables injected into the adapter process. Use plain values or secret references.",
+        "secrets-agent-can-reach": "Secrets this agent can reach. Env-var bindings are injected at run start; API-access bindings are fetched on demand via the run-bound agent API and never written to the environment.",
+        "only-sent-when-paperclip": "Only sent when Paperclip starts a fresh session. Use this for stable setup guidance that should not be repeated on every heartbeat.",
+        "optional-json-merged-into": "Optional JSON merged into remote adapter request payloads before Paperclip adds its standard wake and workspace fields.",
+        "run-agent-automatically-timer": "Run this agent automatically on a timer. Useful for periodic tasks like checking for new work.",
+        "automatically-queue-bounded-continuation": "Automatically queue bounded continuation runs when an adapter stops because its per-run turn cap was exhausted.",
+        "maximum-automatic-continuations-after": "Maximum automatic continuations after one max-turn stop. This is separate from max turns per run."
       },
       "artifacts": {
         "artifactcard": {
@@ -8319,7 +8516,8 @@
       "environment-variables-editor": {
         "createsecretpopover": {
           "moves-typed-value-into": "Moves the typed value into an encrypted company secret and binds",
-          "text": "to it."
+          "text": "to it.",
+          "secret-name-already-exists": "A secret with this name already exists"
         },
         "row": {
           "resolve-responsible-user-apos": "Resolve the responsible user's own value at run start.",
@@ -8335,7 +8533,19 @@
           "add-variable": "Add variable",
           "recently-used": "Recently used:",
           "revert": "Revert",
-          "user-secrets-resolve-from": "User secrets resolve from the user responsible for the run. Required bindings fail until that user\n            sets their value under Secrets → My secrets."
+          "user-secrets-resolve-from": "User secrets resolve from the user responsible for the run. Required bindings fail until that user\n            sets their value under Secrets → My secrets.",
+          "paperclip": "PAPERCLIP_",
+          "set-key-env-var": "Set the KEY to the env var name the process expects, for example GH_TOKEN. Choose a secret to resolve a stored value at run start. PAPERCLIP_* variables are injected automatically."
+        },
+        "model": {
+          "invalid-name-use-letters": "Invalid name — use letters, digits and _",
+          "duplicate-name": "Duplicate name",
+          "reserved-prefix-provided-automatically": "Reserved prefix — provided automatically and may be overridden",
+          "secret-no-longer-exists": "This secret no longer exists — runs will fail until you rebind.",
+          "runs-will-fail-until": {
+            "2": "Runs will fail until this user secret definition is re-enabled or rebound."
+          },
+          "user-secret-definition-no": "This user secret definition no longer exists — runs will fail until you rebind."
         }
       },
       "folders": {
@@ -8373,11 +8583,16 @@
         },
         "outputprimarycard": {
           "output-metadata-unavailable-file": "Output metadata is unavailable — this file can’t be played or downloaded here."
+        },
+        "outputrow": {
+          "file-details-unavailable": "File details unavailable"
         }
       },
       "issue-properties": {
         "issueplanconfirmationactionbar": {
-          "sending-back": "Sending back..."
+          "sending-back": "Sending back...",
+          "couldn-confirm-try-again": "Couldn't confirm — try again.",
+          "couldn-send-back-try": "Couldn't send that back — try again."
         },
         "issueproperties": {
           "uses-agent-apos-configured": "· uses the agent's configured cheap profile",
@@ -8392,7 +8607,8 @@
           "add-sub-task": "Add sub-task",
           "view-workspace": "View workspace",
           "override-adapter-options": "Override · adapter options",
-          "fires-next-tick": "· fires on next tick"
+          "fires-next-tick": "· fires on next tick",
+          "not-yet-triggered": "— not yet triggered"
         },
         "issuepropertiesartifactstab": {
           "no-artifacts-yet-attachments": "No artifacts yet. Attachments and work products will appear here."
@@ -8403,7 +8619,13 @@
           "remove-blocker-alt": "Remove blocker"
         },
         "external-object-rows": {
-          "hover-underline-focus-visible": "hover:underline focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring"
+          "hover-underline-focus-visible": "hover:underline focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring",
+          "github-pr": "Github PR",
+          "github-issue": "Github Issue"
+        },
+        "issuepropertiesplanstab": {
+          "loading-plan": "Loading plan…",
+          "no-plan-yet-plan": "No plan yet. The plan document, accepted plans, and their revisions will appear here."
         }
       },
       "routine-sections": {
@@ -8433,7 +8655,17 @@
           "but-your": ", but your",
           "all-them": "all of them.",
           "loosen-filter": "Loosen a filter",
-          "clear-all-filters": "Clear all filters"
+          "clear-all-filters": "Clear all filters",
+          "result-matches": "1 result matches",
+          "active-filter-hides": "active filter hides"
+        },
+        "searchfilterbar": {
+          "me-mine": "me mine",
+          "unassigned-none-nobody": "unassigned none nobody"
+        },
+        "searchfiltermenu": {
+          "search": "Search…",
+          "no-options": "No options"
         }
       },
       "skill-studio": {
@@ -8441,7 +8673,9 @@
           "agents-using": "Agents using",
           "behind-latest": "behind latest",
           "agent-uses": "agent uses",
-          "agents-use": "agents use"
+          "agents-use": "agents use",
+          "agent-has": "agent has",
+          "agents-have": "agents have"
         },
         "forkskilldialog": {
           "edit-copy": "Edit a copy of",
@@ -8480,7 +8714,63 @@
         },
         "tweakpanel": {
           "motion-tweak-panel": "Motion tweak panel",
-          "reset-all": "Reset all"
+          "reset-all": "Reset all",
+          "minimize": "Minimize"
+        },
+        "motion-tokens": {
+          "motion-ease-expo": "--motion-ease-out-expo",
+          "easing": "Easing",
+          "motion-ease-standard": "--motion-ease-standard",
+          "motion-ease": {
+            "2": "--motion-ease-in"
+          },
+          "durations": "Durations",
+          "motion-marker-enter": "--motion-marker-enter",
+          "motion-bubble-enter": "--motion-bubble-enter",
+          "motion-cot-line-stagger": "--motion-cot-line-stagger",
+          "motion-cot-collapse": "--motion-cot-collapse",
+          "motion-tool-enter": "--motion-tool-enter",
+          "motion-diff-reveal": "--motion-diff-reveal",
+          "motion-status-enter": "--motion-status-enter",
+          "motion-status-exit": "--motion-status-exit",
+          "motion-approval-pulse": "--motion-approval-pulse",
+          "motion-plan-entry-stagger": "--motion-plan-entry-stagger",
+          "motion-plan-check": "--motion-plan-check",
+          "motion-count-tween": "--motion-count-tween",
+          "motion-streaming-cursor-blink": "--motion-streaming-cursor-blink",
+          "motion-turn-fold": "--motion-turn-fold",
+          "motion-pane-glide": "--motion-pane-glide",
+          "ease-expo-house": "ease-out-expo (house)",
+          "standard-house": "standard (house)"
+        },
+        "task-chat-states": {
+          "session-start": "Session start",
+          "human-message": "Human message",
+          "agent-message": "Agent message",
+          "text-delta-stream-output": {
+            "2": "text_delta stream:output, streaming"
+          },
+          "thinking": "Thinking",
+          "text-delta-stream-thought": "text_delta stream:thought (ACP agent_thought_chunk)",
+          "responding-streaming": "Responding (streaming)",
+          "tool-call": "Tool call",
+          "diff": "Diff",
+          "heartbeat-run-progress-acpx": "heartbeat.run.progress + acpx.status",
+          "completed-collapsed": "Completed (collapsed)",
+          "interrupted": "Interrupted",
+          "refused": "Refused",
+          "truncated": "Truncated"
+        },
+        "tool-taxonomy": {
+          "running-command": "Running a command",
+          "searching": "Searching",
+          "reading-files": "Reading files",
+          "editing-files": "Editing files",
+          "fetching-web": "Fetching the web",
+          "delegating": "Delegating"
+        },
+        "transcript-adapter": {
+          "responding": "Responding"
         }
       },
       "timeline": {
@@ -8491,7 +8781,9 @@
           "var-color-muted": "var(--color-muted)",
           "var-color-card": "var(--color-card)",
           "dashed-handoff-retry-changes": "dashed handoff: retry or changes requested",
-          "solid-handoff-delegation-assignment": "solid handoff: delegation or assignment"
+          "solid-handoff-delegation-assignment": "solid handoff: delegation or assignment",
+          "en-us": "en-US",
+          "retry": "· retry"
         }
       },
       "transcript": {
@@ -8503,11 +8795,15 @@
       "ui": {
         "breadcrumb": {
           "more": "More"
+        },
+        "checkbox": {
+          "use-client": "use client"
         }
       },
       "appconnectionsidebar": {
         "none": "__none__",
-        "fallback-none": "__none__"
+        "fallback-none": "__none__",
+        "needing-review": "needing review"
       },
       "feedcard": {
         "needs-approval": "needs approval on",
@@ -8518,7 +8814,8 @@
         "new-comments-disabled-while": "New comments are disabled while previewing a historical revision.",
         "resolve-document-conflict-before": "Resolve the document conflict before adding new comments.",
         "save-draft-anchor-new": "Save the draft to anchor new comments.",
-        "document-has-no-saved": "Document has no saved revision yet."
+        "document-has-no-saved": "Document has no saved revision yet.",
+        "max-width-1023px": "(max-width: 1023px)"
       },
       "resourcestatuschip": {
         "expected-resource-absent-reconcile": "Expected resource absent; reconcile will recreate it",
@@ -8527,7 +8824,9 @@
       },
       "runworkspacerecoverysurface": {
         "fresh-isolated-re-issue": "A fresh isolated re-issue was created.",
-        "fallback-stalled-task": "the stalled task"
+        "fallback-stalled-task": "the stalled task",
+        "dirty-changes-were-quarantined": "Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume.",
+        "recorded-branch-now-matches": "The recorded branch now matches the live branch; the task will resume."
       },
       "sidebarnavitem": {
         "attention-needed": "attention needed"
@@ -8537,7 +8836,10 @@
       },
       "statusicon": {
         "blocker-needs": "blocker needs",
-        "blockers-need": "blockers need"
+        "blockers-need": "blockers need",
+        "blocked-waiting-active-sub": "Blocked · waiting on 1 active sub-task",
+        "blocked-covered-active-dependency": "Blocked · covered by 1 active dependency",
+        "blocked-review-stalled-no": "Blocked · review stalled with no clear next step"
       },
       "workspacefilelink": {
         "workspace-browser": "workspace browser",
@@ -8550,6 +8852,58 @@
       },
       "issuecontinuationhandoff": {
         "fallback-continuation-handoff": "Continuation handoff"
+      },
+      "agentcapsule": {
+        "empty-agent-slot": "empty agent slot",
+        "agent-configured-offline": "agent configured, offline",
+        "agent-online": "agent online"
+      },
+      "asciiartanimation": {
+        "prefers-reduced-motion-reduce": "(prefers-reduced-motion: reduce)"
+      },
+      "budgetsidebarmarker": {
+        "budget-healthy": "Budget healthy",
+        "budget-warning": "Budget warning",
+        "paused-budget": "Paused by budget"
+      },
+      "builtinagentbadges": {
+        "waiting-board-hire-approval": "Waiting on board hire approval before the feature can run",
+        "setup": "Setup"
+      },
+      "externalobjectpill": {
+        "paperclip-mention-chip-paperclip": "paperclip-mention-chip paperclip-mention-chip--external-object"
+      },
+      "issuereferencepill": {
+        "paperclip-mention-chip-paperclip": "paperclip-mention-chip paperclip-mention-chip--issue"
+      },
+      "languagetoggle": {
+        "english": "English"
+      },
+      "managedroutineslist": {
+        "configure": "Configure",
+        "routine-defaults-can-repaired": "Routine defaults can be repaired.",
+        "reconciling": "Reconciling...",
+        "reconcile": "Reconcile",
+        "resetting": "Resetting..."
+      },
+      "markdownbody": {
+        "noopener-noreferrer": "noopener noreferrer"
+      },
+      "routineactivityrow": {
+        "unserializable": "[unserializable]"
+      },
+      "runchatsurface": {
+        "waiting-run-output": "Waiting for run output...",
+        "no-run-output-captured": "No run output captured."
+      },
+      "smokelabdashboardcard": {
+        "all-paths-passing": "All paths passing",
+        "needs-run": "Needs a run",
+        "failing-paths": "Failing paths",
+        "run-one-from-smoke": "Run one from the Smoke Lab tab"
+      },
+      "themetoggle": {
+        "toggle-app-appearance": "Toggle the app appearance."
       }
     },
     "pages": {
@@ -8622,7 +8976,14 @@
         "active-keys": "Active Keys",
         "revoke": "Revoke",
         "revoked-keys": "Revoked Keys",
-        "revoked": "Revoked"
+        "revoked": "Revoked",
+        "redacted": "***REDACTED***",
+        "secret-ref": "***SECRET_REF***",
+        "unable-parse": "<unable-to-parse>",
+        "empty": "<empty>",
+        "no-tracked-changes": "no tracked changes",
+        "clearing-session": "clearing session...",
+        "clear-session-these-tasks": "clear session for these tasks"
       },
       "agenttoolstab": {
         "installed-apps-load-tools": "Installed apps load tools into",
@@ -8643,7 +9004,9 @@
         "no-enabled-policy-currently": "No enabled policy currently mutates this agent's allow list.",
         "unavailable-tools": "Unavailable tools",
         "every-known-tool-agent": "Every known tool this agent could name is allowed.",
-        "tools-agent-could-name": "Tools the agent could name but Paperclip would block:"
+        "tools-agent-could-name": "Tools the agent could name but Paperclip would block:",
+        "require-approval": "require approval",
+        "rate-limit": "rate limit"
       },
       "approvaldetail": {
         "requesting-agent-was-notified": "Requesting agent was notified to review this approval and linked tasks.",
@@ -8661,7 +9024,8 @@
       "boardchat": {
         "select-company-start-chatting": "Select a company to start chatting with your board concierge.",
         "chat-history": "chat history",
-        "new-chat": "new chat"
+        "new-chat": "new chat",
+        "outline-our-first-30": "Outline our first 30 days. Break it into weekly priorities with who owns what."
       },
       "boardclaim": {
         "invalid-board-claim-url": "Invalid board claim URL.",
@@ -8672,7 +9036,10 @@
         "sign-create-account-then": "Sign in or create an account, then return to this page to claim Board ownership.",
         "claim-board-ownership": "Claim Board ownership",
         "will-promote-your-user": "This will promote your user to instance admin and migrate company ownership access from local trusted mode.",
-        "claim-challenge-unavailable-alt": "Claim challenge unavailable."
+        "claim-challenge-unavailable-alt": "Claim challenge unavailable.",
+        "failed-claim-board-ownership": "Failed to claim board ownership",
+        "claiming": "Claiming…",
+        "claim-ownership": "Claim ownership"
       },
       "bootstrapsetupuxlab": {
         "no-admin-has-claimed": "No admin has claimed this instance yet. Sign in or create your Paperclip account to become the first\n        admin from this browser.",
@@ -8694,7 +9061,9 @@
         "implementation-reference": "and the implementation reference for",
         "browser-claim-cta-only": ". The browser claim CTA only appears when",
         "deploymentmode-quot-authenticated-quot": "deploymentMode === \"authenticated\"",
-        "deploymentexposure-quot-private-quot": "deploymentExposure === \"private\""
+        "deploymentexposure-quot-private-quot": "deploymentExposure === \"private\"",
+        "bootstrap-invite-already-active": "A bootstrap invite is already active. Check your Paperclip startup logs for the first‑admin URL, or run this command on the host to rotate it:",
+        "run-command-host-runs": "Run this command on the host that runs Paperclip to print a one‑time first‑admin invite URL:"
       },
       "casedetail": {
         "create": "Create “",
@@ -8710,7 +9079,8 @@
         "api": "for the API.",
         "feature-gated": "Feature is gated by the",
         "enablecases": "enableCases",
-        "experimental-flag-settings-experimental": "experimental flag\n        (Settings → Experimental)."
+        "experimental-flag-settings-experimental": "experimental flag\n        (Settings → Experimental).",
+        "data-case-item": "[data-case-item]"
       },
       "cliauth": {
         "paperclip-cli-can-now": "The Paperclip CLI can now finish authentication on the requesting machine.",
@@ -8731,7 +9101,9 @@
         "more-task": "more task",
         "advanced-access-scoped-assignment": "Advanced access, scoped assignment, and explicit grant controls are provided by installed company settings extensions.",
         "core-paperclip-keeps-enforcing": "Core Paperclip keeps enforcing company boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.",
-        "plugin-extensions-unavailable": "Plugin extensions unavailable:"
+        "plugin-extensions-unavailable": "Plugin extensions unavailable:",
+        "backlog-todo-progress-review": "backlog,todo,in_progress,in_review,blocked,failed,timed_out",
+        "member": "this member"
       },
       "companyenvironments": {
         "disconnect": "Disconnect",
@@ -8750,13 +9122,27 @@
         "provider-does-not-declare": "This provider does not declare additional configuration fields.",
         "stream-agent-cli-output": "Stream the agent CLI's output live while sandbox runs execute (recommended). Turn off to deliver output only when the run finishes.",
         "start-setup-sandbox-ssh": "Start a setup sandbox, SSH in to customize the instance, then capture the\n                    running machine as a reusable image for future runs.",
-        "injected-into-runs-resolve": "Injected into runs that resolve through this environment. Use plain values or company secrets."
+        "injected-into-runs-resolve": "Injected into runs that resolve through this environment. Use plain values or company secrets.",
+        "setup-connection-details-could": "Setup connection details could not be refreshed. You can still finish or cancel this setup.",
+        "browser-terminal-not-available": "Browser terminal is not available for this provider connection. Use the provider setup instructions, then finish or cancel here.",
+        "meslolgs-nf": "MesloLGS NF",
+        "meslolgs-nerd-font-mono": "MesloLGS Nerd Font Mono",
+        "symbols-nerd-font-mono": "Symbols Nerd Font Mono",
+        "menlo": "Menlo",
+        "monaco": "Monaco",
+        "consolas": "Consolas",
+        "liberation-mono": "Liberation Mono",
+        "operator-cancelled": "operator cancelled",
+        "change-alters-what-captured": "This change alters what the captured image was built from. Runs use the base configuration until you capture a new image."
       },
       "companyexport": {
         "binary-asset-preview-not": "Binary asset preview is not available for this file type.",
         "exporting": "Exporting",
         "show-more-tasks": "Show more tasks (",
-        "readme-md": "README.md"
+        "readme-md": {
+          "2": "README.md"
+        },
+        "attachments-travel-tasks-routines": "Attachments travel with tasks and routines; re-enable one of them to include attachments."
       },
       "companyimport": {
         "renames": "Renames",
@@ -8781,7 +9167,10 @@
         "start-imported-agents-routines": "Start imported agents and routines paused",
         "import-failed": "Import failed:",
         "nothing-may-have-been": "Nothing may have been created, or the import stopped partway — check the target company\n                before retrying.",
-        "import-running-server-safe-alt": "Import running on the server — safe to keep waiting; reconnecting won't lose it.\n                Large packages can take several minutes."
+        "import-running-server-safe-alt": "Import running on the server — safe to keep waiting; reconnecting won't lose it.\n                Large packages can take several minutes.",
+        "confirm-rename": "confirm rename",
+        "upload-zip-exported-directly": "Upload a .zip exported directly from Paperclip. Re-zipped archives created by Finder, Explorer, or other zip tools may not import correctly.",
+        "request-did-not-complete": "the request did not complete."
       },
       "companyinvites": {
         "invite-people-request-access": "Invite people to request access to this company. New invite links are copied to your clipboard when they are generated.",
@@ -8851,21 +9240,30 @@
         "installed-alt": "is installed (",
         "paste-local-path-github-alt": "Paste a local path, GitHub URL, or `skills.sh` command to import a skill into this company.",
         "paperclip-could-not-validate": "Paperclip could not validate this skill as Agent Skills markdown. Install at your own risk.",
-        "fallback-skills-sh": "skills.sh"
+        "fallback-skills-sh": "skills.sh",
+        "overwrite-catalog-content": "overwrite the catalog content",
+        "replace-existing-skill": "replace the existing skill",
+        "required": "· required",
+        "skills-not-supported": "· skills not supported",
+        "latest": "· Latest"
       },
       "costs": {
         "all-billers": "All billers",
         "text": "· out",
         "no-budget-policies-yet": "No budget policies yet. Set agent and project budgets from their detail pages, or use the existing company monthly budget control.",
         "biller": "By biller",
-        "account-level-financial-events": "Account-level financial events grouped by who charged or credited them."
+        "account-level-financial-events": "Account-level financial events grouped by who charged or credited them.",
+        "api": "0 api",
+        "subscription": "0 subscription"
       },
       "dashboardlive": {
         "live-agent-runs": "Live agent runs",
         "active-runs-first-followed": "Active runs first, followed by the most recent completed runs.",
         "active-recent": "Active / recent",
         "no-active-recent-agent": "No active or recent agent runs.",
-        "live-runs": "Live runs"
+        "live-runs": "Live runs",
+        "create-company-view-live": "Create a company to view live runs.",
+        "select-company-view-live": "Select a company to view live runs."
       },
       "designguide": {
         "every-component-style-pattern": "Every component, style, and pattern used across Paperclip.",
@@ -9034,7 +9432,31 @@
         "optional-alt": "and an optional",
         "panel-alt": "Panel C",
         "github-token": "GITHUB_TOKEN",
-        "db-connection": "DB_CONNECTION"
+        "db-connection": "DB_CONNECTION",
+        "editable-description-click-edit": "This is an editable description. Click to edit it — the textarea auto-sizes to fit the content without layout shift.",
+        "identifier-only-no-status": "Identifier only — no status yet",
+        "progress-status": "With in_progress status",
+        "done-status": "Done status",
+        "blocked-status": "Blocked status",
+        "removed-strikethrough": "Removed (strikethrough)",
+        "responsible-agent-alpha": "Responsible: Agent Alpha",
+        "completed-days-ago": "Completed 2 days ago",
+        "blocked-pap-001": "Blocked by PAP-001",
+        "hover-focus-row-reveal": "Hover or focus the row to reveal the reserved action slot.",
+        "under-budget-40": "Under budget (40%)",
+        "warning-75": "Warning (75%)",
+        "over-budget-95": "Over budget (95%)",
+        "hexagon": "Hexagon",
+        "plus": "Plus",
+        "trash2": "Trash2",
+        "mail": "Mail",
+        "exactly-what-tool-gateway": "This is exactly what the tool gateway will accept. Profile and policy edits reflect within ~5s; the prompt cannot expand it.",
+        "local-stdio-slot-runs": "A local-stdio slot runs with the orchestrator's privileges. Only bind trusted commands; quarantine anything you would not run yourself.",
+        "launch": "#launch",
+        "deploy-v2-live": "Deploy v2 is live 🎉",
+        "expires-23h-51m": "expires in 23h 51m",
+        "expires-18h-02m": "expires in 18h 02m",
+        "slack-manifest-v2": "Slack · manifest v2.4.1"
       },
       "executionworkspacedetail": {
         "routines-use-workspace-specific": "Routines that use workspace-specific variables can be run against this execution workspace.",
@@ -9047,7 +9469,9 @@
         "override-inherited-workspace-command": "Override the inherited workspace command model only when this execution workspace truly needs different service or job behavior.",
         "legacy-services-arrays-still": "Legacy `services` arrays still work, but `commands` supports both services and jobs.",
         "set-fixed-port-service": "Set a fixed port for a service or leave it blank to use its configured automatic behavior. Editing an inherited service creates an execution-workspace runtime override.",
-        "paperclip-checks-fixed-ports": "Paperclip checks fixed ports again when a service starts and rejects cross-workspace conflicts."
+        "paperclip-checks-fixed-ports": "Paperclip checks fixed ports again when a service starts and rejects cross-workspace conflicts.",
+        "execution-workspaces-need-working": "Execution workspaces need a working directory before local commands can run, and services also need runtime config.",
+        "no-runtime-config-currently": "No runtime config is currently defined on this execution workspace or its project workspace."
       },
       "goaldetail": {
         "sub-goals": "Sub-Goals (",
@@ -9062,7 +9486,8 @@
         "will-mark": "This will mark",
         "read": "as read.",
         "budget": "Budget at",
-        "utilization-month": "utilization this month"
+        "utilization-month": "utilization this month",
+        "data-inbox-item": "[data-inbox-item]"
       },
       "instanceaccess": {
         "search-users-manage-instance": "Search users, manage instance-admin status, and control which companies they can access.",
@@ -9098,7 +9523,11 @@
         "lookback-hours": "Lookback hours",
         "save-hours": "Save hours",
         "current-window-last": "Current window: last",
-        "fallback-pap": "PAP"
+        "fallback-pap": "PAP",
+        "finding": "finding is",
+        "findings": "findings are",
+        "setting-was-armed-different": "This setting was armed in a different instance and copied here, so no tasks run automatically.",
+        "turning-cases-off-hides": "Turning Cases off hides the tab and blocks the case API; existing case data is kept."
       },
       "instancegeneralsettings": {
         "configure-instance-wide-preferences": "Configure instance-wide preferences including log display, keyboard shortcuts, backup\n          retention, and data sharing.",
@@ -9114,7 +9543,12 @@
         "prompt": "\"prompt\"",
         "unset": ". Unset and",
         "both-mean-no-default": "both mean no default has been\n            chosen yet.",
-        "sign-paperclip-instance-you": "Sign out of this Paperclip instance. You will be redirected to the login page."
+        "sign-paperclip-instance-you": "Sign out of this Paperclip instance. You will be redirected to the login page.",
+        "local-trusted-mode-optimized": "Local trusted mode is optimized for a local operator. Browser requests run as local board context and no sign-in is required.",
+        "authenticated-public-mode-requires": "Authenticated public mode requires sign-in for board access and is intended for public URLs.",
+        "authenticated-private-mode-requires": "Authenticated private mode requires sign-in and is intended for LAN, VPN, or other private-network deployments.",
+        "week": "1 week",
+        "month": "1 month"
       },
       "instancesettings": {
         "agents-timer-heartbeat-enabled": "Agents with a timer heartbeat enabled across all of your companies."
@@ -9135,7 +9569,15 @@
         "email": "that email",
         "fallback-company-admin": "A company admin",
         "fallback-paperclip-company": "this Paperclip company",
-        "fallback-account": "this account"
+        "fallback-account": "this account",
+        "email-password-did-not": "That email and password did not match an existing Paperclip account. Check both fields, or create an account first if you are new here.",
+        "review-invite-details-then": "Review the invite details, then submit the agent information below to start the join request.",
+        "create-your-paperclip-account": "Create your Paperclip account first. If you already have one, switch to sign in and continue the invite with the same email.",
+        "coming-soon": "(Coming soon)",
+        "use-paperclip-account-already": "Use the Paperclip account that already matches this invite. If you do not have one yet, switch back to create account.",
+        "already-signed-up-before": "Already signed up before? Use the existing-account option instead so the invite lands on the right Paperclip user.",
+        "no-account-yet-switch": "No account yet? Switch back to create account so you can accept the invite with a new login.",
+        "finish-setting-up-paperclip": "finish setting up Paperclip"
       },
       "inviteuxlab": {
         "invite-will-create-approval": "This invite will create an approval request for a new agent in Acme Robotics.",
@@ -9156,7 +9598,26 @@
         "these-post-submit-states": "These are the post-submit states returned from invite acceptance, including optional claim and onboarding metadata.",
         "ask-them-visit-company": "Ask them to visit Company Settings → Members to approve your request.",
         "general-auth-page-uses": "The general `/auth` page uses a different composition from invite landing. These previews keep both sign-in and sign-up variants visible.",
-        "section-captures-board-side": "This section captures the board-side invite creation flow, copied-link state, audit table, and the edge states that are otherwise tedious to stage."
+        "section-captures-board-side": "This section captures the board-side invite creation flow, copied-link state, audit table, and the edge states that are otherwise tedious to stage.",
+        "board-user-25": "Board User 25",
+        "revoke": "Revoke",
+        "review-request": "Review request",
+        "board-user-24": "Board User 24",
+        "revoked": "Revoked",
+        "board-user-20": "Board User 20",
+        "board-user-19": "Board User 19",
+        "acme-robotics": "Acme Robotics",
+        "start-paperclip-account-after": "Start with a Paperclip account. After that, you'll come right back here to accept the invite for Acme Robotics.",
+        "granting-your-access-acme": "Granting your access to Acme Robotics.",
+        "account-already-belongs-acme": "This account already belongs to Acme Robotics.",
+        "will-grant-complete-your": "This will grant or complete your access to Acme Robotics.",
+        "invite-loading-access-check": "Invite loading, access-check, missing-token, and unavailable states",
+        "pending-approval-joined-now": "Pending approval, joined-now, claim secret, and onboarding result screens",
+        "company-invite-creation-copied": "Company invite creation, copied-link, history, empty, and permission-error states",
+        "shown-after-sign-while": "Shown after sign-in while the app verifies whether the current user already belongs to the invited company.",
+        "acceptance-stays-disabled-page": "Acceptance stays disabled and the page redirects into the company once membership is confirmed.",
+        "both-pending-approval-joined": "Both pending-approval and joined-now confirmations are included below with claim and onboarding extras.",
+        "jane-example": "Jane Example"
       },
       "issuechatlongthreadperf": {
         "deterministic-local-fixture-measuring": "Deterministic local fixture for measuring the current direct-render issue chat path with\n            hundreds of merged thread rows, markdown-heavy assistant bodies, linked runs, documents,\n            sub-issues, and sidebar context."
@@ -9182,7 +9643,9 @@
         "message-hierarchy": "Message hierarchy",
         "check-user-assistant-system": "Check that user, assistant, and system rows scan differently without feeling like separate products.",
         "stream-polish": "Stream polish",
-        "watch-live-preview-reasoning": "Watch the live preview for reasoning density, tool expansion behavior, and queued follow-up readability."
+        "watch-live-preview-reasoning": "Watch the live preview for reasoning density, tool expansion behavior, and queued follow-up readability.",
+        "running-assistant-replies-streamed": "Running assistant replies with streamed text, reasoning, tool cards, and background status notes",
+        "implementing-two-span-ticker": "Implementing a two-span ticker: exiting line goes up and out, entering line comes up from below..."
       },
       "issuedetail": {
         "hide-task": "Hide this task",
@@ -9204,7 +9667,10 @@
         "wake-affected-agents": "Wake affected agents (",
         "understand-will-cancel": "I understand this will cancel",
         "retry-preview": "Retry preview",
-        "run-stopped-task-update": "Run stopped; task update failed"
+        "run-stopped-task-update": "Run stopped; task update failed",
+        "task-execution-held-until": "Task execution is held until resume. Human comments can still wake the assignee for triage.",
+        "root-descendant-execution-held": "Root and descendant execution is held until resume. Human comments can still wake assignee agents for triage.",
+        "task-held": "1 task held"
       },
       "joinrequestqueue": {
         "review-human-agent-join": "Review human and agent join requests outside the mixed inbox feed. This queue uses the same approval mutations as the inline inbox cards.",
@@ -9269,13 +9735,22 @@
         "confirm": "to confirm",
         "items-wait-here-while": "Items wait here while work happens. An agent or a person moves them forward.",
         "someone-has-approve-before": "Someone has to approve before items leave. Use this when a person or an agent has to say yes or no.",
-        "transition-rules-updated": "Transition rules updated"
+        "transition-rules-updated": "Transition rules updated",
+        "field-copied-from-current": "Field copied from the current item data.",
+        "items-needing-changes-move": "Items needing changes move to",
+        "primary": "· primary",
+        "new-workspace-will-created": "A new workspace will be created",
+        "nothing-runs-here-automatically": "Nothing runs here automatically. Items wait until a person moves them, or you can pick an agent to run this step.",
+        "items-can-only-move": "Items can only move to configured next steps. Operators can force an off-path move by giving a reason.",
+        "items-can-move-any": "Items can move to any step. Saved allowed-next-step choices are kept, but they are not enforced."
       },
       "pipelines": {
         "review": "to review",
         "motion": "in motion",
         "connected-ones-grouped-from": ". Connected ones are grouped from upstream work into downstream work.",
-        "changed": "This changed",
+        "changed": {
+          "2": "this changed"
+        },
         "built-from": "Built from",
         "breaks-into": "Breaks into",
         "move-skips-normal-flow": "This move skips the normal flow",
@@ -9322,7 +9797,8 @@
         "patterns-from-review-decisions": "Patterns from review decisions and hand moves, in plain words.",
         "hr-ago": "1 hr ago",
         "builtfor": "builtFor",
-        "fallback-another-pipeline": "another pipeline"
+        "fallback-another-pipeline": "another pipeline",
+        "last-week": "last week"
       },
       "pluginmanager": {
         "enter-npm-package-name": "Enter the npm package name of the plugin you wish to install.",
@@ -9387,7 +9863,8 @@
         "local-path-paperclip-can": "A local path Paperclip can use directly.",
         "local-folder-without-git": "A local folder without git semantics.",
         "repo-url-optional-refs": "A repo URL with optional refs and local checkout.",
-        "hosted-workspace-tracked-external": "A hosted workspace tracked by external reference."
+        "hosted-workspace-tracked-external": "A hosted workspace tracked by external reference.",
+        "project-workspaces-need-working": "Project workspaces need a working directory before local commands can run, and services also need runtime config."
       },
       "responsibleuserdenialuxlab": {
         "codexcoder": "by CodexCoder",
@@ -9400,7 +9877,9 @@
         "denial-state-responsible-user": "2 · Denial state — responsible user not authorized",
         "agent-allowed-but-user": "The agent is allowed, but the user the run acts for is not. Distinct from a plain agent-lacks-permission failure.",
         "forbidden-action-not-permitted": "Forbidden: action not permitted",
-        "responsible-user-unauthorized": "(RESPONSIBLE_USER_UNAUTHORIZED)",
+        "responsible-user-unauthorized": {
+          "2": "RESPONSIBLE_USER_UNAUTHORIZED"
+        },
         "denial-state-agent-lacks": "3 · Denial state — agent lacks permission (unchanged)",
         "denial-not-responsible-user": "A denial that is NOT a responsible-user code keeps the existing generic error copy — no responsible-user notice.",
         "forbidden-agent-not-permitted": "Forbidden: agent is not permitted to perform this action",
@@ -9408,10 +9887,18 @@
         "responsible-user-denial-notice": "Responsible-user denial notice intentionally absent for non-responsible-user codes.",
         "user-run-acts-was": "The user this run acts for was removed or deactivated. Steers the agent to mark work blocked.",
         "forbidden-responsible-user-unavailable": "Forbidden: responsible user unavailable",
-        "responsible-user-unavailable": "(RESPONSIBLE_USER_UNAVAILABLE)",
+        "responsible-user-unavailable": {
+          "2": "RESPONSIBLE_USER_UNAVAILABLE"
+        },
         "copy-sourced-from-shared": "Copy is sourced from the shared",
         "describeresponsibleuserdenial": "describeResponsibleUserDenial",
-        "denial-state-responsible-user-alt": "4 · Denial state — responsible user unavailable"
+        "denial-state-responsible-user-alt": "4 · Denial state — responsible user unavailable",
+        "ada-lovelace": {
+          "2": "Ada Lovelace"
+        },
+        "grace-hopper": {
+          "2": "Grace Hopper"
+        }
       },
       "routinedetail": {
         "skip-section": "Skip to section",
@@ -9434,7 +9921,8 @@
         "new-routine-folder": "New routine in this folder",
         "paperclip-routines-view": "paperclip:routines-view",
         "fallback-unfiled": "__unfiled",
-        "fallback-unassigned": "__unassigned"
+        "fallback-unassigned": "__unassigned",
+        "items-moved-unfiled": "Items moved to Unfiled."
       },
       "runtranscriptuxlab": {
         "compact-live-transcript-stream": "Compact live transcript stream for the issue detail page.",
@@ -9463,7 +9951,8 @@
         "try-widening-scope-rephrasing": ". Try widening the scope or rephrasing your\n          query.",
         "search-all-scopes": "Search all scopes",
         "create-task-from-query": "Create task from this query",
-        "use-identifier-shortcut-like": "Use an identifier shortcut like"
+        "use-identifier-shortcut-like": "Use an identifier shortcut like",
+        "result": "1 result"
       },
       "secrets": {
         "view-references": "View references (",
@@ -9482,7 +9971,9 @@
         "paperclip-managed-secrets-created": "Paperclip-managed secrets are created in the selected provider and future rotations\n                    write a new provider version through Paperclip.",
         "aws-managed-path": "AWS managed path:",
         "save-only-non-sensitive": "Save only non-sensitive routing metadata. Credentials stay in the runtime environment or provider identity.",
-        "default": "Default for",
+        "default": {
+          "2": "(default)"
+        },
         "provider-can-save-draft": "This provider can save draft routing metadata, but runtime writes and resolution stay disabled until\n                the provider module is implemented and reviewed.",
         "rotating-deployment-default-preserves": "Rotating with the deployment default preserves current fallback behavior.",
         "rotate-actual-value-provider": "Rotate the actual value in the provider before changing this Paperclip reference.",
@@ -9545,7 +10036,10 @@
           "already-imported": "Already imported",
           "iam-reference": "IAM reference",
           "secrets-ready-import": "secrets ready to import",
-          "need-attention-before-import": "need attention before import"
+          "need-attention-before-import": "need attention before import",
+          "paperclip-secret-already-uses": {
+            "2": "A Paperclip secret already uses this key."
+          }
         },
         "missingusersecretsbanner": {
           "you-responsible": "you are responsible for",
@@ -9560,7 +10054,11 @@
           "failed-load-your-secrets": "Failed to load your secrets:",
           "clear-my-value": "Clear my value",
           "value-cleared": "Value cleared",
-          "could-not-clear-value": "Could not clear value"
+          "could-not-clear-value": "Could not clear value",
+          "still-needs": "still needs",
+          "still-need": "s still need",
+          "no-user-secrets-defined": "No user secrets are defined for this company yet. An admin defines which credentials each member supplies.",
+          "set-value": "Set value"
         },
         "setmyusersecretdialog": {
           "value-yours-only-used": "This value is yours only. It is used when you are the user responsible for a run that\n                needs",
@@ -9578,12 +10076,26 @@
           "stable-identifier-referenced-env": "Stable identifier referenced by env bindings.",
           "removes-definition": "This removes the definition",
           "whole-company-existing-member": "for\n              the whole company. Existing member values become unreferenced. This cannot be undone.",
-          "coverage": "Coverage:"
+          "coverage": "Coverage:",
+          "no-user-secret-definitions": "No user secret definitions yet. Create one to require each member to supply their own credential."
         },
         "paperclip-resolves-provider-reference": "Paperclip resolves this provider reference and can write new values to it via Update value.",
         "binding": "1 binding",
         "fallback-secret-provider-config-discovery": "secret_provider_config.discovery.preview",
-        "fallback-secret-create": "secret.create"
+        "fallback-secret-create": "secret.create",
+        "select-ready-provider-vault": "Select a ready provider vault or configure the deployment default.",
+        "deployment-default-missing": "(deployment default missing)",
+        "external-only": "(external only)",
+        "creates-new-provider-backed": "Creates a new provider-backed version. Consumers pinned to latest pick up the new value on the next run.",
+        "creates-new-paperclip-metadata": "Creates a new Paperclip metadata version that points at an existing provider secret. Paperclip does not write a new provider value.",
+        "writes-new-version-referenced": "Writes a new version of the referenced provider secret. The new value becomes current for every consumer of that secret, in and outside Paperclip.",
+        "no-company-specific-vaults": "No company-specific vaults yet. Secrets can still use the deployment default provider settings.",
+        "add-here-inject-secret": "Add here to inject this secret as an environment variable at run start. API-access grants (fetched on demand, no env var) are managed from each agent's Secret access settings and shown below.",
+        "optional": "· optional",
+        "secret-path": {
+          "folder-name-required": "Folder name is required.",
+          "folder-name-cannot-contain": "Folder name cannot contain slashes."
+        }
       },
       "skillstudio": {
         "create-editable-company-skill": "Create an editable company skill and open it directly in Studio.",
@@ -9633,7 +10145,10 @@
         "interactions": "Interactions",
         "loading-versions": "Loading versions…",
         "restore": "Restore as v",
-        "diff": "Diff v"
+        "diff": "Diff v",
+        "file-already-exists-path": "A file already exists at that path.",
+        "folder-already-exists-path": "A folder already exists at that path.",
+        "no-template-plain-input": "no template plain input"
       },
       "statuscards": {
         "archivedstatuscardrow": {
@@ -9647,7 +10162,10 @@
           "examples": "Examples",
           "runs-card-setup-updates": "Runs this card's setup and updates. Leave on the default unless another agent should own it.",
           "create-card": "Create card",
-          "could-not-create-card": "Could not create the card."
+          "could-not-create-card": "Could not create the card.",
+          "issues-about-evals": "issues about evals",
+          "everything-blocked-week": "everything blocked this week",
+          "feature-live-if-not": "is feature X live? if not, the exact next actions to ship it"
         },
         "statuscarddetaildrawer": {
           "latest": "· latest",
@@ -9661,7 +10179,10 @@
           "card-still-setting-up": "This card is still setting up — the issues it watches appear here once it's ready.",
           "matching-issues": "Matching issues…",
           "one-message-drives-whole": "This one message drives the whole card: the agent compiles the watch query from it\n                  and follows it as the instructions for every update. Editing it rebuilds the card.",
-          "compiled-query-matches-no": "The compiled query matches no issues right now."
+          "compiled-query-matches-no": "The compiled query matches no issues right now.",
+          "setup-didn-finish-run": "Setup didn’t finish. Run it now to try again.",
+          "new-issue-matched-query": "new issue matched the query",
+          "left-query": "left the query"
         },
         "statuscardsettingsform": {
           "after-last-change-max": "after the last change · max",
@@ -9675,13 +10196,22 @@
           "view-update-task": "View update task",
           "since-last-update": "since last update",
           "last-update-failed": "Last update failed",
-          "you-can-add-instructions": "You can add instructions and pick an update policy while this runs."
+          "you-can-add-instructions": "You can add instructions and pick an update policy while this runs.",
+          "setup-didn-finish": "Setup didn’t finish",
+          "setting-up-first-summary": "setting up · first summary pending"
         },
         "summarizeragentselect": {
-          "summarizer-default": "Summarizer (default)"
+          "summarizer-default": {
+            "2": "Summarizer (default)"
+          }
         },
         "index": {
           "loading-cards": "Loading cards…"
+        },
+        "format": {
+          "manual-cards-only-cost": "Manual cards only cost tokens when you press Refresh.",
+          "during-active-hours": "during active hours",
+          "only-runs-when-something": "Only runs when something changed; a cheap no-op check otherwise."
         }
       },
       "systemnoticeuxlab": {
@@ -9719,14 +10249,20 @@
         "existing-comments-without": "Existing comments without",
         "keep-rendering-through-current": "keep rendering through the current",
         "successfulrunhandoffcommentcallout": "SuccessfulRunHandoffCommentCallout",
-        "string-detector-new-contract": "string-detector. The new contract is opt-in for the system generators in Phase 5."
+        "string-detector-new-contract": "string-detector. The new contract is opt-in for the system generators in Phase 5.",
+        "riley-board": "Riley Board",
+        "why-does-issue-keep": "Why does this issue keep waking back up without a clear next step?",
+        "previous-run-completed-without": "The previous run completed without picking a disposition. I'll wait for the new system notice to surface so the recovery owner is unambiguous."
       },
       "taskchatlab": {
         "task-chat-lab": "Task Chat Lab",
         "synthetic-harness-task-chat": "Synthetic harness for the task chat redesign · every state renders here with no live agent.",
         "replay": "Replay",
         "speed": "Speed",
-        "streaming-speed": "Streaming speed"
+        "streaming-speed": "Streaming speed",
+        "live-states": "Live states",
+        "tier-synthetic": "Tier-B (synthetic)",
+        "play": "Play"
       },
       "teamcatalog": {
         "team-references": "This team references",
@@ -9758,7 +10294,10 @@
       "timeline": {
         "delegated": "Delegated",
         "now": "Now",
-        "range": "Range"
+        "range": "Range",
+        "days": "7 days",
+        "30-days": "30 days",
+        "window-capped": "· window capped"
       },
       "training": {
         "export-jsonl": "Export JSONL",
@@ -9785,7 +10324,8 @@
         "agentskillreleasepicker": {
           "skill-release": "Skill release",
           "beta": "Beta",
-          "fallback-release": "Release"
+          "fallback-release": "Release",
+          "default-current-recommended": "Default — current (recommended)"
         },
         "agentskillstab": {
           "beta": "Beta ·",
@@ -9794,7 +10334,8 @@
           "detected-adapter-read-only": "Detected on adapter (read-only)",
           "couldn-save": "Couldn’t save",
           "saving-soon": "Saving soon…",
-          "install-skills-company-then": "Install skills to the company, then enable them on this agent."
+          "install-skills-company-then": "Install skills to the company, then enable them on this agent.",
+          "enabled-skills-materialized-into": "Enabled skills are materialized into the stable Paperclip-managed prompt bundle on the agent's next run."
         }
       },
       "apps": {
@@ -9847,7 +10388,8 @@
           "couldn-connect": "Couldn’t connect",
           "couldn-finish-setup": "Couldn’t finish setup",
           "fallback-app": "this app",
-          "fallback-agent": "1 agent"
+          "fallback-agent": "1 agent",
+          "paste-your-mcp-server": "Paste your MCP server’s URL and we’ll walk you through permissions and review."
         },
         "appsreview": {
           "select-company-review-approvals": "Select a company to review approvals.",
@@ -9866,7 +10408,12 @@
           "apps-you-connect-become": "Apps you connect become available to every agent unless you change “Who can use it”.",
           "add-one-from": "Add one from",
           "give-your-agents-tools": "to give your agents\n          the tools they need.",
-          "browse-apps": "Browse apps"
+          "browse-apps": "Browse apps",
+          "action": "action is",
+          "actions": "actions are",
+          "app-needs": "app needs",
+          "apps-need": "apps need",
+          "paused-agents-can-use": "Paused — agents can’t use it right now."
         },
         "reviewqueuecard": {
           "asked": "· asked",
@@ -9896,7 +10443,9 @@
             "review": "Review the",
             "access-change": "access change",
             "choose-what-agents-can": "Choose what agents can do and what needs a human first.",
-            "refresh-actions": "Refresh actions"
+            "refresh-actions": "Refresh actions",
+            "has-access": "has access",
+            "no-access-yet": "no access yet"
           },
           "setuppanel": {
             "agents-can-only-use": "Agents can only use the sheets listed here.",
@@ -9943,7 +10492,9 @@
             "set-allowed-ask-first": "— set it to Allowed or Ask first.",
             "no-call-will-made": "No call will be made — this action is off for",
             "other-agents-using": "Other agents using",
-            "approved-running": "Approved · running"
+            "approved-running": "Approved · running",
+            "waiting-your-ok-before": "Waiting for your OK before this call leaves Paperclip.",
+            "open-more-options-confirm": "Open “More options” to confirm any advanced fields are filled in correctly."
           }
         },
         "gateways": {
@@ -10007,8 +10558,16 @@
               "no-tokens-yet-mint": "No tokens yet. Mint one for the client that will connect to this gateway.",
               "every-mint-reveal-revoke": "Every mint, reveal, and revoke is recorded in Activity.",
               "any-client-using": "Any client using",
-              "goes-silent-immediately-can": "goes\n                silent immediately. This can’t be undone. Type the token name to confirm."
+              "goes-silent-immediately-can": "goes\n                silent immediately. This can’t be undone. Type the token name to confirm.",
+              "copy-now-you-won": "Copy it now — you won’t see the full value again."
             }
+          },
+          "gateway-helpers": {
+            "expiring": "Expiring",
+            "sign-expired-reconnect-restore": "Sign-in expired — reconnect to restore access."
+          },
+          "gateway-tabs": {
+            "apps-tools": "Apps & tools"
           }
         },
         "store-cards": {
@@ -10031,7 +10590,11 @@
           "permission-view": "permission to view it.",
           "everything-your-agents-did": "Everything your agents did, newest first — each line is one recorded action, with the\n              person responsible for it. Click through to the task or run for the full context.",
           "recorded-paperclip-entries-can": "Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.",
-          "user": "a user"
+          "user": "a user",
+          "task": "the task"
+        },
+        "companyaudit": {
+          "select-company-view-agent": "Select a company to view the agent audit log."
         }
       },
       "skills": {
@@ -10054,7 +10617,8 @@
           "imported": "Imported ·",
           "skipped": "Skipped ·",
           "warnings": "Warnings ·",
-          "fallback-project": "the project"
+          "fallback-project": "the project",
+          "your-account-doesn-have": "Your account doesn't have permission to add skills to this company. Ask an owner to grant the skills permission, then try again."
         }
       },
       "tools": {
@@ -10077,7 +10641,9 @@
           "no-named-gateways-yet": "No named gateways yet. Create one here, then issue a token for the client that will connect to it.",
           "copy-endpoint": "Copy endpoint",
           "new-token": "New token for",
-          "copy-token": "Copy token"
+          "copy-token": "Copy token",
+          "gateway-needs-access-profile": "A gateway needs an access profile before it can be created.",
+          "no-expiry": "no expiry"
         },
         "pasteconfigtab": {
           "paste-mcp-config-snippet": "Paste the MCP config snippet from the tool's README and we'll turn it into a friendly setup.",
@@ -10094,7 +10660,8 @@
           "review-actions": "Review actions for",
           "health-catalog-checks-passed": "Health and catalog checks passed. Read-only actions start on; actions that can change data start off.",
           "active-all-agents": "is active for all agents.",
-          "paste-mcp-config-snippet-alt": "Paste an MCP config — the snippet a README tells you to copy."
+          "paste-mcp-config-snippet-alt": "Paste an MCP config — the snippet a README tells you to copy.",
+          "doesn-look-like-valid": "That doesn't look like valid JSON yet — paste the whole snippet, including the outer braces."
         },
         "policiestab": {
           "test-rule": "Test a rule",
@@ -10110,7 +10677,12 @@
           "block-destructive-actions-everywhere": "Block destructive actions everywhere",
           "fallback-one-agent": "one agent",
           "fallback-one-project": "one project",
-          "fallback-one-app": "one app"
+          "fallback-one-app": "one app",
+          "read-only-actions": "read-only actions",
+          "actions-make-changes": "actions that make changes",
+          "destructive-actions": "destructive actions",
+          "any-agent": "any agent",
+          "specific-app": "A specific app"
         },
         "profilestab": {
           "send-email-slack-list": "e.g. send_email or slack.list_*",
@@ -10146,7 +10718,12 @@
           "right-now-will-see": "right now will see a Failed result on\n                their action.",
           "will-stop-running-agents": "will stop running. Agents won't be able to use it until it starts again.",
           "starts-again-automatically-next": "It starts again automatically the next time an agent needs it.",
-          "fallback-reviewactivity": "reviewActivity"
+          "fallback-reviewactivity": "reviewActivity",
+          "connected-app-isn-healthy": "A connected app isn't healthy. Open it to check the key or reconnect.",
+          "saved-key-couldn-found": "A saved key couldn't be found, so some actions failed. Reconnect the app to fix it.",
+          "slower-than-usual": "slower than usual",
+          "across-all-apps": "across all apps",
+          "across-your-apps": "across your apps"
         },
         "smokelabtab": {
           "not-run": "not run",
@@ -10191,7 +10768,8 @@
           "reference-resolves-gateway-use": "reference and resolves it at gateway use time.",
           "tools-discovered": "tools discovered",
           "probe-latency": "probe latency",
-          "probe-latency-single-round": "Probe latency is a single round-trip sample. Aggregate p95 latency across traffic is tracked on\n                  the Runtime tab once the connection is live."
+          "probe-latency-single-round": "Probe latency is a single round-trip sample. Aggregate p95 latency across traffic is tracked on\n                  the Runtime tab once the connection is live.",
+          "local-stdio": "local stdio"
         },
         "profiles": {
           "profiledetail": {
@@ -10209,7 +10787,8 @@
             "showing-80": "Showing 80 of",
             "allowed-tools": "allowed tools.",
             "known-tools": "known tools.",
-            "also-copy-assignments": "Also copy assignments?"
+            "also-copy-assignments": "Also copy assignments?",
+            "added-directly": "added directly"
           },
           "profiledetailroute": {
             "select-company-profile": "Select a company and profile.",
@@ -10221,7 +10800,8 @@
             "used-exports-api-auto": "Used in exports and the API. Auto-filled from the name.",
             "every-agent-without-own": "Every agent without its own profile uses this one.",
             "if-agent-has-several": "If an agent has several profiles, it can use anything any of them allows.",
-            "assign-profile-whole-project": "Assign this profile to a whole project or a scheduled routine instead of (or as well as)\n              individual agents."
+            "assign-profile-whole-project": "Assign this profile to a whole project or a scheduled routine instead of (or as well as)\n              individual agents.",
+            "no-profiles-yet": "no profiles yet"
           },
           "profilewizardroute": {
             "choose-which-tools-profile": "Choose which tools this profile allows, then assign it to the agents that need them."
@@ -10247,6 +10827,20 @@
           },
           "profileactiondialog": {
             "profile-company-default-reassign": "This profile is the company default. Reassign the company default to another profile before deleting it."
+          },
+          "profile-model": {
+            "none-selected": "None selected",
+            "see-fetch-but-never": "See and fetch, but never change anything.",
+            "everyday-work": "Everyday work",
+            "read-make-routine-changes": "Read and make routine changes — no destructive tools.",
+            "full-access": "Full access",
+            "everything-every-connected-app": "Everything every connected app offers.",
+            "empty-profile-you-build": "An empty profile you build up tool by tool.",
+            "copy-existing-profile": "Copy an existing profile",
+            "start-from-profile-you": "Start from a profile you already have."
+          },
+          "profile-summary": {
+            "all-tools": "All tools"
           }
         },
         "shared": {
@@ -10254,10 +10848,40 @@
           "tracked": "Tracked in",
           "require-approval": "require approval",
           "rate-limited": "rate limited"
+        },
+        "smoke-lab-matrix": {
+          "remote-http-oauth": "Remote HTTP · OAuth",
+          "http-mcp-fixture-behind": "HTTP MCP fixture behind the fake OAuth provider",
+          "remote-http-api-key": "Remote HTTP · API key",
+          "http-mcp-fixture-static": "HTTP MCP fixture with a static bearer key",
+          "local-stdio-template": "Local stdio (template)",
+          "stdio-fixture-runtime-supervisor": "stdio fixture via the runtime supervisor",
+          "plugin-integration": "Plugin integration",
+          "plugin-provided-catalog-entry": "plugin-provided catalog entry + install flow",
+          "paste-config-import": "Paste-a-config import",
+          "prosumer-import-advanced-setup": "prosumer import via Advanced setup",
+          "run-scoped-connection-token": "run-scoped connection token, TTL + scope checks",
+          "governance-surfaces": "Governance surfaces",
+          "profiles-ask-first-rules": "profiles, ask-first rules, quarantine",
+          "discover-catalog": "Discover catalog",
+          "allowed-read": "Allowed read",
+          "ask-first-write": "Ask-first write",
+          "denied-call": "Denied call",
+          "schema-change-quarantine": "Schema-change quarantine",
+          "audit-evidence": "Audit evidence"
+        },
+        "tool-tabs": {
+          "profiles": "Profiles"
         }
       },
       "myissues": {
-        "my-tasks": "My Tasks"
+        "my-tasks": "My Tasks",
+        "select-company-view-your": "Select a company to view your tasks.",
+        "no-tasks-assigned-you": "No tasks assigned to you."
+      },
+      "org": {
+        "select-company-view-org": "Select a company to view org chart.",
+        "no-agents-organization-create": "No agents in the organization. Create agents to build your org chart."
       }
     },
     "plugins": {
@@ -10266,10 +10890,24 @@
         "could-not-resolve-launcher": ": could not resolve launcher target \"",
         "plugin-launchers-unavailable": "Plugin launchers unavailable:",
         "fallback-min-24rem-calc-100vw": "min(24rem, calc(100vw - 2rem))",
-        "fallback-hostoverlay": "hostOverlay"
+        "fallback-hostoverlay": "hostOverlay",
+        "button-not-disabled": "button:not([disabled])",
+        "href": "[href]",
+        "input-not-disabled": "input:not([disabled])",
+        "select-not-disabled": "select:not([disabled])",
+        "textarea-not-disabled": "textarea:not([disabled])",
+        "plugin-launcher-render-failed": "Plugin launcher render failed"
       },
       "bridge-init": {
-        "fallback-minmax-1fr": "minmax(0, 1fr)"
+        "fallback-minmax-1fr": "minmax(0, 1fr)",
+        "plugin-ui-failed-render": "Plugin UI failed to render."
+      },
+      "bridge": {
+        "worker-unavailable": "WORKER_UNAVAILABLE",
+        "timeout": "TIMEOUT"
+      },
+      "slots": {
+        "plugin-loader-bridge-registry": "[plugin-loader] Bridge registry not initialized, falling back to direct import"
       }
     },
     "builtinAgents": {
@@ -10284,11 +10922,27 @@
     "hooks": {
       "usecompanyorder": {
         "fallback-anon": "__anon__"
+      },
+      "usedaterange": {
+        "month-date": "Month to Date",
+        "year-date": "Year to Date",
+        "all-time": "All Time"
+      },
+      "useinboxbadge": {
+        "backlog-todo-progress-review": "backlog,todo,in_progress,in_review,blocked,done"
+      },
+      "useretrynowmutation": {
+        "request-failed-try-again": "The request failed. Try again in a moment.",
+        "retry-promoted": "Retry promoted",
+        "retry-already-running": "Retry already running",
+        "no-scheduled-retry": "No scheduled retry"
       }
     },
     "lib": {
       "mention-chips": {
-        "fallback-default": "__default__"
+        "fallback-default": "__default__",
+        "paperclip-mention-project-color": "--paperclip-mention-project-color",
+        "paperclip-mention-icon-mask": "--paperclip-mention-icon-mask"
       },
       "pipeline-breakdown": {
         "fallback-destination-pipeline": "the destination pipeline",
@@ -10297,10 +10951,39 @@
       "pipeline-item-detail": {
         "fallback-added-details": "Added details",
         "fallback-next-stage": "the next stage",
-        "fallback-automation": "the automation"
+        "fallback-automation": "the automation",
+        "removed": "Removed",
+        "changed": "This changed",
+        "upstream-work-changed-after": "Upstream work changed after this item was created. Review the latest details before continuing.",
+        "all-child-items-done": "all child items done",
+        "item-added": "Item added.",
+        "stage-automation-re-run": "Stage automation re-run requested.",
+        "item-details-updated": "Item details updated.",
+        "moved-another-stage": "Moved to another stage",
+        "suggestion-approved": "Suggestion approved.",
+        "suggestion-dismissed": "Suggestion dismissed.",
+        "suggestion-resolved": "Suggestion resolved.",
+        "review-requested-changes": "Review requested changes.",
+        "review-removed-item": "Review removed this item.",
+        "review-approved-item": "Review approved this item.",
+        "review-completed": "Review completed.",
+        "conversation-started": "Conversation started.",
+        "linked-work": "Linked to work.",
+        "work-link-removed": "Work link removed.",
+        "waiting-items-updated": "Waiting items updated.",
+        "waiting-items-cleared": "Waiting items cleared.",
+        "built-from-items-completed": "Built-from items completed.",
+        "upstream-change-detected": "Upstream change detected.",
+        "upstream-change-acknowledged": "Upstream change acknowledged.",
+        "work-started": "Work started.",
+        "work-handoff-cleared": "Work handoff cleared.",
+        "activity-recorded": "Activity recorded."
       },
       "pipeline-liveness": {
-        "fallback-pipelines-write": "pipelines:write"
+        "fallback-pipelines-write": "pipelines:write",
+        "paperclip-retries-automatically-once": "Paperclip retries automatically once the blocker clears — you don't need to move the item by hand.",
+        "piece": "piece is",
+        "pieces": "pieces are"
       },
       "querykeys": {
         "fallback-all": "__all",
@@ -10311,14 +10994,548 @@
         "fallback-all-statuses": "__all-statuses__"
       },
       "skill-create": {
-        "fallback-describe-when-agents-should": "Describe when agents should use this skill."
+        "fallback-describe-when-agents-should": "Describe when agents should use this skill.",
+        "when-use": "## When To Use",
+        "use-skill-when-task": "- Use this skill when the task needs its specialized workflow.",
+        "workflow": "## Workflow",
+        "inspect-task-context": "1. Inspect the task context.",
+        "apply-workflow-carefully": "2. Apply the workflow carefully.",
+        "report-what-changed-how": "3. Report what changed and how it was verified."
       },
       "skill-policy-denial": {
         "fallback-action-blocked-platform-safety": "This action is blocked by a platform safety rule.",
-        "fallback-fix-flagged-issue-try": "Fix the flagged issue and try again."
+        "fallback-fix-flagged-issue-try": "Fix the flagged issue and try again.",
+        "company-administrator-can-change": "A company administrator can change the skill policy to allow this.",
+        "requires-company-administration-access": "This requires company administration access. Ask an administrator to make this change.",
+        "sign-manage-skills": "Sign in to manage skills.",
+        "skill-belongs-another-company": "This skill belongs to another company.",
+        "skill-source-outside-allowed": "This skill source is outside an allowed workspace.",
+        "skill-source-failed-validation": "This skill source failed validation.",
+        "skill-contains-unsafe-content": "This skill contains unsafe content.",
+        "skill-exposes-secret-value": "This skill exposes a secret value.",
+        "action-isn-available-current": "This action isn't available for the current actor.",
+        "sign-try-again": "Sign in and try again.",
+        "open-skill-from-company": "Open the skill from the company that owns it.",
+        "import-from-configured-paperclip": "Import from a configured Paperclip workspace or the company managed-skill directory.",
+        "fix-flagged-source-retry": "Fix the flagged source and retry.",
+        "remove-secret-value-before": "Remove the secret value before saving.",
+        "retry-from-account-access": "Retry from an account with access to this action.",
+        "action-restricted-your-company": "This action is restricted by your company policy.",
+        "change-needs-administration-access": "This change needs administration access."
       },
       "skill-studio": {
-        "fallback-unknown-editor": "Unknown editor"
+        "fallback-unknown-editor": "Unknown editor",
+        "test-task-expired": "Test task expired",
+        "skill-has-no-files": "This skill has no files to test",
+        "pick-agent-run": "Pick an agent to run",
+        "add-paste-input-text": "Add or paste input text to run",
+        "save-skill-edits-before": "Save skill edits before running",
+        "run-already-progress": "A run is already in progress",
+        "test-task-deleted": "Test task deleted",
+        "test-task-unavailable": "Test task unavailable",
+        "stored-run-snapshots-still": "Stored run snapshots are still shown. Harness documents, attachments, and work products are no longer available."
+      },
+      "activity-format": {
+        "checked": "checked out",
+        "commented": "commented on",
+        "cancelled-queued-comment": {
+          "2": "cancelled a queued comment"
+        },
+        "deleted-comment": {
+          "2": "deleted a comment"
+        },
+        "attached-file": "attached file to",
+        "removed-attachment-from": "removed attachment from",
+        "created-document": {
+          "2": "created a document"
+        },
+        "updated-document": {
+          "2": "updated a document"
+        },
+        "locked-document": {
+          "2": "locked a document"
+        },
+        "unlocked-document": {
+          "2": "unlocked a document"
+        },
+        "deleted-document-from": "deleted document from",
+        "scheduled-monitor": {
+          "2": "scheduled a monitor"
+        },
+        "triggered-monitor": {
+          "2": "triggered a monitor"
+        },
+        "cleared-monitor": {
+          "2": "cleared a monitor"
+        },
+        "skipped-monitor": {
+          "2": "skipped a monitor"
+        },
+        "exhausted-monitor": {
+          "2": "exhausted a monitor"
+        },
+        "queued-monitor-recovery": "queued monitor recovery for",
+        "created-monitor-recovery": "created monitor recovery for",
+        "escalated-monitor": "escalated monitor for",
+        "flagged-missing-next-step": "flagged missing next step on",
+        "recorded-next-step-chosen": "recorded next step chosen on",
+        "escalated-missing-next-step": "escalated missing next step on",
+        "updated-accepted-plan-decomposition": {
+          "2": "updated the accepted-plan decomposition"
+        },
+        "opened-recovery-action": "opened a recovery action on",
+        "resolved-recovery-action": {
+          "2": "Resolved the recovery action"
+        },
+        "escalated-recovery-action": {
+          "2": "Escalated the recovery action"
+        },
+        "cleared-error": "cleared error on",
+        "created-api-key": "created API key for",
+        "updated-budget": "updated budget for",
+        "reset-session": "reset session for",
+        "invoked-heartbeat": {
+          "2": "invoked a heartbeat"
+        },
+        "cancelled-heartbeat": {
+          "2": "cancelled a heartbeat"
+        },
+        "system-folded-stale-run": {
+          "2": "System folded a stale run"
+        },
+        "refused-recovery-recovery": "refused recovery-on-recovery for",
+        "requested-approval": "requested approval",
+        "reported-cost": "reported cost for",
+        "recorded-cost": "recorded cost for",
+        "created-company": "created company",
+        "updated-company": "updated company",
+        "exported-agent-audit-log": "exported the agent audit log for",
+        "created-issue": "created the issue",
+        "updated-issue": "updated the issue",
+        "checked-issue": "checked out the issue",
+        "released-issue": "released the issue",
+        "added-comment": "added a comment",
+        "saved-feedback-ai-output": "saved feedback on an AI output",
+        "added-attachment": "added an attachment",
+        "removed-attachment": "removed an attachment",
+        "deleted-document": "deleted a document",
+        "queued-monitor-recovery-wake": "queued a monitor recovery wake",
+        "created-monitor-recovery-issue": "created a monitor recovery issue",
+        "escalated-monitor-board": "escalated a monitor to the board",
+        "deleted-issue": "deleted the issue",
+        "run-finished-without-clear": "Run finished without a clear next step",
+        "next-step-chosen": "Next step chosen",
+        "run-finished-without-next": "Run finished without a next step - recovery escalated",
+        "opened-source-scoped-recovery": "Opened a source-scoped recovery action",
+        "created-agent": "created an agent",
+        "updated-agent": "updated the agent",
+        "paused-agent": "paused the agent",
+        "resumed-agent": "resumed the agent",
+        "cleared-agent-error": "cleared the agent error",
+        "terminated-agent": "terminated the agent",
+        "refused-recovery-recovery-escalation": "Refused recovery-on-recovery escalation",
+        "decomposition-completed": "decomposition completed",
+        "cleared-responsible": "cleared the responsible",
+        "updated-blockers": {
+          "2": "updated blockers on"
+        }
+      },
+      "agent-onboarding-prompt": {
+        "no-candidate-urls-available": "- (No candidate URLs are available yet.)"
+      },
+      "app-gallery-copy": {
+        "reach-000-apps-your": "Reach 9,000+ apps your team already uses.",
+        "reach-000-apps-from": "Reach 9,000+ apps from your agents.",
+        "read-code-pull-requests": "Read code and pull requests, comment on issues.",
+        "send-read-messages-your": {
+          "2": "Send and read messages in your channels."
+        },
+        "read-update-pages-your": "Read and update pages in your workspace.",
+        "create-update-read-tickets": "Create, update and read tickets.",
+        "read-update-selected-spreadsheets": "Read and update selected spreadsheets.",
+        "share-each-sheet-robot": "Share each sheet with the robot email, then paste the links.",
+        "read-mail-send-drafts": "Read mail and send drafts for your review.",
+        "look-up-contacts-update": "Look up contacts and update deal stages.",
+        "read-reply-customer-conversations": "Read and reply to customer conversations.",
+        "read-files-post-comments": "Read files and post comments on frames.",
+        "read-customers-invoices-payouts": "Read customers, invoices, and payouts.",
+        "look-up-up-date": "Look up up-to-date docs for your libraries.",
+        "give-your-agents-access": "Give your agents access to this app."
+      },
+      "assignees": {
+        "me-board-human-local": "me board human local-board"
+      },
+      "attention": {
+        "decision-requested": "Decision requested",
+        "recovery": "Recovery",
+        "blocked-dependency": "Blocked dependency",
+        "failed-run": "Failed run",
+        "agent-error": "Agent error",
+        "newest-first": "Newest first",
+        "oldest-first": "Oldest first",
+        "yesterday": "Yesterday",
+        "week": "This week"
+      },
+      "blockedinbox": {
+        "needs-decision": "Needs decision",
+        "blocked-chain-stalled": "Blocked chain stalled",
+        "recovery-required": "Recovery required",
+        "external-wait": "External wait",
+        "owner-paused": "Owner paused",
+        "pending-board-decision": "Pending board decision",
+        "pending-user-decision": "Pending user decision",
+        "pick-disposition": "Pick disposition",
+        "unassigned-blocker": "Unassigned blocker",
+        "parked-blocker": "Parked blocker",
+        "cancelled-blocker": "Cancelled blocker",
+        "review-without-action-path": "Review without action path",
+        "invalid-review-participant": "Invalid review participant",
+        "external-owner-action": "External owner action",
+        "blocker-type": "Blocker type",
+        "most-urgent": "Most urgent",
+        "most-recent": "Most recent",
+        "longest-stopped": "Longest stopped",
+        "stopped-just-now": "stopped just now"
+      },
+      "color-contrast": {
+        "f8fafc": "#f8fafc"
+      },
+      "cron-fires": {
+        "would-coalesced": "would be coalesced",
+        "would-skipped": "would be skipped",
+        "runs-immediately": "runs immediately",
+        "if-previous-run-still": "if the previous run is still active"
+      },
+      "cron-readable": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday",
+        "every-weekday": "every weekday",
+        "every-weekend": "every weekend"
+      },
+      "cross-tab-poll": {
+        "circular": "[Circular]"
+      },
+      "document-annotation-debug": {
+        "paperclip-selection-debug": "[paperclip selection debug]"
+      },
+      "external-objects": {
+        "not-yet-resolved": "Not yet resolved",
+        "authorization-required": "Authorization required",
+        "unreachable": "Unreachable",
+        "not-yet-refreshed": "Not yet refreshed",
+        "fresh": "Fresh",
+        "stale": "Stale",
+        "requires-auth": "Requires auth",
+        "linear": "Linear",
+        "jira": "Jira",
+        "notion": "Notion",
+        "asana": "Asana",
+        "pull-request": "pull request",
+        "workflow-run": "workflow run"
+      },
+      "inbox": {
+        "default-workspace": "Default workspace"
+      },
+      "interrupt-handoff": {
+        "interrupted-board-comment": "interrupted by board comment",
+        "interrupt-current-run-hand": "Interrupt current run, hand off to",
+        "wake": "Wake",
+        "hand-off": "Hand off to",
+        "no-agent-will-notified": "— no agent will be notified",
+        "clear-responsible-no-agent": "Clear responsible — no agent will be notified",
+        "notify": "Notify",
+        "mentioned-agent": "the mentioned agent",
+        "interrupted-run-attached": "(interrupted run attached)",
+        "not-created-handoff-board": "not created — this is a handoff to a board user",
+        "interrupt-current-run": "Interrupt the current run?",
+        "interrupt-assign": "Interrupt & assign",
+        "live-agent-runs": "Live agent runs",
+        "queued-wakes": "Queued wakes",
+        "agent-owned": "Agent-owned",
+        "human-owned": "Human-owned",
+        "static": "Static",
+        "interrupted-now-re-queued": "interrupted now, re-queued when you resume",
+        "held-they-won-start": "held — they won't start until you resume",
+        "responsible-agent-no-run": "responsible agent; no run is live",
+        "owned-board-user-pausing": "owned by a board user; pausing won't notify them",
+        "no-responsible-nothing-was": "no responsible; nothing was going to run"
+      },
+      "issue-chat-messages": {
+        "run-finished": "Run finished",
+        "queued": "Queued..."
+      },
+      "issue-filters": {
+        "any-failed": "Any failed",
+        "any-waiting": "Any waiting",
+        "any-running": "Any running",
+        "auth-required": "Auth required",
+        "no-external-objects": "No external objects"
+      },
+      "issue-monitor": {
+        "overdue": "overdue by"
+      },
+      "issue-output": {
+        "webm": ".webm",
+        "mov": ".mov",
+        "quicktime": ".quicktime",
+        "csv": ".csv",
+        "css": ".css",
+        "graphql": ".graphql",
+        "htm": ".htm",
+        "html": ".html",
+        "json": ".json",
+        "jsx": ".jsx",
+        "log": ".log",
+        "markdown": ".markdown",
+        "mdx": ".mdx",
+        "php": ".php",
+        "sql": ".sql",
+        "toml": ".toml",
+        "tsx": ".tsx",
+        "txt": ".txt",
+        "xml": ".xml",
+        "yaml": ".yaml",
+        "yml": ".yml",
+        "wasm": "WASM"
+      },
+      "issue-thread-interactions": {
+        "verdicts-expired-after-comment": "Verdicts expired after comment",
+        "verdicts-expired-after-target": "Verdicts expired after target changed",
+        "verdicts-expired": "Verdicts expired",
+        "withdrawn-interaction": "Withdrawn interaction",
+        "accepted-task": "Accepted 1 task",
+        "rejected-task": "Rejected 1 task",
+        "suggested-task": "Suggested 1 task",
+        "confirmed-request": "Confirmed request",
+        "declined-request": "Declined request",
+        "confirmation-expired-after-comment": "Confirmation expired after comment",
+        "confirmation-expired-after-target": "Confirmation expired after target changed",
+        "confirmation-expired": "Confirmation expired",
+        "requested-confirmation": "Requested confirmation",
+        "declined-selection": "Declined selection",
+        "selection-expired-after-comment": "Selection expired after comment",
+        "selection-expired-after-target": "Selection expired after target changed",
+        "selection-expired": "Selection expired",
+        "requested-selection-from-option": "Requested a selection from 1 option",
+        "answered-question": "Answered 1 question",
+        "cancelled-question": "Cancelled 1 question",
+        "question-expired-after-comment": "Question expired after comment",
+        "questions-expired-after-comment": "Questions expired after comment",
+        "question-expired": "Question expired",
+        "questions-expired": "Questions expired",
+        "asked-question": "Asked 1 question"
+      },
+      "onboarding-launch": {
+        "onboarding": "Onboarding"
+      },
+      "pipeline-learnings": {
+        "sent-back": "sent back"
+      },
+      "pipeline-references": {
+        "workspace-folder": "Workspace folder"
+      },
+      "recovery-display": {
+        "workspace-recovery-needed": "Workspace recovery needed"
+      },
+      "redact-url-secrets": {
+        "redacted": "REDACTED",
+        "code-state-nonce-key": "(?:code|state|nonce|key|[A-Za-z0-9_-]*(?:api[-_]?key|access[-_]?token|auth(?:[-_]?token)?|token|authorization|bearer|secret|passwd|password|credential|jwt|private[-_]?key|cookie|connectionstring)[A-Za-z0-9_-]*)"
+      },
+      "reusable-execution-workspaces": {
+        "all-workspaces": "All workspaces"
+      },
+      "routine-run-display": {
+        "skipped-no-activity-since": "Skipped — no activity since last run",
+        "skipped-routine-paused": "Skipped — routine paused",
+        "skipped-worktree-execution-cutoff": "Skipped — worktree execution cutoff"
+      },
+      "runretrystate": {
+        "transient-failure": "Transient failure",
+        "missing-task-comment": "Missing task comment",
+        "process-lost": "Process lost",
+        "assignment-recovery": "Assignment recovery",
+        "continuation-needed": "Continuation needed",
+        "max-turn-continuation": "Max-turn continuation",
+        "next-continuation": "Next continuation",
+        "next-retry": "Next retry",
+        "continuation-exhausted": "Continuation exhausted",
+        "retry-exhausted": "Retry exhausted",
+        "automatic-retries-exhausted": "Automatic retries exhausted",
+        "continued-run": "Continued run",
+        "retried-run": "Retried run"
+      },
+      "search-filters": {
+        "relevance": "Relevance",
+        "newest-created": "Newest created",
+        "last-90-days": "Last 90 days"
+      },
+      "search-query-parser": {
+        "updated-7d": "updated:>7d",
+        "open-todo-tasks": "Open todo tasks",
+        "filter-task-status": "Filter by task status",
+        "blocked-tasks": "Blocked tasks",
+        "find-blocked-work": "Find blocked work",
+        "assigned-me": "Assigned to me",
+        "use-your-current-board": "Use your current board user",
+        "project-paperclip-app": "project:\"Paperclip App\"",
+        "quote-multi-word-project": "Quote multi-word project names",
+        "filter-issue-label": "Filter by issue label",
+        "high-priority": "High priority",
+        "filter-priority": "Filter by priority",
+        "updated-last-days": "Updated in the last 7 days"
+      },
+      "secret-delivery": {
+        "provided-through-adapter-configuration": "Provided through adapter configuration."
+      },
+      "skill-fork": {
+        "source": "its source",
+        "no-agents-currently-use": "No agents currently use this skill"
+      },
+      "source-resolved-watchdog-fold": {
+        "termination-sent-still-running": "termination sent (still running)",
+        "not-running": "not running",
+        "no-process-metadata": "no process metadata",
+        "skipped-non-local-adapter": "skipped (non-local adapter)"
+      },
+      "status-card-state": {
+        "setting-up": "Setting up",
+        "just-created-setting-up": "Just created; setting up and generating the first summary.",
+        "summary-reflects-all-known": "Summary reflects all known changes; nothing pending.",
+        "changes-pending-since-last": "Changes are pending since the last update.",
+        "updating": "Updating",
+        "update-streaming-now": "An update is streaming in now.",
+        "last-run-failed-last": "The last run failed; the last good summary stays visible.",
+        "paused-budget": "Paused — budget",
+        "daily-token-cap-was": "The daily token cap was hit; auto-updates are suspended.",
+        "paused-hours": "Paused — hours",
+        "outside-active-hours-changes": "Outside active hours; changes batch into one update at window open.",
+        "no-auto-updates-no": "No auto-updates and no watches. Restore to start watching again."
+      },
+      "status-colors": {
+        "status-agent-idle": "--status-agent-idle",
+        "status-agent-running": "--status-agent-running",
+        "status-agent-paused": "--status-agent-paused",
+        "status-agent-error": "--status-agent-error",
+        "status-task-backlog": "--status-task-backlog",
+        "status-task-todo": "--status-task-todo",
+        "status-task-progress": "--status-task-in_progress",
+        "status-task-review": "--status-task-in_review",
+        "status-task-done": "--status-task-done",
+        "status-task-blocked": "--status-task-blocked",
+        "status-task-cancelled": "--status-task-cancelled",
+        "status-task-icon-backlog": "--status-task-icon-backlog",
+        "status-task-icon-todo": "--status-task-icon-todo",
+        "status-task-icon-progress": "--status-task-icon-in_progress",
+        "status-task-icon-review": "--status-task-icon-in_review",
+        "status-task-icon-done": "--status-task-icon-done",
+        "status-task-icon-blocked": "--status-task-icon-blocked",
+        "status-task-icon-cancelled": "--status-task-icon-cancelled",
+        "status-task-icon-queue": "--status-task-icon-in_queue"
+      },
+      "successful-run-handoff": {
+        "paperclip-needs-disposition-before": "Paperclip needs a disposition before this issue can continue.",
+        "paperclip-could-not-resolve": "Paperclip could not resolve this issue's missing disposition automatically. The issue is blocked on a recovery owner."
+      },
+      "summary-draft-stream": {
+        "summary-draft": "<<<SUMMARY-DRAFT>>>",
+        "end-summary-draft": "<<<END-SUMMARY-DRAFT>>>"
+      },
+      "timeline": {
+        "layout": {
+          "9aa3ad": "#9aa3ad"
+        }
+      },
+      "tool-installs": {
+        "adds-context-cost-every": "Adds context cost to every run of every agent — a deliberate choice. New agents you add later are installed automatically.",
+        "has-access-tick-load": "Has access — tick to load its tools into this agent's context."
+      },
+      "transcriptpresentation": {
+        "directory": "Directory",
+        "query": "Query",
+        "pattern": "Pattern"
+      },
+      "trust-policy-ui": {
+        "company-visible-collaboration-default": "Company-visible collaboration. This is the default for normal work.",
+        "contained-hostile-untrusted-input": "Contained for hostile or untrusted input. Narrow Paperclip API, quarantined output. Use for PR review and external-content triage.",
+        "no-boundary-selected": "No boundary selected"
+      },
+      "utils": {
+        "anthropic": "Anthropic",
+        "aws-bedrock": "AWS Bedrock",
+        "openai": "OpenAI",
+        "chatgpt": "ChatGPT",
+        "google": "Google",
+        "metered-api": "Metered API",
+        "subscription": "Subscription",
+        "subscription-overage": "Subscription overage",
+        "anthropic-oauth": "Anthropic OAuth",
+        "codex-app-server": "Codex app server",
+        "chatgpt-wham": "ChatGPT WHAM",
+        "inference-charge": "Inference charge",
+        "platform-fee": "Platform fee",
+        "credit-purchase": "Credit purchase",
+        "credit-refund": "Credit refund",
+        "credit-expiry": "Credit expiry",
+        "byok-fee": "BYOK fee",
+        "gateway-overhead": "Gateway overhead",
+        "log-storage": "Log storage",
+        "logpush": "Logpush",
+        "provisioned-capacity": "Provisioned capacity",
+        "custom-model-import": "Custom model import",
+        "custom-model-storage": "Custom model storage",
+        "manual-adjustment": "Manual adjustment",
+        "credit": "Credit",
+        "debit": "Debit"
+      },
+      "work-mode-meta": {
+        "agent-mode": "Agent mode",
+        "plan-mode": "Plan mode",
+        "ask-mode": "Ask mode",
+        "ask-mode-submission-click": "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work.",
+        "plan-mode-submission-click": "Plan mode is on for this submission. Click to change.",
+        "agent-mode-submission-click": "Agent mode for this submission. Click to change."
+      }
+    },
+    "api": {
+      "auth": {
+        "auth-request-failed-network": "[auth] request failed at the network layer (no HTTP response)",
+        "no-window": "(no window)",
+        "no-navigator": "(no navigator)",
+        "auth-request-returned-error": "[auth] request returned an error status",
+        "post": "POST",
+        "patch": "PATCH"
+      },
+      "companyskills": {
+        "categories": "categories[]",
+        "include": "include[]"
+      }
+    },
+    "bootstrapsetup": {
+      "pnpm-paperclipai-auth-bootstrap": {
+        "2": "pnpm paperclipai auth bootstrap-ceo",
+        "3": "pnpm paperclipai auth bootstrap-ceo"
+      }
+    },
+    "context": {
+      "liveupdatesprovider": {
+        "new-join-request-waiting": "A new join request is waiting for approval."
+      },
+      "themecontext": {
+        "ffffff": "#ffffff",
+        "prefers-color-scheme-dark": "(prefers-color-scheme: dark)"
+      }
+    },
+    "i18n": {
+      "locale-validation": {
+        "root": "<root>",
+        "script": "<script",
+        "event-handler-attribute": "event-handler attribute",
+        "raw-html-tag": "raw HTML tag"
       }
     }
   }

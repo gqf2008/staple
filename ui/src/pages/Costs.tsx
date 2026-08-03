@@ -753,11 +753,11 @@ export function Costs() {
                                 </div>
                                 {(row.apiRunCount > 0 || row.subscriptionRunCount > 0) ? (
                                   <div className="text-xs text-muted-foreground">
-                                    {row.apiRunCount > 0 ? `${row.apiRunCount} api` : "0 api"}
+                                    {row.apiRunCount > 0 ? `${row.apiRunCount} api` : t("ui.pages.costs.api")}
                                     {" · "}
                                     {row.subscriptionRunCount > 0
                                       ? `${row.subscriptionRunCount} subscription`
-                                      : "0 subscription"}
+                                      : t("ui.pages.costs.subscription")}
                                   </div>
                                 ) : null}
                               </div>

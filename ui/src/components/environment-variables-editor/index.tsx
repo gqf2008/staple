@@ -30,10 +30,10 @@ import {
 } from "./model";
 import type { EnvironmentVariableDirtyFields } from "./Row";
 
-const DEFAULT_RESERVED_PREFIXES = ["PAPERCLIP_"];
+const DEFAULT_RESERVED_PREFIXES = [t("ui.components.environment-variables-editor.index.paperclip")];
 
 const DEFAULT_HINT =
-  "Set the KEY to the env var name the process expects, for example GH_TOKEN. Choose a secret to resolve a stored value at run start. PAPERCLIP_* variables are injected automatically.";
+  t("ui.components.environment-variables-editor.index.set-key-env-var");
 
 // Canonical entries for dirty comparison. Must mirror the emit semantics of
 // valueFromRows (trimmed names, incomplete refs dropped, last-writer-wins on

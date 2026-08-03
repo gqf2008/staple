@@ -1,5 +1,6 @@
-"use client"
+t("ui.components.ui.checkbox.use-client")
 
+import { t } from "../../i18n";
 import * as React from "react"
 import { Tooltip as TooltipPrimitive } from "radix-ui"
 

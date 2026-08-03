@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { DocumentRevision, IssueDocument, IssueLabel } from "@paperclipai/shared";
 import { api } from "./client";
 

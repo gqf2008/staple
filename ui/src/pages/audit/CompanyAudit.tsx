@@ -21,7 +21,7 @@ export function CompanyAudit() {
   }, [setBreadcrumbs]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={ShieldCheck} message="Select a company to view the agent audit log." />;
+    return <EmptyState icon={ShieldCheck} message={t("ui.pages.audit.companyaudit.select-company-view-agent")} />;
   }
 
   return <AuditFeed companyId={selectedCompanyId} />;

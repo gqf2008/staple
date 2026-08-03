@@ -2199,7 +2199,7 @@ export function Inbox() {
   // Scroll selected item into view
   useEffect(() => {
     if (selectedIndex < 0 || !listRef.current) return;
-    const rows = listRef.current.querySelectorAll("[data-inbox-item]");
+    const rows = listRef.current.querySelectorAll(t("ui.pages.inbox.data-inbox-item"));
     const row = rows[selectedIndex];
     if (row) row.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
@@ -3102,7 +3102,7 @@ export function Inbox() {
                     <AlertTriangle className="h-4 w-4 shrink-0 text-red-600 dark:text-red-400" />
                     <span className="text-sm">
                       <span className="font-medium">{dashboard!.agents.error}</span>{" "}
-                      {dashboard!.agents.error === 1 ? "agent has" : "agents have"} errors
+                      {dashboard!.agents.error === 1 ? t("ui.components.skill-studio.agentsusingskilldialog.agent-has") : t("ui.components.skill-studio.agentsusingskilldialog.agents-have")} errors
                     </span>
                   </Link>
                   <button

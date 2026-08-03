@@ -84,11 +84,7 @@ function buildMissionFromQuestionnaire(q1: string, q2: string, q3: string, q4: s
 
 const ONBOARDING_STORAGE_KEY = "paperclip-onboarding-state";
 const DEFAULT_TASK_TITLE = t("components.onboardingWizard.hireEngineer", { defaultValue: "Hire your first engineer and create a hiring plan" });
-const DEFAULT_TASK_DESCRIPTION = `You are the CEO. You set the direction for the company.
-
-- hire a founding engineer
-- write a hiring plan
-- break the roadmap into concrete tasks and start delegating work`;
+const DEFAULT_TASK_DESCRIPTION = t("ui.components.onboardingwizard.you-ceo-you-set");
 const INCOMPLETE_ONBOARDING_STATE_MESSAGE =
   t("components.onboardingWizard.stateIncomplete", { defaultValue: "Onboarding state is incomplete. Please restart onboarding and try again." });
 
@@ -718,7 +714,7 @@ export function OnboardingWizard() {
       const result = await runAdapterEnvironmentTest(configWithUnset);
       if (result?.status === "fail") {
         setError(
-          "Retried with ANTHROPIC_API_KEY unset in adapter config, but the environment test is still failing."
+          t("ui.components.onboardingwizard.retried-anthropic-api-key")
         );
       }
     } catch (err) {
@@ -865,9 +861,9 @@ export function OnboardingWizard() {
                     />
                     <p className="text-(length:--text-micro) text-muted-foreground">
                       {step === 3 ? (
-                        "an empty slot for an agent"
+                        t("ui.components.onboardingwizard.empty-slot-agent")
                       ) : step === 4 ? (
-                        "your team lead, taking shape"
+                        t("ui.components.onboardingwizard.your-team-lead-taking")
                       ) : (
                         <>
                           <span className="font-medium text-foreground">{agentName}</span>{" "}
@@ -1500,20 +1496,20 @@ export function OnboardingWizard() {
                               {t("ui.components.onboardingwizard.if-auth-fails-set")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
-                                  ? "CURSOR_API_KEY"
+                                  ? t("ui.components.onboardingwizard.cursor-api-key")
                                   : adapterType === "gemini_local"
-                                    ? "GEMINI_API_KEY"
-                                    : "OPENAI_API_KEY"}
+                                    ? t("ui.components.onboardingwizard.gemini-api-key")
+                                    : t("ui.components.onboardingwizard.openai-api-key")}
                               </span>{" "}
                               {t("ui.components.onboardingwizard.env-run")}{" "}
                               <span className="font-mono">
                                 {adapterType === "cursor"
-                                  ? "agent login"
+                                  ? t("ui.components.onboardingwizard.agent-login")
                                   : adapterType === "codex_local"
-                                    ? "codex login"
+                                    ? t("ui.components.onboardingwizard.codex-login")
                                     : adapterType === "gemini_local"
-                                      ? "gemini auth"
-                                      : "opencode auth login"}
+                                      ? t("ui.components.onboardingwizard.gemini-auth")
+                                      : t("ui.components.onboardingwizard.opencode-auth-login")}
                               </span>
                               .
                             </p>

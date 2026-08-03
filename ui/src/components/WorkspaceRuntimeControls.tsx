@@ -118,7 +118,7 @@ function buildJobItem(
     key: `command:${command.id}`,
     title: command.name,
     kind: "job",
-    statusLabel: "run once",
+    statusLabel: t("components.builtInBundle.runOnce"),
     lifecycle: null,
     healthStatus: null,
     command: command.command,

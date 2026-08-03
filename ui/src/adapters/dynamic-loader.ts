@@ -27,6 +27,7 @@
  * Security: see `sandboxed-parser-worker.ts` for the full lockdown.
  */
 
+import { t } from "../i18n";
 import type { TranscriptEntry } from "@paperclipai/adapter-utils";
 import type { StdoutLineParser, StdoutParserFactory } from "./types";
 import { createSandboxedWorker } from "./sandboxed-parser-worker";

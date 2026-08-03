@@ -46,8 +46,8 @@ export function ReusableExecutionWorkspaceSelect<TWorkspace extends ReusableExec
       onValueChange={onValueChange}
       placeholder={placeholder}
       searchPlaceholder={t("ui.components.reusableexecutionworkspaceselect.search-workspaces")}
-      emptyMessage={error ? "Workspaces failed to load." : "No matching workspaces."}
-      loadingMessage="Loading workspaces..."
+      emptyMessage={error ? t("ui.components.reusableexecutionworkspaceselect.workspaces-failed-load") : t("ui.components.reusableexecutionworkspaceselect.no-matching-workspaces")}
+      loadingMessage={t("pages.projectDetail.loadingWorkspaces")}
       loading={loading}
       disabled={disabled}
       className={className}

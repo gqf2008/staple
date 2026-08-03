@@ -533,7 +533,7 @@ function ConflictResolutionList({
                         confirmed
                       </>
                     ) : (
-                      "confirm rename"
+                      t("ui.pages.companyimport.confirm-rename")
                     )}
                   </button>
                 )}
@@ -872,7 +872,7 @@ export function CompanyImport() {
   }, [companyAgents]);
 
   const localZipHelpText =
-    "Upload a .zip exported directly from Paperclip. Re-zipped archives created by Finder, Explorer, or other zip tools may not import correctly.";
+    t("ui.pages.companyimport.upload-zip-exported-directly");
 
   useEffect(() => {
     setBreadcrumbs([
@@ -1743,7 +1743,7 @@ export function CompanyImport() {
               {t("ui.pages.companyimport.preview-failed")}{" "}
               {previewMutation.error instanceof Error
                 ? previewMutation.error.message
-                : "the request did not complete."}{" "}
+                : t("ui.pages.companyimport.request-did-not-complete")}{" "}
               {t("ui.pages.companyimport.retry-use-cli-folder")}</p>
           </div>
         )}
@@ -1832,7 +1832,7 @@ export function CompanyImport() {
                 {t("ui.pages.companyimport.import-failed")}{" "}
                 {importMutation.error instanceof Error
                   ? importMutation.error.message
-                  : "the request did not complete."}{" "}
+                  : t("ui.pages.companyimport.request-did-not-complete")}{" "}
                 {t("ui.pages.companyimport.nothing-may-have-been")}</p>
             </div>
           )}

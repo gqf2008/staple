@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Client-side bookkeeping for async company import jobs.
  *

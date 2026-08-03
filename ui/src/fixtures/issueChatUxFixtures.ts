@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Agent, FeedbackVote } from "@paperclipai/shared";
 import type { LiveRunForIssue } from "../api/heartbeats";
 import type { InlineEntityOption } from "../components/InlineEntitySelector";

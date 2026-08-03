@@ -81,7 +81,7 @@ function mapInviteAuthFeedback(
     return {
       tone: "error",
       message:
-        "That email and password did not match an existing Paperclip account. Check both fields, or create an account first if you are new here.",
+        t("ui.pages.invitelanding.email-password-did-not"),
     };
   }
 
@@ -89,7 +89,7 @@ function mapInviteAuthFeedback(
     return {
       tone: "error",
       message:
-        "That email and password did not match an existing Paperclip account. Check both fields, or create an account first if you are new here.",
+        t("ui.pages.invitelanding.email-password-did-not"),
     };
   }
 
@@ -546,9 +546,9 @@ export function InviteLandingPage() {
                 </h1>
                 <p className="mt-2 max-w-2xl text-sm leading-6 text-zinc-300">
                   {showsAgentForm
-                    ? "Review the invite details, then submit the agent information below to start the join request."
+                    ? t("ui.pages.invitelanding.review-invite-details-then")
                     : requiresHumanAccount
-                      ? "Create your Paperclip account first. If you already have one, switch to sign in and continue the invite with the same email."
+                      ? t("ui.pages.invitelanding.create-your-paperclip-account")
                       : t("pages.inviteLanding.accountReady", { defaultValue: "Your account is ready. Review the invite details, then accept it to continue." })}
                 </p>
               </div>
@@ -615,7 +615,7 @@ export function InviteLandingPage() {
                   >
                     {joinAdapterOptions.map((type) => (
                       <option key={type} value={type} disabled={!ENABLED_INVITE_ADAPTERS.has(type)}>
-                        {getAdapterLabel(type)}{!ENABLED_INVITE_ADAPTERS.has(type) ? " (Coming soon)" : ""}
+                        {getAdapterLabel(type)}{!ENABLED_INVITE_ADAPTERS.has(type) ? t("ui.pages.invitelanding.coming-soon") : ""}
                       </option>
                     ))}
                   </select>
@@ -647,7 +647,7 @@ export function InviteLandingPage() {
                   <p className="mt-1 text-sm text-zinc-400">
                     {authMode === "sign_up"
                       ? `Start with a Paperclip account. After that, you'll come right back here to accept the invite for ${companyDisplayName}.`
-                      : "Use the Paperclip account that already matches this invite. If you do not have one yet, switch back to create account."}
+                      : t("ui.pages.invitelanding.use-paperclip-account-already")}
                   </p>
                 </div>
 
@@ -782,8 +782,8 @@ export function InviteLandingPage() {
 
                 <p className="text-xs leading-5 text-zinc-500">
                   {authMode === "sign_up"
-                    ? "Already signed up before? Use the existing-account option instead so the invite lands on the right Paperclip user."
-                    : "No account yet? Switch back to create account so you can accept the invite with a new login."}
+                    ? t("ui.pages.invitelanding.already-signed-up-before")
+                    : t("ui.pages.invitelanding.no-account-yet-switch")}
                 </p>
               </div>
             ) : (
@@ -804,7 +804,7 @@ export function InviteLandingPage() {
                       : isCurrentMember
                       ? `This account already belongs to ${companyDisplayName}.`
                       : `This will ${
-                          invite.inviteType === "bootstrap_ceo" ? "finish setting up Paperclip" : `grant or complete your access to ${companyDisplayName}`
+                          invite.inviteType === "bootstrap_ceo" ? t("ui.pages.invitelanding.finish-setting-up-paperclip") : `grant or complete your access to ${companyDisplayName}`
                         }.`}
                   </p>
                 </div>

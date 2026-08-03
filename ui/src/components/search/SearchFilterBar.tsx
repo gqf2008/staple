@@ -93,14 +93,14 @@ export function buildSearchFilterOptions({
       label: "Me",
       icon: <User className="h-3.5 w-3.5 text-muted-foreground" />,
       count: count(counts?.assigneeUserId, currentUserId),
-      searchText: "me mine",
+      searchText: t("ui.components.search.searchfilterbar.me-mine"),
     });
   }
   assignee.push({
     value: "none",
     label: t("components.searchFilterBar.unassigned", { defaultValue: "Unassigned" }),
     icon: <UserX className="h-3.5 w-3.5 text-muted-foreground" />,
-    searchText: "unassigned none nobody",
+    searchText: t("ui.components.search.searchfilterbar.unassigned-none-nobody"),
   });
   for (const agent of agents) {
     assignee.push({

@@ -237,7 +237,7 @@ export function Connections() {
               <ShieldQuestion className="h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold text-amber-900 dark:text-amber-100">
-                  {reviewCount} {reviewCount === 1 ? "action is" : "actions are"} {t("pages.reviewQueueCard.waitingForOk")}</div>
+                  {reviewCount} {reviewCount === 1 ? t("ui.pages.apps.connections.action") : t("ui.pages.apps.connections.actions")} {t("pages.reviewQueueCard.waitingForOk")}</div>
                 <div className="truncate text-xs text-amber-700 dark:text-amber-300">
                   {t("ui.pages.apps.connections.your-agents-paused-check")}</div>
               </div>
@@ -254,7 +254,7 @@ export function Connections() {
               <ShieldAlert className="h-5 w-5 shrink-0 text-red-600 dark:text-red-400" />
               <div className="min-w-0 flex-1">
                 <div className="text-sm font-semibold text-red-900 dark:text-red-100">
-                  {rowsNeedingAttention.length} {rowsNeedingAttention.length === 1 ? "app needs" : "apps need"} attention
+                  {rowsNeedingAttention.length} {rowsNeedingAttention.length === 1 ? t("ui.pages.apps.connections.app-needs") : t("ui.pages.apps.connections.apps-need")} attention
                 </div>
                 <div className="truncate text-xs text-red-700 dark:text-red-300">
                   {floatSummary(rowsNeedingAttention)}
@@ -283,7 +283,7 @@ export function Connections() {
                     status.tone === "attention"
                       ? t("pages.connections.keyStopped", { defaultValue: "The key stopped working — reconnect to fix." })
                       : status.tone === "paused"
-                        ? "Paused — agents can’t use it right now."
+                        ? t("ui.pages.apps.connections.paused-agents-can-use")
                         : status.tone === "not_connected"
                           ? t("pages.connections.connectHint", { defaultValue: "Connect it so agents can use it." })
                         : null;

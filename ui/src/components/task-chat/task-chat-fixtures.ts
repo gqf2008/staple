@@ -4,6 +4,7 @@
  * harness renders and the finish-line test iterates. Tier-B states are driven
  * entirely from here (live protocol wiring is a flagged dependency).
  */
+import { t } from "../../i18n";
 import type { TaskChatItem, TaskChatPlan } from "./task-chat-model";
 import type { TaskChatStateId } from "./task-chat-states";
 

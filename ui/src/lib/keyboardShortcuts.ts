@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export const KEYBOARD_SHORTCUT_TEXT_INPUT_SELECTOR = [
   "input",
   "textarea",

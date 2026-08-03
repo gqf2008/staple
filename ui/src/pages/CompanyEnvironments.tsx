@@ -302,14 +302,14 @@ function setupConnectionFallbackMessage(input: {
   isLoading: boolean;
 }): string | null {
   if (input.refreshError) {
-    return "Setup connection details could not be refreshed. You can still finish or cancel this setup.";
+    return t("ui.pages.companyenvironments.setup-connection-details-could");
   }
   if (input.isLoading) return null;
   if (!input.payload) {
     return t("pages.companyEnvironments.connectionPending", { defaultValue: "Connection details are not available yet. You can still finish or cancel this setup." });
   }
   if (input.payload.type !== "ssh") {
-    return "Browser terminal is not available for this provider connection. Use the provider setup instructions, then finish or cancel here.";
+    return t("ui.pages.companyenvironments.browser-terminal-not-available");
   }
   if (!readConnectionCommand(input.payload)) {
     return t("pages.companyEnvironments.connectionPending", { defaultValue: "Connection details are not available yet. You can still finish or cancel this setup." });
@@ -321,17 +321,17 @@ const CUSTOM_IMAGE_TERMINAL_COLS = 100;
 const CUSTOM_IMAGE_TERMINAL_ROWS = 28;
 const CUSTOM_IMAGE_TERMINAL_SCROLLBACK_ROWS = 5_000;
 const CUSTOM_IMAGE_TERMINAL_FONT_FAMILY = [
-  "MesloLGS NF",
-  "MesloLGS Nerd Font Mono",
+  t("ui.pages.companyenvironments.meslolgs-nf"),
+  t("ui.pages.companyenvironments.meslolgs-nerd-font-mono"),
   "CaskaydiaCove Nerd Font Mono",
   "CaskaydiaMono Nerd Font",
   "JetBrainsMono Nerd Font",
   "FiraCode Nerd Font Mono",
-  "Symbols Nerd Font Mono",
-  "Menlo",
-  "Monaco",
-  "Consolas",
-  "Liberation Mono",
+  t("ui.pages.companyenvironments.symbols-nerd-font-mono"),
+  t("ui.pages.companyenvironments.menlo"),
+  t("ui.pages.companyenvironments.monaco"),
+  t("ui.pages.companyenvironments.consolas"),
+  t("ui.pages.companyenvironments.liberation-mono"),
   "monospace",
 ].join(", ");
 
@@ -862,7 +862,7 @@ function EnvironmentImageTemplatePanel({
 
   const cancelSetupMutation = useMutation({
     mutationFn: (sessionId: string) =>
-      environmentsApi.cancelCustomImageSetupSession(sessionId, { reason: "operator cancelled" }),
+      environmentsApi.cancelCustomImageSetupSession(sessionId, { reason: t("ui.pages.companyenvironments.operator-cancelled") }),
     onSuccess: (session) => {
       queryClient.setQueryData(overviewKey, (current: typeof overviewQuery.data) => ({
         activeTemplate: current?.activeTemplate ?? null,
@@ -1282,7 +1282,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
       } else if (reconciliation?.action === "detached") {
         pushToast({
           title: t("pages.companyEnvironments.imageNoLongerApplies", { defaultValue: "Custom image no longer applies" }),
-          body: "This change alters what the captured image was built from. Runs use the base configuration until you capture a new image.",
+          body: t("ui.pages.companyenvironments.change-alters-what-captured"),
           tone: "warn",
         });
       }

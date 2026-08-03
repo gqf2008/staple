@@ -336,7 +336,7 @@ export function StatusCardDetailDrawer({
                     )}
                     {setupRunning
                       ? t("pages.statusCardDetail.settingUpHint", { defaultValue: "Setting up — the first summary is generated automatically once this finishes." })
-                      : "Setup didn’t finish. Run it now to try again."}
+                      : t("ui.pages.statuscards.statuscarddetaildrawer.setup-didn-finish-run")}
                   </p>
                   {setupRunning && card.generatingIssueId ? (
                     <Link
@@ -600,7 +600,7 @@ function ChangeRow({ change }: { change: StatusCardUpdate["changes"][number] }) 
 }
 
 function describeChangeKind(changeKind: string): string {
-  if (changeKind === "entered_query" || changeKind === "new") return "new issue matched the query";
-  if (changeKind === "left_query") return "left the query";
+  if (changeKind === "entered_query" || changeKind === "new") return t("ui.pages.statuscards.statuscarddetaildrawer.new-issue-matched-query");
+  if (changeKind === "left_query") return t("ui.pages.statuscards.statuscarddetaildrawer.left-query");
   return changeKind.replace(/_/g, " ");
 }

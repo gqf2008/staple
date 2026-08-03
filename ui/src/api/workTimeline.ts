@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { WorkTimelineResult } from "@paperclipai/shared";
 import { api, type RequestOptions } from "./client";
 

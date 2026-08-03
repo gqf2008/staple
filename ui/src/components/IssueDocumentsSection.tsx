@@ -550,7 +550,7 @@ export function IssueDocumentsSection({
     }
 
     if (!DOCUMENT_KEY_PATTERN.test(normalizedKey)) {
-      setError("Document key must start with a letter or number and use only lowercase letters, numbers, -, or _.");
+      setError(t("ui.components.issuedocumentssection.document-key-must-start"));
       if (options?.trackAutosave) {
         resetAutosaveState();
       }
@@ -805,7 +805,7 @@ export function IssueDocumentsSection({
   useEffect(() => {
     const hash = location.hash;
     if (!hash.startsWith("#document-")) return;
-    const documentKey = decodeURIComponent(hash.slice("#document-".length));
+    const documentKey = decodeURIComponent(hash.slice(t("ui.components.issuedocumentssection.document").length));
     const targetExists = sortedDocuments.some((doc) => doc.key === documentKey)
       || (documentKey === "plan" && Boolean(documentSubject.legacyPlanDocument));
     if (!targetExists || hasScrolledToHashRef.current) return;

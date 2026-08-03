@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import { useQuery } from "@tanstack/react-query";
 import type { Issue } from "@paperclipai/shared";
 import { issuesApi } from "@/api/issues";
@@ -35,8 +36,8 @@ export function IssuePropertiesPlansTab({ issue, inline }: IssuePropertiesPlansT
     return (
       <div className="px-1 py-6 text-sm text-muted-foreground">
         {planDocumentLoading
-          ? "Loading plan…"
-          : "No plan yet. The plan document, accepted plans, and their revisions will appear here."}
+          ? t("ui.components.issue-properties.issuepropertiesplanstab.loading-plan")
+          : t("ui.components.issue-properties.issuepropertiesplanstab.no-plan-yet-plan")}
       </div>
     );
   }

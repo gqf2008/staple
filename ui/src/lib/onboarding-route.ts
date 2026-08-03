@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type OnboardingRouteCompany = {
   id: string;
   issuePrefix: string;

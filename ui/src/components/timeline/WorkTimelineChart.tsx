@@ -121,7 +121,7 @@ interface DragSelectionState {
 function fmtClock(ms: number): string {
   const d = new Date(ms);
   const hasMinutes = d.getMinutes() !== 0;
-  return d.toLocaleTimeString("en-US", {
+  return d.toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), {
     hour: "numeric",
     minute: hasMinutes ? "2-digit" : undefined,
     hour12: true,
@@ -130,7 +130,7 @@ function fmtClock(ms: number): string {
 
 function fmtTick(ms: number, stepMs: number): string {
   const d = new Date(ms);
-  const date = d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+  const date = d.toLocaleDateString(t("ui.components.timeline.worktimelinechart.en-us"), { month: "short", day: "numeric" });
   if (stepMs >= 24 * 60 * 60 * 1000) {
     return date;
   }
@@ -807,7 +807,7 @@ function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
       {bar.kickoff && (
         <div className="text-muted-foreground">
           {t("ui.components.timeline.worktimelinechart.kicked-off")}{(bar.kickoff as WorkTimelineActor).name}
-          {bar.span.retryOfRunId ? " · retry" : ""}
+          {bar.span.retryOfRunId ? t("ui.components.timeline.worktimelinechart.retry") : ""}
         </div>
       )}
       {tooltip.connectorHint && (

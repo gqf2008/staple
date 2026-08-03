@@ -64,7 +64,7 @@ export function TaskChatTurn({ item, renderChild }: TaskChatTurnProps) {
           data-testid="task-chat-turn-summary"
         >
           <SummaryIcon className="h-3.5 w-3.5 shrink-0" />
-          <span>{item.summary.failed ? "Stopped" : "Worked"}</span>
+          <span>{item.summary.failed ? "Stopped" : t("components.issueChatThread.worked")}</span>
           {turnSummaryMetrics(item.summary) ? (
             <span className="font-mono text-(length:--text-micro)">{turnSummaryMetrics(item.summary)}</span>
           ) : null}

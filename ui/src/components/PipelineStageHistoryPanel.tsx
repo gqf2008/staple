@@ -97,7 +97,7 @@ export function PipelineStageHistoryPanel({
           <p className="px-4 py-3 text-xs text-muted-foreground">{t("ui.components.caserevisionrail.loading-revisions")}</p>
         ) : revisionsQuery.error ? (
           <p className="px-4 py-3 text-xs text-destructive">
-            {revisionsQuery.error instanceof Error ? revisionsQuery.error.message : "Could not load revisions."}
+            {revisionsQuery.error instanceof Error ? revisionsQuery.error.message : t("ui.components.pipelinestagehistorypanel.could-not-load-revisions")}
           </p>
         ) : revisions.length === 0 ? (
           <p className="px-4 py-3 text-xs text-muted-foreground">{t("ui.components.pipelinestagehistorypanel.no-revisions-recorded-yet")}</p>

@@ -152,7 +152,7 @@ export function StatusCardTile({
               ) : (
                 <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" />
               )}
-              <span>{setupRunning ? t("pages.statusCardTile.settingUp", { defaultValue: "Setting up your card…" }) : "Setup didn’t finish"}</span>
+              <span>{setupRunning ? t("pages.statusCardTile.settingUp", { defaultValue: "Setting up your card…" }) : t("ui.pages.statuscards.statuscardtile.setup-didn-finish")}</span>
             </div>
             <p className="mt-1 line-clamp-2 text-muted-foreground">“{card.interestPrompt}”</p>
             {setupRunning ? (
@@ -264,7 +264,7 @@ export function StatusCardTile({
       <div className="mt-auto flex items-center justify-between gap-2 border-t border-border px-4 py-2.5">
         <span className="truncate text-(length:--text-micro) text-muted-foreground">
           {lifecycle === "compiling" ? (
-            "setting up · first summary pending"
+            t("ui.pages.statuscards.statuscardtile.setting-up-first-summary")
           ) : (
             <>
               {freshnessLabel} · {policyLabel}

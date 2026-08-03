@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { HeartbeatRun } from "@paperclipai/shared";
 
 export type SourceResolvedFoldCleanupOutcome =
@@ -106,11 +107,11 @@ export function readSourceResolvedWatchdogFold(
 
 const CLEANUP_OUTCOME_LABELS: Record<string, string> = {
   terminated: "terminated",
-  termination_sent_still_running: "termination sent (still running)",
+  termination_sent_still_running: t("ui.lib.source-resolved-watchdog-fold.termination-sent-still-running"),
   failed: "failed",
-  not_running: "not running",
-  no_process_metadata: "no process metadata",
-  skipped_non_local_adapter: "skipped (non-local adapter)",
+  not_running: t("ui.lib.source-resolved-watchdog-fold.not-running"),
+  no_process_metadata: t("ui.lib.source-resolved-watchdog-fold.no-process-metadata"),
+  skipped_non_local_adapter: t("ui.lib.source-resolved-watchdog-fold.skipped-non-local-adapter"),
 };
 
 export function formatCleanupOutcome(outcome: string): string {
@@ -120,7 +121,7 @@ export function formatCleanupOutcome(outcome: string): string {
 export function formatSilenceAgeMs(ms: number | null | undefined): string | null {
   if (!ms || ms <= 0) return null;
   const totalMinutes = Math.floor(ms / 60_000);
-  if (totalMinutes < 1) return "under 1 minute";
+  if (totalMinutes < 1) return t("ui.components.issuerunledger.under-minute");
   if (totalMinutes < 60) return `${totalMinutes} minute${totalMinutes === 1 ? "" : "s"}`;
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;

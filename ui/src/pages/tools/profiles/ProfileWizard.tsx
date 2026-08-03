@@ -623,7 +623,7 @@ export function StepAssign({
             const context = contextByAgent.get(agent.id) ?? [];
             const bits = [...context];
             if (defaultProfileName) bits.push("company default");
-            return bits.length > 0 ? `already has: ${bits.join(" · ")}` : "no profiles yet";
+            return bits.length > 0 ? `already has: ${bits.join(" · ")}` : t("ui.pages.tools.profiles.profilewizard.no-profiles-yet");
           }}
         />
         <p className="text-xs text-muted-foreground">

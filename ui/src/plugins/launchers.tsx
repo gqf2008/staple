@@ -114,11 +114,11 @@ const entityScopedZones = new Set<PluginLauncherPlacementZone>([
   "toolbarButton",
 ]);
 const focusableElementSelector = [
-  "button:not([disabled])",
-  "[href]",
-  "input:not([disabled])",
-  "select:not([disabled])",
-  "textarea:not([disabled])",
+  t("ui.plugins.launchers.button-not-disabled"),
+  t("ui.plugins.launchers.href"),
+  t("ui.plugins.launchers.input-not-disabled"),
+  t("ui.plugins.launchers.select-not-disabled"),
+  t("ui.plugins.launchers.textarea-not-disabled"),
   "[tabindex]:not([tabindex='-1'])",
 ].join(",");
 const launcherOverlayBaseZIndex = 1000;
@@ -130,7 +130,7 @@ const PluginLauncherRuntimeContext = createContext<PluginLauncherRuntimeContextV
 
 function getErrorMessage(error: unknown): string {
   if (error instanceof Error && error.message) return error.message;
-  return "Unknown error";
+  return t("components.dialogs.newAgent.unknownError");
 }
 
 function buildLauncherHostContext(
@@ -406,7 +406,7 @@ class LauncherErrorBoundary extends Component<LauncherErrorBoundaryProps, Launch
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error("Plugin launcher render failed", {
+    console.error(t("ui.plugins.launchers.plugin-launcher-render-failed"), {
       pluginKey: this.props.launcher.pluginKey,
       launcherId: this.props.launcher.id,
       error,

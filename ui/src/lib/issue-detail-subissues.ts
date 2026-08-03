@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Issue, IssueStatus } from "@paperclipai/shared";
 import { workflowSort } from "./workflow-sort";
 

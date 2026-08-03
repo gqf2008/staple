@@ -41,7 +41,7 @@ export interface LivenessBannerView {
 }
 
 const AUTO_RETRY_NOTE =
-  "Paperclip retries automatically once the blocker clears — you don't need to move the item by hand.";
+  t("ui.lib.pipeline-liveness.paperclip-retries-automatically-once");
 
 /**
  * Prosumer-voice body for the `no_action_path` "stuck" banner. The server's
@@ -223,7 +223,7 @@ export function derivePipelineLivenessBanner(
 function missingPiecesBody(liveness: PipelineCaseLiveness): string {
   const missing = liveness.breakdown?.missingRequestKeys?.length ?? 0;
   if (missing > 0) {
-    return `${liveness.message} ${missing} expected ${missing === 1 ? "piece is" : "pieces are"} still missing.`;
+    return `${liveness.message} ${missing} expected ${missing === 1 ? t("ui.lib.pipeline-liveness.piece") : t("ui.lib.pipeline-liveness.pieces")} still missing.`;
   }
   return liveness.message;
 }

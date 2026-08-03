@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { StatusCardRefreshPolicy, StatusCardUpdate } from "@paperclipai/shared";
 
 /** "1.1k tok" / "940 tok" — compact token count for footers and chips. */
@@ -99,7 +100,7 @@ export function estimateStatusCardCost(policy: StatusCardRefreshPolicy): StatusC
     return {
       cost,
       primary: `~1 rebuild per refresh ≈ ${cost}`,
-      note: "Manual cards only cost tokens when you press Refresh.",
+      note: t("ui.pages.statuscards.format.manual-cards-only-cost"),
     };
   }
 
@@ -123,7 +124,7 @@ export function estimateStatusCardCost(policy: StatusCardRefreshPolicy): StatusC
 
   const tokens = effective * EST_INCREMENTAL_TOKENS;
   const cents = effective * EST_INCREMENTAL_CENTS;
-  const withinHours = policy.activeHours ? " during active hours" : "";
+  const withinHours = policy.activeHours ? t("ui.pages.statuscards.format.during-active-hours") : "";
   const cost = `${formatCents(cents)} · ${formatTokens(tokens)}`;
 
   return {
@@ -131,7 +132,7 @@ export function estimateStatusCardCost(policy: StatusCardRefreshPolicy): StatusC
     primary: `Up to ~${effective} updates/day (${cadence}${withinHours}) ≈ ${cost}`,
     note: cappedByTokenCap
       ? `Capped by your ${formatTokens(cap!)} daily token cap — the card pauses when it's hit.`
-      : "Only runs when something changed; a cheap no-op check otherwise.",
+      : t("ui.pages.statuscards.format.only-runs-when-something"),
   };
 }
 

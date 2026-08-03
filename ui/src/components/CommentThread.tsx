@@ -870,7 +870,7 @@ export function CommentThread({
   useEffect(() => {
     const hash = location.hash;
     if (!hash.startsWith("#comment-") || comments.length + queuedComments.length === 0) return;
-    const commentId = hash.slice("#comment-".length);
+    const commentId = hash.slice(t("ui.components.commentthread.comment").length);
     const targetComment = [...comments, ...queuedComments].find((comment) => comment.id === commentId);
     if (targetComment?.deletedAt) {
       setHighlightCommentId(null);

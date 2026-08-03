@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 const MINUTE = 60;
 const HOUR = 60 * MINUTE;
 const DAY = 24 * HOUR;
@@ -9,7 +10,7 @@ export function timeAgo(date: Date | string): string {
   const then = new Date(date).getTime();
   const seconds = Math.round((now - then) / 1000);
 
-  if (seconds < MINUTE) return "just now";
+  if (seconds < MINUTE) return t("pages.apps.testPanel.justNow");
   if (seconds < HOUR) {
     const m = Math.floor(seconds / MINUTE);
     return `${m}m ago`;

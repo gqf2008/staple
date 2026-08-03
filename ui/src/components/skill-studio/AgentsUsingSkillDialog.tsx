@@ -237,7 +237,7 @@ export function AgentsUsingSkillDialog({
           <DialogDescription>
             {count === 0
               ? t("components.agentsUsingSkillDialog.noAgentsAssigned", { defaultValue: "No agents have this skill assigned yet." })
-              : `${count} ${count === 1 ? "agent has" : "agents have"} this skill in their desired set.`}
+              : `${count} ${count === 1 ? t("ui.components.skill-studio.agentsusingskilldialog.agent-has") : t("ui.components.skill-studio.agentsusingskilldialog.agents-have")} this skill in their desired set.`}
           </DialogDescription>
         </DialogHeader>
 

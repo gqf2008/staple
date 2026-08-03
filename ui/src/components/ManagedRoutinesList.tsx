@@ -128,7 +128,7 @@ export function ManagedRoutinesList({
               runningRoutineId={runningRoutineKey}
               statusMutationRoutineId={statusMutationRoutineKey}
               href={href}
-              configureLabel="Configure"
+              configureLabel={t("ui.components.managedroutineslist.configure")}
               managedByLabel={managedBy ? `Managed by ${managedBy}` : null}
               runNowButton
               hideArchiveAction
@@ -154,7 +154,7 @@ export function ManagedRoutinesList({
                 <span>
                   {missingRefs.length
                     ? `Missing ${missingRefs.map((ref) => `${ref.resourceKind}:${ref.resourceKey}`).join(", ")}`
-                    : "Routine defaults can be repaired."}
+                    : t("ui.components.managedroutineslist.routine-defaults-can-repaired")}
                 </span>
                 <span className="flex items-center gap-2">
                   {onReconcile ? (
@@ -164,7 +164,7 @@ export function ManagedRoutinesList({
                       disabled={reconcilingRoutineKey === routine.key}
                       onClick={() => onReconcile(routine)}
                     >
-                      {reconcilingRoutineKey === routine.key ? "Reconciling..." : "Reconcile"}
+                      {reconcilingRoutineKey === routine.key ? t("ui.components.managedroutineslist.reconciling") : t("ui.components.managedroutineslist.reconcile")}
                     </Button>
                   ) : null}
                   {onReset ? (
@@ -174,7 +174,7 @@ export function ManagedRoutinesList({
                       disabled={resettingRoutineKey === routine.key}
                       onClick={() => onReset(routine)}
                     >
-                      {resettingRoutineKey === routine.key ? "Resetting..." : "Reset"}
+                      {resettingRoutineKey === routine.key ? t("ui.components.managedroutineslist.resetting") : t("components.builtInBundle.reset")}
                     </Button>
                   ) : null}
                 </span>

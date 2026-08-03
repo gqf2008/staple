@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { createContext, useContext, useMemo, type ReactNode } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { buildRoutineMentionHref, buildSkillMentionHref } from "@paperclipai/shared";

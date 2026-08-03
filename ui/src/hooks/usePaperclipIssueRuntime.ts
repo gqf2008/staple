@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useEffect, useMemo, useRef } from "react";
 import {
   useExternalStoreRuntime,

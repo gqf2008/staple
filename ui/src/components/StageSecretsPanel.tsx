@@ -53,8 +53,8 @@ export function StageSecretsPanel({
     return (
       <EmptyState
         icon={KeyRound}
-        message="Secrets are available only to step automation. Pick an agent to run this step, then add the secrets it needs."
-        action="Set up automation"
+        message={t("ui.components.stagesecretspanel.secrets-available-only-step")}
+        action={t("ui.components.stagesecretspanel.set-up-automation")}
         onAction={onSetupAutomation}
       />
     );
@@ -89,7 +89,7 @@ export function StageSecretsPanel({
       <div className="flex items-center gap-3">
         <Button type="button" onClick={onSave} disabled={!dirty || saving}>
           <Save className="h-4 w-4 mr-1.5" />
-          {saving ? "Saving…" : "Save secrets"}
+          {saving ? t("components.agentMultiSelect.saving") : t("ui.components.stagesecretspanel.save-secrets")}
         </Button>
         {dirty && !saving ? <span className="text-xs text-muted-foreground">{t("components.agentConfigForm.unsavedChanges")}</span> : null}
       </div>

@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 export function parseGoogleSheetIds(value: string): { ids: string[]; invalidCount: number } {
   const ids: string[] = [];
   let invalidCount = 0;

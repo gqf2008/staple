@@ -25,8 +25,8 @@ function CliFallback({ hasActiveInvite = false }: { hasActiveInvite?: boolean })
       </div>
       <p className="mt-2 text-sm text-muted-foreground">
         {hasActiveInvite
-          ? "A bootstrap invite is already active. Check your Paperclip startup logs for the first-admin URL, or run this command on the host to rotate it:"
-          : "Run this command on the host that runs Paperclip to print a one-time first-admin invite URL:"}
+          ? t("ui.components.bootstrappendingpage.bootstrap-invite-already-active")
+          : t("ui.components.bootstrappendingpage.run-command-host-runs")}
       </p>
       <pre className="mt-3 overflow-x-auto rounded-md border border-border bg-muted/30 p-3 font-mono text-xs">
 {BOOTSTRAP_FALLBACK_COMMAND}
@@ -51,7 +51,7 @@ function claimErrorCopy(error: BootstrapPendingPageProps["claimError"]) {
   if (error?.status === 409) {
     return {
       title: t("ui.components.bootstrappendingpage.someone-else-has-already"),
-      body: "Refresh to sign in, or ask the existing admin to invite you from Instance settings -> Access.",
+      body: t("ui.components.bootstrappendingpage.refresh-sign-ask-existing"),
     };
   }
   if (error?.status === 401) {
@@ -139,7 +139,7 @@ export function BootstrapPendingPage({
       <div className="mt-5 flex flex-wrap items-center gap-3">
         <Button onClick={onClaim} disabled={isClaiming}>
           {isClaiming && <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />}
-          {isClaiming ? "Claiming..." : "Claim this instance"}
+          {isClaiming ? t("ui.components.bootstrappendingpage.claiming") : t("ui.components.bootstrappendingpage.claim-instance")}
         </Button>
         <span className="text-sm text-muted-foreground">
           {t("ui.components.bootstrappendingpage.signed")}<span className="font-medium text-foreground">{displayIdentity(session)}</span>

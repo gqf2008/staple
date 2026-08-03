@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useRef } from "react";
 
 export const INBOX_SORT_IDLE_COMMIT_MS = 150_000;

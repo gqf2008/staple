@@ -49,7 +49,7 @@ export function IssueAssignedBacklogNotice({
                 disabled={resuming}
                 data-testid="issue-assigned-backlog-resume"
               >
-                {resuming ? "Resuming…" : "Resume now"}
+                {resuming ? t("pages.agentDetail.resuming") : t("ui.components.issueassignedbacklognotice.resume-now")}
               </Button>
             </div>
           ) : null}

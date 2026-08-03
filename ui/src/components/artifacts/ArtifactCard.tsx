@@ -135,7 +135,7 @@ function VideoPreview({ artifact }: { artifact: CompanyArtifact }) {
 function TextPreview({ artifact }: { artifact: CompanyArtifact }) {
   const preview = artifact.previewText?.trim();
   if (!preview) {
-    return <PlaceholderPreview label={artifact.source === "document" ? "Document" : "Text"} />;
+    return <PlaceholderPreview label={artifact.source === "document" ? t("components.artifactsPanel.document") : "Text"} />;
   }
   return (
     <PreviewFrame className="bg-card">

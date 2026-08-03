@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { IssueWorkMode } from "@paperclipai/shared";
 import { ClipboardList, Hammer, MessageCircleQuestion, type LucideIcon } from "lucide-react";
 
@@ -46,7 +47,7 @@ export function workModeMetaList(): WorkModeMeta[] {
   return [
     {
       value: "standard",
-      label: "Agent mode",
+      label: t("ui.lib.work-mode-meta.agent-mode"),
       shortLabel: "Agent",
       icon: Hammer,
       tone: "neutral",
@@ -54,15 +55,15 @@ export function workModeMetaList(): WorkModeMeta[] {
     },
     {
       value: "planning",
-      label: "Plan mode",
-      shortLabel: "Plan",
+      label: t("ui.lib.work-mode-meta.plan-mode"),
+      shortLabel: t("components.agentConfigForm.plan"),
       icon: ClipboardList,
       tone: "planning",
       classes: PLANNING_CLASSES,
     },
     {
       value: "ask",
-      label: "Ask mode",
+      label: t("ui.lib.work-mode-meta.ask-mode"),
       shortLabel: "Ask",
       icon: MessageCircleQuestion,
       tone: "ask",
@@ -84,10 +85,10 @@ export function nextWorkMode(mode: IssueWorkMode): IssueWorkMode {
 
 export function titleForPendingWorkMode(mode: IssueWorkMode): string {
   if (mode === "ask") {
-    return "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work.";
+    return t("ui.lib.work-mode-meta.ask-mode-submission-click");
   }
   if (mode === "planning") {
-    return "Plan mode is on for this submission. Click to change.";
+    return t("ui.lib.work-mode-meta.plan-mode-submission-click");
   }
-  return "Agent mode for this submission. Click to change.";
+  return t("ui.lib.work-mode-meta.agent-mode-submission-click");
 }

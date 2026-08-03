@@ -362,7 +362,7 @@ function ConflictBanner({
 }) {
   const labels = dirtyFields.length > 0
     ? dirtyFields.map((field) => field.label)
-    : ["the routine"];
+    : [t("ui.components.routinehistorytab.routine")];
   const fieldsText = formatDirtyFieldList(labels);
   return (
     <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
@@ -981,7 +981,7 @@ function formatVariableDefault(variable: RoutineVariable): string {
 }
 
 function formatDirtyFieldList(labels: string[]): string {
-  if (labels.length === 0) return "the routine";
+  if (labels.length === 0) return t("ui.components.routinehistorytab.routine");
   if (labels.length === 1) return labels[0];
   if (labels.length === 2) return `${labels[0]} and ${labels[1]}`;
   return `${labels.slice(0, -1).join(", ")}, and ${labels[labels.length - 1]}`;
@@ -1089,7 +1089,7 @@ function describeEnvBinding(binding: EnvBinding | undefined, secrets: SecretLook
   if (binding === undefined) return "—";
   const ref = asSecretRef(binding);
   if (ref) return `secret_ref → ${describeSecretRef(ref, secrets)}`;
-  return "plain (set)";
+  return t("ui.components.routinehistorytab.plain-set");
 }
 
 function summarizeEnv(env: RoutineEnvConfig | null): string {
@@ -1206,14 +1206,14 @@ function compareEnv(
     }
     changes.push({
       field: `Env ${key} value`,
-      oldValue: "plain (set)",
-      newValue: "plain (changed)",
+      oldValue: t("ui.components.routinehistorytab.plain-set"),
+      newValue: t("ui.components.routinehistorytab.plain-changed"),
     });
   }
 }
 
 function summarizeVariables(variables: RoutineVariable[]): string {
-  if (variables.length === 0) return "(none)";
+  if (variables.length === 0) return t("ui.components.routinehistorytab.none");
   return variables
     .map((variable) => `${variable.name}=${formatVariableDefault(variable)}`)
     .join(", ");

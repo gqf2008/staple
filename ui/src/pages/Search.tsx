@@ -925,7 +925,7 @@ function SearchTabContent({
           {allMatchTotal > totalResults
             ? `${totalResults} of ${allMatchTotal} results`
             : totalResults === 1
-              ? "1 result"
+              ? t("ui.pages.search.result")
               : `${totalResults} results`}
           {` · sorted by ${sortLabel}`}
           {activeFilterCount > 0

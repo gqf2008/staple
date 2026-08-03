@@ -1739,7 +1739,7 @@ function SkillPathDialog({
     }
     if (mode === "file") {
       if (existingPaths.has(normalized)) {
-        setError("A file already exists at that path.");
+        setError(t("ui.pages.skillstudio.file-already-exists-path"));
         return;
       }
       onSubmit(normalized, "");
@@ -1748,7 +1748,7 @@ function SkillPathDialog({
 
     const folderPath = normalized.replace(/\/+$/, "");
     if ([...existingPaths].some((path) => path.startsWith(`${folderPath}/`))) {
-      setError("A folder already exists at that path.");
+      setError(t("ui.pages.skillstudio.folder-already-exists-path"));
       return;
     }
     onSubmit(folderSeedFile(folderPath), folderSeedContent(folderPath));
@@ -2633,7 +2633,7 @@ function RunTemplateAdvancedPanel({
       title: t("pages.skillStudio.noTemplate", { defaultValue: "No template" }),
       description: t("pages.skillStudio.runInputOnly", { defaultValue: "Run only the input text." }),
       builtIn: true,
-      searchText: "no template plain input",
+      searchText: t("ui.pages.skillstudio.no-template-plain-input"),
     };
     const toOption = (template: CompanySkillTestRunTemplate): RunTemplateOption => ({
       key: template.id,

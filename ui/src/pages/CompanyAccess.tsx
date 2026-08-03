@@ -27,7 +27,7 @@ import { Link, Navigate } from "@/lib/router";
 import { queryKeys } from "@/lib/queryKeys";
 import { usePluginSlots } from "@/plugins/slots";
 
-const reassignmentIssueStatuses = "backlog,todo,in_progress,in_review,blocked,failed,timed_out";
+const reassignmentIssueStatuses = t("ui.pages.companyaccess.backlog-todo-progress-review");
 type EditableMemberStatus = "pending" | "active" | "suspended";
 
 export function CompanyAccess() {
@@ -573,7 +573,7 @@ export function CompanyAccessLegacyRoute() {
 }
 
 function memberDisplayName(member: CompanyMember | null) {
-  if (!member) return "this member";
+  if (!member) return t("ui.pages.companyaccess.member");
   return member.user?.name?.trim() || member.user?.email || member.principalId;
 }
 

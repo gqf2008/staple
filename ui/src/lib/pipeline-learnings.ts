@@ -49,7 +49,7 @@ function payloadText(event: PipelineCompanyCaseEvent, ...keys: string[]): string
 }
 
 function reviewVerb(decision: string | null): string {
-  if (decision === "request_changes") return "sent back";
+  if (decision === "request_changes") return t("ui.lib.pipeline-learnings.sent-back");
   if (decision === "reject" || decision === "drop") return "declined";
   return "approved";
 }
@@ -105,8 +105,8 @@ export function learningDayLabel(value: string | Date) {
   const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
   const startOfDay = new Date(date.getFullYear(), date.getMonth(), date.getDate()).getTime();
   const diffDays = Math.round((startOfToday - startOfDay) / 86_400_000);
-  if (diffDays === 0) return "Today";
-  if (diffDays === 1) return "Yesterday";
+  if (diffDays === 0) return t("pages.timeline.today");
+  if (diffDays === 1) return t("ui.lib.attention.yesterday");
   return formatShortDate(date);
 }
 

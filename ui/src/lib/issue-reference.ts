@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type MarkdownNode = {
   type: string;
   value?: string;

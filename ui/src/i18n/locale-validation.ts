@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import en from "./locales/en.json";
 
 const MAX_STRING_LENGTH = 2_000;
@@ -7,7 +8,7 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function formatPath(path: string[]) {
-  return path.length > 0 ? path.join(".") : "<root>";
+  return path.length > 0 ? path.join(".") : t("ui.i18n.locale-validation.root");
 }
 
 function interpolationPlaceholders(value: string) {
@@ -28,11 +29,11 @@ function urlsIn(value: string) {
 
 function hasBlockedData(value: string, englishValue: string) {
   const checks: Array<[boolean, boolean, string]> = [
-    [/<script\b/i.test(value), /<script\b/i.test(englishValue), "<script"],
-    [hasEventHandlerAttribute(value), hasEventHandlerAttribute(englishValue), "event-handler attribute"],
+    [/<script\b/i.test(value), /<script\b/i.test(englishValue), t("ui.i18n.locale-validation.script")],
+    [hasEventHandlerAttribute(value), hasEventHandlerAttribute(englishValue), t("ui.i18n.locale-validation.event-handler-attribute")],
     [/\bjavascript\s*:/i.test(value), /\bjavascript\s*:/i.test(englishValue), "javascript:"],
     [/\bdata\s*:/i.test(value), /\bdata\s*:/i.test(englishValue), "data:"],
-    [hasRawHtml(value), hasRawHtml(englishValue), "raw HTML tag"],
+    [hasRawHtml(value), hasRawHtml(englishValue), t("ui.i18n.locale-validation.raw-html-tag")],
   ];
 
   const blocked = checks

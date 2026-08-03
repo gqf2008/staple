@@ -28,7 +28,7 @@ import { Bot, Brain, FlaskConical, Loader2, MessagesSquare, Route, Sparkles, Wan
 const noop = async () => {};
 
 const highlights = [
-  "Running assistant replies with streamed text, reasoning, tool cards, and background status notes",
+  t("ui.pages.issuechatuxlab.running-assistant-replies-streamed"),
   t("pages.issueChatUxLab.historicalEvents", { defaultValue: "Historical issue events and linked runs rendered inline with the chat timeline" }),
   t("pages.issueChatUxLab.queuedMessages", { defaultValue: "Queued user messages, settled assistant comments, and feedback controls" }),
   t("pages.issueChatUxLab.submittingBubble", { defaultValue: "Submitting (pending) message bubble with Sending... label and reduced opacity" }),
@@ -77,7 +77,7 @@ const DEMO_REASONING_LINES = [
   t("pages.issueChatUxLab.reasoning1", { defaultValue: "The current implementation unmounts the old span instantly, causing a flash..." }),
   t("pages.issueChatUxLab.reasoning2", { defaultValue: "Looking at the CSS keyframes for cot-line-slide-up..." }),
   t("pages.issueChatUxLab.reasoning3", { defaultValue: "We need a paired exit animation so the old line slides out while the new one slides in..." }),
-  "Implementing a two-span ticker: exiting line goes up and out, entering line comes up from below...",
+  t("ui.pages.issuechatuxlab.implementing-two-span-ticker"),
   t("pages.issueChatUxLab.reasoning4", { defaultValue: "Testing the 280ms cubic-bezier transition timing..." }),
 ];
 
@@ -93,7 +93,7 @@ function RotatingReasoningDemo({ intervalMs = 2200 }: { intervalMs?: number }) {
   useEffect(() => {
     // Respect reduced motion (also makes the visual suite deterministic —
     // it captures with reducedMotion: "reduce").
-    if (typeof window.matchMedia === "function" && window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    if (typeof window.matchMedia === "function" && window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce")).matches) {
       return;
     }
     const timer = setInterval(() => {

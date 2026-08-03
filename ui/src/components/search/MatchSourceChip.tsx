@@ -16,8 +16,8 @@ const chipStyles: Record<MatchSourceChipKind, string> = {
 
 const chipLabels: Record<MatchSourceChipKind, string> = {
   title: t("components.agentConfigForm.title"),
-  identifier: "Identifier",
-  comment: "Comment",
+  identifier: t("pages.tools.profileDetail.identifier"),
+  comment: t("components.commentThread.comment"),
   document: "Doc",
 };
 

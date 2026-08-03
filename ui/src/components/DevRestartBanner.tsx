@@ -12,7 +12,7 @@ function formatRelativeTimestamp(value: string | null): string | null {
   if (Number.isNaN(timestamp)) return null;
 
   const deltaMs = Date.now() - timestamp;
-  if (deltaMs < 60_000) return "just now";
+  if (deltaMs < 60_000) return t("pages.apps.testPanel.justNow");
   const deltaMinutes = Math.round(deltaMs / 60_000);
   if (deltaMinutes < 60) return `${deltaMinutes}m ago`;
   const deltaHours = Math.round(deltaMinutes / 60);
@@ -23,12 +23,12 @@ function formatRelativeTimestamp(value: string | null): string | null {
 
 function describeReason(devServer: DevServerHealthStatus): string {
   if (devServer.reason === "backend_changes_and_pending_migrations") {
-    return "backend files changed and migrations are pending";
+    return t("ui.components.devrestartbanner.backend-files-changed-migrations");
   }
   if (devServer.reason === "pending_migrations") {
-    return "pending migrations need a fresh boot";
+    return t("ui.components.devrestartbanner.pending-migrations-need-fresh");
   }
-  return "backend files changed since this server booted";
+  return t("ui.components.devrestartbanner.backend-files-changed-since");
 }
 
 export function DevRestartBanner({ devServer }: { devServer?: DevServerHealthStatus }) {
@@ -124,7 +124,7 @@ export function DevRestartBanner({ devServer }: { devServer?: DevServerHealthSta
             disabled={restartPending}
           >
             <RotateCcw className="h-3.5 w-3.5" />
-            <span>{restartPending ? "Restart requested" : "Restart now"}</span>
+            <span>{restartPending ? t("ui.components.devrestartbanner.restart-requested") : t("ui.components.devrestartbanner.restart-now")}</span>
           </button>
         </div>
       </div>

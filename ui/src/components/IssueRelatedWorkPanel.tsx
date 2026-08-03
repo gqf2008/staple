@@ -192,7 +192,7 @@ export function IssueRelatedWorkPanel({
         title={t("pages.secrets.references")}
         description={t("ui.components.issuerelatedworkpanel.other-tasks-task-currently")}
         items={outbound}
-        emptyLabel="This task does not reference any other tasks yet."
+        emptyLabel={t("ui.components.issuerelatedworkpanel.task-does-not-reference")}
       />
       {externalObjectsEnabled ? (
         <ExternalObjectsSection
@@ -206,7 +206,7 @@ export function IssueRelatedWorkPanel({
         title={t("ui.components.issuerelatedworkpanel.referenced")}
         description={t("ui.components.issuerelatedworkpanel.other-tasks-currently-point")}
         items={inbound}
-        emptyLabel="No other tasks reference this task yet."
+        emptyLabel={t("ui.components.issuerelatedworkpanel.no-other-tasks-reference")}
       />
     </div>
   );

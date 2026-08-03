@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { CreateConfigValues } from "../../components/AgentConfigForm";
 
 function parseCommaArgs(value: string): string[] {

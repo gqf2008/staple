@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { ComponentType } from "react";
 import type { CreateConfigValues } from "@paperclipai/adapter-utils";
 

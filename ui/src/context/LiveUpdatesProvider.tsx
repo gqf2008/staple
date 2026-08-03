@@ -780,7 +780,7 @@ function buildJoinRequestToast(
 
   return {
     title: `${label} wants to join`,
-    body: "A new join request is waiting for approval.",
+    body: t("ui.context.liveupdatesprovider.new-join-request-waiting"),
     tone: "info",
     action: { label: t("components.liveUpdates.viewInbox", { defaultValue: "View inbox" }), href: "/inbox/mine" },
     dedupeKey: `join-request:${entityId}`,

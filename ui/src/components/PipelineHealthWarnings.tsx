@@ -125,7 +125,7 @@ export function StageHealthWarnings({
         <AlertTriangle className="h-4 w-4 shrink-0" />
         <span>
           {warnings.length === 1
-            ? "This step won't run yet"
+            ? t("ui.components.pipelinehealthwarnings.step-won-run-yet")
             : `This step won't run yet — ${warnings.length} things to fix`}
         </span>
       </h2>

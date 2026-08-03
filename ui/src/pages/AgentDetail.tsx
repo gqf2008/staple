@@ -134,7 +134,7 @@ const runStatusIcons: Record<string, { icon: typeof CheckCircle2; color: string 
 
 const RUN_LOG_PAGE_BYTES = 256_000;
 
-const REDACTED_ENV_VALUE = "***REDACTED***";
+const REDACTED_ENV_VALUE = t("ui.pages.agentdetail.redacted");
 const SECRET_ENV_KEY_RE =
   /(api[-_]?key|access[-_]?token|auth(?:_?token)?|authorization|bearer|secret|passwd|password|credential|jwt|private[-_]?key|cookie|connectionstring)/i;
 const COMMAND_ENV_KEY_RE = /(^command$|^cmd$|command[-_]?line|resolved[-_]?command|PAPERCLIP_RESOLVED_COMMAND)/i;
@@ -171,7 +171,7 @@ function redactEnvValue(key: string, value: unknown, censorUsernameInLogs: boole
     !Array.isArray(value) &&
     (value as { type?: unknown }).type === "secret_ref"
   ) {
-    return "***SECRET_REF***";
+    return t("ui.pages.agentdetail.secret-ref");
   }
   if (shouldRedactSecretValue(key, value)) return REDACTED_ENV_VALUE;
   if (value === null || value === undefined) return "";
@@ -201,10 +201,10 @@ function shouldUseMarkdownInstructionsEditor(input: {
 
 function formatEnvForDisplay(envValue: unknown, censorUsernameInLogs: boolean): string {
   const env = asRecord(envValue);
-  if (!env) return "<unable-to-parse>";
+  if (!env) return t("ui.pages.agentdetail.unable-parse");
 
   const keys = Object.keys(env);
-  if (keys.length === 0) return "<empty>";
+  if (keys.length === 0) return t("ui.pages.agentdetail.empty");
 
   return keys
     .sort()
@@ -564,7 +564,7 @@ function WorkspaceOperationLogViewer({
               {chunks.map((chunk, index) => (
                 <div key={`${chunk.ts}-${index}`} className="flex gap-2">
                   <span className="shrink-0 text-neutral-500">
-                    {new Date(chunk.ts).toLocaleTimeString("en-US", { hour12: false })}
+                    {new Date(chunk.ts).toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), { hour12: false })}
                   </span>
                   <span
                     className={cn(
@@ -1783,7 +1783,7 @@ function AgentConfigurePage({
                     </div>
                     <p className="text-xs text-muted-foreground">
                       {t("ui.components.devrestartbanner.changed")}{" "}
-                      {revision.changedKeys.length > 0 ? revision.changedKeys.join(", ") : "no tracked changes"}
+                      {revision.changedKeys.length > 0 ? revision.changedKeys.join(", ") : t("ui.pages.agentdetail.no-tracked-changes")}
                     </p>
                   </div>
                 ))}
@@ -3086,8 +3086,8 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
   }, [isRunning, run.startedAt]);
 
   const timeFormat: Intl.DateTimeFormatOptions = { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false };
-  const startTime = run.startedAt ? new Date(run.startedAt).toLocaleTimeString("en-US", timeFormat) : null;
-  const endTime = run.finishedAt ? new Date(run.finishedAt).toLocaleTimeString("en-US", timeFormat) : null;
+  const startTime = run.startedAt ? new Date(run.startedAt).toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), timeFormat) : null;
+  const endTime = run.finishedAt ? new Date(run.finishedAt).toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), timeFormat) : null;
   const durationSec = run.startedAt && run.finishedAt
     ? Math.round((new Date(run.finishedAt).getTime() - new Date(run.startedAt).getTime()) / 1000)
     : null;
@@ -3361,8 +3361,8 @@ function RunDetail({ run: initialRun, agentRouteId, adapterType, adapterConfig }
                       }}
                     >
                       {clearSessionsForTouchedIssues.isPending
-                        ? "clearing session..."
-                        : "clear session for these tasks"}
+                        ? t("ui.pages.agentdetail.clearing-session")
+                        : t("ui.pages.agentdetail.clear-session-these-tasks")}
                     </button>
                     {clearSessionsForTouchedIssues.isError && (
                       <p className="text-(length:--text-micro) text-destructive mt-1">
@@ -3954,8 +3954,8 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
               {loadingMoreLog ? t("pages.agentDetail.loading", { defaultValue: "Loading..." }) : t("pages.agentDetail.loadMoreLog", { defaultValue: "Load more log" })}
             </Button>
             <span className="text-xs text-muted-foreground">
-              {t("ui.pages.agentdetail.showing-first")}{Math.round(logOffset / 1024).toLocaleString("en-US")} {t("ui.pages.agentdetail.kb")}{typeof run.logBytes === "number" && run.logBytes > 0
-                ? ` of ${Math.round(run.logBytes / 1024).toLocaleString("en-US")} KB`
+              {t("ui.pages.agentdetail.showing-first")}{Math.round(logOffset / 1024).toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"))} {t("ui.pages.agentdetail.kb")}{typeof run.logBytes === "number" && run.logBytes > 0
+                ? ` of ${Math.round(run.logBytes / 1024).toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"))} KB`
                 : ""}
             </span>
           </div>
@@ -4017,7 +4017,7 @@ function LogViewer({ run, adapterType }: { run: HeartbeatRun; adapterType: strin
               return (
                 <div key={evt.id} className="flex gap-2">
                   <span className="text-neutral-400 dark:text-neutral-600 shrink-0 select-none w-16">
-                    {new Date(evt.createdAt).toLocaleTimeString("en-US", { hour12: false })}
+                    {new Date(evt.createdAt).toLocaleTimeString(t("ui.components.timeline.worktimelinechart.en-us"), { hour12: false })}
                   </span>
                   <span className={cn("shrink-0 w-14", evt.stream ? (streamColors[evt.stream] ?? "text-neutral-500") : "text-neutral-500")}>
                     {evt.stream ? `[${evt.stream}]` : ""}

@@ -36,7 +36,7 @@ export function WorktreeBanner() {
           title={t("ui.components.worktreebanner.click-copy-worktree-name")}
           className="truncate font-semibold tracking-(--tracking-eyebrow) cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 text-current uppercase text-(length:--text-micro)"
         >
-          {copied ? "Copied!" : branding.name}
+          {copied ? t("components.issueWorkspace.copiedExcl") : branding.name}
         </button>
       </div>
     </div>

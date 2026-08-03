@@ -126,9 +126,9 @@ const KIND_LABEL: Record<IssueRecoveryActionKind, string> = {
 
 const KIND_HEADLINE: Record<IssueRecoveryActionKind, string> = {
   missing_disposition:
-    "This task's run finished, but no next step was chosen. Choose what happens next — try the task again, mark it done, or send it for review.",
+    t("ui.components.issuerecoveryactioncard.task-run-finished-but"),
   stranded_assigned_issue:
-    "Paperclip retried this task's last run, but there is still no queued run, reviewer, blocker, or other next owner. To get it moving, choose what happens next — try the task again, mark it done, or send it for review.",
+    t("ui.components.issuerecoveryactioncard.paperclip-retried-task-last"),
   workspace_validation:
     t("components.issueRecoveryAction.workspaceInvalidDesc", { defaultValue: "Paperclip stopped this run because the task's git workspace could not be validated." }),
   configuration_validation:
@@ -136,7 +136,7 @@ const KIND_HEADLINE: Record<IssueRecoveryActionKind, string> = {
   active_run_watchdog:
     t("components.issueRecoveryAction.silentRunDesc", { defaultValue: "The active run has been silent. Recovery is observing without interrupting it." }),
   issue_graph_liveness:
-    "Paperclip could not find a clear next step for this open task. Choose whether to continue work, send it for review, mark it done, or record what is blocking it.",
+    t("ui.components.issuerecoveryactioncard.paperclip-could-not-find"),
 };
 
 const STATE_TONE: Record<RecoveryCardCardState, {
@@ -202,10 +202,10 @@ const STATE_TONE: Record<RecoveryCardCardState, {
 
 const OUTCOME_LABEL: Record<IssueRecoveryActionOutcome, string> = {
   restored: "restored",
-  handed_back: "handed back to original owner",
-  owner_completed: "completed by recovery owner",
+  handed_back: t("ui.components.issuerecoveryactioncard.handed-back-original-owner"),
+  owner_completed: t("ui.components.issuerecoveryactioncard.completed-recovery-owner"),
   delegated: "delegated to follow-up",
-  false_positive: "false positive",
+  false_positive: t("ui.components.issuerecoveryactioncard.false-positive"),
   blocked: "blocked",
   escalated: "escalated",
   cancelled: "cancelled",
@@ -471,7 +471,7 @@ function DivergenceDiagnosis({
           <span>
             {t("ui.components.issuerecoveryactioncard.worktree-claimed")}{" "}
             <code className="font-mono text-foreground/90">{contentionLabel(divergence.contention)}</code>{" "}
-            {divergence.contention.hasActiveRun ? "(active run)" : "(claim held)"} {t("ui.components.issuerecoveryactioncard.lossless-repair-can-apos")}</span>
+            {divergence.contention.hasActiveRun ? t("ui.components.issuerecoveryactioncard.active-run") : t("ui.components.issuerecoveryactioncard.claim-held")} {t("ui.components.issuerecoveryactioncard.lossless-repair-can-apos")}</span>
         </p>
       ) : null}
     </div>
@@ -933,8 +933,8 @@ export function IssueRecoveryActionCard({
 
   const ariaState = ({
     needed: "needed",
-    in_progress: "in progress",
-    observe_only: "observing active run",
+    in_progress: t("components.activityCharts.inProgress"),
+    observe_only: t("components.issueRecoveryAction.observingRun"),
     escalated: "escalated",
     resolved: "resolved",
   } satisfies Record<RecoveryCardCardState, string>)[cardState];

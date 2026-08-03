@@ -581,7 +581,7 @@ class IssueChatErrorBoundary extends Component<IssueChatErrorBoundaryProps, Issu
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error("Issue chat renderer failed; falling back to safe transcript view", {
+    console.error(t("ui.components.issuechatthread.issue-chat-renderer-failed"), {
       error,
       info: info.componentStack,
     });
@@ -2910,7 +2910,7 @@ function IssueChatSystemMessage({ message }: { message: ThreadMessage }) {
         <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-0.5 text-xs">
           <span className="font-medium text-foreground">{actorName}</span>
           <span className="text-muted-foreground">
-            {custom.followUpRequested === true ? "requested follow-up" : "updated this task"}
+            {custom.followUpRequested === true ? "requested follow-up" : t("ui.components.issuechatthread.updated-task.2")}
           </span>
           <a
             href={anchorId ? `#${anchorId}` : undefined}
@@ -3422,7 +3422,7 @@ const VirtualizedIssueChatThreadListInner = forwardRef<
       const element = parentRef.current;
       if (!element || typeof window === "undefined") return;
       const rows = Array.from(
-        element.querySelectorAll<HTMLElement>("[data-anchor-id][data-index]"),
+        element.querySelectorAll<HTMLElement>(t("ui.components.issuechatthread.data-anchor-id-data")),
       );
       const visibleRow = rows.find((row) => row.getBoundingClientRect().bottom >= 0);
       if (!visibleRow) return;
@@ -4123,7 +4123,7 @@ const IssueChatComposer = forwardRef<IssueChatComposerHandle, IssueChatComposerP
                   aria-haspopup="menu"
                   aria-expanded={workModeMenuOpen}
                   aria-pressed={pendingWorkMode !== "standard"}
-                  aria-keyshortcuts="Meta+Period Control+Period"
+                  aria-keyshortcuts={t("ui.components.issuechatthread.meta-period-control-period")}
                   title={titleForPendingWorkMode(pendingWorkMode)}
                   className={cn(
                     "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-(length:--text-micro) font-semibold transition-colors",

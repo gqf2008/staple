@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { CompanySearchHighlight } from "@paperclipai/shared";
 import { cn } from "@/lib/utils";
 

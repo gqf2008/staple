@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { cn } from "@/lib/utils";
 
@@ -50,7 +51,7 @@ export function CopyText({
       }
       setLabel(copiedLabel);
     } catch {
-      setLabel("Copy failed");
+      setLabel(t("components.commentThread.copyFailed"));
     }
     clearTimeout(timerRef.current);
     setVisible(true);

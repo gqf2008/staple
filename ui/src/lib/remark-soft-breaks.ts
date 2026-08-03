@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 type MarkdownNode = {
   type?: unknown;
   value?: unknown;

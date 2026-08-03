@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 export type SecretPathRow =
   | { kind: "company"; secret: { name: string } }
   | { kind: "user"; definition: { name: string } };
@@ -106,7 +107,7 @@ export function buildSecretPathBreadcrumbs(path: string): SecretPathBreadcrumb[]
 }
 
 export function validateSecretFolderSegment(value: string): string | null {
-  if (!value.trim()) return "Folder name is required.";
-  if (value.includes("/")) return "Folder name cannot contain slashes.";
+  if (!value.trim()) return t("ui.pages.secrets.secret-path.folder-name-required");
+  if (value.includes("/")) return t("ui.pages.secrets.secret-path.folder-name-cannot-contain");
   return null;
 }

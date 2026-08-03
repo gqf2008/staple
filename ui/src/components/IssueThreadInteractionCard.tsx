@@ -695,7 +695,7 @@ function SuggestTasksCard({
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
-        <span>{totalTasks === 1 ? "1 draft issue" : `${totalTasks} draft issues`}</span>
+        <span>{totalTasks === 1 ? t("ui.components.issuethreadinteractioncard.draft-issue") : `${totalTasks} draft issues`}</span>
         {interaction.payload.defaultParentId ? (
           <TaskField label={t("components.issueThreadInteraction.defaultParent", { defaultValue: "Default parent" })} value={interaction.payload.defaultParentId} tone="subtle" />
         ) : null}
@@ -1020,7 +1020,7 @@ function AskUserQuestionsCard({
           {t("components.issueThreadInteraction.askUserQuestions")}</Badge>
         <span>
           {questions.length === 1
-            ? "1 question"
+            ? t("ui.components.issuethreadinteractioncard.question.2")
             : `${questions.length} questions`}
         </span>
       </div>
@@ -1370,7 +1370,7 @@ function RequestConfirmationResolution({
         </div>
         <p className="leading-6">
           {expiredByComment
-            ? "A board comment superseded this confirmation before it was resolved."
+            ? t("ui.components.issuethreadinteractioncard.board-comment-superseded-confirmation")
             : expiredWithIssue
               ? t("components.issueThreadInteraction.confirmationClosed", { defaultValue: "The issue was closed before this confirmation was resolved." })
               : t("components.issueThreadInteraction.confirmationTargetChanged", { defaultValue: "The requested target changed before this confirmation was resolved." })}
@@ -2798,7 +2798,7 @@ function RequestItemVerdictsCard({
           </div>
           {progress.decided > 0 ? (
             <p className="mt-1 text-xs leading-5">
-              {progress.decided === 1 ? "1 item was" : `${progress.decided} items were`} {t("ui.components.issuethreadinteractioncard.already-applied-cannot-reverted")}</p>
+              {progress.decided === 1 ? t("ui.components.issuethreadinteractioncard.item-was") : `${progress.decided} items were`} {t("ui.components.issuethreadinteractioncard.already-applied-cannot-reverted")}</p>
           ) : null}
         </div>
       ) : null}

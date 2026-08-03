@@ -416,16 +416,16 @@ export function IssueWorkspaceCard({
             <div className="text-muted-foreground" style={{ overflowWrap: "anywhere" }}>
               {t("ui.components.issueworkspacecard.environment")}<span className="text-foreground">{currentEnvironment?.name ?? currentEnvironmentId}</span>
               {currentSelection === "reuse_existing" && currentReusableEnvironmentId === currentEnvironmentId
-                ? " · reused workspace"
+                ? t("ui.components.issueworkspacecard.reused-workspace")
                 : !issue.executionWorkspaceSettings?.environmentId && projectEnvironmentId === currentEnvironmentId
-                ? " · project default"
+                ? t("ui.components.issueworkspacecard.project-default")
                 : null}
             </div>
           )}
           {!workspace && (
             <div className="text-muted-foreground">
               {currentSelection === "isolated_workspace"
-                ? "A fresh isolated workspace will be created when this task runs."
+                ? t("ui.components.issueworkspacecard.fresh-isolated-workspace-will")
                 : currentSelection === "reuse_existing"
                   ? t("components.issueWorkspace.reuseHint", { defaultValue: "This task will reuse an existing workspace when it runs." })
                   : t("components.issueWorkspace.defaultHint", { defaultValue: "This task will use the project default workspace configuration when it runs." })}

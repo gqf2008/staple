@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { deriveAgentUrlKey, deriveProjectUrlKey, normalizeProjectUrlKey, hasNonAsciiContent } from "@paperclipai/shared";
@@ -34,11 +35,11 @@ export function asFiniteNumber(value: unknown, fallback: number) {
 }
 
 export function formatCents(cents: number): string {
-  return `$${(cents / 100).toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  return `$${(cents / 100).toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"), { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
 }
 
 export function formatNumber(n: number): string {
-  return n.toLocaleString("en-US");
+  return n.toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"));
 }
 
 /**
@@ -51,7 +52,7 @@ export function formatProjectBudget(budget: { amountCents: number; windowKind: s
 }
 
 export function formatDate(date: Date | string): string {
-  return new Date(date).toLocaleDateString("en-US", {
+  return new Date(date).toLocaleDateString(t("ui.components.timeline.worktimelinechart.en-us"), {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -59,7 +60,7 @@ export function formatDate(date: Date | string): string {
 }
 
 export function formatDateTime(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+  return new Date(date).toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"), {
     month: "short",
     day: "numeric",
     year: "numeric",
@@ -69,7 +70,7 @@ export function formatDateTime(date: Date | string): string {
 }
 
 export function formatShortDate(date: Date | string): string {
-  return new Date(date).toLocaleString("en-US", {
+  return new Date(date).toLocaleString(t("ui.components.timeline.worktimelinechart.en-us"), {
     month: "short",
     day: "numeric",
   });
@@ -79,7 +80,7 @@ export function relativeTime(date: Date | string): string {
   const now = Date.now();
   const then = new Date(date).getTime();
   const diffSec = Math.round((now - then) / 1000);
-  if (diffSec < 60) return "just now";
+  if (diffSec < 60) return t("pages.apps.testPanel.justNow");
   const diffMin = Math.round(diffSec / 60);
   if (diffMin < 60) return `${diffMin}m ago`;
   const diffHr = Math.round(diffMin / 60);
@@ -117,13 +118,13 @@ export function formatDurationMs(ms: number): string {
 /** Map a raw provider slug to a display-friendly name. */
 export function providerDisplayName(provider: string): string {
   const map: Record<string, string> = {
-    anthropic: "Anthropic",
-    aws_bedrock: "AWS Bedrock",
-    openai: "OpenAI",
+    anthropic: t("ui.lib.utils.anthropic"),
+    aws_bedrock: t("ui.lib.utils.aws-bedrock"),
+    openai: t("ui.lib.utils.openai"),
     openrouter: "OpenRouter",
-    chatgpt: "ChatGPT",
-    google: "Google",
-    cursor: "Cursor",
+    chatgpt: t("ui.lib.utils.chatgpt"),
+    google: t("ui.lib.utils.google"),
+    cursor: t("pages.inviteUxLab.cursor"),
     jetbrains: "JetBrains AI",
   };
   return map[provider.toLowerCase()] ?? provider;
@@ -131,11 +132,11 @@ export function providerDisplayName(provider: string): string {
 
 export function billingTypeDisplayName(billingType: BillingType): string {
   const map: Record<BillingType, string> = {
-    metered_api: "Metered API",
-    subscription_included: "Subscription",
-    subscription_overage: "Subscription overage",
-    credits: "Credits",
-    fixed: "Fixed",
+    metered_api: t("ui.lib.utils.metered-api"),
+    subscription_included: t("ui.lib.utils.subscription"),
+    subscription_overage: t("ui.lib.utils.subscription-overage"),
+    credits: t("pages.costs.credits"),
+    fixed: t("components.openclawConfig.fixed"),
     unknown: "Unknown",
   };
   return map[billingType];
@@ -143,11 +144,11 @@ export function billingTypeDisplayName(billingType: BillingType): string {
 
 export function quotaSourceDisplayName(source: string): string {
   const map: Record<string, string> = {
-    "anthropic-oauth": "Anthropic OAuth",
-    "claude-cli": "Claude CLI",
-    "bedrock": "AWS Bedrock",
-    "codex-rpc": "Codex app server",
-    "codex-wham": "ChatGPT WHAM",
+    "anthropic-oauth": t("ui.lib.utils.anthropic-oauth"),
+    "claude-cli": t("components.claudeConfig.claudeCli"),
+    "bedrock": t("ui.lib.utils.aws-bedrock"),
+    "codex-rpc": t("ui.lib.utils.codex-app-server"),
+    "codex-wham": t("ui.lib.utils.chatgpt-wham"),
   };
   return map[source] ?? source;
 }
@@ -186,26 +187,26 @@ export function visibleRunCostUsd(
 
 export function financeEventKindDisplayName(eventKind: FinanceEventKind): string {
   const map: Record<FinanceEventKind, string> = {
-    inference_charge: "Inference charge",
-    platform_fee: "Platform fee",
-    credit_purchase: "Credit purchase",
-    credit_refund: "Credit refund",
-    credit_expiry: "Credit expiry",
-    byok_fee: "BYOK fee",
-    gateway_overhead: "Gateway overhead",
-    log_storage_charge: "Log storage",
-    logpush_charge: "Logpush",
-    provisioned_capacity_charge: "Provisioned capacity",
-    training_charge: "Training",
-    custom_model_import_charge: "Custom model import",
-    custom_model_storage_charge: "Custom model storage",
-    manual_adjustment: "Manual adjustment",
+    inference_charge: t("ui.lib.utils.inference-charge"),
+    platform_fee: t("ui.lib.utils.platform-fee"),
+    credit_purchase: t("ui.lib.utils.credit-purchase"),
+    credit_refund: t("ui.lib.utils.credit-refund"),
+    credit_expiry: t("ui.lib.utils.credit-expiry"),
+    byok_fee: t("ui.lib.utils.byok-fee"),
+    gateway_overhead: t("ui.lib.utils.gateway-overhead"),
+    log_storage_charge: t("ui.lib.utils.log-storage"),
+    logpush_charge: t("ui.lib.utils.logpush"),
+    provisioned_capacity_charge: t("ui.lib.utils.provisioned-capacity"),
+    training_charge: t("pages.decisions.training"),
+    custom_model_import_charge: t("ui.lib.utils.custom-model-import"),
+    custom_model_storage_charge: t("ui.lib.utils.custom-model-storage"),
+    manual_adjustment: t("ui.lib.utils.manual-adjustment"),
   };
   return map[eventKind];
 }
 
 export function financeDirectionDisplayName(direction: FinanceDirection): string {
-  return direction === "credit" ? "Credit" : "Debit";
+  return direction === "credit" ? t("ui.lib.utils.credit") : t("ui.lib.utils.debit");
 }
 
 /** Build an issue URL using the human-readable identifier when available. */

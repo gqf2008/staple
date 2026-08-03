@@ -5,6 +5,7 @@
  * thinking → tool → diff → responding while a run is in flight, rather than
  * only showing the final message once the turn produces a comment.
  */
+import { t } from "../../i18n";
 import type { TranscriptEntry } from "@/adapters";
 import type {
   TaskChatDiff,
@@ -87,7 +88,7 @@ export function summarizeToolInput(input: unknown): string | undefined {
  */
 export function toolDisplayName(name: string | undefined | null): string {
   const raw = (name ?? "").trim();
-  if (isGenericToolName(raw)) return "Tool";
+  if (isGenericToolName(raw)) return t("pages.agentToolsTab.tool");
   const mcp = mcpToolSegment(raw);
   if (mcp) return mcp;
   return raw.charAt(0).toUpperCase() + raw.slice(1);
@@ -382,8 +383,8 @@ export function deriveRunStatusLabel(entries: readonly TranscriptEntry[]): {
       };
     }
     if (entry.kind === "tool_result") break;
-    if (entry.kind === "assistant") return { label: "Responding" };
-    if (entry.kind === "thinking") return { label: "Thinking" };
+    if (entry.kind === "assistant") return { label: t("ui.components.task-chat.transcript-adapter.responding") };
+    if (entry.kind === "thinking") return { label: t("ui.components.task-chat.task-chat-states.thinking") };
   }
   return { label: "Running" };
 }

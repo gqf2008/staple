@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { DollarSign } from "lucide-react";
 
 export type BudgetSidebarMarkerLevel = "healthy" | "warning" | "critical";
@@ -9,9 +10,9 @@ const levelClasses: Record<BudgetSidebarMarkerLevel, string> = {
 };
 
 const defaultTitles: Record<BudgetSidebarMarkerLevel, string> = {
-  healthy: "Budget healthy",
-  warning: "Budget warning",
-  critical: "Paused by budget",
+  healthy: t("ui.components.budgetsidebarmarker.budget-healthy"),
+  warning: t("ui.components.budgetsidebarmarker.budget-warning"),
+  critical: t("ui.components.budgetsidebarmarker.paused-budget"),
 };
 
 export function BudgetSidebarMarker({

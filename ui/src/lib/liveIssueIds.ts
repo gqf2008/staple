@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { LiveRunForIssue } from "../api/heartbeats";
 
 function isLiveRunStatus(status: string): boolean {

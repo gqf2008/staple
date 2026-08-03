@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   COMPANY_SEARCH_SORTS,
   type CompanySearchSort,
@@ -14,17 +15,17 @@ import type { ParsedSearchQuery } from "./search-query-parser";
 export type SearchFilters = ParsedSearchQuery["filters"];
 
 export const SORT_LABELS: Record<CompanySearchSort, string> = {
-  relevance: "Relevance",
-  updated: "Recently updated",
-  created: "Newest created",
-  priority: "Priority",
+  relevance: t("ui.lib.search-filters.relevance"),
+  updated: t("pages.companySkills.recentlyUpdated"),
+  created: t("ui.lib.search-filters.newest-created"),
+  priority: t("components.fileTree.priority"),
 };
 
 export const UPDATED_WITHIN_LABELS: Record<string, string> = {
-  "24h": "Last 24 hours",
-  "7d": "Last 7 days",
-  "30d": "Last 30 days",
-  "90d": "Last 90 days",
+  "24h": t("pages.tools.audit.last24h"),
+  "7d": t("pages.tools.audit.last7d"),
+  "30d": t("pages.tools.audit.last30d"),
+  "90d": t("ui.lib.search-filters.last-90-days"),
 };
 
 export function updatedWithinLabel(value: string): string {
@@ -117,7 +118,7 @@ function assigneeChipLabel(filters: SearchFilters, lookups: FilterChipLookups): 
     if (filters.assigneeUserId === lookups.currentUserId) return "Me";
     return lookups.userName(filters.assigneeUserId) ?? "User";
   }
-  return "Assignee";
+  return t("components.dialogs.newIssue.assignee");
 }
 
 /** Removable chip descriptors for the active-filter row. */

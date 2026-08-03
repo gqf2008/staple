@@ -114,7 +114,7 @@ function clearStoredPaneWidth() {
 
 function prefersReducedMotion(): boolean {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") return false;
-  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return window.matchMedia(t("ui.components.asciiartanimation.prefers-reduced-motion-reduce")).matches;
 }
 
 /** Fixed-position geometry while the panel is maximized (or gliding). */
@@ -369,7 +369,7 @@ function ResizablePropertiesPanel({
                 variant="ghost"
                 size="icon-xs"
                 className="size-7"
-                title={maximized ? "Restore panel" : "Maximize panel"}
+                title={maximized ? t("ui.components.propertiespanel.restore-panel") : t("ui.components.propertiespanel.maximize-panel")}
                 aria-label={maximized ? "Restore panel" : "Maximize panel"}
                 onClick={maximized ? handleRestore : handleMaximize}
               >

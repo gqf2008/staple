@@ -485,7 +485,7 @@ export function getCreateProviderBlockReason(
     if (selectedProviderConfigBlockReason) return selectedProviderConfigBlockReason;
     const healthEntry = healthEntryForProvider(health, provider.id);
     const deploymentMessage = `Deployment default ${provider.label} is not configured.`;
-    const nextStep = " Select a ready provider vault or configure the deployment default.";
+    const nextStep = t("ui.pages.secrets.select-ready-provider-vault");
     return healthEntry?.message
       ? `${deploymentMessage}${nextStep} ${healthEntry.message}`
       : `${deploymentMessage}${nextStep}`;
@@ -2755,9 +2755,9 @@ export function Secrets() {
                         {provider.label}
                         {provider.configured === false &&
                         !getSelectableProviderConfig(providerConfigs, provider.id)
-                          ? " (deployment default missing)"
+                          ? t("ui.pages.secrets.deployment-default-missing")
                           : provider.requiresExternalRef
-                            ? " (external only)"
+                            ? t("ui.pages.secrets.external-only")
                             : ""}
                       </option>
                     ))}
@@ -2787,7 +2787,7 @@ export function Secrets() {
                       return (
                         <option key={config.id} value={config.id} disabled={Boolean(blockReason)}>
                           {config.displayName}
-                          {config.isDefault ? " (default)" : ""}
+                          {config.isDefault ? t("ui.pages.secrets.default.2") : ""}
                           {blockReason ? ` (${blockReason})` : ""}
                         </option>
                       );
@@ -2983,10 +2983,10 @@ export function Secrets() {
             </DialogTitle>
             <DialogDescription>
               {selectedSecret?.managedMode !== "external_reference"
-                ? "Creates a new provider-backed version. Consumers pinned to latest pick up the new value on the next run."
+                ? t("ui.pages.secrets.creates-new-provider-backed")
                 : rotateMode === "reference"
-                  ? "Creates a new Paperclip metadata version that points at an existing provider secret. Paperclip does not write a new provider value."
-                  : "Writes a new version of the referenced provider secret. The new value becomes current for every consumer of that secret, in and outside Paperclip."}
+                  ? t("ui.pages.secrets.creates-new-paperclip-metadata")
+                  : t("ui.pages.secrets.writes-new-version-referenced")}
             </DialogDescription>
           </DialogHeader>
           {selectedSecret && secretSupportsExternalValueWrite(selectedSecret) ? (
@@ -3011,7 +3011,7 @@ export function Secrets() {
                 return (
                   <option key={config.id} value={config.id} disabled={Boolean(blockReason)}>
                     {config.displayName}
-                    {config.isDefault ? " (default)" : ""}
+                    {config.isDefault ? t("ui.pages.secrets.default.2") : ""}
                     {blockReason ? ` (${blockReason})` : ""}
                   </option>
                 );
@@ -3496,7 +3496,7 @@ export function ProviderVaultsTab({
               <div className="rounded-md border border-dashed border-border bg-muted/20 p-4 text-sm text-muted-foreground">
                 {isComingSoonFamily
                   ? t("pages.secrets.notSupported", { defaultValue: "Not yet supported." })
-                  : "No company-specific vaults yet. Secrets can still use the deployment default provider settings."}
+                  : t("ui.pages.secrets.no-company-specific-vaults")}
               </div>
             ) : (
               <div className="space-y-3">
@@ -4375,7 +4375,7 @@ function AgentAccessSection({
       </div>
       <p className="mt-0.5 text-(length:--text-micro) text-muted-foreground">
         {reference.kind === "company"
-          ? "Add here to inject this secret as an environment variable at run start. API-access grants (fetched on demand, no env var) are managed from each agent's Secret access settings and shown below."
+          ? t("ui.pages.secrets.add-here-inject-secret")
           : t("pages.secrets.agentAccessHint", { defaultValue: "These agents resolve the responsible user's value as an environment variable at run start." })}
       </p>
       {agentsQuery.isPending ? (
@@ -4617,7 +4617,7 @@ export function SecretUsageTab({ loading, bindings }: { loading: boolean; bindin
               ) : (
                 <span className="font-mono">{binding.configPath}</span>
               )}{" "}
-              {binding.required ? "· required" : "· optional"}
+              {binding.required ? t("ui.pages.companyskills.required") : t("ui.pages.secrets.optional")}
             </div>
           </div>
         );

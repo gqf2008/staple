@@ -844,10 +844,10 @@ export function CompanyExport() {
     }
 
     // Regenerate README.md based on checked selection
-    if (typeof exportData.files["README.md"] === "string") {
+    if (typeof exportData.files[t("ui.pages.companyexport.readme-md.2")] === "string") {
       const companyName = exportData.manifest.company?.name ?? selectedCompany?.name ?? t("pages.companyExport.company", { defaultValue: "Company" });
       const companyDescription = exportData.manifest.company?.description ?? null;
-      filtered["README.md"] = generateReadmeFromSelection(
+      filtered[t("ui.pages.companyexport.readme-md.2")] = generateReadmeFromSelection(
         exportData.manifest,
         checkedFiles,
         companyName,
@@ -1045,7 +1045,7 @@ export function CompanyExport() {
                     )}
                     title={
                       disabled
-                        ? "Attachments travel with tasks and routines; re-enable one of them to include attachments."
+                        ? t("ui.pages.companyexport.attachments-travel-tasks-routines")
                         : undefined
                     }
                   >

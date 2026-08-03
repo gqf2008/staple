@@ -257,7 +257,7 @@ export function SecretBindingPicker({
       ) : crossCompanyHint ? (
         <p className="text-(length:--text-micro) text-muted-foreground flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />
-          {t("ui.components.secretbindingpicker.owned")}{crossCompanyHint.companyName ? `the ${crossCompanyHint.companyName} company` : "another company"}{t("ui.components.secretbindingpicker.binding-keeps-working-selecting")}</p>
+          {t("ui.components.secretbindingpicker.owned")}{crossCompanyHint.companyName ? `the ${crossCompanyHint.companyName} company` : t("ui.components.secretbindingpicker.another-company")}{t("ui.components.secretbindingpicker.binding-keeps-working-selecting")}</p>
       ) : missingHint ? (
         <p className="text-(length:--text-micro) text-destructive flex items-center gap-1">
           <AlertCircle className="h-3 w-3" />

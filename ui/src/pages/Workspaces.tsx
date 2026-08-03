@@ -168,7 +168,7 @@ export function Workspaces() {
                 onClick={() => void overviewQuery.fetchNextPage()}
                 disabled={overviewQuery.isFetchingNextPage}
               >
-                {overviewQuery.isFetchingNextPage ? "Loading..." : "Load more"}
+                {overviewQuery.isFetchingNextPage ? t("components.sidebarServerInfo.loading") : t("pages.audit.loadMore")}
               </Button>
             </div>
           ) : null}

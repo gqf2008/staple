@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import {
   COMPANY_SEARCH_UPDATED_WITHIN_OPTIONS,
   ISSUE_PRIORITIES,
@@ -37,16 +38,16 @@ export interface SearchOperatorSuggestion {
   description: string;
 }
 
-export const SEARCH_OPERATOR_QUICK_FILTERS = ["assignee:me", "is:open", "updated:>7d"] as const;
+export const SEARCH_OPERATOR_QUICK_FILTERS = ["assignee:me", "is:open", t("ui.lib.search-query-parser.updated-7d")] as const;
 
 export const SEARCH_OPERATOR_SUGGESTIONS: SearchOperatorSuggestion[] = [
-  { token: "status:todo", label: "Open todo tasks", description: "Filter by task status" },
-  { token: "status:blocked", label: "Blocked tasks", description: "Find blocked work" },
-  { token: "assignee:me", label: "Assigned to me", description: "Use your current board user" },
-  { token: "project:\"Paperclip App\"", label: "Project name", description: "Quote multi-word project names" },
-  { token: "label:bug", label: "Label", description: "Filter by issue label" },
-  { token: "priority:high", label: "High priority", description: "Filter by priority" },
-  { token: "updated:>7d", label: "Recently updated", description: "Updated in the last 7 days" },
+  { token: "status:todo", label: t("ui.lib.search-query-parser.open-todo-tasks"), description: t("ui.lib.search-query-parser.filter-task-status") },
+  { token: "status:blocked", label: t("ui.lib.search-query-parser.blocked-tasks"), description: t("ui.lib.search-query-parser.find-blocked-work") },
+  { token: "assignee:me", label: t("ui.lib.search-query-parser.assigned-me"), description: t("ui.lib.search-query-parser.use-your-current-board") },
+  { token: t("ui.lib.search-query-parser.project-paperclip-app"), label: t("components.dialogs.newProject.projectName"), description: t("ui.lib.search-query-parser.quote-multi-word-project") },
+  { token: "label:bug", label: "Label", description: t("ui.lib.search-query-parser.filter-issue-label") },
+  { token: "priority:high", label: t("ui.lib.search-query-parser.high-priority"), description: t("ui.lib.search-query-parser.filter-priority") },
+  { token: t("ui.lib.search-query-parser.updated-7d"), label: t("pages.companySkills.recentlyUpdated"), description: t("ui.lib.search-query-parser.updated-last-days") },
 ];
 
 export interface SearchQueryParserContext {

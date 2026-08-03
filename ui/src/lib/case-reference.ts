@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 // Linkify bare case identifiers (e.g. `PAP-C7`) inside markdown so they render
 // as clickable chips pointing at the case detail page. Mirrors the sibling
 // issue-reference plugin, but the `-C<n>` infix keeps case tokens from ever

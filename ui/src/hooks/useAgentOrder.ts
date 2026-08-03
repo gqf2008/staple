@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Agent } from "@paperclipai/shared";
 import {

@@ -21,7 +21,7 @@ class RouteErrorBoundaryInner extends Component<RouteErrorBoundaryInnerProps, Ro
   }
 
   override componentDidCatch(error: unknown, info: ErrorInfo): void {
-    console.error("Page render failed", { error, componentStack: info.componentStack });
+    console.error(t("ui.components.routeerrorboundary.page-render-failed"), { error, componentStack: info.componentStack });
   }
 
   override componentDidUpdate(prevProps: RouteErrorBoundaryInnerProps): void {

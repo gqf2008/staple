@@ -160,9 +160,9 @@ function selectionTouchesEditableElement(container: HTMLElement, range: Range) {
   for (const node of [range.startContainer, range.endContainer, range.commonAncestorContainer]) {
     const element = elementFromNode(node);
     if (!element || !container.contains(element)) continue;
-    const editableElement = element.closest("input, textarea, select, [contenteditable]");
+    const editableElement = element.closest(t("ui.components.documentannotationlayer.input-textarea-select-contenteditable"));
     if (!(editableElement instanceof HTMLElement)) continue;
-    if (editableElement.matches("input, textarea, select")) return true;
+    if (editableElement.matches(t("ui.components.documentannotationlayer.input-textarea-select"))) return true;
     const contentEditableValue = editableElement.getAttribute("contenteditable");
     if (
       editableElement.isContentEditable ||
@@ -594,7 +594,7 @@ export function DocumentAnnotationLayer({
                 disabled={newCommentDisabled}
                 title={newCommentDisabled
                   ? newCommentDisabledReason ?? undefined
-                  : "Add comment on selection (⌘⇧M)"}
+                  : t("ui.components.documentannotationlayer.add-comment-selection")}
               >
                 <MessageSquarePlus className="h-3.5 w-3.5" aria-hidden="true" />
                 {t("components.commentThread.comment")}</Button>

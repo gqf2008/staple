@@ -12,7 +12,7 @@ import {
 /** Sentinel value for the "no pin / live default" option (Radix forbids ""). */
 export const RELEASE_DEFAULT_VALUE = "default";
 
-const DEFAULT_LABEL = "Default — current (recommended)";
+const DEFAULT_LABEL = t("ui.pages.agent-skills.agentskillreleasepicker.default-current-recommended");
 
 /**
  * Render a bundled release's calendar date. Plain `YYYY-MM-DD` strings (like the

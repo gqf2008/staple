@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { Company } from "@paperclipai/shared";
 import { companiesApi } from "./companies";
 import { ApiError } from "./client";

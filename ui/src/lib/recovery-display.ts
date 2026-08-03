@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type { IssueRecoveryAction, IssueRecoveryActionKind } from "@paperclipai/shared";
 import { Eye, OctagonAlert, RefreshCw, TriangleAlert } from "lucide-react";
 
@@ -18,23 +19,23 @@ export const RECOVERY_CHIP_DEFAULT_TONE: Record<
     className:
       "border-amber-500/60 bg-amber-500/15 text-amber-700 dark:text-amber-300",
     icon: TriangleAlert,
-    label: "Recovery needed",
+    label: t("components.issueRecoveryAction.recoveryNeeded"),
   },
   in_progress: {
     className:
       "border-sky-500/60 bg-sky-500/15 text-sky-700 dark:text-sky-300",
     icon: RefreshCw,
-    label: "Recovery in progress",
+    label: t("components.issueRecoveryAction.recoveryInProgress"),
   },
   observe_only: {
     className: "border-border bg-muted text-muted-foreground",
     icon: Eye,
-    label: "Observing active run",
+    label: t("components.issueRecoveryAction.observingRun"),
   },
   escalated: {
     className: "border-red-500/60 bg-red-500/15 text-red-700 dark:text-red-300",
     icon: OctagonAlert,
-    label: "Recovery escalated",
+    label: t("components.issueRecoveryAction.recoveryEscalated"),
   },
 };
 
@@ -61,7 +62,7 @@ export function recoveryChipLabel(
   kind: IssueRecoveryActionKind,
 ): string {
   if (kind === "workspace_validation" && state === "needed") {
-    return "Workspace recovery needed";
+    return t("ui.lib.recovery-display.workspace-recovery-needed");
   }
   return RECOVERY_CHIP_DEFAULT_TONE[state].label;
 }

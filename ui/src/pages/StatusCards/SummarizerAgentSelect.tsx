@@ -60,7 +60,7 @@ export function SummarizerAgentSelect({
       value={value ? `agent:${value}` : ""}
       options={agentOptions}
       placeholder={t("ui.pages.statuscards.summarizeragentselect.summarizer-default")}
-      noneLabel="Summarizer (default)"
+      noneLabel={t("ui.pages.statuscards.summarizeragentselect.summarizer-default.2")}
       searchPlaceholder={t("components.agentsUsingSkillDialog.searchAgents")}
       emptyMessage={t("components.dialogs.newIssue.noAgentsFound")}
       onChange={(next) => onChange(next.startsWith("agent:") ? next.slice("agent:".length) : "")}

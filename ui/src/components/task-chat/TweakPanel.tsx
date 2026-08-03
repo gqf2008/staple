@@ -145,7 +145,7 @@ export function TweakPanel() {
           </button>
           <button
             type="button"
-            title={minimized ? "Expand" : "Minimize"}
+            title={minimized ? t("pages.cases.expand") : t("ui.components.task-chat.tweakpanel.minimize")}
             onClick={() => setMinimized((m) => !m)}
             className="rounded p-0.5 hover:bg-accent"
           >

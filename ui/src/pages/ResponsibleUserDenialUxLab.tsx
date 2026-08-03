@@ -127,13 +127,13 @@ export function ResponsibleUserDenialUxLab() {
             <RunLedgerRow />
           </BeforeAfter>
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.afterLedger", { defaultValue: "After — run ledger" })}>
-            <RunLedgerRow onBehalfOf="Ada Lovelace" />
+            <RunLedgerRow onBehalfOf={t("ui.pages.responsibleuserdenialuxlab.ada-lovelace.2")} />
           </BeforeAfter>
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.beforeDetail", { defaultValue: "Before — run detail" })}>
             <RunDetailHeader />
           </BeforeAfter>
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.afterDetail", { defaultValue: "After — run detail" })}>
-            <RunDetailHeader onBehalfOf="Ada Lovelace" />
+            <RunDetailHeader onBehalfOf={t("ui.pages.responsibleuserdenialuxlab.ada-lovelace.2")} />
           </BeforeAfter>
         </LabSection>
 
@@ -151,7 +151,7 @@ export function ResponsibleUserDenialUxLab() {
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.afterActionable", { defaultValue: "After — actionable denial copy" })}>
             <ResponsibleUserDenialNotice
               code="RESPONSIBLE_USER_UNAUTHORIZED"
-              userName="Ada Lovelace"
+              userName={t("ui.pages.responsibleuserdenialuxlab.ada-lovelace.2")}
             />
           </BeforeAfter>
         </LabSection>
@@ -187,7 +187,7 @@ export function ResponsibleUserDenialUxLab() {
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.afterActionable", { defaultValue: "After — actionable denial copy" })}>
             <ResponsibleUserDenialNotice
               code="RESPONSIBLE_USER_UNAVAILABLE"
-              userName="Grace Hopper"
+              userName={t("ui.pages.responsibleuserdenialuxlab.grace-hopper.2")}
             />
           </BeforeAfter>
         </LabSection>
@@ -198,22 +198,22 @@ export function ResponsibleUserDenialUxLab() {
         >
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.unauthorized", { defaultValue: "Unauthorized" })}>
             <RunLedgerRow
-              onBehalfOf="Ada Lovelace"
+              onBehalfOf={t("ui.pages.responsibleuserdenialuxlab.ada-lovelace.2")}
               denial={
                 <ResponsibleUserDenialNotice
                   code="RESPONSIBLE_USER_UNAUTHORIZED"
-                  userName="Ada Lovelace"
+                  userName={t("ui.pages.responsibleuserdenialuxlab.ada-lovelace.2")}
                 />
               }
             />
           </BeforeAfter>
           <BeforeAfter label={t("pages.responsibleUserDenialUxLab.unavailable", { defaultValue: "Unavailable" })}>
             <RunLedgerRow
-              onBehalfOf="Grace Hopper"
+              onBehalfOf={t("ui.pages.responsibleuserdenialuxlab.grace-hopper.2")}
               denial={
                 <ResponsibleUserDenialNotice
                   code="RESPONSIBLE_USER_UNAVAILABLE"
-                  userName="Grace Hopper"
+                  userName={t("ui.pages.responsibleuserdenialuxlab.grace-hopper.2")}
                 />
               }
             />

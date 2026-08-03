@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Tiny best-effort cron → plain-English helper for the routine Triggers section.
  * Not a full cron parser: it covers the common shapes Paperclip schedule triggers
@@ -5,7 +6,7 @@
  * Falls back to the raw expression when it can't confidently describe it.
  */
 
-const DOW_NAMES = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const DOW_NAMES = [t("ui.lib.cron-readable.sunday"), t("ui.lib.cron-readable.monday"), t("ui.lib.cron-readable.tuesday"), t("ui.lib.cron-readable.wednesday"), t("ui.lib.cron-readable.thursday"), t("ui.lib.cron-readable.friday"), t("ui.lib.cron-readable.saturday")];
 
 function pad2(value: number): string {
   return value.toString().padStart(2, "0");
@@ -20,9 +21,9 @@ function describeTime(minute: string, hour: string): string | null {
 }
 
 function describeDayOfWeek(dow: string): string | null {
-  if (dow === "*" || dow === "?") return "every day";
-  if (dow === "1-5") return "every weekday";
-  if (dow === "0,6" || dow === "6,0" || dow === "0,7") return "every weekend";
+  if (dow === "*" || dow === "?") return t("components.scheduleEditor.everyDay");
+  if (dow === "1-5") return t("ui.lib.cron-readable.every-weekday");
+  if (dow === "0,6" || dow === "6,0" || dow === "0,7") return t("ui.lib.cron-readable.every-weekend");
   const parts = dow.split(",").map((part) => part.trim());
   const names = parts.map((part) => {
     const n = Number(part);

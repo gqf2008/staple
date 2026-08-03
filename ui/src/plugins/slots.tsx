@@ -417,7 +417,7 @@ async function importPluginModule(url: string): Promise<Record<string, unknown>>
   // Check if the bridge registry is available. If not, fall back to direct
   // import (which will fail on bare specifiers but won't crash the loader).
   if (!globalThis.__paperclipPluginBridge__) {
-    console.warn("[plugin-loader] Bridge registry not initialized, falling back to direct import");
+    console.warn(t("ui.plugins.slots.plugin-loader-bridge-registry"));
     return import(/* @vite-ignore */ url);
   }
 

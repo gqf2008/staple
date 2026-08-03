@@ -109,7 +109,7 @@ class MarkdownEditorRichErrorBoundary extends Component<
   }
 
   componentDidCatch(error: unknown, info: ErrorInfo) {
-    console.error("Markdown rich editor failed; falling back to raw textarea", {
+    console.error(t("ui.components.markdowneditor.markdown-rich-editor-failed"), {
       error,
       componentStack: info.componentStack,
     });
@@ -163,7 +163,7 @@ function hasMeaningfulEditorContent(node: Node | null): boolean {
   }
 
   const element = node as HTMLElement;
-  if (["IMG", "HR", "TABLE", "VIDEO", "IFRAME"].includes(element.tagName)) {
+  if (["IMG", "HR", t("ui.components.markdowneditor.table"), t("ui.components.markdowneditor.video"), "IFRAME"].includes(element.tagName)) {
     return true;
   }
 
@@ -269,7 +269,7 @@ const CODE_BLOCK_LANGUAGES: Record<string, string> = {
   json: t("components.markdownEditor.json", { defaultValue: "JSON" }),
   bash: t("components.markdownEditor.bash", { defaultValue: "Bash" }),
   sh: t("components.markdownEditor.shell", { defaultValue: "Shell" }),
-  python: "Python",
+  python: t("ui.components.markdowneditor.python"),
   go: "Go",
   rust: t("components.markdownEditor.rust", { defaultValue: "Rust" }),
   sql: t("components.markdownEditor.sql", { defaultValue: "SQL" }),
@@ -450,7 +450,7 @@ function nodeInsideCodeLike(container: HTMLElement, node: Node | null): boolean 
   const el = node.nodeType === Node.ELEMENT_NODE
     ? (node as HTMLElement)
     : node.parentElement;
-  return Boolean(el?.closest("pre, code"));
+  return Boolean(el?.closest(t("ui.components.markdowneditor.pre-code")));
 }
 
 function isSelectionInsideCodeLikeElement(container: HTMLElement | null) {

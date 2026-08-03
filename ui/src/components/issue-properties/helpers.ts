@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import type { AdapterModel } from "../../api/agents";
 import type { Issue, Project } from "@paperclipai/shared";
 import { extractProviderIdWithFallback } from "../../lib/model-utils";
@@ -56,24 +57,24 @@ export const ISSUE_THINKING_EFFORT_OPTIONS = {
   claude_local: [
     { value: "", label: "Default" },
     { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "medium", label: t("components.agentConfigForm.medium") },
+    { value: "high", label: t("components.agentConfigForm.high") },
   ],
   codex_local: [
     { value: "", label: "Default" },
     { value: "minimal", label: "Minimal" },
     { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "medium", label: t("components.agentConfigForm.medium") },
+    { value: "high", label: t("components.agentConfigForm.high") },
+    { value: "xhigh", label: t("priorities.xhigh") },
   ],
   opencode_local: [
     { value: "", label: "Default" },
     { value: "minimal", label: "Minimal" },
     { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "medium", label: t("components.agentConfigForm.medium") },
+    { value: "high", label: t("components.agentConfigForm.high") },
+    { value: "xhigh", label: t("priorities.xhigh") },
     { value: "max", label: "Max" },
   ],
 } as const;

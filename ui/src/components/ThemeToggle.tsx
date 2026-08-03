@@ -25,7 +25,7 @@ interface ThemeToggleProps {
   onAfterToggle?: () => void;
 }
 
-const MENU_ACTION_DESCRIPTION = "Toggle the app appearance.";
+const MENU_ACTION_DESCRIPTION = t("ui.components.themetoggle.toggle-app-appearance");
 
 /**
  * Canonical theme-toggle widget. Both the signed-out `/auth` chrome and

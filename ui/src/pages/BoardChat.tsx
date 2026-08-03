@@ -562,7 +562,7 @@ export function BoardChat() {
         const controller = new AbortController();
         const fetchTimeout = setTimeout(() => controller.abort(), 130000);
         const res = await fetch("/api/board/chat/stream", {
-          method: "POST",
+          method: t("ui.api.auth.post"),
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             companyId: selectedCompanyId,
@@ -765,7 +765,7 @@ export function BoardChat() {
                   },
                   {
                     label: t("pages.boardChat.first30Days", { defaultValue: "Outline our first 30 days" }),
-                    prompt: `Outline our first 30 days. Break it into weekly priorities with who owns what.`,
+                    prompt: t("ui.pages.boardchat.outline-our-first-30"),
                   },
                   {
                     label: t("pages.boardChat.introPitch", { defaultValue: "Write an intro pitch" }),

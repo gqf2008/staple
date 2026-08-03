@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 /**
  * Shared color-contrast utilities for pill / badge / chip components.
  *
@@ -75,7 +76,7 @@ function composite(
  * this is the single source. NOT the same thing as ThemeContext.tsx's
  * <meta theme-color> pair (#18181b/#ffffff), which stays separate.
  */
-export const READABLE_TEXT_LIGHT = "#f8fafc";
+export const READABLE_TEXT_LIGHT = t("ui.lib.color-contrast.f8fafc");
 export const READABLE_TEXT_DARK = "#111827";
 
 const TEXT_LIGHT = READABLE_TEXT_LIGHT;

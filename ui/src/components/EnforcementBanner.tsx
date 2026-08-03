@@ -153,7 +153,7 @@ export function EnforcementBanner(props: EnforcementBannerProps) {
       <div className="min-w-0 flex-1">
         {variant === "denied-detected" ? (
           <p>
-            <span className="font-medium">{computedCount}</span> {t("ui.components.enforcementbanner.governed-tool-call")}{computedCount === 1 ? " was" : "s were"} {t("ui.components.enforcementbanner.denied-failed-last-hour")}</p>
+            <span className="font-medium">{computedCount}</span> {t("ui.components.enforcementbanner.governed-tool-call")}{computedCount === 1 ? " was" : t("ui.components.enforcementbanner.were")} {t("ui.components.enforcementbanner.denied-failed-last-hour")}</p>
         ) : (
           <p>
             {t("ui.components.enforcementbanner.tool-access-enforced-server")}</p>

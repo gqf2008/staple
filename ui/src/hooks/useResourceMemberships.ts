@@ -179,7 +179,7 @@ export function useResourceMembershipMutation(companyId: string | null | undefin
         : variables.state === "left" ? "leave" : "join";
       pushToast({
         title: `Couldn't ${verb} ${variables.resourceName}.`,
-        body: error instanceof Error ? error.message : "Try again.",
+        body: error instanceof Error ? error.message : t("pages.statusCardDetail.tryAgain"),
         tone: "error",
       });
     },

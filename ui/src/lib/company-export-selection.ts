@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 import type {
   CompanyPortabilityEmbeddedAssetManifestEntry,
   CompanyPortabilityIssueManifestEntry,
@@ -39,12 +40,12 @@ export const EXPORT_CATEGORY_ORDER: ExportCategoryKey[] = [
 ];
 
 export const EXPORT_CATEGORY_LABELS: Record<ExportCategoryKey, string> = {
-  agents: "Agents",
-  projects: "Projects",
-  skills: "Skills",
-  routines: "Routines",
-  tasks: "Tasks",
-  attachments: "Attachments",
+  agents: t("common.agents"),
+  projects: t("nav.projects"),
+  skills: t("nav.skills"),
+  routines: t("nav.routines"),
+  tasks: t("nav.tasks"),
+  attachments: t("components.dialogs.newIssue.attachments"),
 };
 
 /** Everything exports by default. */

@@ -1,3 +1,4 @@
+import { t } from "../i18n";
 export type NavigationType = "POP" | "PUSH" | "REPLACE";
 
 export const SIDEBAR_SCROLL_RESET_STATE = {

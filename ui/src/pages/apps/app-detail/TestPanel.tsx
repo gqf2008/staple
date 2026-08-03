@@ -669,7 +669,7 @@ function splitRequiredOptional(schema: JsonSchemaNode): JsonSchemaNode {
 
 const GUT_CHECK: Record<ToolConnectionTestDecision, (app: string, agent: string) => string> = {
   allowed: (app, agent) => `This runs a real call against ${app} as ${agent}.`,
-  ask_first: () => `Waiting for your OK before this call leaves Paperclip.`,
+  ask_first: () => t("ui.pages.apps.app-detail.testpanel.waiting-your-ok-before"),
   off: (_app, agent) => `No call will be made — this action is off for ${agent}.`,
 };
 
@@ -1435,7 +1435,7 @@ export function errorHints(message: string, reasonCode: string | null | undefine
   if (haystack.includes("INVALID_ARGUMENT") || haystack.includes("INVALID") || haystack.includes("BAD_REQUEST")) {
     return [
       t("pages.apps.testPanel.invalidHint", { defaultValue: "Check the field formats above — a value may be the wrong type or shape." }),
-      "Open “More options” to confirm any advanced fields are filled in correctly.",
+      t("ui.pages.apps.app-detail.testpanel.open-more-options-confirm"),
     ];
   }
   if (haystack.includes("RATE_LIMIT") || haystack.includes("RESOURCE_EXHAUSTED") || haystack.includes("429")) {

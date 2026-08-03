@@ -20,9 +20,9 @@ import { queryKeys } from "@/lib/queryKeys";
 import { SummarizerAgentSelect } from "./SummarizerAgentSelect";
 
 const EXAMPLES = [
-  "issues about evals",
-  "everything blocked this week",
-  "is feature X live? if not, the exact next actions to ship it",
+  t("ui.pages.statuscards.createstatuscarddialog.issues-about-evals"),
+  t("ui.pages.statuscards.createstatuscarddialog.everything-blocked-week"),
+  t("ui.pages.statuscards.createstatuscarddialog.feature-live-if-not"),
 ];
 
 export function CreateStatusCardDialog({

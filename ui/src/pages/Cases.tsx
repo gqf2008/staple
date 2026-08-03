@@ -1009,7 +1009,7 @@ export function Cases() {
 
   useEffect(() => {
     if (selectedIndex < 0 || !caseListRef.current) return;
-    const rows = caseListRef.current.querySelectorAll("[data-case-item]");
+    const rows = caseListRef.current.querySelectorAll(t("ui.pages.cases.data-case-item"));
     rows[selectedIndex]?.scrollIntoView({ block: "nearest" });
   }, [selectedIndex]);
 

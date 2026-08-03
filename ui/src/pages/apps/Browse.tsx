@@ -181,7 +181,7 @@ function AppTile({
         <AppLogo name={appDefinitionName(entry)} logoUrl={appDefinitionLogoUrl(entry)} size={36} />
         <span className="text-xs font-medium text-foreground">{appDefinitionName(entry)}</span>
         <span className={disabled ? "text-xs text-muted-foreground" : "text-xs font-semibold text-primary"}>
-          {disabled ? t("pages.appsBrowse.comingSoon", { defaultValue: "Coming soon" }) : "Connect →"}
+          {disabled ? t("pages.appsBrowse.comingSoon", { defaultValue: "Coming soon" }) : t("pages.appsConnect.connectArrow")}
         </span>
       </button>
     );
@@ -201,7 +201,7 @@ function AppTile({
         <div className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{appDefinitionDescription(entry)}</div>
       </div>
       <span className={disabled ? "shrink-0 text-xs font-semibold text-muted-foreground" : "shrink-0 text-xs font-semibold text-primary"}>
-        {disabled ? t("pages.appsBrowse.comingSoon", { defaultValue: "Coming soon" }) : "Connect →"}
+        {disabled ? t("pages.appsBrowse.comingSoon", { defaultValue: "Coming soon" }) : t("pages.appsConnect.connectArrow")}
       </span>
     </button>
   );

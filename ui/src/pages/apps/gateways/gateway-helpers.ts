@@ -1,3 +1,4 @@
+import { t } from "../../../i18n";
 import type {
   ToolApplication,
   ToolConnection,
@@ -39,9 +40,9 @@ export function tokenStatus(
 
 export const TOKEN_STATUS_LABEL: Record<TokenStatus, string> = {
   active: "Active",
-  expiring: "Expiring",
+  expiring: t("ui.pages.apps.gateways.gateway-helpers.expiring"),
   expired: "Expired",
-  revoked: "Revoked",
+  revoked: t("ui.pages.inviteuxlab.revoked"),
 };
 
 /** Count of tokens that can currently authenticate (not revoked, not expired). */
@@ -103,13 +104,13 @@ export function isGatewayOn(gateway: ToolMcpGatewayWithTokens): boolean {
 
 /** Human summary of how many tools a profile allows. */
 export function allowedToolsLabel(profile: ToolProfileWithDetails | undefined): string {
-  if (!profile) return "Profile unavailable";
+  if (!profile) return t("pages.tools.gateways.profileUnavailable");
   const { accessMode, allowedToolCount, totalToolCount, excludedToolCount } = profile.summary;
   const count =
     accessMode === "all_except"
       ? Math.max(totalToolCount - excludedToolCount, 0)
       : allowedToolCount;
-  if (count === 0) return "No tools allowed";
+  if (count === 0) return t("pages.tools.gateways.noToolsAllowed");
   return `${count} ${count === 1 ? "tool" : "tools"}`;
 }
 
@@ -175,7 +176,7 @@ export function deriveGatewayApps(
       toolCount: toolCountByApp.get(applicationId) ?? 0,
       needsAttention: Boolean(attentionConnection),
       attentionReason: attentionConnection
-        ? "Sign-in expired — reconnect to restore access."
+        ? t("ui.pages.apps.gateways.gateway-helpers.sign-expired-reconnect-restore")
         : null,
     });
   }

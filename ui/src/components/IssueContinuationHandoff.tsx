@@ -90,7 +90,7 @@ export function IssueContinuationHandoff({
         </div>
         <Button variant="ghost" size="sm" onClick={copyBody} className="shrink-0">
           {copied ? <Check className="mr-1.5 h-3.5 w-3.5" /> : <Copy className="mr-1.5 h-3.5 w-3.5" />}
-          {copied ? "Copied" : "Copy"}
+          {copied ? t("components.commentThread.copied") : t("components.commentThread.copy")}
         </Button>
       </div>
       {expanded ? (

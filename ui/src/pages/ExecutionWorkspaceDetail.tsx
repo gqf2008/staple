@@ -998,7 +998,7 @@ export function ExecutionWorkspaceDetail() {
             disabledHint={
               canStartRuntimeServices
                 ? null
-                : "Execution workspaces need a working directory before local commands can run, and services also need runtime config."
+                : t("ui.pages.executionworkspacedetail.execution-workspaces-need-working")
             }
             onAction={(request) => runRuntimeControlRequests([request])}
           />
@@ -1138,7 +1138,7 @@ export function ExecutionWorkspaceDetail() {
                             ? t("pages.executionWorkspaceDetail.overridesRuntime", { defaultValue: "This execution workspace currently overrides the project workspace runtime config." })
                             : runtimeConfigSource === "project_workspace"
                               ? t("pages.executionWorkspaceDetail.inheritsRuntime", { defaultValue: "This execution workspace is inheriting the project workspace runtime config." })
-                              : "No runtime config is currently defined on this execution workspace or its project workspace."}
+                              : t("ui.pages.executionworkspacedetail.no-runtime-config-currently")}
                         </p>
                       </div>
                       <Button

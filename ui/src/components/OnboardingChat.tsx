@@ -268,7 +268,7 @@ export function OnboardingChat({
           companyGoal={companyGoal}
           hasComments={Boolean(comments?.length)}
           onDiscuss={() => {
-            setInput("I want to discuss the plan before you get started.");
+            setInput(t("ui.components.onboardingchat.want-discuss-plan-before"));
             inputRef.current?.focus();
           }}
           onStart={() => sendMessage(t("components.onboardingChat.hiringPlanCta", { defaultValue: "Yes, get started on the hiring plan!" }))}

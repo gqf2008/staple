@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 /**
  * Sensitive-value detection (plan §6.6). Kept in sync with the server-side
  * migration heuristic so the UI flags the same things the backend would.

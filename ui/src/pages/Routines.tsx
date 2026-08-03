@@ -528,7 +528,7 @@ export function Routines() {
         queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.folders.list(selectedCompanyId!, "routine") }),
       ]);
-      pushToast({ title: t("pages.routines2.folderDeleted", { defaultValue: "Folder deleted" }), body: "Items moved to Unfiled.", tone: "success" });
+      pushToast({ title: t("pages.routines2.folderDeleted", { defaultValue: "Folder deleted" }), body: t("ui.pages.routines.items-moved-unfiled"), tone: "success" });
     },
     onError: (mutationError) => {
       pushToast({

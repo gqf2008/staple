@@ -544,7 +544,7 @@ function CompactDecisionActions({
 }
 
 function decisionLabel(action: CompactDecisionAction): string {
-  if (action === "request_revision") return "sent for revision";
+  if (action === "request_revision") return t("ui.components.attentionqueuerow.sent-revision");
   if (action === "accept" || action === "approve") return "approved";
   return "rejected";
 }

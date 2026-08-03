@@ -85,9 +85,9 @@ type UsesMode = "anything" | "app" | "actions" | "capability";
 const RISK_LEVELS: ToolRiskLevel[] = ["read", "write", "destructive", "low", "medium", "high", "critical"];
 const RATE_LIMIT_KEY_FIELDS: RateLimitKeyBy[] = ["company", "agent", "application", "connection", "tool"];
 const CAPABILITY_OPTIONS: Array<{ value: ToolRiskLevel; label: string; sentence: string }> = [
-  { value: "read", label: t("pages.tools.policies.readOnly", { defaultValue: "Read-only" }), sentence: "read-only actions" },
-  { value: "write", label: t("pages.tools.policies.makesChanges", { defaultValue: "Makes changes" }), sentence: "actions that make changes" },
-  { value: "destructive", label: t("pages.tools.policies.destructive", { defaultValue: "Destructive" }), sentence: "destructive actions" },
+  { value: "read", label: t("pages.tools.policies.readOnly", { defaultValue: "Read-only" }), sentence: t("ui.pages.tools.policiestab.read-only-actions") },
+  { value: "write", label: t("pages.tools.policies.makesChanges", { defaultValue: "Makes changes" }), sentence: t("ui.pages.tools.policiestab.actions-make-changes") },
+  { value: "destructive", label: t("pages.tools.policies.destructive", { defaultValue: "Destructive" }), sentence: t("ui.pages.tools.policiestab.destructive-actions") },
 ];
 const OUTCOMES: Array<{ value: BuilderPolicyType; label: string }> = [
   { value: "allow", label: t("pages.tools.policies.allow", { defaultValue: "Allow" }) },
@@ -265,7 +265,7 @@ function windowLabel(seconds: string | number | null | undefined) {
 function outcomeLabel(policy: Pick<ToolPolicy, "policyType" | "config"> | PolicyFormState) {
   const policyType = String(policy.policyType);
   if (policyType === "allow") return t("pages.tools.policies.allow", { defaultValue: "Allow" });
-  if (policyType === "block") return "Block";
+  if (policyType === "block") return t("pages.tools.wizardToolsStep.block");
   if (policyType === "require_approval") return t("pages.tools.policies.askFirst", { defaultValue: "Ask first" });
   if (policyType === "redact") return t("pages.tools.policies.unsupportedRedact", { defaultValue: "Unsupported: redact" });
   if (policyType === "trust_rule") return t("pages.tools.policies.allow", { defaultValue: "Allow" });
@@ -302,7 +302,7 @@ function policySentence(
   const actorType = selectValue(selectors, "actorType");
   const catalogById = new Map([...catalogByToolName.values()].map((tool) => [tool.id, tool]));
 
-  let who = "any agent";
+  let who = t("ui.pages.tools.policiestab.any-agent");
   if (agentIds.length === 1) who = maps.agent.get(agentIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-agent");
   else if (agentIds.length > 1) who = `${agentIds.length} agents`;
   else if (projectIds.length === 1) who = `agents in ${maps.project.get(projectIds[0]!) ?? t("ui.pages.tools.policiestab.fallback-one-project")}`;
@@ -619,7 +619,7 @@ function RuleBuilder({
           <div className="grid gap-2">
             {[
               ["anything", t("pages.tools.policies.anything", { defaultValue: "Anything" })],
-              ["app", "A specific app"],
+              ["app", t("ui.pages.tools.policiestab.specific-app")],
               ["actions", t("pages.tools.policies.specificActions", { defaultValue: "Specific actions" })],
               ["capability", t("pages.tools.policies.actionsByCapability", { defaultValue: "Actions by capability" })],
             ].map(([value, label]) => (

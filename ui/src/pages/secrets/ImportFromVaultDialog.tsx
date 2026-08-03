@@ -282,10 +282,10 @@ function validateDraftRow(
 
   for (const existingSecret of existing) {
     if (existingSecret.name.trim().toLowerCase() === lowerName) {
-      return "A Paperclip secret already uses this name.";
+      return t("ui.pages.secrets.importfromvaultdialog.paperclip-secret-already-uses");
     }
     if (existingSecret.key.trim().toLowerCase() === lowerKey) {
-      return "A Paperclip secret already uses this key.";
+      return t("ui.pages.secrets.importfromvaultdialog.paperclip-secret-already-uses.2");
     }
   }
 
@@ -921,7 +921,7 @@ function SelectStep(props: SelectStepProps) {
                       )}
                       {blocked && (
                         <Badge variant="outline" className="px-1 py-0 text-(length:--text-nano) text-muted-foreground">
-                          {vault.status === "coming_soon" ? "coming soon" : vault.status}
+                          {vault.status === "coming_soon" ? t("components.agentConfigForm.comingSoon") : vault.status}
                         </Badge>
                       )}
                     </span>

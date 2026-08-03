@@ -92,7 +92,7 @@ export function DecisionTrainingDrawer({
           </SheetTitle>
           <SheetDescription>
             {savedExampleId
-              ? "The frozen state is read-only; your notes stay editable."
+              ? t("ui.components.decisiontrainingdrawer.frozen-state-read-only")
               : t("components.decisionTraining.trainHint", { defaultValue: "Freeze this decision's state and record how you'd want it decided." })}
           </SheetDescription>
         </SheetHeader>

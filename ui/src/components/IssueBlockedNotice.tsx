@@ -88,7 +88,7 @@ function SuccessfulRunRetryNowControl({
           ) : success ? (
             <span className="inline-flex items-center gap-1.5">
               <CheckCircle2 className="h-3.5 w-3.5" aria-hidden="true" />
-              {retryNow.data?.outcome === "already_promoted" ? "Already promoted" : "Promoted"}
+              {retryNow.data?.outcome === "already_promoted" ? t("components.issueProperties.alreadyPromoted") : t("components.issueProperties.promoted")}
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5">
@@ -570,8 +570,8 @@ export function IssueBlockedNotice({
                       ? <>{t("ui.components.issueblockednotice.work-task-blocked")}{blockerLabel}{t("ui.components.issueblockednotice.but-chain-stalled-review")}</>
                       : <>{t("ui.components.issueblockednotice.work-task-blocked")}{blockerLabel}{t("ui.components.issueblockednotice.but-chain-stalled-review-alt")}</>
                     : reopenSuppressed
-                      ? <>{t("ui.components.issueblockednotice.message-won-rsquo-restart")}{blockerLabel} until {blockers.length === 1 ? "it is" : "they are"} {t("ui.components.issueblockednotice.done-then-reopens-automatically")}{responsibleName} {t("ui.components.issueblockednotice.questions-triage-meantime")}</>
-                      : <>{t("ui.components.issueblockednotice.work-task-blocked")}{blockerLabel} until {blockers.length === 1 ? "it is" : "they are"} {t("ui.components.issueblockednotice.complete-comments-still-notify")}</>
+                      ? <>{t("ui.components.issueblockednotice.message-won-rsquo-restart")}{blockerLabel} until {blockers.length === 1 ? t("ui.components.issueblockednotice.text") : t("ui.components.issueblockednotice.they")} {t("ui.components.issueblockednotice.done-then-reopens-automatically")}{responsibleName} {t("ui.components.issueblockednotice.questions-triage-meantime")}</>
+                      : <>{t("ui.components.issueblockednotice.work-task-blocked")}{blockerLabel} until {blockers.length === 1 ? t("ui.components.issueblockednotice.text") : t("ui.components.issueblockednotice.they")} {t("ui.components.issueblockednotice.complete-comments-still-notify")}</>
                   : <>{t("ui.components.issueblockednotice.work-task-blocked-until")}</>}
               </p>
               {reopenSuppressed && reopenSuppressedLeafId ? (

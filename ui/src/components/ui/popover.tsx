@@ -1,3 +1,4 @@
+import { t } from "../../i18n";
 import * as React from "react"
 import { Popover as PopoverPrimitive } from "radix-ui"
 

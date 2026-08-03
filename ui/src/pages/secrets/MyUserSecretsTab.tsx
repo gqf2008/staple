@@ -61,7 +61,7 @@ export function MyUserSecretsTab({ companyId }: { companyId: string }) {
           {t("ui.pages.secrets.myusersecretstab.these-credentials-only-you")}{missingCount > 0 ? (
             <span className="font-medium">
               {" "}
-              {missingCount} {t("ui.pages.secrets.myusersecretstab.required-secret")}{missingCount === 1 ? " still needs" : "s still need"} your
+              {missingCount} {t("ui.pages.secrets.myusersecretstab.required-secret")}{missingCount === 1 ? t("ui.pages.secrets.myusersecretstab.still-needs") : t("ui.pages.secrets.myusersecretstab.still-need")} your
               value.
             </span>
           ) : null}
@@ -79,7 +79,7 @@ export function MyUserSecretsTab({ companyId }: { companyId: string }) {
         ) : entries.length === 0 && !mySecretsQuery.isPending ? (
           <EmptyState
             icon={KeyRound}
-            message="No user secrets are defined for this company yet. An admin defines which credentials each member supplies."
+            message={t("ui.pages.secrets.myusersecretstab.no-user-secrets-defined")}
           />
         ) : (
           <ul className="space-y-2">
@@ -159,7 +159,7 @@ function MyUserSecretRow({
         </Badge>
         {!disabledDefinition ? (
           <Button size="sm" variant={secret ? "outline" : "default"} onClick={onSet}>
-            {secret ? "Update" : "Set value"}
+            {secret ? t("components.builtInBundle.update") : t("ui.pages.secrets.myusersecretstab.set-value")}
           </Button>
         ) : null}
         {secret ? (
