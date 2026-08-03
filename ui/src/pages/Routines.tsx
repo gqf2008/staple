@@ -1,4 +1,5 @@
 import { startTransition, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Link, useNavigate, useSearchParams } from "@/lib/router";
 import { ArrowUpDown, Check, ChevronDown, ChevronRight, Layers, Plus, Repeat } from "lucide-react";
@@ -183,8 +184,8 @@ export function buildRoutineGroups(
         const positionCompare = leftPosition - rightPosition;
         if (positionCompare !== 0) return positionCompare;
 
-        const labelCompare = (leftFolder?.name ?? "Unknown folder").localeCompare(
-          rightFolder?.name ?? "Unknown folder",
+        const labelCompare = (leftFolder?.name ?? t("pages.routines.unknownFolder", { defaultValue: "Unknown folder" })).localeCompare(
+          rightFolder?.name ?? t("pages.routines.unknownFolder", { defaultValue: "Unknown folder" }),
           undefined,
           { sensitivity: "base" },
         );
@@ -192,7 +193,7 @@ export function buildRoutineGroups(
       })
       .map((key) => ({
         key,
-        label: key === "__unfiled" ? "Unfiled" : (folderById.get(key)?.name ?? "Unknown folder"),
+        label: key === "__unfiled" ? t("pages.routines.unfiled", { defaultValue: "Unfiled" }) : (folderById.get(key)?.name ?? t("pages.routines.unknownFolder", { defaultValue: "Unknown folder" })),
         items: groups[key]!,
       }));
   }
@@ -201,13 +202,13 @@ export function buildRoutineGroups(
     const groups = groupBy(routines, (routine) => routine.projectId ?? "__no_project");
     return Object.keys(groups)
       .sort((left, right) => {
-        const leftLabel = left === "__no_project" ? "No project" : (projectById.get(left)?.name ?? "Unknown project");
-        const rightLabel = right === "__no_project" ? "No project" : (projectById.get(right)?.name ?? "Unknown project");
+        const leftLabel = left === "__no_project" ? t("pages.routines.projectNone", { defaultValue: "No project" }) : (projectById.get(left)?.name ?? t("pages.routines.unknownProject", { defaultValue: "Unknown project" }));
+        const rightLabel = right === "__no_project" ? t("pages.routines.projectNone", { defaultValue: "No project" }) : (projectById.get(right)?.name ?? t("pages.routines.unknownProject", { defaultValue: "Unknown project" }));
         return leftLabel.localeCompare(rightLabel);
       })
       .map((key) => ({
         key,
-        label: key === "__no_project" ? "No project" : (projectById.get(key)?.name ?? "Unknown project"),
+        label: key === "__no_project" ? t("pages.routines.projectNone", { defaultValue: "No project" }) : (projectById.get(key)?.name ?? t("pages.routines.unknownProject", { defaultValue: "Unknown project" })),
         items: groups[key]!,
       }));
   }
@@ -215,13 +216,13 @@ export function buildRoutineGroups(
   const groups = groupBy(routines, (routine) => routine.assigneeAgentId ?? "__unassigned");
   return Object.keys(groups)
     .sort((left, right) => {
-      const leftLabel = left === "__unassigned" ? "Unassigned" : (agentById.get(left)?.name ?? "Unknown agent");
-      const rightLabel = right === "__unassigned" ? "Unassigned" : (agentById.get(right)?.name ?? "Unknown agent");
+      const leftLabel = left === "__unassigned" ? t("pages.routines.unassigned", { defaultValue: "Unassigned" }) : (agentById.get(left)?.name ?? t("pages.routines.unknownAgent", { defaultValue: "Unknown agent" }));
+      const rightLabel = right === "__unassigned" ? t("pages.routines.unassigned", { defaultValue: "Unassigned" }) : (agentById.get(right)?.name ?? t("pages.routines.unknownAgent", { defaultValue: "Unknown agent" }));
       return leftLabel.localeCompare(rightLabel);
     })
     .map((key) => ({
       key,
-      label: key === "__unassigned" ? "Unassigned" : (agentById.get(key)?.name ?? "Unknown agent"),
+      label: key === "__unassigned" ? t("pages.routines.unassigned", { defaultValue: "Unassigned" }) : (agentById.get(key)?.name ?? t("pages.routines.unknownAgent", { defaultValue: "Unknown agent" })),
       items: groups[key]!,
     }));
 }
@@ -368,7 +369,7 @@ export function Routines() {
   const folderSelection = normalizeFolderSelection(searchParams.get("folder"));
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Routines" }]);
+    setBreadcrumbs([{ label: t("nav.routines", { defaultValue: "Routines" }) }]);
   }, [setBreadcrumbs]);
 
   useEffect(() => {
@@ -484,7 +485,7 @@ export function Routines() {
         } catch (moveError) {
           pushToast({
             title: "Folder created, move failed",
-            body: moveError instanceof Error ? moveError.message : "Paperclip could not move the selected routines.",
+            body: moveError instanceof Error ? moveError.message : t("pages.routines.moveFailed", { defaultValue: "Paperclip could not move the selected routines." }),
             tone: "error",
           });
           return;
@@ -549,7 +550,7 @@ export function Routines() {
     onError: (mutationError) => {
       pushToast({
         title: "Move failed",
-        body: mutationError instanceof Error ? mutationError.message : "Paperclip could not move the routine.",
+        body: mutationError instanceof Error ? mutationError.message : t("pages.routines.moveFailedSingle", { defaultValue: "Paperclip could not move the routine." }),
         tone: "error",
       });
     },
@@ -697,7 +698,7 @@ export function Routines() {
   const recentRunsIssueLinkState = useMemo(
     () =>
       createIssueDetailLocationState(
-        "Recent Runs",
+        t("pages.routines.recentRuns", { defaultValue: "Recent Runs" }),
         buildRoutinesTabHref("runs"),
         "issues",
       ),
@@ -759,11 +760,11 @@ export function Routines() {
         queryClient.invalidateQueries({ queryKey: queryKeys.routines.list(selectedCompanyId!) }),
         queryClient.invalidateQueries({ queryKey: queryKeys.folders.list(selectedCompanyId!, "routine") }),
       ]);
-      pushToast({ title: "Routines moved", body: `${ids.length} routine${ids.length === 1 ? "" : "s"} filed.`, tone: "success" });
+      pushToast({ title: t("pages.routines.movedTitle", { defaultValue: "Routines moved" }), body: t("pages.routines.movedBody", { count: ids.length }), tone: "success" });
     } catch (moveError) {
       pushToast({
-        title: "Failed to move routines",
-        body: moveError instanceof Error ? moveError.message : "Paperclip could not move the selected routines.",
+        title: t("pages.routines.moveFailedTitle", { defaultValue: "Failed to move routines" }),
+        body: moveError instanceof Error ? moveError.message : t("pages.routines.moveFailed", { defaultValue: "Paperclip could not move the selected routines." }),
         tone: "error",
       });
     }
@@ -776,8 +777,8 @@ export function Routines() {
   function handleToggleEnabled(routine: RoutineListItem, enabled: boolean) {
     if (!enabled && !routine.assigneeAgentId) {
       pushToast({
-        title: "Default agent required",
-        body: "Set a default agent before enabling routine automation.",
+        title: t("pages.routines.defaultAgentTitle", { defaultValue: "Default agent required" }),
+        body: t("pages.routines.defaultAgentBody", { defaultValue: "Set a default agent before enabling routine automation." }),
         tone: "warn",
       });
       return;
@@ -796,7 +797,7 @@ export function Routines() {
   }
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Repeat} message="Select a company to view routines." />;
+    return <EmptyState icon={Repeat} message={t("pages.routines.selectCompany", { defaultValue: "Select a company to view routines." })} />;
   }
 
   if (isLoading) {
@@ -826,30 +827,30 @@ export function Routines() {
           value={activeTab}
           onValueChange={handleTabChange}
           items={[
-            { value: "routines", label: "Routines" },
-            { value: "runs", label: "Recent Runs" },
+            { value: "routines", label: t("nav.routines", { defaultValue: "Routines" }) },
+            { value: "runs", label: t("pages.routines.recentRuns", { defaultValue: "Recent Runs" }) },
           ]}
         />
         <TabsContent value="routines" className="space-y-4">
           <div className="flex items-center justify-between gap-3">
             <p className="text-sm text-muted-foreground">
-              {visibleRoutines.length} routine{visibleRoutines.length === 1 ? "" : "s"}
+              {t("pages.routines.count", { count: visibleRoutines.length })}
             </p>
             <div className="flex items-center gap-1">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs" title="Sort">
+                  <Button variant="ghost" size="sm" className="text-xs" title={t("pages.routines.sort", { defaultValue: "Sort" })}>
                     <ArrowUpDown className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-                    <span className="hidden sm:inline">Sort</span>
+                    <span className="hidden sm:inline">{t("pages.routines.sort", { defaultValue: "Sort" })}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-44 p-0">
                   <div className="p-2 space-y-0.5">
                     {([
-                      ["updated", "Updated"],
-                      ["created", "Created"],
-                      ["lastRun", "Last run"],
-                      ["title", "Title"],
+                      ["updated", t("pages.routines.sortUpdated", { defaultValue: "Updated" })],
+                      ["created", t("pages.routines.sortCreated", { defaultValue: "Created" })],
+                      ["lastRun", t("pages.routines.sortLastRun", { defaultValue: "Last run" })],
+                      ["title", t("pages.routines.sortTitle", { defaultValue: "Title" })],
                     ] as const).map(([field, label]) => (
                       <button
                         key={field}
@@ -887,8 +888,8 @@ export function Routines() {
                 <PopoverContent align="end" className="w-44 p-0">
                   <div className="p-2 space-y-0.5">
                     {([
-                      ["folder", "Folder"],
-                      ["project", "Project"],
+                      ["folder", t("pages.routines.sortFolder", { defaultValue: "Folder" })],
+                      ["project", t("pages.routines.sortProject", { defaultValue: "Project" })],
                       ["assignee", "Agent"],
                       ["none", "None"],
                     ] as const).map(([value, label]) => (
@@ -916,7 +917,7 @@ export function Routines() {
               ) : null}
               {showFolderRail ? (
                 <Button variant="ghost" size="sm" className="text-xs" onClick={() => setSelectMode((current) => !current)}>
-                  {selectMode ? "Done" : "Select"}
+                  {selectMode ? t("common.done", { defaultValue: "Done" }) : t("pages.routines.select", { defaultValue: "Select" })}
                 </Button>
               ) : null}
             </div>
@@ -926,7 +927,7 @@ export function Routines() {
               <FolderChip
                 result={railFolderResult}
                 selection={folderSelection}
-                allLabel="All routines"
+                allLabel={t("pages.routines.all", { defaultValue: "All routines" })}
                 onClick={() => setMobileFoldersOpen(true)}
               />
             </div>
@@ -961,9 +962,9 @@ export function Routines() {
         >
           <div className="shrink-0 flex flex-wrap items-center justify-between gap-3 border-b border-border/60 px-5 py-3">
             <div>
-              <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">New routine</p>
+              <p className="text-xs font-medium uppercase tracking-(--tracking-caps) text-muted-foreground">{t("pages.routines.newRoutine", { defaultValue: "New routine" })}</p>
               <p className="text-sm text-muted-foreground">
-                Define the recurring work first. Default project and agent are optional for draft routines.
+                {t("pages.routines.newRoutineDesc", { defaultValue: "Define the recurring work first. Default project and agent are optional for draft routines." })}
               </p>
             </div>
             <Button
@@ -984,7 +985,7 @@ export function Routines() {
               <textarea
                 ref={titleInputRef}
                 className="w-full resize-none overflow-hidden bg-transparent text-xl font-semibold outline-none placeholder:text-muted-foreground/50"
-                placeholder="Routine title"
+                placeholder={t("pages.routines.titlePlaceholder", { defaultValue: "Routine title" })}
                 rows={1}
                 value={draft.title}
                 onChange={(event) => {
@@ -1017,16 +1018,16 @@ export function Routines() {
             <div className="px-5 pb-3">
               <div className="overflow-x-auto overscroll-x-contain">
                 <div className="inline-flex min-w-full flex-wrap items-center gap-2 text-sm text-muted-foreground sm:min-w-max sm:flex-nowrap">
-                  <span>For</span>
+                  <span>{t("pages.routines.forLabel", { defaultValue: "For" })}</span>
                   <InlineEntitySelector
                     ref={assigneeSelectorRef}
                     value={draft.assigneeAgentId}
                     options={assigneeOptions}
                     recentOptionIds={recentAssigneeIds}
-                    placeholder="Responsible"
-                    noneLabel="No responsible"
-                    searchPlaceholder="Search responsible..."
-                    emptyMessage="No responsible found."
+                    placeholder={t("pages.routines.responsible", { defaultValue: "Responsible" })}
+                    noneLabel={t("pages.routines.noResponsible", { defaultValue: "No responsible" })}
+                    searchPlaceholder={t("pages.routines.searchResponsible", { defaultValue: "Search responsible..." })}
+                    emptyMessage={t("pages.routines.noResponsibleFound", { defaultValue: "No responsible found." })}
                     onChange={(assigneeAgentId) => {
                       if (assigneeAgentId) trackRecentAssignee(assigneeAgentId);
                       setDraft((current) => ({ ...current, assigneeAgentId }));
@@ -1063,16 +1064,16 @@ export function Routines() {
                       );
                     }}
                   />
-                  <span>in</span>
+                  <span>{t("pages.routines.inLabel", { defaultValue: "in" })}</span>
                   <InlineEntitySelector
                     ref={projectSelectorRef}
                     value={draft.projectId}
                     options={projectOptions}
                     recentOptionIds={recentProjectIds}
-                    placeholder="Project"
-                    noneLabel="No project"
-                    searchPlaceholder="Search projects..."
-                    emptyMessage="No projects found."
+                    placeholder={t("pages.routines.projectPlaceholder", { defaultValue: "Project" })}
+                    noneLabel={t("pages.routines.projectNone", { defaultValue: "No project" })}
+                    searchPlaceholder={t("pages.routines.searchProjects", { defaultValue: "Search projects..." })}
+                    emptyMessage={t("pages.routines.noProjectsFound", { defaultValue: "No projects found." })}
                     onChange={(projectId) => {
                       if (projectId) trackRecentProject(projectId);
                       setDraft((current) => ({ ...current, projectId }));
@@ -1236,7 +1237,7 @@ export function Routines() {
             <FolderRail
               result={railFolderResult}
               selection={folderSelection}
-              allLabel="All routines"
+              allLabel={t("pages.routines.all", { defaultValue: "All routines" })}
               itemLabelPlural="routines"
               loading={foldersLoading}
               onSelect={setFolderSelection}
@@ -1252,11 +1253,11 @@ export function Routines() {
           <div className="min-w-0 flex-1">
           {routineViewState.groupBy === "folder" && hasRoutineFolders ? (
             <div className="mb-3 flex flex-wrap items-center gap-2">
-              {folderSelection === "all" ? <FolderIconHeader label="All routines" count={sortedRoutines.length} /> : (
+              {folderSelection === "all" ? <FolderIconHeader label={t("pages.routines.all", { defaultValue: "All routines" })} count={sortedRoutines.length} /> : (
                 <div className="flex min-w-0 items-center gap-2 text-sm">
                   <FolderSwatch color={activeFolder?.color} />
-                  <span className="truncate font-medium">{folderSelection === "unfiled" ? "Unfiled" : activeFolder?.name ?? "Folder"}</span>
-                  <span className="text-muted-foreground">{sortedRoutines.length} routine{sortedRoutines.length === 1 ? "" : "s"}</span>
+                  <span className="truncate font-medium">{folderSelection === "unfiled" ? t("pages.routines.unfiled", { defaultValue: "Unfiled" }) : activeFolder?.name ?? t("pages.routines.folder", { defaultValue: "Folder" })}</span>
+                  <span className="text-muted-foreground">{t("pages.routines.count", { count: sortedRoutines.length })}</span>
                 </div>
               )}
             </div>
@@ -1285,14 +1286,14 @@ export function Routines() {
             <div className="py-12">
               <EmptyState
                 icon={Repeat}
-                message="No active routines. Use Create routine to define the first recurring workflow."
+                message={t("pages.routines.noActive", { defaultValue: "No active routines. Use Create routine to define the first recurring workflow." })}
               />
             </div>
           ) : sortedRoutines.length === 0 ? (
             <div className="py-12">
               <EmptyState
                 icon={Repeat}
-                message={folderSelection === "all" ? "No routines match this view." : "This folder is empty."}
+                message={folderSelection === "all" ? t("pages.routines.noMatch", { defaultValue: "No routines match this view." }) : t("pages.routines.folderEmpty", { defaultValue: "This folder is empty." })}
               />
               {folderSelection !== "all" ? (
                 <div className="mt-3 flex justify-center">
@@ -1358,13 +1359,13 @@ export function Routines() {
                                 const previousFolderId = routine.folderId ?? null;
                                 moveRoutineToFolder.mutate({ itemId: routine.id, folderId });
                                 pushToast({
-                                  title: "Routine moved",
+                                  title: t("pages.routines.movedSingleTitle", { defaultValue: "Routine moved" }),
                                   body: folderId
-                                    ? `Moved "${routine.title}" to ${routineFolders?.folders.find((folder) => folder.id === folderId)?.name ?? "folder"}.`
-                                    : `Moved "${routine.title}" to Unfiled.`,
+                                    ? t("pages.routines.movedSingleBody", { title: routine.title, folder: routineFolders?.folders.find((folder) => folder.id === folderId)?.name ?? t("pages.routines.folder", { defaultValue: "folder" }) })
+                                    : t("pages.routines.movedSingleUnfiled", { title: routine.title }),
                                   tone: "success",
                                   action: {
-                                    label: "Undo",
+                                    label: t("common.undo", { defaultValue: "Undo" }),
                                     onClick: () => moveRoutineToFolder.mutate({ itemId: routine.id, folderId: previousFolderId }),
                                   },
                                 });
@@ -1412,7 +1413,7 @@ export function Routines() {
         onOpenChange={setMobileFoldersOpen}
         result={railFolderResult}
         selection={folderSelection}
-        allLabel="All routines"
+        allLabel={t("pages.routines.all", { defaultValue: "All routines" })}
         itemLabelPlural="Routines"
         onSelect={setFolderSelection}
         onCreate={() => openCreateFolder()}
