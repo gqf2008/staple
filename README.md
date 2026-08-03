@@ -57,10 +57,17 @@ first — it covers the workspace, issue-driven workflow, and coding rules.
 The rewrite lives in `crates/` as a Cargo workspace. The toolchain is pinned
 by `rust-toolchain.toml` (stable, edition 2024).
 
-- `make dev` — run the app
+- `make dev` — run the app (defaults to `127.0.0.1:3100`; `HOST`/`PORT`/`RUST_LOG` override)
 - `make test` — run all workspace tests
 - `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
 - `make build` — release build
+
+Quick check while the app runs:
+
+```sh
+curl http://localhost:3100/api/health
+# {"status":"ok"}
+```
 
 CI (`.github/workflows/ci.yml`) runs fmt, clippy, tests, and the release build
 on every push/PR.
