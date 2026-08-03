@@ -19,7 +19,9 @@ pub mod heartbeat_runs;
 mod helpers;
 pub mod issue_comments;
 pub mod issue_relations;
+pub mod issue_structure;
 pub mod issues;
+pub mod labels;
 pub mod projects;
 pub mod secrets;
 pub mod skills;
@@ -77,9 +79,17 @@ pub use issue_relations::{
     IssueRelationError, IssueRelationRecord, IssueRelationRepository, NewIssueRelation,
     TursoIssueRelationRepository,
 };
+pub use issue_structure::{
+    ExecutionDecisionRecord, IssueApprovalRecord, IssueReadStateRecord, IssueStructureError,
+    IssueStructureRepository, NewExecutionDecision, NewThreadInteraction, ThreadInteractionRecord,
+    TursoIssueStructureRepository,
+};
 pub use issues::{
     IssueError, IssuePatch, IssueRecord, IssueRepository, NewIssue, TursoIssueRepository,
     allowed_status_transition,
+};
+pub use labels::{
+    IssueLabelRecord, LabelError, LabelRecord, LabelRepository, NewLabel, TursoLabelRepository,
 };
 pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,

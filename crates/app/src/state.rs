@@ -6,8 +6,9 @@ use staple_data::{
     ActivityRepository, ApiKeyRepository, ApprovalRepository, AssetRepository, CompanyRepository,
     CostRepository, DecisionRepository, DocumentRepository, EnvironmentRepository,
     ExternalObjectRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, ProjectRepository, SecretRepository, SkillRepository,
-    WorkProductRepository, WorkspaceRepository,
+    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
+    ProjectRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -58,6 +59,10 @@ pub struct AppState {
     pub environments: Arc<dyn EnvironmentRepository>,
     /// Workspaces repository.
     pub workspaces: Arc<dyn WorkspaceRepository>,
+    /// Labels repository.
+    pub labels: Arc<dyn LabelRepository>,
+    /// Issue structure repository.
+    pub issue_structure: Arc<dyn IssueStructureRepository>,
     /// Adapter registry.
     pub adapters: Arc<AdapterRegistry>,
     /// Plugin load diagnostics.

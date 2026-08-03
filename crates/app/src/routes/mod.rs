@@ -16,6 +16,7 @@ pub mod external_objects;
 pub mod goals;
 pub mod health;
 pub mod heartbeat;
+pub mod issue_structure;
 pub mod issues;
 pub mod projects;
 pub mod relations;

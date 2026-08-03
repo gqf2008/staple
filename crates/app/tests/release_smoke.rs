@@ -14,8 +14,9 @@ use staple_data::{
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoProjectRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoProjectRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -135,6 +136,16 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         environments: Arc::new(TursoEnvironmentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        labels: Arc::new(TursoLabelRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        issue_structure: Arc::new(TursoIssueStructureRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
