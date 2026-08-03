@@ -21,7 +21,7 @@ jobs:
       - name: Checkout base branch (never PR code)
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
-          ref: master
+          ref: main
 
       - name: Dependency Review
         uses: actions/dependency-review-action@a1d282b36b6f3519aa1f3fc636f609c47dddb294 # v5.0.0
@@ -36,6 +36,7 @@ jobs:
 
       - name: Generate commitperclip token
         id: token
+        if: ${{ secrets.COMMITPERCLIP_KEY != '' }}
         run: |
           TOKEN=$(node .github/scripts/get-bot-token.mjs)
           echo "::add-mask::$TOKEN"
@@ -45,7 +46,7 @@ jobs:
 
       - name: Run quality gates
         id: quality
-        if: github.event.pull_request.user.login != 'dependabot[bot]'
+        if: ${{ secrets.COMMITPERCLIP_KEY != '' && github.event.pull_request.user.login != 'dependabot[bot]' }}
         run: node .github/scripts/run-quality-gates.mjs
         continue-on-error: true
         env:
@@ -56,6 +57,7 @@ jobs:
           PR_BRANCH: ${{ github.event.pull_request.head.ref }}
 
       - name: Run security gates
+        if: ${{ secrets.COMMITPERCLIP_KEY != '' }}
         run: node .github/scripts/check-pr-security.mjs
         continue-on-error: true
         timeout-minutes: 3
@@ -67,8 +69,11 @@ jobs:
 
       - name: Fail if quality gates failed
         if: >-
-          github.event.pull_request.user.login != 'dependabot[bot]' &&
-          steps.quality.outcome == 'failure'
+          ${{
+            secrets.COMMITPERCLIP_KEY != '' &&
+            github.event.pull_request.user.login != 'dependabot[bot]' &&
+            steps.quality.outcome == 'failure'
+          }}
         run: |
           echo "One or more quality gates failed. See commitperclip comment on the PR for details."
           exit 1
