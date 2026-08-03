@@ -8,6 +8,7 @@ pub mod auth;
 pub mod config;
 pub mod dto;
 pub mod error;
+pub mod i18n;
 pub mod logging;
 pub mod routes;
 pub mod state;

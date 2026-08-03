@@ -7,7 +7,10 @@ use topcoat::{
     view::view,
 };
 
-use crate::state::AppState;
+use crate::{
+    i18n::{lang_from_request, t, with_lang},
+    state::AppState,
+};
 
 fn to_topcoat_error(error: impl ToString) -> topcoat::Error {
     topcoat::Error::from(std::io::Error::other(error.to_string()))
@@ -20,17 +23,18 @@ pub(crate) struct CompanyId(String);
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let state = app_context::<AppState>(cx);
     let companies = state.companies.list().await.map_err(to_topcoat_error)?;
     view! {
-        <h1 class="page-title">"Companies"</h1>
+        <h1 class="page-title">(t(lang, "page.title.companies"))</h1>
         if companies.is_empty() {
-            <p class="empty">"No companies yet. Create one via the API."</p>
+            <p class="empty">(t(lang, "empty.noCompanies"))</p>
         } else {
             <ul class="list">
                 for company in companies {
                     <li>
-                        <a href=(format!("/companies/{}", company.id))>
+                        <a href=(with_lang(&format!("/companies/{}", company.id), lang))>
                             <strong>(company.name)</strong>
                         </a>
                         <span class="mono">" " (company.id)</span>
@@ -44,6 +48,7 @@ pub async fn home(cx: &Cx) -> Result {
 /// Company overview: goals, projects, and issues for one company.
 #[page("/companies/{company_id}")]
 pub async fn company_overview(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let company = state
@@ -75,9 +80,9 @@ pub async fn company_overview(cx: &Cx) -> Result {
         <p class="mono">(company.id)</p>
 
         <section>
-            <h2>"Goals"</h2>
+            <h2>(t(lang, "section.goals"))</h2>
             if goals.is_empty() {
-                <p class="empty">"No goals."</p>
+                <p class="empty">(t(lang, "empty.noGoals"))</p>
             } else {
                 <ul class="list">
                     for goal in goals {
@@ -91,9 +96,9 @@ pub async fn company_overview(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>"Projects"</h2>
+            <h2>(t(lang, "section.projects"))</h2>
             if projects.is_empty() {
-                <p class="empty">"No projects."</p>
+                <p class="empty">(t(lang, "empty.noProjects"))</p>
             } else {
                 <ul class="list">
                     for project in projects {
@@ -107,9 +112,9 @@ pub async fn company_overview(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>"Issues"</h2>
+            <h2>(t(lang, "section.issues"))</h2>
             if issues.is_empty() {
-                <p class="empty">"No issues."</p>
+                <p class="empty">(t(lang, "empty.noIssues"))</p>
             } else {
                 <ul class="list">
                     for issue in issues {
@@ -128,6 +133,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
 /// Issue list page for one company.
 #[page("/companies/{company_id}/issues")]
 pub async fn company_issues(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let issues = state
@@ -136,7 +142,7 @@ pub async fn company_issues(cx: &Cx) -> Result {
         .await
         .map_err(to_topcoat_error)?;
     view! {
-        <h1 class="page-title">"Issues"</h1>
+        <h1 class="page-title">(t(lang, "page.title.issues"))</h1>
         <ul class="list">
             for issue in issues {
                 <li>
@@ -163,6 +169,7 @@ fn status_badge_class(status: &str) -> &'static str {
 /// attachments, and work products.
 #[page("/issues/{id}")]
 pub async fn issue_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let issue_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let Some(issue) = state
@@ -198,21 +205,25 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         <h1 class="page-title">(issue.identifier) " " (issue.title)</h1>
         <p>
             <span class=(status_badge_class(&issue.status))>(issue.status)</span>
-            " priority: " <span class="mono">(issue.priority)</span>
+            " " (t(lang, "meta.priority")) ": " <span class="mono">(issue.priority)</span>
         </p>
-        <p class="meta-row">"company: " (issue.company_id) " | assignee: " (issue.assignee_agent_id.as_deref().unwrap_or("-"))</p>
+        <p class="meta-row">
+            (t(lang, "meta.company")) ": " (issue.company_id)
+            " | " (t(lang, "meta.assignee")) ": "
+            (issue.assignee_agent_id.as_deref().unwrap_or("-"))
+        </p>
         if let Some(description) = &issue.description {
             <p>(description)</p>
         }
 
         <section>
-            <h2>"Comments"</h2>
-            <form class="inline-form" method="post" action=(format!("/issues/{issue_id}/comments/ui"))>
-                <input type="text" name="body" placeholder="Add a comment" required="">
-                <button type="submit">"Add"</button>
+            <h2>(t(lang, "issue.comments"))</h2>
+            <form class="inline-form" method="post" action=(with_lang(&format!("/issues/{issue_id}/comments/ui"), lang))>
+                <input type="text" name="body" placeholder=(t(lang, "issue.commentPlaceholder")) required="">
+                <button type="submit">(t(lang, "issue.add"))</button>
             </form>
             if comments.is_empty() {
-                <p class="empty">"No comments."</p>
+                <p class="empty">(t(lang, "empty.noComments"))</p>
             } else {
                 <ul class="list">
                     for comment in comments {
@@ -226,15 +237,15 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>"Documents"</h2>
+            <h2>(t(lang, "issue.documents"))</h2>
             if documents.is_empty() {
-                <p class="empty">"No documents."</p>
+                <p class="empty">(t(lang, "empty.noDocuments"))</p>
             } else {
                 <ul class="list">
                     for document in documents {
                         <li>
-                            <strong>(document.title.as_deref().unwrap_or("untitled"))</strong>
-                            " rev " <span class="mono">(document.latest_revision_number)</span>
+                            <strong>(document.title.as_deref().unwrap_or(&t(lang, "issue.untitled")))</strong>
+                            " " (t(lang, "issue.rev")) " " <span class="mono">(document.latest_revision_number)</span>
                         </li>
                     }
                 </ul>
@@ -242,9 +253,9 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>"Attachments"</h2>
+            <h2>(t(lang, "issue.attachments"))</h2>
             if attachments.is_empty() {
-                <p class="empty">"No attachments."</p>
+                <p class="empty">(t(lang, "empty.noAttachments"))</p>
             } else {
                 <ul class="list">
                     for attachment in attachments {
@@ -255,9 +266,9 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>"Work products"</h2>
+            <h2>(t(lang, "issue.workProducts"))</h2>
             if work_products.is_empty() {
-                <p class="empty">"No work products."</p>
+                <p class="empty">(t(lang, "empty.noWorkProducts"))</p>
             } else {
                 <ul class="list">
                     for product in work_products {
@@ -275,6 +286,7 @@ pub async fn issue_detail(cx: &Cx) -> Result {
 /// Approvals page: create form + pending list with decide buttons.
 #[page("/companies/{company_id}/approvals")]
 pub async fn approvals(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let approvals = state
@@ -284,11 +296,11 @@ pub async fn approvals(cx: &Cx) -> Result {
         .map_err(to_topcoat_error)?;
 
     view! {
-        <h1 class="page-title">"Approvals"</h1>
+        <h1 class="page-title">(t(lang, "approvals.title"))</h1>
 
         <section>
-            <h2>"Request"</h2>
-            <form class="inline-form" method="post" action=(format!("/companies/{company_id}/approvals/ui"))>
+            <h2>(t(lang, "approvals.request"))</h2>
+            <form class="inline-form" method="post" action=(with_lang(&format!("/companies/{company_id}/approvals/ui"), lang))>
                 <select name="type">
                     <option value="hire_agent">"hire_agent"</option>
                     <option value="approve_ceo_strategy">"approve_ceo_strategy"</option>
@@ -296,14 +308,14 @@ pub async fn approvals(cx: &Cx) -> Result {
                     <option value="request_board_approval">"request_board_approval"</option>
                 </select>
                 <input type="text" name="payload" placeholder="{}">
-                <button type="submit">"Request"</button>
+                <button type="submit">(t(lang, "approvals.request"))</button>
             </form>
         </section>
 
         <section>
-            <h2>"Pending"</h2>
+            <h2>(t(lang, "approvals.pending"))</h2>
             if approvals.is_empty() {
-                <p class="empty">"No approvals."</p>
+                <p class="empty">(t(lang, "approvals.noApprovals"))</p>
             } else {
                 <ul class="list">
                     for approval in approvals {
@@ -312,13 +324,13 @@ pub async fn approvals(cx: &Cx) -> Result {
                             " " <span class=(status_badge_class(&approval.status))>(&approval.status)</span>
                             " " <span class="mono">(&approval.id)</span>
                             if approval.status == "pending" {
-                                <form class="inline-form" method="post" action=(format!("/approvals/{}/decide/ui", approval.id))>
+                                <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
                                     <input type="hidden" name="decision" value="approved">
-                                    <button type="submit">"Approve"</button>
+                                    <button type="submit">(t(lang, "approvals.approve"))</button>
                                 </form>
-                                <form class="inline-form" method="post" action=(format!("/approvals/{}/decide/ui", approval.id))>
+                                <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
                                     <input type="hidden" name="decision" value="rejected">
-                                    <button type="submit" class="destructive">"Reject"</button>
+                                    <button type="submit" class="destructive">(t(lang, "approvals.reject"))</button>
                                 </form>
                             }
                         </li>
@@ -332,6 +344,7 @@ pub async fn approvals(cx: &Cx) -> Result {
 /// Activity log view.
 #[page("/companies/{company_id}/activity")]
 pub async fn activity(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let entries = state
@@ -341,9 +354,9 @@ pub async fn activity(cx: &Cx) -> Result {
         .map_err(to_topcoat_error)?;
 
     view! {
-        <h1 class="page-title">"Audit log"</h1>
+        <h1 class="page-title">(t(lang, "activity.title"))</h1>
         if entries.is_empty() {
-            <p class="empty">"No activity."</p>
+            <p class="empty">(t(lang, "activity.noActivity"))</p>
         } else {
             <ul class="list">
                 for entry in entries {
