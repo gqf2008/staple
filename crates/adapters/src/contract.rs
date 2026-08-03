@@ -1,0 +1,102 @@
+//! Adapter contract: invoke / observe / cancel.
+//!
+//! Mirrors the upstream heartbeat semantics: a run is created by `invoke`,
+//! its progress is read by `observe`, and it can be stopped by `cancel`.
+
+use std::path::PathBuf;
+
+use serde::{Deserialize, Serialize};
+use thiserror::Error;
+
+/// Adapter errors.
+#[derive(Debug, Error)]
+pub enum AdapterError {
+    /// The invocation could not be started.
+    #[error("invoke failed: {0}")]
+    Invoke(String),
+    /// Observing the run failed.
+    #[error("observe failed: {0}")]
+    Observe(String),
+    /// Cancelling the run failed.
+    #[error("cancel failed: {0}")]
+    Cancel(String),
+}
+
+/// Input for invoking a run.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct InvocationInput {
+    /// The task/instructions for the run.
+    pub task: String,
+    /// Working directory for local adapters.
+    pub cwd: Option<PathBuf>,
+    /// Extra environment variables.
+    #[serde(default)]
+    pub env: Vec<(String, String)>,
+}
+
+/// Handle returned by `invoke`.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct RunHandle {
+    /// Stable run id.
+    pub run_id: String,
+    /// ISO 8601 start time.
+    pub started_at: String,
+}
+
+/// Observed run status.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+#[serde(tag = "status", rename_all = "snake_case")]
+pub enum RunStatus {
+    /// Still executing.
+    Running,
+    /// Finished successfully.
+    Succeeded {
+        /// Captured output.
+        output: String,
+    },
+    /// Finished with an error.
+    Failed {
+        /// Error message.
+        error: String,
+    },
+    /// Cancelled before completion.
+    Cancelled,
+}
+
+/// The adapter contract implemented by every built-in and plugin adapter.
+#[async_trait::async_trait]
+pub trait AgentAdapter: Send + Sync {
+    /// Adapter type name (e.g. `codex_local`, `http`, `webhook`).
+    fn name(&self) -> &str;
+
+    /// Starts a run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AdapterError`] when the run cannot be started.
+    async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError>;
+
+    /// Reads the current status of a run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AdapterError`] when the run is unknown or unreadable.
+    async fn observe(&self, run_id: &str) -> Result<RunStatus, AdapterError>;
+
+    /// Stops a run.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AdapterError`] when the run cannot be cancelled.
+    async fn cancel(&self, run_id: &str) -> Result<(), AdapterError>;
+}
+
+/// Convenience: `?`-free status check.
+impl RunStatus {
+    /// Whether the run has finished.
+    #[must_use]
+    pub fn is_terminal(&self) -> bool {
+        !matches!(self, Self::Running)
+    }
+}

@@ -5,6 +5,7 @@ use std::sync::Arc;
 
 use http::{Method, Request, header::CONTENT_TYPE};
 use serde_json::{Value, json};
+use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
 use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
@@ -106,6 +107,11 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
+        adapters: Arc::new({
+            let mut registry = AdapterRegistry::new();
+            registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
+            registry
+        }),
     };
     (state, seed_db)
 }
@@ -2484,4 +2490,59 @@ async fn issue_detail_approvals_and_activity_pages() {
     assert!(html.contains("Audit log"));
     assert!(html.contains("company.created"));
     assert!(html.contains("comment.created"));
+}
+
+#[tokio::test]
+async fn adapter_registry_and_cli_lifecycle() {
+    let app = router(test_state().await);
+
+    // Discovery.
+    let (status, body) = send_json(&app, Method::GET, "/api/adapters", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        body["adapters"]
+            .as_array()
+            .unwrap()
+            .contains(&json!("cli_local"))
+    );
+
+    // Invoke.
+    let (status, handle) = send_json(
+        &app,
+        Method::POST,
+        "/api/adapters/cli_local/invoke",
+        json!({ "task": "echo adapter-ok" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let run_id = handle["runId"].as_str().unwrap().to_owned();
+
+    // Observe (poll until terminal).
+    let mut status_body = serde_json::Value::Null;
+    for _ in 0..100 {
+        let (_, observed) = send_json(
+            &app,
+            Method::GET,
+            &format!("/api/adapters/cli_local/runs/{run_id}"),
+            json!({}),
+        )
+        .await;
+        status_body = observed;
+        if status_body["status"] != "running" {
+            break;
+        }
+        tokio::time::sleep(std::time::Duration::from_millis(10)).await;
+    }
+    assert_eq!(status_body["status"], "succeeded");
+    assert_eq!(status_body["output"], "adapter-ok");
+
+    // Unknown adapter -> 404.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/adapters/nope/invoke",
+        json!({ "task": "x" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

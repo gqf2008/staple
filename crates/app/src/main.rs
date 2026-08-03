@@ -1,5 +1,6 @@
 use std::{error::Error, sync::Arc};
 
+use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
 use staple_app::storage::LocalStorage;
 use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
@@ -60,6 +61,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
+        adapters: Arc::new({
+            let mut registry = AdapterRegistry::new();
+            registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
+            registry
+        }),
     };
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
