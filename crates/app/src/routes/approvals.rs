@@ -11,6 +11,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::require_board,
     dto::ApprovalDto,
     error::ApiError,
     routes::{CompanyId, Id},
@@ -137,6 +138,7 @@ pub async fn decide_approval(
     cx: &Cx,
     Json(body): Json<DecideApprovalRequest>,
 ) -> Result<Json<ApprovalDto>, ApiError> {
+    require_board(cx)?;
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let approval = state
@@ -183,6 +185,7 @@ pub async fn decide_approval(
 /// `POST /api/approvals/{id}/cancel` — cancels a pending approval.
 #[route(POST "/api/approvals/{id}/cancel")]
 pub async fn cancel_approval(cx: &Cx) -> Result<Json<ApprovalDto>, ApiError> {
+    require_board(cx)?;
     let id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let approval = state

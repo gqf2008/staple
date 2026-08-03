@@ -3,10 +3,10 @@
 use std::sync::Arc;
 
 use staple_data::{
-    ActivityRepository, ApprovalRepository, AssetRepository, CompanyRepository, CostRepository,
-    DocumentRepository, GoalRepository, HeartbeatRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, ProjectRepository, SecretRepository,
-    WorkProductRepository,
+    ActivityRepository, ApiKeyRepository, ApprovalRepository, AssetRepository, CompanyRepository,
+    CostRepository, DocumentRepository, GoalRepository, HeartbeatRepository,
+    IssueCommentRepository, IssueRelationRepository, IssueRepository, ProjectRepository,
+    SecretRepository, WorkProductRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -44,4 +44,6 @@ pub struct AppState {
     pub activity: Arc<dyn ActivityRepository>,
     /// Secrets repository.
     pub secrets: Arc<dyn SecretRepository>,
+    /// Agent API key repository (also used by the auth layer).
+    pub api_keys: Arc<dyn ApiKeyRepository>,
 }

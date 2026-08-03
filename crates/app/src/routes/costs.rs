@@ -11,6 +11,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::require_board,
     dto::{AgentCostRowDto, BudgetSummaryDto, CostEventDto},
     error::ApiError,
     routes::{CompanyId, is_uuid},
@@ -168,6 +169,7 @@ pub async fn set_budget(
     cx: &Cx,
     Json(body): Json<SetBudgetRequest>,
 ) -> Result<Json<BudgetSummaryDto>, ApiError> {
+    require_board(cx)?;
     if body.budget_monthly_cents < 0 {
         return Err(ApiError::unprocessable(
             "Validation error",
@@ -202,6 +204,7 @@ pub async fn set_budget(
 /// resumes budget-paused agents.
 #[route(POST "/api/companies/{company_id}/budget/reset")]
 pub async fn reset_budget(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    require_board(cx)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     match state

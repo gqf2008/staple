@@ -11,6 +11,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::enforce_company_scope,
     dto::GoalDto,
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
@@ -173,6 +174,7 @@ fn validate_update(body: &UpdateGoalRequest) -> Result<(), ApiError> {
 #[route(GET "/api/companies/{company_id}/goals")]
 pub async fn list_goals(cx: &Cx) -> Result<Json<Vec<GoalDto>>, ApiError> {
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
     let state = app_context::<AppState>(cx);
     let goals = state
         .goals
@@ -190,6 +192,7 @@ pub async fn create_goal(
 ) -> Result<(StatusCode, Json<GoalDto>), ApiError> {
     validate_create(&body)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    enforce_company_scope(cx, &company_id)?;
     let state = app_context::<AppState>(cx);
     let goal = state
         .goals
