@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { t } from "../i18n";
 import { Link, useLocation } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -60,15 +61,15 @@ import type { Agent } from "@paperclipai/shared";
 
 /**
  * When no agent is running, the sidebar falls back to showing at most this many
- * recently-active agents plus a "See all agents" link (IA Phase 5).
+ * recently-active agents plus a t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" }) link (IA Phase 5).
  */
 const RECENT_AGENT_LIMIT = 3;
 const LIVE_AGENT_LINGER_MS = 120_000;
 
 const AGENT_SORT_CHOICES: SidebarSectionRadioChoice[] = [
-  { value: "top", label: "Top" },
-  { value: "alphabetical", label: "Alphabetical" },
-  { value: "recent", label: "Recent" },
+  { value: "top", label: t("components.sidebarAgents.top", { defaultValue: "Top" }) },
+  { value: "alphabetical", label: t("components.sidebarAgents.alphabetical", { defaultValue: "Alphabetical" }) },
+  { value: "recent", label: t("components.sidebarAgents.recent", { defaultValue: "Recent" }) },
 ];
 
 function agentTimestamp(agent: Agent, field: "lastHeartbeatAt" | "updatedAt" | "createdAt"): number {
@@ -144,19 +145,19 @@ function SidebarAgentItem({
   const isPaused = agent.status === "paused";
   const isBudgetPaused = isPaused && agent.pauseReason === "budget";
   const hasInvalidOrgChain = agent.orgChainHealth?.status === "invalid_org_chain";
-  const pauseResumeLabel = isPaused ? "Resume agent" : "Pause agent";
+  const pauseResumeLabel = isPaused ? t("components.sidebarAgents.resumeAgent", { defaultValue: "Resume agent" }) : t("components.sidebarAgents.pauseAgent", { defaultValue: "Pause agent" });
   const pauseResumeDisabled = disabled || agent.status === "pending_approval" || isBudgetPaused || (isPaused && hasInvalidOrgChain);
   const pauseResumeDisabledLabel = disabled
-    ? "Updating..."
+    ? t("components.sidebarAgents.updating", { defaultValue: "Updating..." })
     : isBudgetPaused
-      ? "Budget paused"
+      ? t("components.sidebarAgents.budgetPaused", { defaultValue: "Budget paused" })
       : isPaused && hasInvalidOrgChain
-        ? "Invalid org chain"
+        ? t("components.sidebarAgents.invalidOrgChain", { defaultValue: "Invalid org chain" })
       : pauseResumeLabel;
   const showBuiltInLifecycle = builtInStatus === "needs_setup" || builtInStatus === "pending_approval";
   const trailingLabel = [
     showBuiltInLifecycle ? `Built-in agent ${builtInStatus.replace(/_/g, " ")}` : null,
-    hasInvalidOrgChain ? "Invalid reporting chain" : null,
+    hasInvalidOrgChain ? t("components.sidebarAgents.invalidReportingChain", { defaultValue: "Invalid reporting chain" }) : null,
   ].filter(Boolean).join(", ") || undefined;
 
   // C11 (DECISION-SHEET.md): the row itself is a SidebarNavItem, so agent rows
@@ -180,14 +181,14 @@ function SidebarAgentItem({
           <span className="ml-1 flex shrink-0 items-center gap-1">
             {showBuiltInLifecycle ? <BuiltInLifecycleChip status={builtInStatus} compact /> : null}
             {hasInvalidOrgChain ? (
-              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-label="Invalid reporting chain" />
+              <AlertTriangle className="h-3.5 w-3.5 shrink-0 text-amber-500" aria-label={t("components.sidebarAgents.invalidReportingChain", { defaultValue: "Invalid reporting chain" })} />
             ) : null}
           </span>
         ) : undefined
       }
       trailingLabel={trailingLabel}
       liveAccessory={
-        agent.pauseReason === "budget" ? <BudgetSidebarMarker title="Agent paused by budget" /> : undefined
+        agent.pauseReason === "budget" ? <BudgetSidebarMarker title={t("components.sidebarAgents.pausedByBudget", { defaultValue: "Agent paused by budget" })} /> : undefined
       }
     />
   );
@@ -247,7 +248,7 @@ function SidebarAgentItem({
                 ) : (
                   <Star className={cn("size-4", starred && "fill-amber-500 text-amber-500")} />
                 )}
-                <span>{starred ? "Remove from starred" : "Star agent"}</span>
+                <span>{starred ? t("components.sidebarAgents.removeStarred", { defaultValue: "Remove from starred" }) : t("components.sidebarAgents.starAgent", { defaultValue: "Star agent" })}</span>
               </DropdownMenuItem>
               <DropdownMenuSeparator />
             </>
@@ -260,7 +261,7 @@ function SidebarAgentItem({
               }}
             >
               <Pencil className="size-4" />
-              <span>Edit agent</span>
+              <span>{t("components.sidebarAgents.editAgent", { defaultValue: "Edit agent" })}</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
@@ -270,7 +271,7 @@ function SidebarAgentItem({
               onPauseResume(agent, isPaused ? "resume" : "pause");
             }}
             disabled={pauseResumeDisabled}
-            title={isBudgetPaused ? "Agent was paused by budget limits" : undefined}
+            title={isBudgetPaused ? t("components.sidebarAgents.pausedByBudgetBody", { defaultValue: "Agent was paused by budget limits" }) : undefined}
           >
             {isPaused ? <PlayCircle className="size-4" /> : <PauseCircle className="size-4" />}
             <span>{pauseResumeDisabledLabel}</span>
@@ -284,7 +285,7 @@ function SidebarAgentItem({
             disabled={leaving}
           >
             {leaving ? <Loader2 className="size-4 motion-safe:animate-spin" /> : <LogOut className="size-4" />}
-            <span>{leaving ? "Leaving..." : "Leave agent"}</span>
+            <span>{leaving ? t("components.sidebarAgents.leaving", { defaultValue: "Leaving..." }) : t("components.sidebarAgents.leaveAgent", { defaultValue: "Leave agent" })}</span>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
@@ -412,7 +413,7 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
   // active agents. Agents that just stopped running linger briefly so clustered
   // run boundaries do not make rows pop out and the section does not immediately
   // swap to the recent fallback during short all-idle gaps. Otherwise fall back
-  // to up to RECENT_AGENT_LIMIT agents. Either way a "See all agents" link is
+  // to up to RECENT_AGENT_LIMIT agents. Either way a t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" }) link is
   // shown so the full list is always reachable.
   // Classic mode (PAP-89, flag OFF) restores the show-all behavior.
   const runningAgents = useMemo(() => {
@@ -430,7 +431,7 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
     : hasActiveAgents
       ? runningAgents
       : sortedAgents.slice(0, RECENT_AGENT_LIMIT);
-  // Always expose "See all agents" whenever the displayed list is a subset of all
+  // Always expose t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" }) whenever the displayed list is a subset of all
   // agents, so users never lose the entry point to the full list. In classic mode
   // every agent is already shown, so the link is unnecessary.
   const showSeeAllLink = streamlined && sortedAgents.length > 0;
@@ -529,14 +530,14 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
         queryClient.invalidateQueries({ queryKey: queryKeys.agents.detail(agentRouteRef(agent)) }),
       ]);
       pushToast({
-        title: action === "pause" ? "Agent paused" : "Agent resumed",
+        title: action === "pause" ? t("components.sidebarAgents.agentPaused", { defaultValue: "Agent paused" }) : t("components.sidebarAgents.agentResumed", { defaultValue: "Agent resumed" }),
         body: agent.name,
         tone: "success",
       });
     },
     onError: (error, { agent, action }) => {
       pushToast({
-        title: action === "pause" ? "Could not pause agent" : "Could not resume agent",
+        title: action === "pause" ? t("components.sidebarAgents.pauseFailed", { defaultValue: "Could not pause agent" }) : t("components.sidebarAgents.resumeFailed", { defaultValue: "Could not resume agent" }),
         body: error instanceof Error ? error.message : agent.name,
         tone: "error",
       });
@@ -623,20 +624,20 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
 
   return (
     <SidebarSection
-      label="Agents"
+      label={t("components.sidebarAgents.agents", { defaultValue: "Agents" })}
       collapsible={{ open, onOpenChange: setOpen }}
       headerAction={{
-        ariaLabel: "New agent",
+        ariaLabel: t("components.sidebarAgents.newAgent", { defaultValue: "New agent" }),
         icon: Plus,
         onClick: openNewAgent,
       }}
       menu={{
-        ariaLabel: "Agents section actions",
+        ariaLabel: t("components.sidebarAgents.sectionActions", { defaultValue: "Agents section actions" }),
         actions: [
-          { type: "item", label: "Browse agents", icon: Users, href: "/agents/all" },
+          { type: "item", label: t("components.sidebarAgents.browseAgents", { defaultValue: "Browse agents" }), icon: Users, href: "/agents/all" },
           { type: "separator" },
         ],
-        radioLabel: "Agent sort",
+        radioLabel: t("components.sidebarAgents.agentSort", { defaultValue: "Agent sort" }),
         radioChoices: AGENT_SORT_CHOICES,
         radioValue: sortMode,
         onRadioValueChange: persistSortMode,
@@ -651,20 +652,20 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
           <Link
             to="/agents/all"
             state={SIDEBAR_SCROLL_RESET_STATE}
-            aria-label={rail ? "See all agents" : undefined}
+            aria-label={rail ? t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" }) : undefined}
             onClick={() => {
               if (isMobile) setSidebarOpen(false);
             }}
             className="flex items-center gap-2.5 mx-2 rounded-lg px-2 py-1.5 pointer-coarse:py-1 text-(length:--text-compact) font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
           >
             <Users className="shrink-0 h-4 w-4" />
-            <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : undefined}>See all agents</span>
+            <span className={rail ? SIDEBAR_RAIL_HIDDEN_LABEL : undefined}>{t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" })}</span>
           </Link>
         );
         return rail ? (
           <Tooltip>
             <TooltipTrigger asChild>{seeAllLink}</TooltipTrigger>
-            <TooltipContent side="right">See all agents</TooltipContent>
+            <TooltipContent side="right">{t("components.sidebarAgents.seeAll", { defaultValue: "See all agents" })}</TooltipContent>
           </Tooltip>
         ) : (
           seeAllLink

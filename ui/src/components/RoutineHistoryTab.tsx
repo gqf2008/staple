@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { t } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { History as HistoryIcon, RotateCcw, Search } from "lucide-react";
 import type {
@@ -127,7 +128,7 @@ export function RoutineHistoryTab({
         title: `Restored revision ${restoredFromNumber} as revision ${newNumber}`,
         body: data.secretMaterials.length > 0
           ? "Trigger enabled state was restored from the snapshot. New webhook secrets are available in the banner above."
-          : "Trigger enabled state was restored from the snapshot.",
+          : t("components.routineHistory.triggerRestored", { defaultValue: "Trigger enabled state was restored from the snapshot." }),
         tone: "success",
       });
       onRestoreSecretMaterials(data);
@@ -153,8 +154,8 @@ export function RoutineHistoryTab({
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to restore revision",
-        body: error instanceof Error ? error.message : "Paperclip could not restore the revision.",
+        title: t("components.routineHistory.restoreFailed", { defaultValue: "Failed to restore revision" }),
+        body: error instanceof Error ? error.message : t("components.routineHistory.restoreFailedBody", { defaultValue: "Paperclip could not restore the revision." }),
         tone: "error",
       });
     },
@@ -200,11 +201,11 @@ export function RoutineHistoryTab({
     return (
       <div className="rounded-md border border-l-2 border-l-destructive border-border p-4 space-y-3">
         <div>
-          <p className="text-sm font-medium">Could not load revisions</p>
+          <p className="text-sm font-medium">{t("components.routineHistory.loadFailed", { defaultValue: "Could not load revisions" })}</p>
           <p className="text-xs text-muted-foreground">
             {revisionsQuery.error instanceof Error
               ? revisionsQuery.error.message
-              : "Unknown error loading revisions."}
+              : t("components.routineHistory.loadError", { defaultValue: "Unknown error loading revisions." })}
           </p>
         </div>
         <Button size="sm" variant="outline" onClick={() => revisionsQuery.refetch()}>
@@ -241,7 +242,7 @@ export function RoutineHistoryTab({
           <div className="space-y-2">
             <EmptyState
               icon={HistoryIcon}
-              message="No edits yet"
+              message={t("components.routineHistory.noEdits", { defaultValue: "No edits yet" })}
             />
             <p className="text-center text-xs text-muted-foreground">
               Revision 1 is the only history this routine has. Saving an edit creates the first
@@ -375,7 +376,7 @@ function ConflictBanner({
     <div className="rounded-md border border-amber-500/30 bg-amber-500/5 px-4 py-3">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div className="space-y-1">
-          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">Unsaved routine edits</p>
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{t("components.routineHistory.unsavedEdits", { defaultValue: "Unsaved routine edits" })}</p>
           <p className="text-xs text-muted-foreground">
             You changed {fieldsText} but haven&apos;t saved yet. Save or discard before previewing or
             restoring an older revision.
@@ -511,7 +512,7 @@ function RevisionPreview({
   const snapshot = revision.snapshot.routine;
   const triggers = revision.snapshot.triggers;
   const currentSnapshot = currentRevision?.snapshot.routine ?? null;
-  const restoreLabel = isHistorical ? "Restore this revision" : "Restore this revision";
+  const restoreLabel = isHistorical ? t("components.routineHistory.restoreRevision", { defaultValue: "Restore this revision" }) : t("components.routineHistory.restoreRevision", { defaultValue: "Restore this revision" });
   const cardWrapper = `rounded-md border transition-colors duration-1000 ${
     highlighted ? "border-emerald-500/40 bg-emerald-500/10" : "border-border"
   }`;
@@ -523,49 +524,49 @@ function RevisionPreview({
   const fieldRows: Array<{ key: string; label: string; value: string; differs: boolean }> = [
     {
       key: "title",
-      label: "Title",
+      label: t("components.routineHistory.title", { defaultValue: "Title" }),
       value: snapshot.title,
       differs: !!currentSnapshot && currentSnapshot.title !== snapshot.title,
     },
     {
       key: "priority",
-      label: "Priority",
+      label: t("components.routineHistory.priority", { defaultValue: "Priority" }),
       value: snapshot.priority,
       differs: !!currentSnapshot && currentSnapshot.priority !== snapshot.priority,
     },
     {
       key: "status",
-      label: "Status",
+      label: t("components.routineHistory.status", { defaultValue: "Status" }),
       value: snapshot.status,
       differs: !!currentSnapshot && currentSnapshot.status !== snapshot.status,
     },
     {
       key: "assigneeAgentId",
-      label: "Default agent",
+      label: t("components.routineHistory.defaultAgent", { defaultValue: "Default agent" }),
       value: resolveAgentName(snapshot.assigneeAgentId, agents),
       differs: !!currentSnapshot && currentSnapshot.assigneeAgentId !== snapshot.assigneeAgentId,
     },
     {
       key: "projectId",
-      label: "Project",
+      label: t("components.routineHistory.project", { defaultValue: "Project" }),
       value: resolveProjectName(snapshot.projectId, projects),
       differs: !!currentSnapshot && currentSnapshot.projectId !== snapshot.projectId,
     },
     {
       key: "concurrencyPolicy",
-      label: "Concurrency",
+      label: t("components.routineHistory.concurrency", { defaultValue: "Concurrency" }),
       value: snapshot.concurrencyPolicy.replaceAll("_", " "),
       differs: !!currentSnapshot && currentSnapshot.concurrencyPolicy !== snapshot.concurrencyPolicy,
     },
     {
       key: "catchUpPolicy",
-      label: "Catch-up",
+      label: t("components.routineHistory.catchUp", { defaultValue: "Catch-up" }),
       value: snapshot.catchUpPolicy.replaceAll("_", " "),
       differs: !!currentSnapshot && currentSnapshot.catchUpPolicy !== snapshot.catchUpPolicy,
     },
     {
       key: "env",
-      label: "Env",
+      label: t("components.routineHistory.env", { defaultValue: "Env" }),
       value: envSummary,
       differs: envDiffers,
     },
@@ -630,7 +631,7 @@ function RevisionPreview({
           {snapshot.description ? (
             <MarkdownBody>{snapshot.description}</MarkdownBody>
           ) : (
-            <span className="text-muted-foreground">No description</span>
+            <span className="text-muted-foreground">{t("components.routineHistory.noDescription", { defaultValue: "No description" })}</span>
           )}
         </div>
       </div>
@@ -640,7 +641,7 @@ function RevisionPreview({
           Triggers ({triggers.length})
         </p>
         {triggers.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No triggers in this revision.</p>
+          <p className="text-sm text-muted-foreground">{t("components.routineHistory.noTriggers", { defaultValue: "No triggers in this revision." })}</p>
         ) : (
           <ul className="divide-y divide-border">
             {triggers.map((trigger) => (
@@ -753,7 +754,7 @@ function RestoreConfirmDialog({
           <Input
             id="restore-change-summary"
             value={changeSummary}
-            placeholder="Why are you restoring? Visible in history."
+            placeholder={t("components.routineHistory.restoreReason", { defaultValue: "Why are you restoring? Visible in history." })}
             onChange={(event) => onChangeSummaryChange(event.target.value)}
           />
         </div>
@@ -763,7 +764,7 @@ function RestoreConfirmDialog({
           </Button>
           <Button onClick={onConfirm} disabled={pending}>
             <RotateCcw className="mr-1.5 h-3.5 w-3.5" />
-            {pending ? "Restoring…" : `Restore as revision ${newRevisionNumber}`}
+            {pending ? t("components.routineHistory.restoring", { defaultValue: "Restoring…" }) : `Restore as revision ${newRevisionNumber}`}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -821,18 +822,18 @@ function RoutineRevisionDiffModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-(--pct-90) w-full max-h-(--sz-85vh) overflow-hidden flex flex-col">
         <DialogHeader>
-          <DialogTitle>Compare routine revisions</DialogTitle>
+          <DialogTitle>{t("components.routineHistory.compareTitle", { defaultValue: "Compare routine revisions" })}</DialogTitle>
         </DialogHeader>
         <div className="flex flex-wrap items-center gap-3">
           <RevisionPicker
-            label="Old"
+            label={t("components.routineHistory.old", { defaultValue: "Old" })}
             value={leftId}
             onChange={setLeftId}
             revisions={revisions}
             tone="red"
           />
           <RevisionPicker
-            label="New"
+            label={t("components.routineHistory.new", { defaultValue: "New" })}
             value={rightId}
             onChange={setRightId}
             revisions={revisions}
@@ -845,14 +846,14 @@ function RoutineRevisionDiffModal({
               Field changes
             </p>
             {fieldChanges.length === 0 ? (
-              <p className="text-sm text-muted-foreground">No structural field changes.</p>
+              <p className="text-sm text-muted-foreground">{t("components.routineHistory.noFieldChanges", { defaultValue: "No structural field changes." })}</p>
             ) : (
               <table className="w-full text-sm border border-border rounded-md overflow-hidden">
                 <thead>
                   <tr className="text-xs uppercase tracking-wide bg-muted/30 text-muted-foreground">
-                    <th className="px-3 py-2 text-left">Field</th>
-                    <th className="px-3 py-2 text-left">Old value</th>
-                    <th className="px-3 py-2 text-left">New value</th>
+                    <th className="px-3 py-2 text-left">{t("components.routineHistory.field", { defaultValue: "Field" })}</th>
+                    <th className="px-3 py-2 text-left">{t("components.routineHistory.oldValue", { defaultValue: "Old value" })}</th>
+                    <th className="px-3 py-2 text-left">{t("components.routineHistory.newValue", { defaultValue: "New value" })}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -935,10 +936,10 @@ function RevisionPicker({
 
 function DiffTable({ rows }: { rows: DiffRow[] }) {
   if (rows.length === 0) {
-    return <p className="text-sm text-muted-foreground">No description on either revision.</p>;
+    return <p className="text-sm text-muted-foreground">{t("components.routineHistory.noDescEither", { defaultValue: "No description on either revision." })}</p>;
   }
   if (rows.every((row) => row.kind === "context")) {
-    return <p className="text-sm text-muted-foreground">Descriptions are identical.</p>;
+    return <p className="text-sm text-muted-foreground">{t("components.routineHistory.descriptionsIdentical", { defaultValue: "Descriptions are identical." })}</p>;
   }
   const lineClassesByKind: Record<DiffRow["kind"], string> = {
     context: "bg-transparent",
@@ -953,10 +954,10 @@ function DiffTable({ rows }: { rows: DiffRow[] }) {
   return (
     <div className="rounded-md border border-border text-xs font-mono leading-6 overflow-hidden">
       <div className="grid grid-cols-(--gtc-1) border-b border-border/60 bg-muted/30 px-3 py-2 text-(length:--text-micro) uppercase tracking-wide text-muted-foreground">
-        <span>Old</span>
-        <span>New</span>
+        <span>{t("components.routineHistory.old", { defaultValue: "Old" })}</span>
+        <span>{t("components.routineHistory.new", { defaultValue: "New" })}</span>
         <span />
-        <span>Content</span>
+        <span>{t("components.routineHistory.content", { defaultValue: "Content" })}</span>
       </div>
       {rows.map((row, index) => (
         <div
@@ -988,12 +989,12 @@ function getActorLabel(revision: RoutineRevision): string {
 }
 
 function resolveAgentName(agentId: string | null, lookup: AgentLookup) {
-  if (!agentId) return "Unassigned";
+  if (!agentId) return t("components.routineHistory.unassigned", { defaultValue: "Unassigned" });
   return lookup.get(agentId)?.name ?? agentId;
 }
 
 function resolveProjectName(projectId: string | null, lookup: ProjectLookup) {
-  if (!projectId) return "No project";
+  if (!projectId) return t("components.routineHistory.noProject", { defaultValue: "No project" });
   return lookup.get(projectId)?.name ?? projectId;
 }
 
@@ -1005,7 +1006,7 @@ function summarizeTriggerSnapshot(trigger: RoutineRevisionSnapshotTriggerV1): st
     const replay = trigger.replayWindowSec != null ? `replay ${trigger.replayWindowSec}s` : "";
     return [trigger.signingMode, replay].filter(Boolean).join(" · ");
   }
-  return "API";
+  return t("components.routineHistory.api", { defaultValue: "API" });
 }
 
 function formatVariableDefault(variable: RoutineVariable): string {
@@ -1057,26 +1058,26 @@ function computeFieldChanges(
       changes.push({ field: label, oldValue: transform(oldVal), newValue: transform(newVal) });
     }
   };
-  compareScalar("title", "Title", oldRoutine.title, newRoutine.title);
-  compareScalar("priority", "Priority", oldRoutine.priority, newRoutine.priority);
+  compareScalar("title", t("components.routineHistory.title", { defaultValue: "Title" }), oldRoutine.title, newRoutine.title);
+  compareScalar("priority", t("components.routineHistory.priority", { defaultValue: "Priority" }), oldRoutine.priority, newRoutine.priority);
   compareScalar(
     "assigneeAgentId",
-    "Default agent",
+    t("components.routineHistory.defaultAgent", { defaultValue: "Default agent" }),
     resolveAgentName(oldRoutine.assigneeAgentId, agents),
     resolveAgentName(newRoutine.assigneeAgentId, agents),
   );
   compareScalar(
     "projectId",
-    "Project",
+    t("components.routineHistory.project", { defaultValue: "Project" }),
     resolveProjectName(oldRoutine.projectId, projects),
     resolveProjectName(newRoutine.projectId, projects),
   );
-  compareScalar("concurrencyPolicy", "Concurrency", oldRoutine.concurrencyPolicy, newRoutine.concurrencyPolicy);
-  compareScalar("catchUpPolicy", "Catch-up", oldRoutine.catchUpPolicy, newRoutine.catchUpPolicy);
-  compareScalar("status", "Status", oldRoutine.status, newRoutine.status);
+  compareScalar("concurrencyPolicy", t("components.routineHistory.concurrency", { defaultValue: "Concurrency" }), oldRoutine.concurrencyPolicy, newRoutine.concurrencyPolicy);
+  compareScalar("catchUpPolicy", t("components.routineHistory.catchUp", { defaultValue: "Catch-up" }), oldRoutine.catchUpPolicy, newRoutine.catchUpPolicy);
+  compareScalar("status", t("components.routineHistory.status", { defaultValue: "Status" }), oldRoutine.status, newRoutine.status);
   if (JSON.stringify(oldRoutine.variables) !== JSON.stringify(newRoutine.variables)) {
     changes.push({
-      field: "Variables",
+      field: t("components.routineHistory.variables", { defaultValue: "Variables" }),
       oldValue: summarizeVariables(oldRoutine.variables),
       newValue: summarizeVariables(newRoutine.variables),
     });
