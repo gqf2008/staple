@@ -13,6 +13,7 @@ pub mod issue_comments;
 pub mod issue_relations;
 pub mod issues;
 pub mod projects;
+pub mod work_products;
 
 pub use assets::{
     AssetError, AssetRecord, AssetRepository, IssueAttachmentRecord, NewAsset, NewIssueAttachment,
@@ -41,4 +42,8 @@ pub use issues::{
 pub use projects::{
     NewProject, ProjectError, ProjectPatch, ProjectRecord, ProjectRepository,
     TursoProjectRepository,
+};
+pub use work_products::{
+    NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
+    WorkProductRecord, WorkProductRepository,
 };

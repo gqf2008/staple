@@ -429,3 +429,69 @@ impl From<staple_data::IssueRelationRecord> for IssueRelationDto {
         }
     }
 }
+
+/// Issue work product resource.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkProductDto {
+    /// Work product id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Project id.
+    pub project_id: Option<String>,
+    /// Issue id.
+    pub issue_id: String,
+    /// Type.
+    pub r#type: String,
+    /// Provider.
+    pub provider: String,
+    /// External id.
+    pub external_id: Option<String>,
+    /// Title.
+    pub title: String,
+    /// URL.
+    pub url: Option<String>,
+    /// Status.
+    pub status: String,
+    /// Review state.
+    pub review_state: String,
+    /// Primary flag.
+    pub is_primary: bool,
+    /// Health status.
+    pub health_status: String,
+    /// Summary.
+    pub summary: Option<String>,
+    /// Metadata.
+    pub metadata: Option<serde_json::Value>,
+    /// ISO 8601 creation time.
+    pub created_at: String,
+    /// ISO 8601 last update time.
+    pub updated_at: String,
+}
+
+impl From<staple_data::WorkProductRecord> for WorkProductDto {
+    fn from(record: staple_data::WorkProductRecord) -> Self {
+        Self {
+            id: record.id,
+            company_id: record.company_id,
+            project_id: record.project_id,
+            issue_id: record.issue_id,
+            r#type: record.r#type,
+            provider: record.provider,
+            external_id: record.external_id,
+            title: record.title,
+            url: record.url,
+            status: record.status,
+            review_state: record.review_state,
+            is_primary: record.is_primary,
+            health_status: record.health_status,
+            summary: record.summary,
+            metadata: record
+                .metadata
+                .and_then(|value| serde_json::from_str(&value).ok()),
+            created_at: record.created_at,
+            updated_at: record.updated_at,
+        }
+    }
+}

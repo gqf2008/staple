@@ -11,7 +11,7 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, TursoAssetRepository, TursoCompanyRepository, TursoDocumentRepository,
     TursoGoalRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoProjectRepository, migrate, open,
+    TursoIssueRepository, TursoProjectRepository, TursoWorkProductRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -41,6 +41,9 @@ async fn test_state() -> AppState {
     let relations_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let work_products_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -55,6 +58,7 @@ async fn test_state() -> AppState {
         assets: Arc::new(TursoAssetRepository::new(assets_db)),
         relations: Arc::new(TursoIssueRelationRepository::new(relations_db)),
         storage: LocalStorage::new(uploads),
+        work_products: Arc::new(TursoWorkProductRepository::new(work_products_db)),
     }
 }
 
@@ -1028,4 +1032,87 @@ async fn asset_upload_and_attach_flow() {
     .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(list.as_array().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn work_product_crud_flow() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "T").await;
+
+    // Create -> 201.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/work-products"),
+        json!({
+            "type": "artifact",
+            "provider": "paperclip",
+            "title": "Report.pdf",
+            "status": "active",
+            "isPrimary": true,
+            "metadata": { "kind": "workspace_file", "relativePath": "report.pdf" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(created["title"], "Report.pdf");
+    assert_eq!(created["isPrimary"], true);
+    let product_id = created["id"].as_str().unwrap().to_owned();
+
+    // List.
+    let (status, list) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/issues/{issue_id}/work-products"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(list.as_array().unwrap().len(), 1);
+
+    // Patch.
+    let (status, updated) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/work-products/{product_id}"),
+        json!({ "status": "archived", "summary": null }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(updated["status"], "archived");
+
+    // Delete -> 204, then 404.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/work-products/{product_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/work-products/{product_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn work_product_validation_failure_returns_422() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let issue_id = create_issue_via(&app, &company_id, "T").await;
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/work-products"),
+        json!({ "type": "", "provider": "", "title": "" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+    assert_eq!(body["error"], "Validation error");
 }

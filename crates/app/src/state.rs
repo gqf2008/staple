@@ -4,7 +4,7 @@ use std::sync::Arc;
 
 use staple_data::{
     AssetRepository, CompanyRepository, DocumentRepository, GoalRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, ProjectRepository,
+    IssueRelationRepository, IssueRepository, ProjectRepository, WorkProductRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -30,4 +30,6 @@ pub struct AppState {
     pub relations: Arc<dyn IssueRelationRepository>,
     /// Local disk attachment storage.
     pub storage: LocalStorage,
+    /// Issue work products repository.
+    pub work_products: Arc<dyn WorkProductRepository>,
 }
