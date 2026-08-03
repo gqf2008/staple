@@ -43,7 +43,10 @@ jobs:
 
       - name: Fast-forward master when possible
         run: |
-          if git merge-base --is-ancestor origin/master upstream/master; then
+          if git merge-base --is-ancestor upstream/master origin/master; then
+            echo "synced=none" >> "$GITHUB_ENV"
+            echo "::notice::Master already contains upstream/master ($(git rev-parse --short upstream/master))."
+          elif git merge-base --is-ancestor origin/master upstream/master; then
             git push origin upstream/master:master
             echo "synced=fast-forward" >> "$GITHUB_ENV"
             echo "::notice::Master fast-forwarded to upstream master ($(git rev-parse --short upstream/master))."
