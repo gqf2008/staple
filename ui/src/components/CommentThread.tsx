@@ -1,4 +1,5 @@
 import { memo, useEffect, useMemo, useRef, useState, type ChangeEvent } from "react";
+import { t } from "../i18n";
 import { Link, useLocation } from "react-router-dom";
 import type {
   Agent,
@@ -169,7 +170,7 @@ function shouldImplicitlyReopenComment(issueStatus: string | undefined, assignee
 }
 
 function humanizeValue(value: string | null): string {
-  if (!value) return "None";
+  if (!value) return t("components.commentThread.none", { defaultValue: "None" });
   return value.replace(/_/g, " ");
 }
 
@@ -182,9 +183,9 @@ function formatTimelineAssigneeLabel(
     return agentMap?.get(assignee.agentId)?.name ?? assignee.agentId.slice(0, 8);
   }
   if (assignee.userId) {
-    return formatAssigneeUserLabel(assignee.userId, currentUserId) ?? "Board";
+    return formatAssigneeUserLabel(assignee.userId, currentUserId) ?? t("components.commentThread.board", { defaultValue: "Board" });
   }
-  return "Unassigned";
+  return t("components.commentThread.unassigned", { defaultValue: "Unassigned" });
 }
 
 function formatTimelineActorName(
@@ -197,9 +198,9 @@ function formatTimelineActorName(
     return agentMap?.get(actorId)?.name ?? actorId.slice(0, 8);
   }
   if (actorType === "system") {
-    return "System";
+    return t("components.commentThread.system", { defaultValue: "System" });
   }
-  return formatAssigneeUserLabel(actorId, currentUserId) ?? "Board";
+  return formatAssigneeUserLabel(actorId, currentUserId) ?? t("components.commentThread.board", { defaultValue: "Board" });
 }
 
 function initialsForName(name: string) {
@@ -275,7 +276,7 @@ function CopyMarkdownButton({ text }: { text: string }) {
     }
   }, []);
 
-  const label = status === "copied" ? "Copied" : status === "failed" ? "Copy failed" : "Copy";
+  const label = status === "copied" ? t("components.commentThread.copied", { defaultValue: "Copied" }) : status === "failed" ? t("components.commentThread.copyFailed", { defaultValue: "Copy failed" }) : t("components.commentThread.copy", { defaultValue: "Copy" });
 
   return (
     <button
@@ -289,7 +290,7 @@ function CopyMarkdownButton({ text }: { text: string }) {
             : "text-muted-foreground hover:bg-accent/60 hover:text-foreground",
       )}
       title={label}
-      aria-label="Copy comment as markdown"
+      aria-label={t("components.commentThread.copyMarkdown", { defaultValue: "Copy comment as markdown" })}
       onClick={() => {
         void copyTextWithFallback(text)
           .then(() => setStatus("copied"))
@@ -370,7 +371,7 @@ function CommentCard({
             />
           </Link>
         ) : (
-          <Identity name="You" size="sm" />
+          <Identity name={t("components.commentThread.you", { defaultValue: "You" })} size="sm" />
         )}
         <span className="flex items-center gap-1.5">
           {isQueued ? (
@@ -400,7 +401,7 @@ function CommentCard({
             />
           ) : null}
           {isPending ? (
-            <span className="text-xs text-muted-foreground">{isQueued ? "Queueing..." : "Sending..."}</span>
+            <span className="text-xs text-muted-foreground">{isQueued ? t("components.commentThread.queueing", { defaultValue: "Queueing..." }) : t("components.commentThread.sending", { defaultValue: "Sending..." })}</span>
           ) : (
             <a
               href={`#comment-${comment.id}`}
@@ -413,7 +414,7 @@ function CommentCard({
         </span>
       </div>
       {isDeleted ? (
-        <div className="text-sm italic text-muted-foreground">Comment deleted</div>
+        <div className="text-sm italic text-muted-foreground">{t("components.commentThread.commentDeleted", { defaultValue: "Comment deleted" })}</div>
       ) : (
         <MarkdownBody className="text-sm" softBreaks externalReferences={externalReferences}>{comment.body}</MarkdownBody>
       )}
@@ -604,7 +605,7 @@ const TimelineList = memo(function TimelineList({
   externalReferences?: MarkdownExternalReferenceMap;
 }) {
   if (timeline.length === 0) {
-    return <p className="text-sm text-muted-foreground">No timeline entries yet.</p>;
+    return <p className="text-sm text-muted-foreground">{t("components.commentThread.noTimeline", { defaultValue: "No timeline entries yet." })}</p>;
   }
 
   return (
@@ -1000,7 +1001,7 @@ export function CommentThread({
                 disabled={interruptingQueuedRunId === queuedComments[0].queueTargetRunId}
                 onClick={() => void onInterruptQueued(queuedComments[0]!.queueTargetRunId!)}
               >
-                {interruptingQueuedRunId === queuedComments[0].queueTargetRunId ? "Interrupting..." : "Interrupt"}
+                {interruptingQueuedRunId === queuedComments[0].queueTargetRunId ? t("components.commentThread.interrupting", { defaultValue: "Interrupting..." }) : t("components.commentThread.interrupt", { defaultValue: "Interrupt" })}
               </Button>
             ) : null}
           </div>
@@ -1031,7 +1032,7 @@ export function CommentThread({
             ref={editorRef}
             value={body}
             onChange={setBody}
-            placeholder="Leave a comment..."
+            placeholder={t("components.commentThread.placeholder", { defaultValue: "Leave a comment..." })}
             mentions={mentions}
             onSubmit={handleSubmit}
             imageUploadHandler={imageUploadHandler}
@@ -1052,7 +1053,7 @@ export function CommentThread({
                   size="icon-sm"
                   onClick={() => attachInputRef.current?.click()}
                   disabled={attaching}
-                  title="Attach image"
+                  title={t("components.commentThread.attachImage", { defaultValue: "Attach image" })}
                 >
                   <Paperclip className="h-4 w-4" />
                 </Button>
@@ -1062,14 +1063,14 @@ export function CommentThread({
               <InlineEntitySelector
                 value={reassignTarget}
                 options={reassignOptions}
-                placeholder="Responsible"
-                noneLabel="No responsible"
-                searchPlaceholder="Search responsible..."
-                emptyMessage="No responsible found."
+                placeholder={t("components.commentThread.responsible", { defaultValue: "Responsible" })}
+                noneLabel={t("components.commentThread.noResponsible", { defaultValue: "No responsible" })}
+                searchPlaceholder={t("components.commentThread.searchResponsible", { defaultValue: "Search responsible..." })}
+                emptyMessage={t("components.commentThread.noResponsibleFound", { defaultValue: "No responsible found." })}
                 onChange={setReassignTarget}
                 className="text-xs h-8"
                 renderTriggerValue={(option) => {
-                  if (!option) return <span className="text-muted-foreground">Responsible</span>;
+                  if (!option) return <span className="text-muted-foreground">{t("components.commentThread.responsible", { defaultValue: "Responsible" })}</span>;
                   const agentId = option.id.startsWith("agent:") ? option.id.slice("agent:".length) : null;
                   const agent = agentId ? agentMap?.get(agentId) : null;
                   return (
@@ -1097,7 +1098,7 @@ export function CommentThread({
               />
             )}
             <Button size="sm" disabled={!canSubmit} onClick={handleSubmit}>
-              {submitting ? "Posting..." : "Comment"}
+              {submitting ? t("components.commentThread.posting", { defaultValue: "Posting..." }) : t("components.commentThread.comment", { defaultValue: "Comment" })}
             </Button>
           </div>
         </div>

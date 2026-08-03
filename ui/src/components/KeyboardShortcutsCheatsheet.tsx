@@ -1,4 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { t } from "../i18n";
 
 interface ShortcutEntry {
   keys: string[];
@@ -17,7 +18,7 @@ function getPlatformLabel() {
   return nav.userAgentData?.platform || navigator.userAgent || "";
 }
 
-const META_KEY = /Mac|iPhone|iPad|iPod/.test(getPlatformLabel()) ? "⌘" : "Ctrl";
+const META_KEY = /Mac|iPhone|iPad|iPod/.test(getPlatformLabel()) ? "⌘" : t("components.keyboardShortcuts.ctrl", { defaultValue: "Ctrl" });
 
 interface ShortcutSection {
   title: string;
@@ -26,49 +27,49 @@ interface ShortcutSection {
 
 const sections: ShortcutSection[] = [
   {
-    title: "Inbox",
+    title: t("components.keyboardShortcuts.inbox", { defaultValue: "Inbox" }),
     shortcuts: [
-      { keys: ["j"], label: "Move down" },
-      { keys: ["↓"], label: "Move down" },
-      { keys: ["k"], label: "Move up" },
-      { keys: ["↑"], label: "Move up" },
-      { keys: ["←"], label: "Collapse selected group" },
-      { keys: ["→"], label: "Expand selected group" },
-      { keys: ["Enter"], label: "Open selected item" },
-      { keys: ["a"], label: "Archive item" },
-      { keys: ["y"], label: "Archive item" },
-      { keys: ["r"], label: "Mark as read" },
-      { keys: ["U"], label: "Mark as unread" },
+      { keys: ["j"], label: t("components.keyboardShortcuts.moveDown", { defaultValue: "Move down" }) },
+      { keys: ["↓"], label: t("components.keyboardShortcuts.moveDown", { defaultValue: "Move down" }) },
+      { keys: ["k"], label: t("components.keyboardShortcuts.moveUp", { defaultValue: "Move up" }) },
+      { keys: ["↑"], label: t("components.keyboardShortcuts.moveUp", { defaultValue: "Move up" }) },
+      { keys: ["←"], label: t("components.keyboardShortcuts.collapseGroup", { defaultValue: "Collapse selected group" }) },
+      { keys: ["→"], label: t("components.keyboardShortcuts.expandGroup", { defaultValue: "Expand selected group" }) },
+      { keys: ["Enter"], label: t("components.keyboardShortcuts.openItem", { defaultValue: "Open selected item" }) },
+      { keys: ["a"], label: t("components.keyboardShortcuts.archiveItem", { defaultValue: "Archive item" }) },
+      { keys: ["y"], label: t("components.keyboardShortcuts.archiveItem", { defaultValue: "Archive item" }) },
+      { keys: ["r"], label: t("components.keyboardShortcuts.markAsRead", { defaultValue: "Mark as read" }) },
+      { keys: ["U"], label: t("components.keyboardShortcuts.markAsUnread", { defaultValue: "Mark as unread" }) },
     ],
   },
   {
-    title: "Task detail",
+    title: t("components.keyboardShortcuts.taskDetail", { defaultValue: "Task detail" }),
     shortcuts: [
-      { keys: ["y"], label: "Quick-archive back to inbox" },
-      { keys: ["g", "i"], label: "Go to inbox" },
-      { keys: ["g", "c"], label: "Focus comment composer" },
+      { keys: ["y"], label: t("components.keyboardShortcuts.quickArchive", { defaultValue: "Quick-archive back to inbox" }) },
+      { keys: ["g", "i"], label: t("components.keyboardShortcuts.goToInbox", { defaultValue: "Go to inbox" }) },
+      { keys: ["g", "c"], label: t("components.keyboardShortcuts.focusComposer", { defaultValue: "Focus comment composer" }) },
     ],
   },
   {
-    title: "Decisions",
+    title: t("components.keyboardShortcuts.decisions", { defaultValue: "Decisions" }),
     shortcuts: [
-      { keys: ["j"], label: "Move down" },
-      { keys: ["↓"], label: "Move down" },
-      { keys: ["k"], label: "Move up" },
-      { keys: ["↑"], label: "Move up" },
-      { keys: ["Enter"], label: "Open or close selected decision" },
-      { keys: ["x"], label: "Dismiss selected decision" },
+      { keys: ["j"], label: t("components.keyboardShortcuts.moveDown", { defaultValue: "Move down" }) },
+      { keys: ["↓"], label: t("components.keyboardShortcuts.moveDown", { defaultValue: "Move down" }) },
+      { keys: ["k"], label: t("components.keyboardShortcuts.moveUp", { defaultValue: "Move up" }) },
+      { keys: ["↑"], label: t("components.keyboardShortcuts.moveUp", { defaultValue: "Move up" }) },
+      { keys: ["Enter"], label: t("components.keyboardShortcuts.toggleDecision", { defaultValue: "Open or close selected decision" }) },
+      { keys: ["x"], label: t("components.keyboardShortcuts.dismissDecision", { defaultValue: "Dismiss selected decision" }) },
     ],
   },
   {
-    title: "Global",
+    title: t("components.keyboardShortcuts.global", { defaultValue: "Global" }),
     shortcuts: [
-      { keys: ["/"], label: "Search current page or quick search" },
-      { keys: ["c"], label: "New task" },
-      { keys: ["["], label: "Toggle sidebar" },
-      { keys: [META_KEY, "B"], label: "Collapse or expand sidebar", combo: true },
-      { keys: ["]"], label: "Toggle panel" },
-      { keys: ["?"], label: "Show keyboard shortcuts" },
+      { keys: ["/"], label: t("components.keyboardShortcuts.search", { defaultValue: "Search current page or quick search" }) },
+      { keys: ["c"], label: t("components.keyboardShortcuts.newTask", { defaultValue: "New task" }) },
+      { keys: ["["], label: t("components.keyboardShortcuts.toggleSidebar", { defaultValue: "Toggle sidebar" }) },
+      { keys: [META_KEY, "B"], label: t("components.keyboardShortcuts.collapseSidebar", { defaultValue: "Collapse or expand sidebar" }), combo: true },
+      { keys: ["]"], label: t("components.keyboardShortcuts.togglePanel", { defaultValue: "Toggle panel" }) },
+      { keys: ["?"], label: t("components.keyboardShortcuts.showShortcuts", { defaultValue: "Show keyboard shortcuts" }) },
     ],
   },
 ];
@@ -117,7 +118,7 @@ export function KeyboardShortcutsCheatsheetContent() {
       </div>
       <div className="border-t border-border px-5 py-3">
         <p className="text-xs text-muted-foreground">
-          Press <KeyCap>Esc</KeyCap> to close &middot; Shortcuts are disabled in text fields
+          Press <KeyCap>{t("components.keyboardShortcuts.esc", { defaultValue: "Esc" })}</KeyCap> to close &middot; Shortcuts are disabled in text fields
         </p>
       </div>
     </>
@@ -135,7 +136,7 @@ export function KeyboardShortcutsCheatsheet({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md gap-0 p-0 overflow-hidden" showCloseButton={false}>
         <DialogHeader className="px-5 pt-5 pb-3">
-          <DialogTitle className="text-base">Keyboard shortcuts</DialogTitle>
+          <DialogTitle className="text-base">{t("components.keyboardShortcuts.title", { defaultValue: "Keyboard shortcuts" })}</DialogTitle>
         </DialogHeader>
         <KeyboardShortcutsCheatsheetContent />
       </DialogContent>
