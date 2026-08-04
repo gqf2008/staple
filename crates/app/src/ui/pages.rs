@@ -109,6 +109,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/feedback-votes"), lang))>(t(lang, "feedback.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/secret-bindings"), lang))>(t(lang, "secretBindings.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/folders"), lang))>(t(lang, "folders.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
@@ -1226,6 +1227,10 @@ pub async fn instance_settings(cx: &Cx) -> Result {
         .map_err(to_topcoat_error)?;
     view! {
         <h1 class="page-title">(t(lang, "instance.title"))</h1>
+        <nav class="nav-row">
+            <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
+            <a href=(with_lang("/environments", lang))>(t(lang, "environments.title"))</a>
+        </nav>
         <section>
             <h2>(t(lang, "instance.roles"))</h2>
             <form class="inline-form" method="post"
@@ -2576,6 +2581,208 @@ pub async fn user_secrets(cx: &Cx) -> Result {
                             " " <span class="meta-row">(declaration.env_key.clone())</span>
                             " " <span class="meta-row">(declaration.target_type.clone())</span>
                             " " <span class="meta-row">(declaration.target_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Folders page for one company.
+#[page("/companies/{company_id}/folders")]
+pub async fn folders(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let folder_rows = state
+        .infrastructure
+        .list_folders(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "folders.title"))</h1>
+        <section>
+            <h2>(t(lang, "folders.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/folders/ui"), lang))>
+                <label>(t(lang, "folders.kindLabel"))</label>
+                <input type="text" name="kind" required="required">
+                <label>(t(lang, "folders.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "folders.slugLabel"))</label>
+                <input type="text" name="slug" required="required">
+                <label>(t(lang, "folders.parentLabel"))</label>
+                <input type="text" name="parent_id">
+                <label>(t(lang, "folders.colorLabel"))</label>
+                <input type="text" name="color">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "folders.list"))</h2>
+            if folder_rows.is_empty() {
+                <p class="empty">(t(lang, "folders.none"))</p>
+            } else {
+                <ul class="list">
+                    for folder in folder_rows {
+                        <li>
+                            <strong>(folder.name.clone())</strong>
+                            " " <span class="badge badge-default">(folder.kind.clone())</span>
+                            " " <span class="meta-row">(folder.slug.clone())</span>
+                            " "
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/companies/{company_id}/folders/{}/delete/ui", folder.id), lang))>
+                                <button type="submit">(t(lang, "common.delete"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Issue watchdogs page.
+#[page("/issues/{id}/watchdogs")]
+pub async fn watchdogs(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let issue_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(issue) = state
+        .issues
+        .get(&issue_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let company_id = issue.company_id;
+    let watchdog_rows = state
+        .infrastructure
+        .list_watchdogs(&company_id, &issue_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "watchdogs.title"))</h1>
+        <p class="mono">(issue_id.clone())</p>
+        <section>
+            <h2>(t(lang, "watchdogs.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/issues/{issue_id}/watchdogs/ui"), lang))>
+                <label>(t(lang, "watchdogs.agentLabel"))</label>
+                <select name="watchdog_agent_id">
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "watchdogs.instructionsLabel"))</label>
+                <input type="text" name="instructions">
+                <label>(t(lang, "watchdogs.statusLabel"))</label>
+                <input type="text" name="status" value="active">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "watchdogs.list"))</h2>
+            if watchdog_rows.is_empty() {
+                <p class="empty">(t(lang, "watchdogs.none"))</p>
+            } else {
+                <ul class="list">
+                    for watchdog in watchdog_rows {
+                        <li>
+                            <span class="badge badge-default">(watchdog.watchdog_agent_id.clone())</span>
+                            " " <span class=(status_badge_class(&watchdog.status))>(watchdog.status)</span>
+                            " " <span class="meta-row">(watchdog.instructions.clone().unwrap_or_default())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Users page (instance-level auth users).
+#[page("/users")]
+pub async fn users(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let user_rows = state
+        .infrastructure
+        .list_users()
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "users.title"))</h1>
+        <section>
+            <h2>(t(lang, "users.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/users/ui", lang))>
+                <label>(t(lang, "users.idLabel"))</label>
+                <input type="text" name="id" required="required">
+                <label>(t(lang, "users.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "users.emailLabel"))</label>
+                <input type="text" name="email" required="required">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "users.list"))</h2>
+            if user_rows.is_empty() {
+                <p class="empty">(t(lang, "users.none"))</p>
+            } else {
+                <ul class="list">
+                    for user in user_rows {
+                        <li>
+                            <strong>(user.name.clone())</strong>
+                            " " <span class="meta-row">(user.email.clone())</span>
+                            " " <span class="mono">(user.id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Environments page (instance-level).
+#[page("/environments")]
+pub async fn environments(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let environment_rows = state.environments.list().await.map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "environments.title"))</h1>
+        <section>
+            <h2>(t(lang, "environments.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/environments/ui", lang))>
+                <label>(t(lang, "environments.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "environments.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "environments.driverLabel"))</label>
+                <input type="text" name="driver" value="local">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "environments.list"))</h2>
+            if environment_rows.is_empty() {
+                <p class="empty">(t(lang, "environments.none"))</p>
+            } else {
+                <ul class="list">
+                    for environment in environment_rows {
+                        <li>
+                            <strong>(environment.name.clone())</strong>
+                            " " <span class="badge badge-default">(environment.driver.clone())</span>
+                            " " <span class=(status_badge_class(&environment.status))>(environment.status)</span>
                         </li>
                     }
                 </ul>
