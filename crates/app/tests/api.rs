@@ -18,10 +18,10 @@ use staple_data::{
     TursoGoalRepository, TursoHeartbeatRepository, TursoInviteRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
     TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
-    TursoPermissionGrantRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, migrate, open,
+    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -65,6 +65,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let plugins_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let pipelines_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let plugin_runtime_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -152,6 +155,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
+        pipelines: Arc::new(TursoPipelineRepository::new(pipelines_db)),
         plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
         plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
@@ -4809,6 +4813,143 @@ async fn cases_lifecycle_status_and_boundary() {
         &app,
         Method::GET,
         &format!("/api/cases/{case_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn pipelines_full_flow() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Pipeline with enforced transitions.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/pipelines",
+        json!({ "key": "intake", "name": "Intake", "enforceTransitions": true }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let pipeline_id = body["id"].as_str().unwrap().to_owned();
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({ "key": "todo", "name": "To do", "kind": "working", "position": 1 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let todo_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({ "key": "done", "name": "Done", "kind": "done", "position": 2 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let done_id = body["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/transitions"),
+        json!({ "fromStageId": todo_id, "toStageId": done_id, "label": "complete" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // Create a case.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({ "stageId": todo_id, "caseKey": "case-1", "title": "First" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let case_id = body["id"].as_str().unwrap().to_owned();
+
+    // Move along declared edge succeeds.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/move"),
+        json!({ "toStageId": done_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["terminalKind"], "done");
+
+    // Events recorded.
+    let (status, events) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipeline-cases/{case_id}/events"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(events.as_array().unwrap().len(), 1);
+    assert_eq!(events.as_array().unwrap()[0]["type"], "transitioned");
+
+    // Lists.
+    let (status, pipelines) =
+        send_json(&app, Method::GET, "/api/companies/c1/pipelines", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(pipelines.as_array().unwrap().len(), 1);
+    let (status, stages) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(stages.as_array().unwrap().len(), 2);
+    let (status, cases) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(cases.as_array().unwrap().len(), 1);
+
+    // Cross-company access is denied.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipeline-cases/{case_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    // Delete pipeline cascades.
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/pipelines/{pipeline_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipelines/{pipeline_id}"),
         json!({}),
     )
     .await;

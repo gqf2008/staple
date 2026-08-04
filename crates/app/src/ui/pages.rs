@@ -92,6 +92,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
@@ -1888,6 +1889,284 @@ pub async fn case_detail(cx: &Cx) -> Result {
         }
     }
 }
+
+/// Pipelines list page: create form + list.
+#[page("/companies/{company_id}/pipelines")]
+pub async fn pipelines_list(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let rows = state
+        .pipelines
+        .list_pipelines(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "pipelines.title"))</h1>
+        <form class="inline-form" method="post"
+              action=(with_lang(&format!("/companies/{company_id}/pipelines/ui"), lang))>
+            <input type="text" name="key" placeholder=(t(lang, "pipelines.key"))>
+            <input type="text" name="name" placeholder=(t(lang, "pipelines.name"))>
+            <label class="inline-label"><input type="checkbox" name="enforce" value="1"> (t(lang, "pipelines.enforce"))</label>
+            <button type="submit">(t(lang, "settings.add"))</button>
+        </form>
+        if rows.is_empty() {
+            <p class="empty">(t(lang, "pipelines.empty"))</p>
+        } else {
+            <ul class="list">
+                for pipeline in rows {
+                    <li>
+                        <a href=(with_lang(&format!("/pipelines/{}", pipeline.id), lang))>
+                            <strong>(pipeline.name)</strong>
+                        </a>
+                        " " <span class="mono">(pipeline.key)</span>
+                        if pipeline.archived_at.is_some() {
+                            " " <span class="badge badge-default">"archived"</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    }
+}
+
+/// Pipeline detail: stages, transitions, and cases.
+#[page("/pipelines/{pipeline_id}")]
+pub async fn pipeline_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let pipeline_id = path_param::<PipelinePathId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let Some(pipeline) = state
+        .pipelines
+        .get_pipeline(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let stages = state
+        .pipelines
+        .list_stages(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let transitions = state
+        .pipelines
+        .list_transitions(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let cases = state
+        .pipelines
+        .list_cases(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let stage_names: std::collections::HashMap<String, String> = stages
+        .iter()
+        .map(|stage| (stage.id.clone(), stage.name.clone()))
+        .collect();
+    let stages_url = with_lang(&format!("/pipelines/{pipeline_id}/stages/ui"), lang);
+    let transitions_url = with_lang(&format!("/pipelines/{pipeline_id}/transitions/ui"), lang);
+    let cases_url = with_lang(&format!("/pipelines/{pipeline_id}/cases/ui"), lang);
+    view! {
+        <h1 class="page-title">(pipeline.name.clone())</h1>
+        <p class="mono">(pipeline.key.clone())</p>
+        <section>
+            <h2>(t(lang, "pipelines.stages"))</h2>
+            <form class="inline-form" method="post" action=(stages_url)>
+                <input type="text" name="key" placeholder=(t(lang, "pipelines.key"))>
+                <input type="text" name="name" placeholder=(t(lang, "pipelines.name"))>
+                <select name="kind">
+                    <option value="working">"working"</option>
+                    <option value="review">"review"</option>
+                    <option value="done">"done"</option>
+                    <option value="cancelled">"cancelled"</option>
+                </select>
+                <input type="number" name="position" value="1" min="0">
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+            if stages.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noStages"))</p>
+            } else {
+                <ul class="list">
+                    for stage in stages.iter() {
+                        <li>
+                            <span class="badge badge-default">(stage.position)</span>
+                            " " <strong>(stage.name.clone())</strong>
+                            " " <span class="mono">(stage.key.clone())</span>
+                            " " <span class=(status_badge_class(&stage.kind))>(stage.kind.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.transitions"))</h2>
+            if !stages.is_empty() {
+                <form class="inline-form" method="post" action=(transitions_url)>
+                    <select name="from_stage_id">
+                        for stage in stages.iter() {
+                            <option value=(stage.id.clone())>(stage.name.clone())</option>
+                        }
+                    </select>
+                    " → "
+                    <select name="to_stage_id">
+                        for stage in stages.iter() {
+                            <option value=(stage.id.clone())>(stage.name.clone())</option>
+                        }
+                    </select>
+                    <button type="submit">(t(lang, "settings.add"))</button>
+                </form>
+            }
+            if transitions.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noTransitions"))</p>
+            } else {
+                <ul class="list">
+                    for transition in transitions {
+                        <li>
+                            <span class="mono">(
+                                stage_names.get(&transition.from_stage_id).cloned().unwrap_or(transition.from_stage_id.clone())
+                            )</span>
+                            " → "
+                            <span class="mono">(
+                                stage_names.get(&transition.to_stage_id).cloned().unwrap_or(transition.to_stage_id.clone())
+                            )</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.cases"))</h2>
+            if !stages.is_empty() {
+                <form class="inline-form" method="post" action=(cases_url)>
+                    <input type="text" name="case_key" placeholder=(t(lang, "pipelines.caseKey"))>
+                    <input type="text" name="title" placeholder=(t(lang, "pipelines.caseTitle"))>
+                    <select name="stage_id">
+                        for stage in stages.iter() {
+                            <option value=(stage.id.clone())>(stage.name.clone())</option>
+                        }
+                    </select>
+                    <button type="submit">(t(lang, "settings.add"))</button>
+                </form>
+            }
+            if cases.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noCases"))</p>
+            } else {
+                <ul class="list">
+                    for case in cases {
+                        <li>
+                            <a href=(with_lang(&format!("/pipeline-cases/{}", case.id), lang))>
+                                <span class="mono">(case.case_key.clone())</span>
+                                " " <strong>(case.title.clone())</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&case.stage_id))>(
+                                stage_names.get(&case.stage_id).cloned().unwrap_or_else(|| "?".to_owned())
+                            )</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Pipeline case detail: fields, stage moves, and events.
+#[page("/pipeline-cases/{case_id}")]
+pub async fn pipeline_case_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let case_id = path_param::<PipelineCasePathId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let Some(case) = state
+        .pipelines
+        .get_case(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let stages = state
+        .pipelines
+        .list_stages(&company_id, &case.pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let events = state
+        .pipelines
+        .list_events(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let stage_names: std::collections::HashMap<String, String> = stages
+        .iter()
+        .map(|stage| (stage.id.clone(), stage.name.clone()))
+        .collect();
+    view! {
+        <h1 class="page-title">(case.title.clone())</h1>
+        <p class="mono">(case.case_key.clone()) " v" (case.version)</p>
+        <p>
+            <span class=(status_badge_class(&case.stage_id))>(
+                stage_names.get(&case.stage_id).cloned().unwrap_or_else(|| "?".to_owned())
+            )</span>
+            if let Some(kind) = &case.terminal_kind {
+                " " <span class="badge badge-default">(kind.clone())</span>
+            }
+        </p>
+        <section>
+            <h2>(t(lang, "pipelines.move"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/pipeline-cases/{case_id}/move/ui"), lang))>
+                <select name="to_stage_id">
+                    for stage in stages.iter() {
+                        if stage.id != case.stage_id {
+                            <option value=(stage.id.clone())>(stage.name.clone())</option>
+                        }
+                    }
+                </select>
+                <button type="submit">(t(lang, "pipelines.move"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "cases.fields"))</h2>
+            <p class="mono">(case.fields.to_string())</p>
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.events"))</h2>
+            if events.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noEvents"))</p>
+            } else {
+                <ul class="list">
+                    for event in events {
+                        <li>
+                            <span class="mono">(event.r#type)</span>
+                            " " <span class="meta-row">(event.actor_type) " / " (event.created_at)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// `{pipeline_id}` path parameter for UI pages.
+#[path_param(error = bad_request("Invalid pipeline id"))]
+pub(crate) struct PipelinePathId(String);
+
+/// `{case_id}` path parameter for pipeline-case UI pages.
+#[path_param(error = bad_request("Invalid case id"))]
+pub(crate) struct PipelineCasePathId(String);
 
 /// `{case_id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid case id"))]
