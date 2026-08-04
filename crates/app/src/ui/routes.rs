@@ -875,3 +875,62 @@ pub struct ProjectEditForm {
     #[serde(default)]
     pub status: Option<String>,
 }
+
+/// `POST /adapters/{type}/invoke/ui` — invokes an adapter run, redirects to
+/// the adapter detail with the new run id.
+#[route(POST "/adapters/{type}/invoke/ui")]
+pub async fn adapter_invoke_ui(
+    cx: &Cx,
+    Form(form): Form<AdapterInvokeForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let adapter_type = path_param::<Type>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(adapter) = state.adapters.get(&adapter_type) else {
+        return Ok(see_other("/adapters"));
+    };
+    let task = form.task.trim().to_owned();
+    if !task.is_empty()
+        && let Ok(handle) = adapter
+            .invoke(staple_adapters::InvocationInput {
+                task,
+                cwd: None,
+                env: vec![],
+            })
+            .await
+    {
+        return Ok(see_other(&format!(
+            "/adapters/{adapter_type}?runId={}",
+            handle.run_id
+        )));
+    }
+    Ok(see_other(&format!("/adapters/{adapter_type}")))
+}
+
+/// `POST /adapters/{type}/runs/{run_id}/cancel/ui` — cancels a run.
+#[route(POST "/adapters/{type}/runs/{run_id}/cancel/ui")]
+pub async fn adapter_cancel_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let adapter_type = path_param::<Type>(cx)?.to_string();
+    let run_id = path_param::<RunId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Some(adapter) = state.adapters.get(&adapter_type) {
+        let _ = adapter.cancel(&run_id).await;
+    }
+    Ok(see_other(&format!(
+        "/adapters/{adapter_type}?runId={run_id}"
+    )))
+}
+
+/// Adapter invoke form.
+#[derive(Debug, serde::Deserialize)]
+pub struct AdapterInvokeForm {
+    /// Task instructions.
+    pub task: String,
+}
+
+/// `{type}` path parameter for UI routes.
+#[path_param(error = bad_request("Invalid adapter type"))]
+pub(crate) struct Type(String);
+
+/// `{run_id}` path parameter for UI routes.
+#[path_param(error = bad_request("Invalid run id"))]
+pub(crate) struct RunId(String);

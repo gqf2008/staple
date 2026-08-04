@@ -81,6 +81,8 @@ pub async fn company_overview(cx: &Cx) -> Result {
 
         <nav class="nav-row">
             <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/dashboard/live"), lang))>(t(lang, "live.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang))>(t(lang, "orgChart.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/search"), lang))>(t(lang, "nav.search"))</a>
@@ -1579,7 +1581,9 @@ pub async fn adapters(cx: &Cx) -> Result {
                 <ul class="list">
                     for name in names {
                         <li>
-                            <span class="mono">(name)</span>
+                            <a href=(with_lang(&format!("/adapters/{name}"), lang))>
+                                <span class="mono">(name)</span>
+                            </a>
                         </li>
                     }
                 </ul>
@@ -1607,6 +1611,186 @@ pub async fn adapters(cx: &Cx) -> Result {
         </section>
     }
 }
+
+/// Org chart: agents rendered as a `reports_to` tree.
+#[page("/companies/{company_id}/org-chart")]
+pub async fn org_chart(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    // Depth-first flatten of the reports_to tree.
+    let mut by_parent: std::collections::HashMap<Option<String>, Vec<&staple_data::AgentRecord>> =
+        std::collections::HashMap::new();
+    for agent in &agent_rows {
+        by_parent
+            .entry(agent.reports_to.clone())
+            .or_default()
+            .push(agent);
+    }
+    fn walk(
+        by_parent: &std::collections::HashMap<Option<String>, Vec<&staple_data::AgentRecord>>,
+        flat: &mut Vec<(usize, String, String, String, String)>,
+        parent: Option<String>,
+        depth: usize,
+    ) {
+        let Some(children) = by_parent.get(&parent) else {
+            return;
+        };
+        for agent in children {
+            flat.push((
+                depth,
+                agent.id.clone(),
+                agent.name.clone(),
+                agent.status.clone(),
+                agent.role.clone(),
+            ));
+            walk(by_parent, flat, Some(agent.id.clone()), depth + 1);
+        }
+    }
+    let mut flat: Vec<(usize, String, String, String, String)> = Vec::new();
+    walk(&by_parent, &mut flat, None, 0);
+    let indent = |depth: usize| -> String { "\u{3000}".repeat(depth) };
+    view! {
+        <h1 class="page-title">(t(lang, "orgChart.title"))</h1>
+        if flat.is_empty() {
+            <p class="empty">(t(lang, "agents.noAgents"))</p>
+        } else {
+            <ul class="list">
+                for (depth, id, name, status, role) in flat {
+                    <li>
+                        <span class="mono">(indent(depth))</span>
+                        <a href=(with_lang(&format!("/agents/{id}"), lang))>
+                            <strong>(name)</strong>
+                        </a>
+                        " " <span class=(status_badge_class(&status))>(status)</span>
+                        " " <span class="badge badge-default">(role)</span>
+                    </li>
+                }
+            </ul>
+        }
+    }
+}
+
+/// Adapter detail: invoke, observe, and cancel a run.
+#[page("/adapters/{type}")]
+pub async fn adapter_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let adapter_type = path_param::<Type>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(adapter) = state.adapters.get(&adapter_type) else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let run_id = topcoat::router::query_params::<AdapterRunQuery>(cx)
+        .ok()
+        .and_then(|query| query.run_id.clone());
+    let status = match run_id.as_deref() {
+        Some(id) => match adapter.observe(id).await {
+            Ok(observed) => serde_json::to_string(&observed).ok(),
+            Err(_) => None,
+        },
+        None => None,
+    };
+    let invoke_url = with_lang(&format!("/adapters/{adapter_type}/invoke/ui"), lang);
+    view! {
+        <h1 class="page-title">(t(lang, "adapters.detail")) " " <span class="mono">(adapter_type.clone())</span></h1>
+        <section>
+            <h2>(t(lang, "adapters.invoke"))</h2>
+            <form class="stack-form" method="post" action=(invoke_url)>
+                <label>(t(lang, "adapters.task"))</label>
+                <textarea name="task" rows="4" cols="60"></textarea>
+                <button type="submit">(t(lang, "adapters.invoke"))</button>
+            </form>
+        </section>
+        if let Some(run_id) = &run_id {
+            <section>
+                <h2>(t(lang, "adapters.run")) " " <span class="mono">(run_id.clone())</span></h2>
+                if let Some(status) = &status {
+                    <p class="mono">(status.clone())</p>
+                } else {
+                    <p class="empty">(t(lang, "adapters.runUnknown"))</p>
+                }
+                <form class="inline-form" method="post"
+                      action=(with_lang(&format!("/adapters/{adapter_type}/runs/{run_id}/cancel/ui"), lang))>
+                    <button type="submit" class="destructive">(t(lang, "adapters.cancel"))</button>
+                </form>
+            </section>
+        }
+    }
+}
+
+/// Live dashboard: running/recent heartbeat runs plus agent status.
+#[page("/companies/{company_id}/dashboard/live")]
+pub async fn dashboard_live(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let runs = state
+        .heartbeat
+        .list(&company_id, None, 50)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "live.title"))</h1>
+        <section>
+            <h2>(t(lang, "live.runs"))</h2>
+            if runs.is_empty() {
+                <p class="empty">(t(lang, "live.noRuns"))</p>
+            } else {
+                <ul class="list">
+                    for run in runs {
+                        <li>
+                            <span class="mono">(run.id)</span>
+                            " " <span class=(status_badge_class(&run.status))>(run.status)</span>
+                            " " <span class="meta-row">(run.invocation_source) " / " (run.agent_id)</span>
+                            if let Some(started) = &run.started_at {
+                                " " <span class="meta-row">(started.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "live.agents"))</h2>
+            if agent_rows.is_empty() {
+                <p class="empty">(t(lang, "agents.noAgents"))</p>
+            } else {
+                <ul class="list">
+                    for agent in agent_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/agents/{}", agent.id), lang))>
+                                <strong>(agent.name)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&agent.status))>(agent.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Query for the adapter detail page.
+#[topcoat::router::query_params]
+struct AdapterRunQuery {
+    /// Optional run id to observe.
+    #[serde(rename = "runId")]
+    run_id: Option<String>,
+}
+
+/// `{type}` path parameter for UI pages.
+#[path_param(error = bad_request("Invalid adapter type"))]
+pub(crate) struct Type(String);
 
 /// `{project_id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid project id"))]

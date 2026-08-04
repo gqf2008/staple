@@ -342,6 +342,9 @@ async fn core_business_flow_smoke() {
         (format!("/projects/{project_id}"), project_id.as_str()),
         (format!("/companies/{company_id}/workspaces"), "Workspaces"),
         ("/adapters".to_string(), "Adapters"),
+        (format!("/companies/{company_id}/org-chart"), "Org"),
+        (format!("/companies/{company_id}/dashboard/live"), "Live"),
+        ("/adapters/cli_local".to_string(), "Invoke"),
     ] {
         let request = Request::builder()
             .method(Method::GET)
