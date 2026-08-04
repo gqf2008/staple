@@ -445,6 +445,20 @@ async fn core_business_flow_smoke() {
     .await;
     assert_eq!(status, StatusCode::CREATED);
 
+    // 3.10. Create a status card for the status-card updates UI check.
+    let (status, card) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/status-cards"),
+        json!({
+            "interestPrompt": "what changed",
+            "refreshPolicy": { "interval": "15m" },
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let card_id = card["id"].as_str().unwrap().to_owned();
+
     // 4. UI renders the company overview.
     let request = Request::builder()
         .method(Method::GET)
@@ -511,9 +525,44 @@ async fn core_business_flow_smoke() {
             "User secrets",
         ),
         (format!("/companies/{company_id}/folders"), "Folders"),
+        (
+            format!("/companies/{company_id}/tools/profiles"),
+            "Tool profiles",
+        ),
+        (
+            format!("/companies/{company_id}/tools/connections"),
+            "Tool connections",
+        ),
+        (
+            format!("/companies/{company_id}/tools/gateways"),
+            "Tool gateways",
+        ),
+        (
+            format!("/companies/{company_id}/tools/catalog"),
+            "Tool catalog",
+        ),
+        (
+            format!("/companies/{company_id}/tools/invocations"),
+            "Tool invocations",
+        ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
+        (format!("/companies/{company_id}/my-issues"), "My issues"),
+        (
+            format!("/companies/{company_id}/what-needs-me"),
+            "What needs me",
+        ),
+        (format!("/companies/{company_id}/timeline"), "Timeline"),
+        (
+            format!("/companies/{company_id}/status-cards/{card_id}/updates"),
+            "Status card updates",
+        ),
+        (format!("/companies/{company_id}/smoke-runs"), "Smoke runs"),
+        (
+            format!("/companies/{company_id}/feedback-exports"),
+            "Feedback exports",
+        ),
         ("/instance/settings".to_string(), "Instance"),
         (format!("/companies/{company_id}/dashboard"), "Dashboard"),
         (format!("/projects/{project_id}"), project_id.as_str()),
