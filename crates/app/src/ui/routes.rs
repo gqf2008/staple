@@ -789,3 +789,89 @@ pub(crate) struct SourceKindUi(String);
 /// `{source_id}` path parameter.
 #[path_param(error = bad_request("Invalid source id"))]
 pub(crate) struct SourceIdUi(String);
+
+/// `POST /projects/{id}/edit/ui` — updates a project, redirects to it.
+#[route(POST "/projects/{id}/edit/ui")]
+pub async fn project_edit_ui(
+    cx: &Cx,
+    Form(form): Form<ProjectEditForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let project_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(project) = state.projects.get(&project_id).await.ok().flatten() else {
+        return Ok(see_other("/"));
+    };
+    let name = form.name.as_deref().unwrap_or("").trim().to_owned();
+    let mut patch = staple_data::ProjectPatch {
+        goal_id: None,
+        name: (!name.is_empty()).then_some(name),
+        description: Some(Some(form.description.clone().unwrap_or_default())),
+        status: form.status.clone().or(Some(project.status.clone())),
+        lead_agent_id: None,
+        target_date: None,
+    };
+    if form.status.is_none() {
+        patch.status = None;
+    }
+    let _ = state.projects.update(&project_id, patch).await;
+    Ok(see_other(&format!("/projects/{project_id}")))
+}
+
+/// `POST /companies/{company_id}/workspaces/{id}/materialize/ui` — materializes
+/// a git workspace and redirects back to the workspaces page.
+#[route(POST "/companies/{company_id}/workspaces/{id}/materialize/ui")]
+pub async fn workspace_materialize_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let workspace_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let secret_name = "github_token".to_owned();
+    if let Ok(Some(workspace)) = state
+        .workspaces
+        .get_execution_workspace(&company_id, &workspace_id)
+        .await
+        && let Some(repo_url) = workspace.repo_url.clone().filter(|u| !u.is_empty())
+        && let Ok(Some(token)) = state
+            .secrets
+            .get_secret_value(&company_id, &secret_name)
+            .await
+    {
+        match crate::git::materialize_repo(&repo_url, &token, &company_id, &workspace_id, false)
+            .await
+        {
+            Ok((_, _)) => {
+                let _ = state
+                    .workspaces
+                    .set_materialization(&company_id, &workspace_id, true, None, Some(secret_name))
+                    .await;
+            }
+            Err(error) => {
+                let redacted = crate::git::redact_credentials(&error, &token);
+                let _ = state
+                    .workspaces
+                    .set_materialization(
+                        &company_id,
+                        &workspace_id,
+                        false,
+                        Some(redacted),
+                        Some(secret_name),
+                    )
+                    .await;
+            }
+        }
+    }
+    Ok(see_other(&format!("/companies/{company_id}/workspaces")))
+}
+
+/// Project edit form.
+#[derive(Debug, serde::Deserialize)]
+pub struct ProjectEditForm {
+    /// Project name.
+    #[serde(default)]
+    pub name: Option<String>,
+    /// Project description.
+    #[serde(default)]
+    pub description: Option<String>,
+    /// Project status.
+    #[serde(default)]
+    pub status: Option<String>,
+}

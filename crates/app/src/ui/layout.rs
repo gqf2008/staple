@@ -41,6 +41,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <a href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
                     <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
                     <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+                    <a href=(with_lang("/adapters", lang))>(t(lang, "adapters.title"))</a>
                     <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
                 </nav>
                 <main class="app-main">(slot?)</main>
