@@ -428,7 +428,7 @@ pub async fn board(cx: &Cx) -> Result {
         <a class="muted-link" href=(with_lang(&format!("/companies/{company_id}"), lang))>"← "</a>
         <div class="board-grid">
             for status in statuses {
-                <section class="board-column">
+                <section class="board-column" data-status=(status)>
                     <h2 class="board-column-title">
                         <span class=(status_badge_class(status))>(status)</span>
                         " " <span class="mono">(
@@ -437,7 +437,7 @@ pub async fn board(cx: &Cx) -> Result {
                     </h2>
                     <ul class="list">
                         for issue in issues.iter().filter(|issue| issue.status == status) {
-                            <li>
+                            <li class="board-card" data-issue-id=(issue.id.clone())>
                                 <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
                                     <span class="mono">(issue.identifier.clone())</span>
                                     " " <strong>(issue.title.clone())</strong>
@@ -459,6 +459,7 @@ pub async fn board(cx: &Cx) -> Result {
                 </section>
             }
         </div>
+        <script src="/static/board.js"></script>
     }
 }
 

@@ -7,7 +7,7 @@ use topcoat::{
     router::{content::Form, error::see_other, path_param, route},
 };
 
-use crate::{audit::log_activity, state::AppState};
+use crate::{audit::log_activity, error::ApiError, state::AppState};
 
 /// Shared `{id}` path parameter for UI routes.
 #[path_param(error = bad_request("Invalid id"))]
@@ -1361,4 +1361,15 @@ pub struct DocumentUiForm {
     pub document_id: String,
     /// Key.
     pub key: String,
+}
+
+/// `GET /static/board.js` — native drag & drop behavior for the board page.
+#[route(GET "/static/board.js")]
+pub async fn board_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("board.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
 }
