@@ -58,6 +58,18 @@
 |---|---|---|
 | **UI 国际化（i18n）** | 上游全部 38 种语言 locale（各 10172 键）嵌入 `crates/app/locales/`；`?lang=` 全语言切换，本地键 fallback | ✅ 完成（#50 + #65 + #90） |
 
+## 数据结构对齐登记（与上游 schema 逐表逐列）
+
+| 批次 | 范围 | 状态 |
+|---|---|---|
+| 第 1 批 | 执行面：heartbeat_runs +37 列、issues +16 列 + 索引（迁移 0021） | ✅ 完成（issue #96/PR #97） |
+| 第 2 批 | Case 附属表（case_attachments/documents/events/issue_links/labels）+ external_objects 重命名 | ⏳ 待办 |
+| 第 3 批 | 决策桌扩展（decisions/bundles/effect_executions/target_issues/training_examples） | ⏳ 待办 |
+| 第 4 批 | Skills 版本体系 + Secret provider/bindings + user_secret_* | ⏳ 待办 |
+| 第 5 批 | 工具链域（tool_*，约 30 张） | ⏳ 待办 |
+| 第 6 批 | 基础设施（user/session/account/verification/instance_settings/folders 等） | ⏳ 待办 |
+| 收尾 | 其余散表（status_cards/summary_slots/smoke_*/feedback_*/finance_*/heartbeat_run_events/watchdogs 等） | ⏳ 待办 |
+
 ## 参考镜像同步登记
 
 - 每次 `gqf2008/paperclip` 同步上游后，diff 中新增的 API/表/测试按上述模块追加登记，状态默认 `未开始`。
