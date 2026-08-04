@@ -379,7 +379,73 @@ async fn core_business_flow_smoke() {
     assert_eq!(status, StatusCode::CREATED);
     let skill_id = skill["id"].as_str().unwrap().to_owned();
 
-    // 3.6. Create a status card for the status-card updates UI check.
+    // 3.6. Routine + run for the routine detail UI check.
+    let (status, routine) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({ "title": "Smoke routine", "projectId": project_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let routine_id = routine["id"].as_str().unwrap().to_owned();
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/trigger"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(run["status"], "queued");
+
+    // 3.7. Approval comment for the approval detail UI check.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals/{approval_id}/comments"),
+        json!({ "body": "smoke approval comment", "authorUserId": "board" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // 3.8. Workspaces for the workspace detail UI check.
+    let (status, project_workspace) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/project-workspaces"),
+        json!({ "projectId": project_id, "name": "Smoke project workspace" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {project_workspace}");
+    let project_workspace_id = project_workspace["id"].as_str().unwrap().to_owned();
+    let (status, execution_workspace) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/execution-workspaces"),
+        json!({
+            "projectId": project_id,
+            "projectWorkspaceId": project_workspace_id,
+            "mode": "checkout",
+            "strategyType": "clone",
+            "name": "Smoke execution workspace"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {execution_workspace}");
+    let execution_workspace_id = execution_workspace["id"].as_str().unwrap().to_owned();
+
+    // 3.9. User for the profile settings UI check.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/users",
+        json!({ "id": "smoke-user", "name": "Smoke User", "email": "smoke@example.com" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // 3.10. Create a status card for the status-card updates UI check.
     let (status, card) = send_json(
         &app,
         Method::POST,
@@ -507,6 +573,21 @@ async fn core_business_flow_smoke() {
         ("/adapters/cli_local".to_string(), "Invoke"),
         (format!("/companies/{company_id}/cases"), "Cases"),
         (format!("/companies/{company_id}/pipelines"), "Pipelines"),
+        (format!("/routines/{routine_id}"), "Run history"),
+        (
+            format!("/approvals/{approval_id}"),
+            "smoke approval comment",
+        ),
+        (
+            format!("/workspaces/{project_workspace_id}"),
+            "Smoke project workspace",
+        ),
+        (
+            format!("/workspaces/{execution_workspace_id}"),
+            "Smoke execution workspace",
+        ),
+        ("/profile/settings".to_string(), "Smoke User"),
+        ("/no-such-page".to_string(), "Page not found"),
     ] {
         let request = Request::builder()
             .method(Method::GET)

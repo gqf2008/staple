@@ -32,6 +32,10 @@ pub(crate) struct DecisionId(String);
 #[path_param(error = bad_request("Invalid skill id"))]
 pub(crate) struct SkillId(String);
 
+/// Typed `{workspace_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid workspace id"))]
+pub(crate) struct WorkspaceId(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -381,7 +385,9 @@ pub async fn approvals(cx: &Cx) -> Result {
                 <ul class="list">
                     for approval in approvals {
                         <li>
-                            <strong>(&approval.r#type)</strong>
+                            <a href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
+                                <strong>(&approval.r#type)</strong>
+                            </a>
                             " " <span class=(status_badge_class(&approval.status))>(&approval.status)</span>
                             " " <span class="mono">(&approval.id)</span>
                             if approval.status == "pending" {
@@ -394,6 +400,98 @@ pub async fn approvals(cx: &Cx) -> Result {
                                     <button type="submit" class="destructive">(t(lang, "approvals.reject"))</button>
                                 </form>
                             }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Approval detail: attributes, decide form, and comments.
+#[page("/approvals/{id}")]
+pub async fn approval_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let approval_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(approval) = state
+        .approvals
+        .get(&approval_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let company_id = approval.company_id.clone();
+    let comment_rows = state
+        .infrastructure
+        .list_approval_comments(&company_id, &approval_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(approval.r#type.clone())</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "approvals.title"))</a>
+        </nav>
+        <p>
+            <span class=(status_badge_class(&approval.status))>(approval.status.clone())</span>
+            " " <span class="mono">(approval.id.clone())</span>
+        </p>
+        <section>
+            <h2>(t(lang, "approvalDetail.attributes"))</h2>
+            <ul class="list">
+                <li><strong>(t(lang, "approvalDetail.type"))</strong> " " <span class="mono">(approval.r#type.clone())</span></li>
+                <li><strong>(t(lang, "approvalDetail.company"))</strong> " " <span class="mono">(company_id.clone())</span></li>
+                if let Some(agent_id) = &approval.requested_by_agent_id {
+                    <li><strong>(t(lang, "approvalDetail.requestedByAgent"))</strong> " " <span class="mono">(agent_id.clone())</span></li>
+                }
+                if let Some(user_id) = &approval.requested_by_user_id {
+                    <li><strong>(t(lang, "approvalDetail.requestedByUser"))</strong> " " <span class="mono">(user_id.clone())</span></li>
+                }
+                <li><strong>(t(lang, "approvalDetail.status"))</strong> " " <span class=(status_badge_class(&approval.status))>(approval.status.clone())</span></li>
+                <li><strong>(t(lang, "approvalDetail.payload"))</strong> " " <span class="mono">(approval.payload.clone())</span></li>
+                if let Some(note) = &approval.decision_note {
+                    <li><strong>(t(lang, "approvalDetail.decisionNote"))</strong> " " (note.clone())</li>
+                }
+                if let Some(user_id) = &approval.decided_by_user_id {
+                    <li><strong>(t(lang, "approvalDetail.decidedBy"))</strong> " " <span class="mono">(user_id.clone())</span></li>
+                }
+                if let Some(decided_at) = &approval.decided_at {
+                    <li><strong>(t(lang, "approvalDetail.decidedAt"))</strong> " " <span class="mono">(decided_at.clone())</span></li>
+                }
+                <li><strong>(t(lang, "approvalDetail.created"))</strong> " " <span class="mono">(approval.created_at.clone())</span></li>
+            </ul>
+        </section>
+        if approval.status == "pending" {
+            <section>
+                <h2>(t(lang, "approvalDetail.decide"))</h2>
+                <form class="stack-form" method="post"
+                      action=(with_lang(&format!("/approvals/{approval_id}/decide/ui"), lang))>
+                    <label>(t(lang, "approvalDetail.noteLabel"))</label>
+                    <textarea name="note" rows="3" cols="60" placeholder=(t(lang, "approvalDetail.notePlaceholder"))></textarea>
+                    <p class="meta-row">(t(lang, "approvalDetail.decideHint"))</p>
+                    <button type="submit" name="decision" value="approved">(t(lang, "approvalDetail.approve"))</button>
+                    <button type="submit" name="decision" value="rejected" class="destructive">(t(lang, "approvalDetail.reject"))</button>
+                </form>
+            </section>
+        }
+        <section>
+            <h2>(t(lang, "approvalDetail.comments"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/approvals/{approval_id}/comments/ui"), lang))>
+                <label>(t(lang, "approvalDetail.addComment"))</label>
+                <textarea name="body" rows="3" cols="60" required="required"></textarea>
+                <button type="submit">(t(lang, "approvalDetail.postComment"))</button>
+            </form>
+            if comment_rows.is_empty() {
+                <p class="empty">(t(lang, "approvalDetail.noComments"))</p>
+            } else {
+                <ul class="list">
+                    for comment in comment_rows {
+                        <li>
+                            <span class="meta-row">(comment.author_user_id.clone().unwrap_or_else(|| "board".to_owned()))</span>
+                            " " <span class="mono">(comment.created_at.clone())</span>
+                            <p>(comment.body.clone())</p>
                         </li>
                     }
                 </ul>
@@ -1128,7 +1226,9 @@ pub async fn routines(cx: &Cx) -> Result {
             <ul class="list">
                 for routine in routines {
                     <li>
-                        <strong>(routine.title)</strong>
+                        <a href=(with_lang(&format!("/routines/{}", routine.id), lang))>
+                            <strong>(routine.title)</strong>
+                        </a>
                         " " <span class=(status_badge_class(&routine.status))>(routine.status)</span>
                         " " <span class="meta-row">(t(lang, "routines.rev")) " " (routine.latest_revision_number)</span>
                         <form class="inline-form" method="post"
@@ -1139,6 +1239,138 @@ pub async fn routines(cx: &Cx) -> Result {
                 }
             </ul>
         }
+    }
+}
+
+/// Routine detail: attributes, manual trigger, triggers, run history, and
+/// linked routine documents.
+#[page("/routines/{id}")]
+pub async fn routine_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let routine_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(routine) = state
+        .routines
+        .get(&routine_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let company_id = routine.company_id.clone();
+    let run_rows = state
+        .routines
+        .list_runs(&company_id, &routine_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let trigger_rows = state
+        .routines
+        .list_triggers(&company_id, &routine_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let document_rows = state
+        .infrastructure
+        .list_routine_documents(&company_id, &routine_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(routine.title.clone())</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
+        </nav>
+        <p>
+            <span class=(status_badge_class(&routine.status))>(routine.status.clone())</span>
+            " " <span class="badge badge-default">(t(lang, "routineDetail.revision")) " " (routine.latest_revision_number)</span>
+            " " <span class="mono">(routine.id.clone())</span>
+        </p>
+        if let Some(description) = &routine.description {
+            <p class="meta-row">(description.clone())</p>
+        }
+        <section>
+            <h2>(t(lang, "routineDetail.attributes"))</h2>
+            <ul class="list">
+                <li><strong>(t(lang, "routineDetail.company"))</strong> " " <span class="mono">(company_id.clone())</span></li>
+                if let Some(project_id) = &routine.project_id {
+                    <li><strong>(t(lang, "routineDetail.project"))</strong> " " <span class="mono">(project_id.clone())</span></li>
+                }
+                if let Some(goal_id) = &routine.goal_id {
+                    <li><strong>(t(lang, "routineDetail.goal"))</strong> " " <span class="mono">(goal_id.clone())</span></li>
+                }
+                if let Some(parent_issue_id) = &routine.parent_issue_id {
+                    <li><strong>(t(lang, "routineDetail.parentIssue"))</strong> " " <span class="mono">(parent_issue_id.clone())</span></li>
+                }
+                if let Some(assignee_agent_id) = &routine.assignee_agent_id {
+                    <li><strong>(t(lang, "routineDetail.assignee"))</strong> " " <span class="mono">(assignee_agent_id.clone())</span></li>
+                }
+                <li><strong>(t(lang, "routineDetail.priority"))</strong> " " (routine.priority.clone())</li>
+                <li><strong>(t(lang, "routineDetail.concurrency"))</strong> " " (routine.concurrency_policy.clone())</li>
+                <li><strong>(t(lang, "routineDetail.catchUp"))</strong> " " (routine.catch_up_policy.clone())</li>
+                <li><strong>(t(lang, "routineDetail.variables"))</strong> " " <span class="mono">(routine.variables.clone())</span></li>
+                if let Some(last_triggered_at) = &routine.last_triggered_at {
+                    <li><strong>(t(lang, "routineDetail.lastTriggered"))</strong> " " <span class="mono">(last_triggered_at.clone())</span></li>
+                }
+                <li><strong>(t(lang, "routineDetail.created"))</strong> " " <span class="mono">(routine.created_at.clone())</span></li>
+            </ul>
+        </section>
+        <section>
+            <h2>(t(lang, "routineDetail.manualTrigger"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/routines/{routine_id}/trigger/ui"), lang))>
+                <button type="submit">(t(lang, "routines.trigger"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "routineDetail.triggers"))</h2>
+            if trigger_rows.is_empty() {
+                <p class="empty">(t(lang, "routineDetail.noTriggers"))</p>
+            } else {
+                <ul class="list">
+                    for trigger in trigger_rows {
+                        <li>
+                            <span class="badge badge-default">(trigger["scheduleKind"].as_str().unwrap_or(""))</span>
+                            " " <span class="mono">(trigger["scheduleExpr"].as_str().unwrap_or(""))</span>
+                            if trigger["enabled"].as_bool().unwrap_or(false) {
+                                " " <span class="badge badge-done">"enabled"</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "routineDetail.runs"))</h2>
+            if run_rows.is_empty() {
+                <p class="empty">(t(lang, "routineDetail.noRuns"))</p>
+            } else {
+                <ul class="list">
+                    for run in run_rows {
+                        <li>
+                            <span class=(status_badge_class(&run.status))>(run.status.clone())</span>
+                            " " <span class="mono">(run.id.clone())</span>
+                            " " <span class="meta-row">(t(lang, "routineDetail.created")) " " (run.created_at.clone())</span>
+                            if let Some(triggered_by) = &run.triggered_by {
+                                " " <span class="meta-row">(t(lang, "routineDetail.triggeredBy")) ": " (triggered_by.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "routineDetail.documents"))</h2>
+            if document_rows.is_empty() {
+                <p class="empty">(t(lang, "routineDetail.noDocuments"))</p>
+            } else {
+                <ul class="list">
+                    for document in document_rows {
+                        <li>
+                            <span class="mono">(document.document_id.clone())</span>
+                            " " <span class="badge badge-default">(document.key.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
     }
 }
 
@@ -1235,12 +1467,86 @@ pub async fn instance_settings(cx: &Cx) -> Result {
         .list_challenges()
         .await
         .map_err(to_topcoat_error)?;
+    let settings_record = state
+        .infrastructure
+        .get_instance_settings()
+        .await
+        .map_err(to_topcoat_error)?;
+    let general = settings_record.general;
+    let general_censor = general
+        .get("censorUsernameInLogs")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let general_shortcuts = general
+        .get("keyboardShortcuts")
+        .and_then(serde_json::Value::as_bool)
+        .unwrap_or(false);
+    let feedback_preference = general
+        .get("feedbackDataSharingPreference")
+        .and_then(serde_json::Value::as_str)
+        .unwrap_or("prompt")
+        .to_owned();
+    let backup_retention = general.get("backupRetention");
+    let backup_daily_days = backup_retention
+        .and_then(|value| value.get("dailyDays"))
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(30);
+    let backup_weekly_weeks = backup_retention
+        .and_then(|value| value.get("weeklyWeeks"))
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(12);
+    let backup_monthly_months = backup_retention
+        .and_then(|value| value.get("monthlyMonths"))
+        .and_then(serde_json::Value::as_i64)
+        .unwrap_or(12);
+    let general_json = serde_json::to_string_pretty(&general).unwrap_or_default();
+    let experimental = settings_record.experimental;
+    let experimental_json = serde_json::to_string_pretty(&experimental).unwrap_or_default();
     view! {
         <h1 class="page-title">(t(lang, "instance.title"))</h1>
         <nav class="nav-row">
+            <a href=(with_lang("/profile/settings", lang))>(t(lang, "profile.title"))</a>
             <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
             <a href=(with_lang("/environments", lang))>(t(lang, "environments.title"))</a>
         </nav>
+        <section>
+            <h2>(t(lang, "instance.general"))</h2>
+            <p class="meta-row">(t(lang, "instance.generalHint"))</p>
+            <p class="mono">(general_json)</p>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/instance/settings/general/ui", lang))>
+                <label class="inline-label">
+                    <input type="checkbox" name="censor_username_in_logs" value="1" checked=(general_censor)>
+                    " " (t(lang, "instance.censorUsernameInLogs"))
+                </label>
+                <label class="inline-label">
+                    <input type="checkbox" name="keyboard_shortcuts" value="1" checked=(general_shortcuts)>
+                    " " (t(lang, "instance.keyboardShortcuts"))
+                </label>
+                <label>(t(lang, "instance.feedbackDataSharing"))</label>
+                <select name="feedback_data_sharing_preference">
+                    <option value="prompt" selected=(feedback_preference == "prompt")>"prompt"</option>
+                    <option value="enabled" selected=(feedback_preference == "enabled")>"enabled"</option>
+                    <option value="disabled" selected=(feedback_preference == "disabled")>"disabled"</option>
+                </select>
+                <label>(t(lang, "instance.backupRetention"))</label>
+                <input type="number" name="backup_daily_days" value=(backup_daily_days) min="0">
+                <input type="number" name="backup_weekly_weeks" value=(backup_weekly_weeks) min="0">
+                <input type="number" name="backup_monthly_months" value=(backup_monthly_months) min="0">
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "instance.experimental"))</h2>
+            <p class="meta-row">(t(lang, "instance.experimentalHint"))</p>
+            <p class="mono">(experimental_json.clone())</p>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/instance/settings/experimental/ui", lang))>
+                <label>(t(lang, "instance.experimentalJson"))</label>
+                <textarea name="json" rows="6" cols="80">(experimental_json)</textarea>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
         <section>
             <h2>(t(lang, "instance.roles"))</h2>
             <form class="inline-form" method="post"
@@ -1323,6 +1629,86 @@ pub async fn instance_settings(cx: &Cx) -> Result {
                     }
                 </ul>
             }
+        </section>
+    }
+}
+
+/// Profile page query: optional user id to edit.
+#[topcoat::router::query_params]
+pub(crate) struct ProfileQuery {
+    /// User id.
+    pub user: Option<String>,
+}
+
+/// Profile settings: board user display + sidebar preference.
+#[page("/profile/settings")]
+pub async fn profile_settings(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let query = topcoat::router::query_params::<ProfileQuery>(cx)
+        .ok()
+        .and_then(|params| params.user.clone());
+    let user_rows = state
+        .infrastructure
+        .list_users()
+        .await
+        .map_err(to_topcoat_error)?;
+    let selected_user = query
+        .as_deref()
+        .and_then(|user_id| user_rows.iter().find(|user| user.id == user_id))
+        .or_else(|| user_rows.first());
+    let Some(user) = selected_user else {
+        return view! {
+            <h1 class="page-title">(t(lang, "profile.title"))</h1>
+            <nav class="nav-row">
+                <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+                <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
+            </nav>
+            <p class="empty">(t(lang, "profile.noUsers"))</p>
+        };
+    };
+    let user_id = user.id.clone();
+    let preference = state
+        .infrastructure
+        .get_user_sidebar_preference(&user_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let company_order = preference
+        .as_ref()
+        .and_then(|pref| pref.company_order.as_array())
+        .map(|ids| {
+            ids.iter()
+                .filter_map(serde_json::Value::as_str)
+                .collect::<Vec<_>>()
+                .join(", ")
+        })
+        .unwrap_or_default();
+    view! {
+        <h1 class="page-title">(t(lang, "profile.title"))</h1>
+        <nav class="nav-row">
+            <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+            <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "profile.user"))</h2>
+            <ul class="list">
+                <li><strong>(t(lang, "profile.id"))</strong> " " <span class="mono">(user.id.clone())</span></li>
+                <li><strong>(t(lang, "profile.name"))</strong> " " (user.name.clone())</li>
+                <li><strong>(t(lang, "profile.email"))</strong> " " (user.email.clone())</li>
+                <li><strong>(t(lang, "profile.emailVerified"))</strong> " " (if user.email_verified { "yes" } else { "no" })</li>
+                <li><strong>(t(lang, "profile.created"))</strong> " " <span class="mono">(user.created_at.clone())</span></li>
+            </ul>
+        </section>
+        <section>
+            <h2>(t(lang, "profile.sidebarPreference"))</h2>
+            <p class="meta-row">(t(lang, "profile.sidebarPreferenceHint"))</p>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/profile/settings/ui", lang))>
+                <input type="hidden" name="user_id" value=(user_id.clone())>
+                <label>(t(lang, "profile.companyOrder"))</label>
+                <input type="text" name="company_order" value=(company_order) placeholder="company-id-1, company-id-2">
+                <button type="submit">(t(lang, "profile.save"))</button>
+            </form>
         </section>
     }
 }
@@ -3123,7 +3509,9 @@ pub async fn workspaces(cx: &Cx) -> Result {
                 <ul class="list">
                     for workspace in project_workspaces {
                         <li>
-                            <strong>(workspace.name)</strong>
+                            <a href=(with_lang(&format!("/workspaces/{}", workspace.id), lang))>
+                                <strong>(workspace.name)</strong>
+                            </a>
                             " " <span class="badge badge-default">(workspace.source_type)</span>
                             if let Some(repo) = &workspace.repo_url {
                                 " " <span class="mono">(repo.clone())</span>
@@ -3141,7 +3529,9 @@ pub async fn workspaces(cx: &Cx) -> Result {
                 <ul class="list">
                     for workspace in execution_workspaces {
                         <li>
-                            <span class="mono">(workspace.name)</span>
+                            <a href=(with_lang(&format!("/workspaces/{}", workspace.id), lang))>
+                                <span class="mono">(workspace.name)</span>
+                            </a>
                             " " <span class=(status_badge_class(if workspace.materialized { "done" } else { "backlog" }))>
                                 (if workspace.materialized { "materialized" } else { "not materialized" })
                             </span>
@@ -3186,6 +3576,191 @@ pub async fn workspaces(cx: &Cx) -> Result {
                     }
                 </ul>
             }
+        </section>
+    }
+}
+
+/// Workspace detail: project or execution workspace attributes plus
+/// execution materialization controls, services, and operations.
+#[page("/workspaces/{workspace_id}")]
+pub async fn workspace_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let workspace_id = path_param::<WorkspaceId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_rows = state.companies.list().await.map_err(to_topcoat_error)?;
+    let mut project_workspace = None;
+    let mut execution_workspace = None;
+    let mut company_id = String::new();
+    'search: for company in &company_rows {
+        if let Ok(rows) = state
+            .workspaces
+            .list_project_workspaces(&company.id, None)
+            .await
+            && let Some(row) = rows.into_iter().find(|row| row.id == workspace_id)
+        {
+            project_workspace = Some(row);
+            company_id = company.id.clone();
+            break 'search;
+        }
+        if let Ok(rows) = state
+            .workspaces
+            .list_execution_workspaces(&company.id, None)
+            .await
+            && let Some(row) = rows.into_iter().find(|row| row.id == workspace_id)
+        {
+            execution_workspace = Some(row);
+            company_id = company.id.clone();
+            break 'search;
+        }
+    }
+    let Some(project_workspace) = project_workspace else {
+        let Some(execution_workspace) = execution_workspace else {
+            return Err(topcoat::router::error::not_found().into());
+        };
+        let service_rows = state
+            .workspaces
+            .list_runtime_services(&company_id)
+            .await
+            .map_err(to_topcoat_error)?;
+        let operation_rows = state
+            .workspaces
+            .list_operations(&company_id)
+            .await
+            .map_err(to_topcoat_error)?;
+        let execution_service_rows: Vec<staple_data::RuntimeServiceRecord> = service_rows
+            .into_iter()
+            .filter(|service| {
+                service.execution_workspace_id.as_deref() == Some(workspace_id.as_str())
+            })
+            .collect();
+        let execution_operation_rows: Vec<staple_data::WorkspaceOperationRecord> = operation_rows
+            .into_iter()
+            .filter(|operation| {
+                operation.execution_workspace_id.as_deref() == Some(workspace_id.as_str())
+            })
+            .collect();
+        return view! {
+            <h1 class="page-title">(execution_workspace.name.clone())</h1>
+            <nav class="nav-row">
+                <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang))>(t(lang, "workspaces.title"))</a>
+            </nav>
+            <p>
+                <span class=(status_badge_class(&execution_workspace.status))>(execution_workspace.status.clone())</span>
+                " " <span class=(status_badge_class(if execution_workspace.materialized { "done" } else { "backlog" }))>
+                    (if execution_workspace.materialized { t(lang, "workspaceDetail.materialized") } else { t(lang, "workspaceDetail.notMaterialized") })
+                </span>
+            </p>
+            <section>
+                <h2>(t(lang, "workspaceDetail.attributes"))</h2>
+                <ul class="list">
+                    <li><strong>(t(lang, "workspaceDetail.id"))</strong> " " <span class="mono">(execution_workspace.id.clone())</span></li>
+                    <li><strong>(t(lang, "workspaceDetail.company"))</strong> " " <span class="mono">(company_id.clone())</span></li>
+                    <li><strong>(t(lang, "workspaceDetail.project"))</strong> " " <span class="mono">(execution_workspace.project_id.clone())</span></li>
+                    if let Some(project_workspace_id) = &execution_workspace.project_workspace_id {
+                        <li><strong>(t(lang, "workspaceDetail.projectWorkspace"))</strong> " " <span class="mono">(project_workspace_id.clone())</span></li>
+                    }
+                    if let Some(source_issue_id) = &execution_workspace.source_issue_id {
+                        <li><strong>(t(lang, "workspaceDetail.sourceIssue"))</strong> " " <span class="mono">(source_issue_id.clone())</span></li>
+                    }
+                    <li><strong>(t(lang, "workspaceDetail.mode"))</strong> " " (execution_workspace.mode.clone())</li>
+                    <li><strong>(t(lang, "workspaceDetail.strategy"))</strong> " " (execution_workspace.strategy_type.clone())</li>
+                    if let Some(cwd) = &execution_workspace.cwd {
+                        <li><strong>(t(lang, "workspaceDetail.cwd"))</strong> " " <span class="mono">(cwd.clone())</span></li>
+                    }
+                    if let Some(repo_url) = &execution_workspace.repo_url {
+                        <li><strong>(t(lang, "workspaceDetail.repoUrl"))</strong> " " <span class="mono">(repo_url.clone())</span></li>
+                    }
+                    <li><strong>(t(lang, "workspaceDetail.provider"))</strong> " " (execution_workspace.provider_type.clone())</li>
+                    if let Some(materialized_at) = &execution_workspace.materialized_at {
+                        <li><strong>(t(lang, "workspaceDetail.materializedAt"))</strong> " " <span class="mono">(materialized_at.clone())</span></li>
+                    }
+                    if let Some(error) = &execution_workspace.materialize_error {
+                        <li><strong>(t(lang, "workspaceDetail.materializeError"))</strong> " " <span class="mono">(error.clone())</span></li>
+                    }
+                    if let Some(secret) = &execution_workspace.credential_secret_name {
+                        <li><strong>(t(lang, "workspaceDetail.credentialSecret"))</strong> " " <span class="mono">(secret.clone())</span></li>
+                    }
+                    <li><strong>(t(lang, "workspaceDetail.created"))</strong> " " <span class="mono">(execution_workspace.created_at.clone())</span></li>
+                </ul>
+            </section>
+            if !execution_workspace.materialized {
+                <section>
+                    <h2>(t(lang, "workspaceDetail.materialize"))</h2>
+                    <form class="inline-form" method="post"
+                          action=(with_lang(&format!("/companies/{company_id}/workspaces/{workspace_id}/materialize/ui"), lang))>
+                        <button type="submit" class="secondary">(t(lang, "workspaces.materialize"))</button>
+                    </form>
+                </section>
+            }
+            <section>
+                <h2>(t(lang, "workspaceDetail.services"))</h2>
+                if execution_service_rows.is_empty() {
+                    <p class="empty">(t(lang, "workspaceDetail.noServices"))</p>
+                } else {
+                    <ul class="list">
+                        for service in execution_service_rows {
+                            <li>
+                                <strong>(service.service_name.clone())</strong>
+                                " " <span class="badge badge-default">(service.status.clone())</span>
+                                " " <span class="mono">(service.scope_type.clone())</span>
+                                if let Some(url) = &service.url {
+                                    " " <span class="mono">(url.clone())</span>
+                                }
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+            <section>
+                <h2>(t(lang, "workspaceDetail.operations"))</h2>
+                if execution_operation_rows.is_empty() {
+                    <p class="empty">(t(lang, "workspaceDetail.noOperations"))</p>
+                } else {
+                    <ul class="list">
+                        for operation in execution_operation_rows {
+                            <li>
+                                <span class=(status_badge_class(&operation.phase))>(operation.phase.clone())</span>
+                                " " <span class="mono">(operation.command.clone().unwrap_or_default())</span>
+                                " " <span class="meta-row">(operation.created_at.clone())</span>
+                            </li>
+                        }
+                    </ul>
+                }
+            </section>
+        };
+    };
+    view! {
+        <h1 class="page-title">(project_workspace.name.clone())</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang))>(t(lang, "workspaces.title"))</a>
+        </nav>
+        <p>
+            <span class="badge badge-default">(project_workspace.source_type.clone())</span>
+            " " <span class="mono">(project_workspace.id.clone())</span>
+        </p>
+        <section>
+            <h2>(t(lang, "workspaceDetail.attributes"))</h2>
+            <ul class="list">
+                <li><strong>(t(lang, "workspaceDetail.id"))</strong> " " <span class="mono">(project_workspace.id.clone())</span></li>
+                <li><strong>(t(lang, "workspaceDetail.company"))</strong> " " <span class="mono">(company_id.clone())</span></li>
+                <li><strong>(t(lang, "workspaceDetail.project"))</strong> " " <span class="mono">(project_workspace.project_id.clone())</span></li>
+                <li><strong>(t(lang, "workspaceDetail.sourceType"))</strong> " " (project_workspace.source_type.clone())</li>
+                if let Some(cwd) = &project_workspace.cwd {
+                    <li><strong>(t(lang, "workspaceDetail.cwd"))</strong> " " <span class="mono">(cwd.clone())</span></li>
+                }
+                if let Some(repo_url) = &project_workspace.repo_url {
+                    <li><strong>(t(lang, "workspaceDetail.repoUrl"))</strong> " " <span class="mono">(repo_url.clone())</span></li>
+                }
+                if let Some(repo_ref) = &project_workspace.repo_ref {
+                    <li><strong>(t(lang, "workspaceDetail.repoRef"))</strong> " " <span class="mono">(repo_ref.clone())</span></li>
+                }
+                if let Some(default_ref) = &project_workspace.default_ref {
+                    <li><strong>(t(lang, "workspaceDetail.defaultRef"))</strong> " " <span class="mono">(default_ref.clone())</span></li>
+                }
+                <li><strong>(t(lang, "workspaceDetail.visibility"))</strong> " " (project_workspace.visibility.clone())</li>
+                <li><strong>(t(lang, "workspaceDetail.primary"))</strong> " " (if project_workspace.is_primary { "yes" } else { "no" })</li>
+                <li><strong>(t(lang, "workspaceDetail.created"))</strong> " " <span class="mono">(project_workspace.created_at.clone())</span></li>
+            </ul>
         </section>
     }
 }
@@ -4426,3 +5001,26 @@ pub(crate) struct ProjectId(String);
 /// Shared `{id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid id"))]
 pub(crate) struct Id(String);
+
+/// Friendly not-found page for unknown paths. API paths keep the router's
+/// JSON 404 response so API clients see the same error shape as before.
+#[page("/{*path}")]
+pub async fn not_found(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let parts = topcoat::context::try_request_context::<http::request::Parts>(cx);
+    let current_path = parts
+        .map(|parts| parts.uri.path().to_owned())
+        .unwrap_or_else(|| "/".to_owned());
+    if current_path.starts_with("/api/") {
+        return Err(topcoat::router::error::not_found().into());
+    }
+    view! {
+        <h1 class="page-title">(t(lang, "notFound.title"))</h1>
+        <p class="meta-row">(t(lang, "notFound.message"))</p>
+        <p class="mono">(t(lang, "notFound.requestedPath")) ": " (current_path)</p>
+        <nav class="nav-row">
+            <a href=(with_lang("/", lang))>(t(lang, "notFound.goHome"))</a>
+            <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+        </nav>
+    }
+}

@@ -89,17 +89,23 @@ pub async fn decide_approval_ui(
 ) -> Result<topcoat::router::error::SeeOther> {
     let approval_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
-    let Some(approval) = state.approvals.get(&approval_id).await.ok().flatten() else {
+    if state
+        .approvals
+        .get(&approval_id)
+        .await
+        .ok()
+        .flatten()
+        .is_none()
+    {
         return Ok(see_other("/"));
-    };
-    let company_id = approval.company_id;
+    }
     if let Ok(decided) = state
         .approvals
         .decide(
             &approval_id,
             staple_data::ApprovalDecision {
                 decision: form.decision,
-                decision_note: None,
+                decision_note: form.note.filter(|note| !note.trim().is_empty()),
                 decided_by_user_id: Some("board".to_owned()),
             },
         )
@@ -116,7 +122,34 @@ pub async fn decide_approval_ui(
         )
         .await;
     }
-    Ok(see_other(&format!("/companies/{company_id}/approvals")))
+    Ok(see_other(&format!("/approvals/{approval_id}")))
+}
+
+/// `POST /approvals/{id}/comments/ui` — adds an approval comment and
+/// redirects back to the approval detail page.
+#[route(POST "/approvals/{id}/comments/ui")]
+pub async fn add_approval_comment_ui(
+    cx: &Cx,
+    Form(form): Form<ApprovalCommentForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let approval_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let body = form.body.trim().to_owned();
+    if !body.is_empty()
+        && let Ok(Some(approval)) = state.approvals.get(&approval_id).await
+    {
+        let _ = state
+            .infrastructure
+            .create_approval_comment(staple_data::NewApprovalComment {
+                company_id: approval.company_id,
+                approval_id: approval_id.clone(),
+                author_agent_id: None,
+                author_user_id: Some("board".to_owned()),
+                body,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/approvals/{approval_id}")))
 }
 
 /// Shared `{company_id}` path parameter for UI routes.
@@ -144,6 +177,16 @@ pub struct ApprovalForm {
 pub struct DecisionForm {
     /// `approved` or `rejected`.
     pub decision: String,
+    /// Optional decision note.
+    #[serde(default)]
+    pub note: Option<String>,
+}
+
+/// Approval comment form fields.
+#[derive(Debug, Deserialize)]
+pub struct ApprovalCommentForm {
+    /// Comment body.
+    pub body: String,
 }
 
 /// `POST /issues/{id}/status/ui` — moves an issue to a status, redirects to
@@ -521,10 +564,7 @@ pub async fn routine_trigger_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOt
             .routines
             .trigger(&routine.company_id, &routine_id)
             .await;
-        return Ok(see_other(&format!(
-            "/companies/{}/routines",
-            routine.company_id
-        )));
+        return Ok(see_other(&format!("/routines/{routine_id}")));
     }
     Ok(see_other("/"))
 }
@@ -681,9 +721,132 @@ pub async fn cli_challenge_cancel_ui(cx: &Cx) -> Result<topcoat::router::error::
     Ok(see_other("/instance/settings"))
 }
 
+/// `POST /instance/settings/general/ui` — saves instance general settings and
+/// redirects back to the instance settings page.
+#[route(POST "/instance/settings/general/ui")]
+pub async fn instance_general_settings_ui(
+    cx: &Cx,
+    Form(form): Form<InstanceGeneralForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let general = serde_json::json!({
+        "censorUsernameInLogs": form.censor_username_in_logs,
+        "keyboardShortcuts": form.keyboard_shortcuts,
+        "feedbackDataSharingPreference": form.feedback_data_sharing_preference,
+        "backupRetention": {
+            "dailyDays": form.backup_daily_days,
+            "weeklyWeeks": form.backup_weekly_weeks,
+            "monthlyMonths": form.backup_monthly_months,
+        },
+    });
+    let _ = state
+        .infrastructure
+        .update_instance_settings(None, Some(general), None)
+        .await;
+    Ok(see_other("/instance/settings"))
+}
+
+/// `POST /instance/settings/experimental/ui` — saves instance experimental
+/// settings (raw JSON) and redirects back to the instance settings page.
+#[route(POST "/instance/settings/experimental/ui")]
+pub async fn instance_experimental_settings_ui(
+    cx: &Cx,
+    Form(form): Form<InstanceExperimentalForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let experimental = serde_json::from_str::<serde_json::Value>(&form.json)
+        .unwrap_or_else(|_| serde_json::json!({}));
+    let _ = state
+        .infrastructure
+        .update_instance_settings(None, None, Some(experimental))
+        .await;
+    Ok(see_other("/instance/settings"))
+}
+
+/// `POST /profile/settings/ui` — saves the board profile sidebar preference
+/// and redirects back to the profile settings page.
+#[route(POST "/profile/settings/ui")]
+pub async fn profile_settings_ui(
+    cx: &Cx,
+    Form(form): Form<ProfileSettingsForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let user_id = form.user_id.trim().to_owned();
+    let mut company_order = Vec::new();
+    for part in form.company_order.split(',') {
+        let id = part.trim();
+        if !id.is_empty() {
+            company_order.push(id.to_owned());
+        }
+    }
+    if !user_id.is_empty() {
+        let _ = state
+            .infrastructure
+            .set_user_sidebar_preference(&user_id, serde_json::json!(company_order))
+            .await;
+    }
+    Ok(see_other(&format!("/profile/settings?user={user_id}")))
+}
+
 // ---------------------------------------------------------------------------
 // Form structs + path params
 // ---------------------------------------------------------------------------
+
+/// Instance general settings form fields.
+#[derive(Debug, serde::Deserialize)]
+pub struct InstanceGeneralForm {
+    /// Censor usernames in logs.
+    #[serde(default)]
+    pub censor_username_in_logs: bool,
+    /// Enable keyboard shortcuts.
+    #[serde(default)]
+    pub keyboard_shortcuts: bool,
+    /// Feedback data sharing preference (`prompt` | `enabled` | `disabled`).
+    #[serde(default = "default_feedback_preference")]
+    pub feedback_data_sharing_preference: String,
+    /// Backup retention: daily days.
+    #[serde(default = "default_retention_days")]
+    pub backup_daily_days: i64,
+    /// Backup retention: weekly weeks.
+    #[serde(default = "default_retention_weeks")]
+    pub backup_weekly_weeks: i64,
+    /// Backup retention: monthly months.
+    #[serde(default = "default_retention_months")]
+    pub backup_monthly_months: i64,
+}
+
+fn default_feedback_preference() -> String {
+    "prompt".to_owned()
+}
+
+fn default_retention_days() -> i64 {
+    30
+}
+
+fn default_retention_weeks() -> i64 {
+    12
+}
+
+fn default_retention_months() -> i64 {
+    12
+}
+
+/// Instance experimental settings form fields.
+#[derive(Debug, serde::Deserialize)]
+pub struct InstanceExperimentalForm {
+    /// Experimental settings JSON.
+    pub json: String,
+}
+
+/// Profile settings form fields.
+#[derive(Debug, serde::Deserialize)]
+pub struct ProfileSettingsForm {
+    /// User id.
+    pub user_id: String,
+    /// Comma-separated company ids in sidebar order.
+    #[serde(default)]
+    pub company_order: String,
+}
 
 /// Agent status form.
 #[derive(Debug, serde::Deserialize)]
@@ -859,7 +1022,7 @@ pub async fn workspace_materialize_ui(cx: &Cx) -> Result<topcoat::router::error:
             }
         }
     }
-    Ok(see_other(&format!("/companies/{company_id}/workspaces")))
+    Ok(see_other(&format!("/workspaces/{workspace_id}")))
 }
 
 /// Project edit form.
