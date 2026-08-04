@@ -58,6 +58,19 @@
 |---|---|---|
 | **UI 国际化（i18n）** | 上游全部 38 种语言 locale（各 10172 键）嵌入 `crates/app/locales/`；`?lang=` 全语言切换，本地键 fallback | ✅ 完成（#50 + #65 + #90） |
 
+## UI/行为层对齐登记（与上游页面逐页对齐）
+
+| 批次 | 范围 | 状态 |
+|---|---|---|
+| UI-1 | Goals + Projects 管理页（列表/详情/新建/编辑/状态） | ✅ 完成（issue #110/PR #111） |
+| UI-2 | 决策域页面（decisions 列表/详情/resolve + training examples） | ✅ 完成（issue #112/PR #113） |
+| UI-3 | Status Cards + Summary Slots + Finance/Feedback 页面 | ✅ 完成（issue #114/PR #115） |
+| UI-4 | Skill Studio 详情（版本/策略/评论/星标/测试）+ Secret bindings/provider/user secrets 页面 | ✅ 完成（issue #116/PR #117） |
+| UI-5 | 基础设施页面（folders/watchdogs/users/environments） | ✅ 完成（issue #118/PR #119） |
+| UI-6 | 工具链域页面（tool profiles/connections/gateways/catalog/invocations） | ✅ 完成（issue #120/PR #124） |
+| UI-7 | 行为层补漏（routine/approval/workspace detail + profile + 404 + instance settings 拆分） | ✅ 完成（issue #121/PR #125） |
+| UI-8 | 看板行为（my-issues/what-needs-me/timeline/status updates/smoke/feedback exports） | ✅ 完成（issue #122/PR #123） |
+
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
 | 批次 | 范围 | 状态 |
