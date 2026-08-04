@@ -20,6 +20,10 @@ fn to_topcoat_error(error: impl ToString) -> topcoat::Error {
 #[path_param(error = bad_request("Invalid company id"))]
 pub(crate) struct CompanyId(String);
 
+/// Typed `{goal_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid goal id"))]
+pub(crate) struct GoalId(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -59,12 +63,12 @@ pub async fn company_overview(cx: &Cx) -> Result {
     let Some(company) = company else {
         return Err(topcoat::router::error::not_found().into());
     };
-    let goals = state
+    let goal_rows = state
         .goals
         .list(&company_id)
         .await
         .map_err(to_topcoat_error)?;
-    let projects = state
+    let project_rows = state
         .projects
         .list(&company_id)
         .await
@@ -96,6 +100,8 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/goals"), lang))>(t(lang, "nav.goals"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang))>(t(lang, "nav.projects"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/secrets"), lang))>(t(lang, "settings.secrets"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>(t(lang, "settings.skills"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang))>(t(lang, "workspaces.title"))</a>
@@ -104,14 +110,17 @@ pub async fn company_overview(cx: &Cx) -> Result {
 
         <section>
             <h2>(t(lang, "section.goals"))</h2>
-            if goals.is_empty() {
+            if goal_rows.is_empty() {
                 <p class="empty">(t(lang, "empty.noGoals"))</p>
             } else {
                 <ul class="list">
-                    for goal in goals {
+                    for goal in goal_rows {
                         <li>
-                            <strong>(goal.title)</strong>
-                            <span class="badge badge-default">(goal.status)</span>
+                            <a href=(with_lang(&format!("/goals/{}", goal.id), lang))>
+                                <strong>(goal.title)</strong>
+                            </a>
+                            " " <span class="badge badge-default">(goal.level)</span>
+                            " " <span class=(status_badge_class(&goal.status))>(goal.status)</span>
                         </li>
                     }
                 </ul>
@@ -120,14 +129,16 @@ pub async fn company_overview(cx: &Cx) -> Result {
 
         <section>
             <h2>(t(lang, "section.projects"))</h2>
-            if projects.is_empty() {
+            if project_rows.is_empty() {
                 <p class="empty">(t(lang, "empty.noProjects"))</p>
             } else {
                 <ul class="list">
-                    for project in projects {
+                    for project in project_rows {
                         <li>
-                            <strong>(project.name)</strong>
-                            <span class="badge badge-default">(project.status)</span>
+                            <a href=(with_lang(&format!("/projects/{}", project.id), lang))>
+                                <strong>(project.name)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&project.status))>(project.status)</span>
                         </li>
                     }
                 </ul>
@@ -1456,6 +1467,297 @@ pub async fn project_detail(cx: &Cx) -> Result {
                                 " " <strong>(issue.title.clone())</strong>
                             </a>
                             " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Goals list page for one company.
+#[page("/companies/{company_id}/goals")]
+pub async fn goals(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let goal_rows = state
+        .goals
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let goal_statuses = ["planned", "active", "achieved", "cancelled"];
+    let levels = ["company", "team", "agent", "task"];
+    view! {
+        <h1 class="page-title">(t(lang, "nav.goals"))</h1>
+        <section>
+            <h2>(t(lang, "pages.goals.addGoal"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/goals/ui"), lang))>
+                <label>(t(lang, "goals.titleLabel"))</label>
+                <input type="text" name="title" required="required">
+                <label>(t(lang, "goals.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "goals.levelLabel"))</label>
+                <select name="level">
+                    for level in levels {
+                        <option value=(level)>(level)</option>
+                    }
+                </select>
+                <label>(t(lang, "goals.statusLabel"))</label>
+                <select name="status">
+                    for status in goal_statuses {
+                        <option value=(status)>(status)</option>
+                    }
+                </select>
+                <label>(t(lang, "goals.ownerLabel"))</label>
+                <select name="owner_agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "section.goals"))</h2>
+            if goal_rows.is_empty() {
+                <p class="empty">(t(lang, "pages.goals.none"))</p>
+            } else {
+                <ul class="list">
+                    for goal in goal_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/goals/{}", goal.id), lang))>
+                                <strong>(goal.title)</strong>
+                            </a>
+                            " " <span class="badge badge-default">(goal.level)</span>
+                            " " <span class=(status_badge_class(&goal.status))>(goal.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Goal detail: attributes, edit form, subgoals, and linked projects.
+#[page("/goals/{goal_id}")]
+pub async fn goal_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let goal_id = path_param::<GoalId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(goal) = state.goals.get(&goal_id).await.map_err(to_topcoat_error)? else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let company_id = goal.company_id.clone();
+    let all_goals = state
+        .goals
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let children = all_goals
+        .iter()
+        .filter(|other| other.parent_id.as_deref() == Some(goal_id.as_str()))
+        .cloned()
+        .collect::<Vec<_>>();
+    let project_rows = state
+        .projects
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .into_iter()
+        .filter(|project| project.goal_id.as_deref() == Some(goal_id.as_str()))
+        .collect::<Vec<_>>();
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let goal_statuses = ["planned", "active", "achieved", "cancelled"];
+    let levels = ["company", "team", "agent", "task"];
+    view! {
+        <h1 class="page-title">(goal.title.clone())</h1>
+        <p class="mono">(goal.id.clone())</p>
+        <p>
+            <span class=(status_badge_class(&goal.status))>(goal.status.clone())</span>
+            " " <span class="badge badge-default">(goal.level.clone())</span>
+            if let Some(description) = &goal.description {
+                " " <span class="meta-row">(description.clone())</span>
+            }
+        </p>
+        <section>
+            <h2>(t(lang, "goals.edit"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/goals/{goal_id}/edit/ui"), lang))>
+                <label>(t(lang, "goals.titleLabel"))</label>
+                <input type="text" name="title" value=(goal.title.clone()) required="required">
+                <label>(t(lang, "goals.descriptionLabel"))</label>
+                <input type="text" name="description" value=(goal.description.clone().unwrap_or_default())>
+                <label>(t(lang, "goals.levelLabel"))</label>
+                <select name="level">
+                    for level in levels {
+                        if level == goal.level {
+                            <option value=(level) selected="selected">(level)</option>
+                        } else {
+                            <option value=(level)>(level)</option>
+                        }
+                    }
+                </select>
+                <label>(t(lang, "goals.parentLabel"))</label>
+                <select name="parent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for other in &all_goals {
+                        if other.id != goal_id {
+                            if other.id == goal.parent_id.as_deref().unwrap_or_default() {
+                                <option value=(other.id.clone()) selected="selected">(other.title.clone())</option>
+                            } else {
+                                <option value=(other.id.clone())>(other.title.clone())</option>
+                            }
+                        }
+                    }
+                </select>
+                <label>(t(lang, "goals.ownerLabel"))</label>
+                <select name="owner_agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in &agent_rows {
+                        if agent.id == goal.owner_agent_id.as_deref().unwrap_or_default() {
+                            <option value=(agent.id.clone()) selected="selected">(agent.name.clone())</option>
+                        } else {
+                            <option value=(agent.id.clone())>(agent.name.clone())</option>
+                        }
+                    }
+                </select>
+                <label>(t(lang, "goals.statusLabel"))</label>
+                <select name="status">
+                    for status in goal_statuses {
+                        if status == goal.status {
+                            <option value=(status) selected="selected">(status)</option>
+                        } else {
+                            <option value=(status)>(status)</option>
+                        }
+                    }
+                </select>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "goals.children"))</h2>
+            if children.is_empty() {
+                <p class="empty">(t(lang, "empty.noGoals"))</p>
+            } else {
+                <ul class="list">
+                    for child in children {
+                        <li>
+                            <a href=(with_lang(&format!("/goals/{}", child.id), lang))>
+                                <strong>(child.title)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&child.status))>(child.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "goals.projects"))</h2>
+            if project_rows.is_empty() {
+                <p class="empty">(t(lang, "empty.noProjects"))</p>
+            } else {
+                <ul class="list">
+                    for project in project_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/projects/{}", project.id), lang))>
+                                <strong>(project.name)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&project.status))>(project.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Projects list page for one company.
+#[page("/companies/{company_id}/projects")]
+pub async fn projects(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let project_rows = state
+        .projects
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let goal_rows = state
+        .goals
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let project_statuses = [
+        "backlog",
+        "planned",
+        "in_progress",
+        "completed",
+        "cancelled",
+    ];
+    view! {
+        <h1 class="page-title">(t(lang, "nav.projects"))</h1>
+        <section>
+            <h2>(t(lang, "pages.projects.addProject"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/projects/ui"), lang))>
+                <label>(t(lang, "projects.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "projects.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "projects.goalLabel"))</label>
+                <select name="goal_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for goal in &goal_rows {
+                        <option value=(goal.id.clone())>(goal.title.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "projects.leadLabel"))</label>
+                <select name="lead_agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "projects.statusLabel"))</label>
+                <select name="status">
+                    for status in project_statuses {
+                        <option value=(status)>(status)</option>
+                    }
+                </select>
+                <label>(t(lang, "projects.targetDateLabel"))</label>
+                <input type="text" name="target_date">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "section.projects"))</h2>
+            if project_rows.is_empty() {
+                <p class="empty">(t(lang, "pages.projects.none"))</p>
+            } else {
+                <ul class="list">
+                    for project in project_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/projects/{}", project.id), lang))>
+                                <strong>(project.name)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&project.status))>(project.status)</span>
                         </li>
                     }
                 </ul>
