@@ -225,6 +225,108 @@ pub struct NewCaseEvent {
     pub payload: Option<serde_json::Value>,
 }
 
+/// A pipeline case ↔ issue link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineCaseIssueLinkRecord {
+    /// Link id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Case id.
+    pub case_id: String,
+    /// Issue id.
+    pub issue_id: String,
+    /// Role (`origin` | `conversation` | `work` | `automation`).
+    pub role: String,
+    /// ISO 8601 retire time.
+    pub retired_at: Option<String>,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
+/// A pipeline case blocker edge.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineCaseBlockerRecord {
+    /// Blocker id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Blocked case id.
+    pub case_id: String,
+    /// Blocking case id.
+    pub blocked_by_case_id: String,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
+/// A pipeline-level document link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineDocumentRecord {
+    /// Link id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Pipeline id.
+    pub pipeline_id: String,
+    /// Document id.
+    pub document_id: String,
+    /// Key (unique per pipeline).
+    pub key: String,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
+/// A pipeline-case document link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineCaseDocumentRecord {
+    /// Link id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Case id.
+    pub case_id: String,
+    /// Document id.
+    pub document_id: String,
+    /// Key (unique per case).
+    pub key: String,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
+/// A pipeline automation execution record.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineAutomationExecutionRecord {
+    /// Execution id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Case id.
+    pub case_id: String,
+    /// Automation id.
+    pub automation_id: String,
+    /// Triggering event id.
+    pub triggering_event_id: String,
+    /// Routine id.
+    pub routine_id: String,
+    /// Status (`succeeded` | `failed`).
+    pub status: String,
+    /// Execution issue id.
+    pub execution_issue_id: Option<String>,
+    /// Retry-of execution id.
+    pub retry_of_execution_id: Option<String>,
+    /// Generation.
+    pub generation: i64,
+    /// Error.
+    pub error: Option<String>,
+    /// ISO 8601 creation.
+    pub created_at: String,
+}
+
 /// Pipeline repository errors.
 #[derive(Debug, Error)]
 pub enum PipelineError {
@@ -348,6 +450,89 @@ pub trait PipelineRepository: Send + Sync {
         company_id: &str,
         case_id: &str,
     ) -> Result<Vec<PipelineCaseEventRecord>, PipelineError>;
+
+    // Issue links ---------------------------------------------------------
+    async fn link_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+        role: &str,
+    ) -> Result<PipelineCaseIssueLinkRecord, PipelineError>;
+    async fn list_issue_links(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseIssueLinkRecord>, PipelineError>;
+    async fn unlink_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+    ) -> Result<bool, PipelineError>;
+
+    // Blockers ------------------------------------------------------------
+    async fn add_blocker(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        blocked_by_case_id: &str,
+    ) -> Result<PipelineCaseBlockerRecord, PipelineError>;
+    async fn list_blockers(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseBlockerRecord>, PipelineError>;
+    async fn remove_blocker(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        blocked_by_case_id: &str,
+    ) -> Result<bool, PipelineError>;
+
+    // Documents -----------------------------------------------------------
+    async fn link_pipeline_document(
+        &self,
+        company_id: &str,
+        pipeline_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<PipelineDocumentRecord, PipelineError>;
+    async fn list_pipeline_documents(
+        &self,
+        company_id: &str,
+        pipeline_id: &str,
+    ) -> Result<Vec<PipelineDocumentRecord>, PipelineError>;
+    async fn link_case_document(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<PipelineCaseDocumentRecord, PipelineError>;
+    async fn list_case_documents(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseDocumentRecord>, PipelineError>;
+
+    // Automation executions -----------------------------------------------
+    async fn record_automation(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        automation_id: &str,
+        triggering_event_id: &str,
+        routine_id: &str,
+        status: &str,
+        execution_issue_id: Option<String>,
+        error: Option<String>,
+    ) -> Result<PipelineAutomationExecutionRecord, PipelineError>;
+    async fn list_automations(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineAutomationExecutionRecord>, PipelineError>;
 }
 
 /// Turso/libSQL implementation of [`PipelineRepository`].
@@ -1214,6 +1399,457 @@ impl PipelineRepository for TursoPipelineRepository {
         }
         Ok(events)
     }
+
+    async fn link_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+        role: &str,
+    ) -> Result<PipelineCaseIssueLinkRecord, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        ensure_case(&conn, company_id, case_id).await?;
+        if !helpers::row_belongs_to_company(&conn, "issues", issue_id, company_id).await? {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO pipeline_case_issue_links
+                   (id, company_id, case_id, issue_id, role, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![id.clone(), company_id, case_id, issue_id, role],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query(
+                        "SELECT id, company_id, case_id, issue_id, role, retired_at, created_at
+                         FROM pipeline_case_issue_links WHERE id = ?1",
+                        libsql::params![id],
+                    )
+                    .await?;
+                let row = rows.next().await?.expect("link was just inserted");
+                Ok(row_to_issue_link(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(PipelineError::Duplicate)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_issue_links(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseIssueLinkRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, case_id, issue_id, role, retired_at, created_at
+                 FROM pipeline_case_issue_links
+                 WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at",
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let mut links = Vec::new();
+        while let Some(row) = rows.next().await? {
+            links.push(row_to_issue_link(&row)?);
+        }
+        Ok(links)
+    }
+
+    async fn unlink_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+    ) -> Result<bool, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "DELETE FROM pipeline_case_issue_links
+                 WHERE company_id = ?1 AND case_id = ?2 AND issue_id = ?3",
+                libsql::params![company_id, case_id, issue_id],
+            )
+            .await?;
+        Ok(updated > 0)
+    }
+
+    async fn add_blocker(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        blocked_by_case_id: &str,
+    ) -> Result<PipelineCaseBlockerRecord, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        ensure_case(&conn, company_id, case_id).await?;
+        if !helpers::row_belongs_to_company(&conn, "pipeline_cases", blocked_by_case_id, company_id)
+            .await?
+        {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        if case_id == blocked_by_case_id {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO pipeline_case_blockers (id, company_id, case_id, blocked_by_case_id,
+                                                     created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![id.clone(), company_id, case_id, blocked_by_case_id],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query(
+                        "SELECT id, company_id, case_id, blocked_by_case_id, created_at
+                         FROM pipeline_case_blockers WHERE id = ?1",
+                        libsql::params![id],
+                    )
+                    .await?;
+                let row = rows.next().await?.expect("blocker was just inserted");
+                Ok(row_to_blocker(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(PipelineError::Duplicate)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_blockers(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseBlockerRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, case_id, blocked_by_case_id, created_at
+                 FROM pipeline_case_blockers
+                 WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at",
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let mut blockers = Vec::new();
+        while let Some(row) = rows.next().await? {
+            blockers.push(row_to_blocker(&row)?);
+        }
+        Ok(blockers)
+    }
+
+    async fn remove_blocker(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        blocked_by_case_id: &str,
+    ) -> Result<bool, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "DELETE FROM pipeline_case_blockers
+                 WHERE company_id = ?1 AND case_id = ?2 AND blocked_by_case_id = ?3",
+                libsql::params![company_id, case_id, blocked_by_case_id],
+            )
+            .await?;
+        Ok(updated > 0)
+    }
+
+    async fn link_pipeline_document(
+        &self,
+        company_id: &str,
+        pipeline_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<PipelineDocumentRecord, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        ensure_pipeline(&conn, company_id, pipeline_id).await?;
+        if !helpers::row_belongs_to_company(&conn, "documents", document_id, company_id).await? {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO pipeline_documents (id, company_id, pipeline_id, document_id, key,
+                                                 created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![id.clone(), company_id, pipeline_id, document_id, key],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query(
+                        "SELECT id, company_id, pipeline_id, document_id, key, created_at
+                         FROM pipeline_documents WHERE id = ?1",
+                        libsql::params![id],
+                    )
+                    .await?;
+                let row = rows.next().await?.expect("document link was just inserted");
+                Ok(row_to_pipeline_document(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(PipelineError::Duplicate)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_pipeline_documents(
+        &self,
+        company_id: &str,
+        pipeline_id: &str,
+    ) -> Result<Vec<PipelineDocumentRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, pipeline_id, document_id, key, created_at
+                 FROM pipeline_documents
+                 WHERE company_id = ?1 AND pipeline_id = ?2 ORDER BY key",
+                libsql::params![company_id, pipeline_id],
+            )
+            .await?;
+        let mut docs = Vec::new();
+        while let Some(row) = rows.next().await? {
+            docs.push(row_to_pipeline_document(&row)?);
+        }
+        Ok(docs)
+    }
+
+    async fn link_case_document(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<PipelineCaseDocumentRecord, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        ensure_case(&conn, company_id, case_id).await?;
+        if !helpers::row_belongs_to_company(&conn, "documents", document_id, company_id).await? {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO pipeline_case_documents (id, company_id, case_id, document_id, key,
+                                                      created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![id.clone(), company_id, case_id, document_id, key],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query(
+                        "SELECT id, company_id, case_id, document_id, key, created_at
+                         FROM pipeline_case_documents WHERE id = ?1",
+                        libsql::params![id],
+                    )
+                    .await?;
+                let row = rows.next().await?.expect("document link was just inserted");
+                Ok(row_to_case_document(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(PipelineError::Duplicate)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_case_documents(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineCaseDocumentRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, case_id, document_id, key, created_at
+                 FROM pipeline_case_documents
+                 WHERE company_id = ?1 AND case_id = ?2 ORDER BY key",
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let mut docs = Vec::new();
+        while let Some(row) = rows.next().await? {
+            docs.push(row_to_case_document(&row)?);
+        }
+        Ok(docs)
+    }
+
+    async fn record_automation(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        automation_id: &str,
+        triggering_event_id: &str,
+        routine_id: &str,
+        status: &str,
+        execution_issue_id: Option<String>,
+        error: Option<String>,
+    ) -> Result<PipelineAutomationExecutionRecord, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        ensure_case(&conn, company_id, case_id).await?;
+        if !helpers::row_belongs_to_company(&conn, "routines", routine_id, company_id).await? {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        if let Some(issue_id) = &execution_issue_id
+            && !helpers::row_belongs_to_company(&conn, "issues", issue_id, company_id).await?
+        {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO pipeline_automation_executions
+                   (id, company_id, case_id, automation_id, triggering_event_id, routine_id,
+                    status, execution_issue_id, generation, error, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, 1, ?9,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![
+                    id.clone(),
+                    company_id,
+                    case_id,
+                    automation_id,
+                    triggering_event_id,
+                    routine_id,
+                    status,
+                    execution_issue_id,
+                    error
+                ],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query(
+                        "SELECT id, company_id, case_id, automation_id, triggering_event_id,
+                                routine_id, status, execution_issue_id, retry_of_execution_id,
+                                generation, error, created_at
+                         FROM pipeline_automation_executions WHERE id = ?1",
+                        libsql::params![id],
+                    )
+                    .await?;
+                let row = rows.next().await?.expect("automation was just inserted");
+                Ok(row_to_automation(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(PipelineError::Duplicate)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_automations(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<PipelineAutomationExecutionRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, case_id, automation_id, triggering_event_id,
+                        routine_id, status, execution_issue_id, retry_of_execution_id,
+                        generation, error, created_at
+                 FROM pipeline_automation_executions
+                 WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at",
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let mut automations = Vec::new();
+        while let Some(row) = rows.next().await? {
+            automations.push(row_to_automation(&row)?);
+        }
+        Ok(automations)
+    }
+}
+
+fn row_to_issue_link(row: &libsql::Row) -> Result<PipelineCaseIssueLinkRecord, libsql::Error> {
+    Ok(PipelineCaseIssueLinkRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        issue_id: helpers::row_text(row, 3)?.expect("issue_id"),
+        role: helpers::row_text(row, 4)?.expect("role"),
+        retired_at: helpers::row_text(row, 5)?,
+        created_at: helpers::row_text(row, 6)?.expect("created_at"),
+    })
+}
+
+fn row_to_blocker(row: &libsql::Row) -> Result<PipelineCaseBlockerRecord, libsql::Error> {
+    Ok(PipelineCaseBlockerRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        blocked_by_case_id: helpers::row_text(row, 3)?.expect("blocked_by_case_id"),
+        created_at: helpers::row_text(row, 4)?.expect("created_at"),
+    })
+}
+
+fn row_to_pipeline_document(row: &libsql::Row) -> Result<PipelineDocumentRecord, libsql::Error> {
+    Ok(PipelineDocumentRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        pipeline_id: helpers::row_text(row, 2)?.expect("pipeline_id"),
+        document_id: helpers::row_text(row, 3)?.expect("document_id"),
+        key: helpers::row_text(row, 4)?.expect("key"),
+        created_at: helpers::row_text(row, 5)?.expect("created_at"),
+    })
+}
+
+fn row_to_case_document(row: &libsql::Row) -> Result<PipelineCaseDocumentRecord, libsql::Error> {
+    Ok(PipelineCaseDocumentRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        document_id: helpers::row_text(row, 3)?.expect("document_id"),
+        key: helpers::row_text(row, 4)?.expect("key"),
+        created_at: helpers::row_text(row, 5)?.expect("created_at"),
+    })
+}
+
+fn row_to_automation(
+    row: &libsql::Row,
+) -> Result<PipelineAutomationExecutionRecord, libsql::Error> {
+    Ok(PipelineAutomationExecutionRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        automation_id: helpers::row_text(row, 3)?.expect("automation_id"),
+        triggering_event_id: helpers::row_text(row, 4)?.expect("triggering_event_id"),
+        routine_id: helpers::row_text(row, 5)?.expect("routine_id"),
+        status: helpers::row_text(row, 6)?.expect("status"),
+        execution_issue_id: helpers::row_text(row, 7)?,
+        retry_of_execution_id: helpers::row_text(row, 8)?,
+        generation: helpers::row_i64(row, 9)?,
+        error: helpers::row_text(row, 10)?,
+        created_at: helpers::row_text(row, 11)?.expect("created_at"),
+    })
+}
+
+async fn ensure_case(
+    conn: &libsql::Connection,
+    company_id: &str,
+    case_id: &str,
+) -> Result<(), PipelineError> {
+    if !helpers::row_belongs_to_company(conn, "pipeline_cases", case_id, company_id).await? {
+        return Err(PipelineError::ReferenceNotFound);
+    }
+    Ok(())
 }
 
 #[cfg(test)]
@@ -1472,5 +2108,189 @@ mod tests {
                 .is_none()
         );
         assert!(repo.get_case("c2", &case.id).await.unwrap().is_none());
+    }
+
+    #[tokio::test]
+    async fn extension_tables_roundtrip() {
+        let (_dir, repo) = repo().await;
+        // Need a pipeline + case first.
+        let pipeline = repo
+            .create_pipeline(NewPipeline {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                key: "ext".to_owned(),
+                name: "Ext".to_owned(),
+                description: None,
+                enforce_transitions: false,
+                created_by_user_id: None,
+            })
+            .await
+            .unwrap();
+        let stage = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "s1".to_owned(),
+                name: "S1".to_owned(),
+                kind: "working".to_owned(),
+                position: 1,
+                config: None,
+            })
+            .await
+            .unwrap();
+        let case = repo
+            .create_case(NewPipelineCase {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                stage_id: stage.id.clone(),
+                case_key: "c-ext".to_owned(),
+                title: "Ext case".to_owned(),
+                summary: None,
+                fields: None,
+                workspace_ref: None,
+                parent_case_id: None,
+                created_by_user_id: None,
+            })
+            .await
+            .unwrap();
+        let other = repo
+            .create_case(NewPipelineCase {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                stage_id: stage.id.clone(),
+                case_key: "c-other".to_owned(),
+                title: "Other".to_owned(),
+                summary: None,
+                fields: None,
+                workspace_ref: None,
+                parent_case_id: None,
+                created_by_user_id: None,
+            })
+            .await
+            .unwrap();
+        // Seed issue, document, routine via SQL.
+        let conn = crate::connect(&repo.db).await.unwrap();
+        conn.execute(
+            "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+             VALUES ('i1', 'c1', 'T', 1, 'ALPHA-1')",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO documents (id, company_id, title, created_at, updated_at)
+             VALUES ('d1', 'c1', 'Plan',
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO routines (id, company_id, title, created_at, updated_at)
+             VALUES ('r1', 'c1', 'Nightly',
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            (),
+        )
+        .await
+        .unwrap();
+
+        // Issue links.
+        let link = repo.link_issue("c1", &case.id, "i1", "work").await.unwrap();
+        assert_eq!(link.role, "work");
+        assert!(repo.list_issue_links("c1", &case.id).await.unwrap().len() == 1);
+        assert!(repo.unlink_issue("c1", &case.id, "i1").await.unwrap());
+        assert!(!repo.unlink_issue("c1", &case.id, "i1").await.unwrap());
+
+        // Blockers.
+        let blocker = repo.add_blocker("c1", &case.id, &other.id).await.unwrap();
+        assert_eq!(blocker.blocked_by_case_id, other.id);
+        assert!(repo.list_blockers("c1", &case.id).await.unwrap().len() == 1);
+        assert!(
+            repo.remove_blocker("c1", &case.id, &other.id)
+                .await
+                .unwrap()
+        );
+        // Self-block rejected.
+        assert!(matches!(
+            repo.add_blocker("c1", &case.id, &case.id)
+                .await
+                .unwrap_err(),
+            PipelineError::ReferenceNotFound
+        ));
+
+        // Documents.
+        let pdoc = repo
+            .link_pipeline_document("c1", &pipeline.id, "d1", "plan")
+            .await
+            .unwrap();
+        assert_eq!(pdoc.key, "plan");
+        assert!(
+            repo.list_pipeline_documents("c1", &pipeline.id)
+                .await
+                .unwrap()
+                .len()
+                == 1
+        );
+        let cdoc = repo
+            .link_case_document("c1", &case.id, "d1", "plan")
+            .await
+            .unwrap();
+        assert_eq!(cdoc.document_id, "d1");
+        assert!(
+            repo.list_case_documents("c1", &case.id)
+                .await
+                .unwrap()
+                .len()
+                == 1
+        );
+
+        // Automations.
+        let automation = repo
+            .record_automation(
+                "c1",
+                &case.id,
+                "auto-1",
+                "evt-1",
+                "r1",
+                "succeeded",
+                None,
+                None,
+            )
+            .await
+            .unwrap();
+        assert_eq!(automation.status, "succeeded");
+        assert!(repo.list_automations("c1", &case.id).await.unwrap().len() == 1);
+        // Idempotency duplicate rejected.
+        assert!(matches!(
+            repo.record_automation(
+                "c1",
+                &case.id,
+                "auto-1",
+                "evt-1",
+                "r1",
+                "failed",
+                None,
+                Some("x".to_owned())
+            )
+            .await
+            .unwrap_err(),
+            PipelineError::Duplicate
+        ));
+        // Cross-company reads are empty.
+        assert!(
+            repo.list_issue_links("c2", &case.id)
+                .await
+                .unwrap()
+                .is_empty()
+        );
+        assert!(repo.list_blockers("c2", &case.id).await.unwrap().is_empty());
+        assert!(
+            repo.list_automations("c2", &case.id)
+                .await
+                .unwrap()
+                .is_empty()
+        );
     }
 }

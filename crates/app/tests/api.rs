@@ -4955,3 +4955,168 @@ async fn pipelines_full_flow() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
+
+#[tokio::test]
+async fn pipeline_extensions_api() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'T', 1, 'ALPHA-1')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO documents (id, company_id, title, created_at, updated_at)
+         VALUES ('22222222-2222-2222-2222-222222222222', 'c1', 'Plan',
+                 strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                 strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO routines (id, company_id, title, created_at, updated_at)
+         VALUES ('33333333-3333-3333-3333-333333333333', 'c1', 'Nightly',
+                 strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                 strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+        (),
+    )
+    .await
+    .unwrap();
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/pipelines",
+        json!({ "key": "ext", "name": "Ext" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let pipeline_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({ "key": "s1", "name": "S1", "kind": "working", "position": 1 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let stage_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({ "stageId": stage_id, "caseKey": "c1", "title": "Case" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let case_id = body["id"].as_str().unwrap().to_owned();
+
+    // Issue link.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/issue-links"),
+        json!({ "issueId": "11111111-1111-1111-1111-111111111111", "role": "work" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, links) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipeline-cases/{case_id}/issue-links"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(links.as_array().unwrap().len(), 1);
+
+    // Blocker.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({ "stageId": stage_id, "caseKey": "c2", "title": "Other" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let other_case = body["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/blockers"),
+        json!({ "blockedByCaseId": other_case }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, blockers) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipeline-cases/{case_id}/blockers"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(blockers.as_array().unwrap().len(), 1);
+
+    // Pipeline + case documents.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/documents"),
+        json!({ "documentId": "22222222-2222-2222-2222-222222222222", "key": "plan" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, docs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipelines/{pipeline_id}/documents"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(docs.as_array().unwrap().len(), 1);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/documents"),
+        json!({ "documentId": "22222222-2222-2222-2222-222222222222", "key": "plan" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+
+    // Automation execution.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/automations"),
+        json!({
+            "automationId": "auto-1",
+            "triggeringEventId": "evt-1",
+            "routineId": "33333333-3333-3333-3333-333333333333",
+            "status": "succeeded"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, automations) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/pipeline-cases/{case_id}/automations"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(automations.as_array().unwrap().len(), 1);
+}
