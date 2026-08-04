@@ -8,7 +8,7 @@
 use std::collections::HashMap;
 use std::sync::LazyLock;
 
-/// Supported languages.
+/// Supported languages (the full upstream locale set).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum Lang {
     /// English (default).
@@ -17,6 +17,80 @@ pub enum Lang {
     ZhCn,
     /// Traditional Chinese.
     ZhTw,
+    /// Arabic.
+    Ar,
+    /// Bengali.
+    Bn,
+    /// Czech.
+    Cs,
+    /// Danish.
+    Da,
+    /// German.
+    De,
+    /// Greek.
+    El,
+    /// Spanish.
+    Es,
+    /// Persian.
+    Fa,
+    /// Finnish.
+    Fi,
+    /// Filipino.
+    Fil,
+    /// French.
+    Fr,
+    /// Hebrew.
+    He,
+    /// Hindi.
+    Hi,
+    /// Hungarian.
+    Hu,
+    /// Indonesian.
+    Id,
+    /// Italian.
+    It,
+    /// Japanese.
+    Ja,
+    /// Korean.
+    Ko,
+    /// Marathi.
+    Mr,
+    /// Malay.
+    Ms,
+    /// Norwegian Bokmål.
+    Nb,
+    /// Dutch.
+    Nl,
+    /// Punjabi.
+    Pa,
+    /// Polish.
+    Pl,
+    /// Brazilian Portuguese.
+    PtBr,
+    /// European Portuguese.
+    PtPt,
+    /// Romanian.
+    Ro,
+    /// Russian.
+    Ru,
+    /// Swedish.
+    Sv,
+    /// Swahili.
+    Sw,
+    /// Tamil.
+    Ta,
+    /// Telugu.
+    Te,
+    /// Thai.
+    Th,
+    /// Turkish.
+    Tr,
+    /// Ukrainian.
+    Uk,
+    /// Urdu.
+    Ur,
+    /// Vietnamese.
+    Vi,
 }
 
 /// Current default language.
@@ -27,9 +101,50 @@ pub const DEFAULT_LANG: Lang = Lang::En;
 #[must_use]
 pub fn parse_lang(value: Option<&str>) -> Lang {
     match value {
+        Some("en") => Lang::En,
         Some("zh-CN") | Some("zh") => Lang::ZhCn,
         Some("zh-TW") => Lang::ZhTw,
-        _ => Lang::En,
+        Some("pt-BR") => Lang::PtBr,
+        Some("pt-PT") => Lang::PtPt,
+        Some(other) => match other {
+            "ar" => Lang::Ar,
+            "bn" => Lang::Bn,
+            "cs" => Lang::Cs,
+            "da" => Lang::Da,
+            "de" => Lang::De,
+            "el" => Lang::El,
+            "es" => Lang::Es,
+            "fa" => Lang::Fa,
+            "fi" => Lang::Fi,
+            "fil" => Lang::Fil,
+            "fr" => Lang::Fr,
+            "he" => Lang::He,
+            "hi" => Lang::Hi,
+            "hu" => Lang::Hu,
+            "id" => Lang::Id,
+            "it" => Lang::It,
+            "ja" => Lang::Ja,
+            "ko" => Lang::Ko,
+            "mr" => Lang::Mr,
+            "ms" => Lang::Ms,
+            "nb" => Lang::Nb,
+            "nl" => Lang::Nl,
+            "pa" => Lang::Pa,
+            "pl" => Lang::Pl,
+            "ro" => Lang::Ro,
+            "ru" => Lang::Ru,
+            "sv" => Lang::Sv,
+            "sw" => Lang::Sw,
+            "ta" => Lang::Ta,
+            "te" => Lang::Te,
+            "th" => Lang::Th,
+            "tr" => Lang::Tr,
+            "uk" => Lang::Uk,
+            "ur" => Lang::Ur,
+            "vi" => Lang::Vi,
+            _ => Lang::En,
+        },
+        None => Lang::En,
     }
 }
 
@@ -54,11 +169,7 @@ pub fn lang_from_request(cx: &topcoat::context::Cx) -> Lang {
 /// 3. the key itself.
 #[must_use]
 pub fn t(lang: Lang, key: &str) -> String {
-    let table = match lang {
-        Lang::En => &UPSTREAM_EN,
-        Lang::ZhCn => &UPSTREAM_ZH_CN,
-        Lang::ZhTw => &UPSTREAM_ZH_TW,
-    };
+    let table = upstream_table(lang);
     if let Some(value) = table.get(key) {
         return value.clone();
     }
@@ -67,6 +178,8 @@ pub fn t(lang: Lang, key: &str) -> String {
         Lang::ZhCn => &ZH_CN,
         // zh-TW falls back to the zh-CN local table for Staple-specific keys.
         Lang::ZhTw => &ZH_CN,
+        // Other locales use the English local table for Staple-specific keys.
+        _ => &EN,
     };
     legacy.get(key).copied().unwrap_or(key).to_owned()
 }
@@ -74,11 +187,7 @@ pub fn t(lang: Lang, key: &str) -> String {
 /// Appends or replaces the `lang` query parameter on a path.
 #[must_use]
 pub fn with_lang(path: &str, lang: Lang) -> String {
-    let value = match lang {
-        Lang::En => "en",
-        Lang::ZhCn => "zh-CN",
-        Lang::ZhTw => "zh-TW",
-    };
+    let value = lang_code(lang);
     if let Some((base, query)) = path.split_once('?') {
         let rest: Vec<&str> = query
             .split('&')
@@ -101,6 +210,43 @@ pub fn lang_code(lang: Lang) -> &'static str {
         Lang::En => "en",
         Lang::ZhCn => "zh-CN",
         Lang::ZhTw => "zh-TW",
+        Lang::Ar => "ar",
+        Lang::Bn => "bn",
+        Lang::Cs => "cs",
+        Lang::Da => "da",
+        Lang::De => "de",
+        Lang::El => "el",
+        Lang::Es => "es",
+        Lang::Fa => "fa",
+        Lang::Fi => "fi",
+        Lang::Fil => "fil",
+        Lang::Fr => "fr",
+        Lang::He => "he",
+        Lang::Hi => "hi",
+        Lang::Hu => "hu",
+        Lang::Id => "id",
+        Lang::It => "it",
+        Lang::Ja => "ja",
+        Lang::Ko => "ko",
+        Lang::Mr => "mr",
+        Lang::Ms => "ms",
+        Lang::Nb => "nb",
+        Lang::Nl => "nl",
+        Lang::Pa => "pa",
+        Lang::Pl => "pl",
+        Lang::PtBr => "pt-BR",
+        Lang::PtPt => "pt-PT",
+        Lang::Ro => "ro",
+        Lang::Ru => "ru",
+        Lang::Sv => "sv",
+        Lang::Sw => "sw",
+        Lang::Ta => "ta",
+        Lang::Te => "te",
+        Lang::Th => "th",
+        Lang::Tr => "tr",
+        Lang::Uk => "uk",
+        Lang::Ur => "ur",
+        Lang::Vi => "vi",
     }
 }
 
@@ -136,15 +282,99 @@ fn load_locale(source: &str) -> HashMap<String, String> {
         .unwrap_or_default()
 }
 
-/// Upstream `en` locale (full keyset, ~10k keys).
-static UPSTREAM_EN: LazyLock<HashMap<String, String>> =
-    LazyLock::new(|| load_locale(include_str!("../locales/en.json")));
-/// Upstream `zh-CN` locale.
-static UPSTREAM_ZH_CN: LazyLock<HashMap<String, String>> =
-    LazyLock::new(|| load_locale(include_str!("../locales/zh-CN.json")));
-/// Upstream `zh-TW` locale.
-static UPSTREAM_ZH_TW: LazyLock<HashMap<String, String>> =
-    LazyLock::new(|| load_locale(include_str!("../locales/zh-TW.json")));
+macro_rules! locale_table {
+    ($name:ident, $file:literal) => {
+        static $name: LazyLock<HashMap<String, String>> =
+            LazyLock::new(|| load_locale(include_str!($file)));
+    };
+}
+
+locale_table!(UPSTREAM_EN, "../locales/en.json");
+locale_table!(UPSTREAM_ZH_CN, "../locales/zh-CN.json");
+locale_table!(UPSTREAM_ZH_TW, "../locales/zh-TW.json");
+locale_table!(UPSTREAM_AR, "../locales/ar.json");
+locale_table!(UPSTREAM_BN, "../locales/bn.json");
+locale_table!(UPSTREAM_CS, "../locales/cs.json");
+locale_table!(UPSTREAM_DA, "../locales/da.json");
+locale_table!(UPSTREAM_DE, "../locales/de.json");
+locale_table!(UPSTREAM_EL, "../locales/el.json");
+locale_table!(UPSTREAM_ES, "../locales/es.json");
+locale_table!(UPSTREAM_FA, "../locales/fa.json");
+locale_table!(UPSTREAM_FI, "../locales/fi.json");
+locale_table!(UPSTREAM_FIL, "../locales/fil.json");
+locale_table!(UPSTREAM_FR, "../locales/fr.json");
+locale_table!(UPSTREAM_HE, "../locales/he.json");
+locale_table!(UPSTREAM_HI, "../locales/hi.json");
+locale_table!(UPSTREAM_HU, "../locales/hu.json");
+locale_table!(UPSTREAM_ID, "../locales/id.json");
+locale_table!(UPSTREAM_IT, "../locales/it.json");
+locale_table!(UPSTREAM_JA, "../locales/ja.json");
+locale_table!(UPSTREAM_KO, "../locales/ko.json");
+locale_table!(UPSTREAM_MR, "../locales/mr.json");
+locale_table!(UPSTREAM_MS, "../locales/ms.json");
+locale_table!(UPSTREAM_NB, "../locales/nb.json");
+locale_table!(UPSTREAM_NL, "../locales/nl.json");
+locale_table!(UPSTREAM_PA, "../locales/pa.json");
+locale_table!(UPSTREAM_PL, "../locales/pl.json");
+locale_table!(UPSTREAM_PT_BR, "../locales/pt-BR.json");
+locale_table!(UPSTREAM_PT_PT, "../locales/pt-PT.json");
+locale_table!(UPSTREAM_RO, "../locales/ro.json");
+locale_table!(UPSTREAM_RU, "../locales/ru.json");
+locale_table!(UPSTREAM_SV, "../locales/sv.json");
+locale_table!(UPSTREAM_SW, "../locales/sw.json");
+locale_table!(UPSTREAM_TA, "../locales/ta.json");
+locale_table!(UPSTREAM_TE, "../locales/te.json");
+locale_table!(UPSTREAM_TH, "../locales/th.json");
+locale_table!(UPSTREAM_TR, "../locales/tr.json");
+locale_table!(UPSTREAM_UK, "../locales/uk.json");
+locale_table!(UPSTREAM_UR, "../locales/ur.json");
+locale_table!(UPSTREAM_VI, "../locales/vi.json");
+
+/// Selects the upstream table for a language.
+fn upstream_table(lang: Lang) -> &'static HashMap<String, String> {
+    match lang {
+        Lang::En => &UPSTREAM_EN,
+        Lang::ZhCn => &UPSTREAM_ZH_CN,
+        Lang::ZhTw => &UPSTREAM_ZH_TW,
+        Lang::Ar => &UPSTREAM_AR,
+        Lang::Bn => &UPSTREAM_BN,
+        Lang::Cs => &UPSTREAM_CS,
+        Lang::Da => &UPSTREAM_DA,
+        Lang::De => &UPSTREAM_DE,
+        Lang::El => &UPSTREAM_EL,
+        Lang::Es => &UPSTREAM_ES,
+        Lang::Fa => &UPSTREAM_FA,
+        Lang::Fi => &UPSTREAM_FI,
+        Lang::Fil => &UPSTREAM_FIL,
+        Lang::Fr => &UPSTREAM_FR,
+        Lang::He => &UPSTREAM_HE,
+        Lang::Hi => &UPSTREAM_HI,
+        Lang::Hu => &UPSTREAM_HU,
+        Lang::Id => &UPSTREAM_ID,
+        Lang::It => &UPSTREAM_IT,
+        Lang::Ja => &UPSTREAM_JA,
+        Lang::Ko => &UPSTREAM_KO,
+        Lang::Mr => &UPSTREAM_MR,
+        Lang::Ms => &UPSTREAM_MS,
+        Lang::Nb => &UPSTREAM_NB,
+        Lang::Nl => &UPSTREAM_NL,
+        Lang::Pa => &UPSTREAM_PA,
+        Lang::Pl => &UPSTREAM_PL,
+        Lang::PtBr => &UPSTREAM_PT_BR,
+        Lang::PtPt => &UPSTREAM_PT_PT,
+        Lang::Ro => &UPSTREAM_RO,
+        Lang::Ru => &UPSTREAM_RU,
+        Lang::Sv => &UPSTREAM_SV,
+        Lang::Sw => &UPSTREAM_SW,
+        Lang::Ta => &UPSTREAM_TA,
+        Lang::Te => &UPSTREAM_TE,
+        Lang::Th => &UPSTREAM_TH,
+        Lang::Tr => &UPSTREAM_TR,
+        Lang::Uk => &UPSTREAM_UK,
+        Lang::Ur => &UPSTREAM_UR,
+        Lang::Vi => &UPSTREAM_VI,
+    }
+}
 
 static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
     entries(&[
@@ -555,7 +785,10 @@ mod tests {
         assert_eq!(parse_lang(Some("en")), Lang::En);
         assert_eq!(parse_lang(Some("zh-CN")), Lang::ZhCn);
         assert_eq!(parse_lang(Some("zh")), Lang::ZhCn);
-        assert_eq!(parse_lang(Some("fr")), Lang::En);
+        assert_eq!(parse_lang(Some("fr")), Lang::Fr);
+        assert_eq!(parse_lang(Some("de")), Lang::De);
+        assert_eq!(parse_lang(Some("ja")), Lang::Ja);
+        assert_eq!(parse_lang(Some("pt-BR")), Lang::PtBr);
     }
 
     #[test]
@@ -578,5 +811,58 @@ mod tests {
             with_lang("/issues/i1?x=1&lang=zh-CN", Lang::En),
             "/issues/i1?x=1&lang=en"
         );
+    }
+
+    #[test]
+    fn all_codes_roundtrip() {
+        for (code, lang) in [
+            ("en", Lang::En),
+            ("zh-CN", Lang::ZhCn),
+            ("zh-TW", Lang::ZhTw),
+            ("ar", Lang::Ar),
+            ("de", Lang::De),
+            ("ja", Lang::Ja),
+            ("ko", Lang::Ko),
+            ("pt-BR", Lang::PtBr),
+            ("pt-PT", Lang::PtPt),
+            ("ru", Lang::Ru),
+            ("es", Lang::Es),
+            ("fr", Lang::Fr),
+            ("it", Lang::It),
+            ("nl", Lang::Nl),
+            ("pl", Lang::Pl),
+            ("tr", Lang::Tr),
+            ("uk", Lang::Uk),
+            ("vi", Lang::Vi),
+        ] {
+            assert_eq!(parse_lang(Some(code)), lang, "code {code}");
+            assert_eq!(lang_code(lang), code, "lang {lang:?}");
+        }
+        assert_eq!(parse_lang(Some("bogus")), Lang::En);
+        assert_eq!(parse_lang(None), Lang::En);
+    }
+
+    #[test]
+    fn sample_translations_exist() {
+        for (lang, key, needle) in [
+            (Lang::En, "nav.tasks", "Tasks"),
+            (Lang::Ja, "app.noCompanies.title", "最初の会社を作成"),
+            (Lang::ZhTw, "nav.tasks", "任務"),
+            (Lang::ZhCn, "nav.tasks", "任务"),
+        ] {
+            let value = t(lang, key);
+            assert!(value.contains(needle), "{lang:?} {key} -> {value}");
+        }
+        // Other locales resolve to a non-empty string even when the key is
+        // untranslated (upstream keeps English values in those cases).
+        for lang in [Lang::De, Lang::Ko, Lang::Es, Lang::Ru, Lang::PtBr] {
+            assert!(!t(lang, "nav.tasks").is_empty(), "{lang:?}");
+        }
+    }
+
+    #[test]
+    fn with_lang_keeps_all_codes() {
+        assert!(with_lang("/x", Lang::PtBr).ends_with("?lang=pt-BR"));
+        assert!(with_lang("/x?lang=ja", Lang::En).ends_with("?lang=en"));
     }
 }

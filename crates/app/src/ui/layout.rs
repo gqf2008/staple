@@ -20,11 +20,13 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
         Lang::En => Lang::ZhCn,
         Lang::ZhCn => Lang::ZhTw,
         Lang::ZhTw => Lang::En,
+        _ => Lang::En,
     };
     let switch_label = match switch_lang {
         Lang::En => "English",
         Lang::ZhCn => "中文",
         Lang::ZhTw => "繁體",
+        _ => "English",
     };
     let html_lang = lang_code(lang);
     view! {
