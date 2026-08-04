@@ -303,10 +303,11 @@ async fn wrong_method_returns_json_405() {
 }
 
 #[tokio::test]
-async fn non_api_404_is_also_json() {
+async fn non_api_unknown_path_renders_friendly_page() {
     let (status, body) = send(&router(test_state().await), Method::GET, "/nope", None).await;
-    assert_eq!(status, StatusCode::NOT_FOUND);
-    assert_eq!(body, r#"{"error":"not found"}"#);
+    assert_eq!(status, StatusCode::OK);
+    assert!(body.contains("Page not found"), "body: {body}");
+    assert!(body.contains("/nope"), "body: {body}");
 }
 
 #[tokio::test]
@@ -2607,6 +2608,197 @@ async fn issue_detail_approvals_and_activity_pages() {
     assert!(html.contains("Audit log"));
     assert!(html.contains("company.created"));
     assert!(html.contains("comment.created"));
+}
+
+#[tokio::test]
+async fn behavior_detail_pages_and_forms() {
+    let app = router(test_state().await);
+    let company_id = create_company_via(&app, "Acme").await;
+    let (_, project) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({ "name": "P" }),
+    )
+    .await;
+    let project_id = project["id"].as_str().unwrap().to_owned();
+
+    // Routine detail: attributes, trigger form, run history, documents.
+    let (status, routine) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({ "title": "Detail routine", "projectId": project_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let routine_id = routine["id"].as_str().unwrap().to_owned();
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/routines/{routine_id}/trigger"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(run["status"], "queued");
+
+    let (status, html) = send(&app, Method::GET, &format!("/routines/{routine_id}"), None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Detail routine"));
+    assert!(html.contains("Run history"));
+    assert!(html.contains("Manual trigger"));
+    assert!(html.contains("Linked routine documents"));
+
+    // UI trigger form redirects back to the detail page.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/routines/{routine_id}/trigger/ui"),
+        "",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    // Approval detail: attributes, decide form, comments.
+    let (status, approval) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({ "type": "hire_agent", "payload": {} }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let approval_id = approval["id"].as_str().unwrap().to_owned();
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/approvals/{approval_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("hire_agent"));
+    assert!(html.contains("Decide"));
+    assert!(html.contains("Comments"));
+    assert!(html.contains("No comments."));
+
+    // Add a comment via the UI route, then approve with a note.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/approvals/{approval_id}/comments/ui"),
+        "body=from+the+board",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/approvals/{approval_id}/decide/ui"),
+        "decision=approved&note=looks+good",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/approvals/{approval_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("from the board"));
+    assert!(html.contains("approved"));
+    assert!(html.contains("looks good"));
+
+    // Workspace detail: project + execution.
+    let (status, project_workspace) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/project-workspaces"),
+        json!({ "projectId": project_id, "name": "Detail project workspace" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let project_workspace_id = project_workspace["id"].as_str().unwrap().to_owned();
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/workspaces/{project_workspace_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Detail project workspace"));
+    assert!(html.contains("Attributes"));
+    assert!(html.contains("Source type"));
+
+    let (status, execution_workspace) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/execution-workspaces"),
+        json!({
+            "projectId": project_id,
+            "projectWorkspaceId": project_workspace_id,
+            "mode": "checkout",
+            "strategyType": "clone",
+            "name": "Detail execution workspace"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let execution_workspace_id = execution_workspace["id"].as_str().unwrap().to_owned();
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        &format!("/workspaces/{execution_workspace_id}"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Detail execution workspace"));
+    assert!(html.contains("Not materialized"));
+    assert!(html.contains("Materialize"));
+
+    // Profile settings: user display + sidebar preference form.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/users",
+        json!({ "id": "profile-user", "name": "Profile User", "email": "profile@example.com" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, html) = send(&app, Method::GET, "/profile/settings", None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Profile User"));
+    assert!(html.contains("profile@example.com"));
+    assert!(html.contains("Sidebar preference"));
+
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        "/profile/settings/ui",
+        &format!("user_id=profile-user&company_order={company_id}"),
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (status, html) = send(
+        &app,
+        Method::GET,
+        "/profile/settings?user=profile-user",
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains(company_id.as_str()));
+
+    // Unknown non-API path renders the friendly page.
+    let (status, html) = send(&app, Method::GET, "/no/such/page", None).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(html.contains("Page not found"));
+    assert!(html.contains("/no/such/page"));
 }
 
 #[tokio::test]
