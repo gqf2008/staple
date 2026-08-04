@@ -2556,6 +2556,152 @@ pub async fn create_environment_ui(
     }
     Ok(see_other("/environments"))
 }
+// --- Status card updates / smoke runs / feedback exports UI forms --------
+
+/// Status card update form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusCardUpdateUiForm {
+    /// Update kind.
+    pub kind: String,
+    /// Trigger.
+    pub trigger: String,
+    /// Status.
+    pub status: String,
+}
+
+/// Smoke run form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SmokeRunUiForm {
+    /// Trigger.
+    pub trigger: String,
+    /// Status.
+    pub status: Option<String>,
+}
+
+/// Feedback export form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackExportUiForm {
+    /// Feedback vote id.
+    pub feedback_vote_id: String,
+    /// Issue id.
+    pub issue_id: String,
+    /// Author user id.
+    pub author_user_id: String,
+    /// Target type.
+    pub target_type: String,
+    /// Target id.
+    pub target_id: String,
+    /// Vote.
+    pub vote: String,
+    /// Target summary JSON.
+    pub target_summary: Option<String>,
+}
+
+/// `POST /companies/{companyId}/status-cards/{id}/updates/ui` — creates a
+/// status card update.
+#[route(POST "/companies/{company_id}/status-cards/{id}/updates/ui")]
+pub async fn create_status_card_update_ui(
+    cx: &Cx,
+    Form(form): Form<StatusCardUpdateUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let card_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .scattered
+        .create_status_card_update(staple_data::NewStatusCardUpdate {
+            card_id: card_id.clone(),
+            kind: form.kind,
+            trigger: form.trigger,
+            generation_issue_id: None,
+            run_id: None,
+            changes: serde_json::json!([]),
+            input_tokens: 0,
+            output_tokens: 0,
+            cost_cents: 0,
+            model: None,
+            query_version: None,
+            change_summary: None,
+            status: form.status,
+            error: None,
+        })
+        .await;
+    Ok(see_other(&format!(
+        "/companies/{company_id}/status-cards/{card_id}/updates"
+    )))
+}
+
+/// `POST /companies/{companyId}/smoke-runs/ui` — creates a smoke run.
+#[route(POST "/companies/{company_id}/smoke-runs/ui")]
+pub async fn create_smoke_run_ui(
+    cx: &Cx,
+    Form(form): Form<SmokeRunUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.trigger.trim().is_empty() {
+        let _ = state
+            .scattered
+            .create_smoke_run(staple_data::NewSmokeRun {
+                company_id: company_id.clone(),
+                trigger: form.trigger,
+                status: form.status.unwrap_or_else(|| "running".to_owned()),
+                finished_at: None,
+                summary: serde_json::json!({}),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/smoke-runs")))
+}
+
+/// `POST /companies/{companyId}/feedback-exports/ui` — creates a feedback
+/// export.
+#[route(POST "/companies/{company_id}/feedback-exports/ui")]
+pub async fn create_feedback_export_ui(
+    cx: &Cx,
+    Form(form): Form<FeedbackExportUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let target_summary = serde_json::from_str(form.target_summary.as_deref().unwrap_or("{}"))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if !form.feedback_vote_id.trim().is_empty()
+        && !form.target_type.trim().is_empty()
+        && !form.target_id.trim().is_empty()
+        && !form.author_user_id.trim().is_empty()
+    {
+        let _ = state
+            .scattered
+            .create_feedback_export(staple_data::NewFeedbackExport {
+                company_id: company_id.clone(),
+                feedback_vote_id: form.feedback_vote_id,
+                issue_id: form.issue_id,
+                project_id: None,
+                author_user_id: form.author_user_id,
+                target_type: form.target_type,
+                target_id: form.target_id,
+                vote: form.vote,
+                status: "local_only".to_owned(),
+                destination: None,
+                export_id: None,
+                consent_version: None,
+                payload_digest: None,
+                payload_snapshot: None,
+                target_summary,
+                redaction_summary: None,
+                attempt_count: 0,
+                exported_at: None,
+                failure_reason: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/feedback-exports"
+    )))
+}
 
 // --- Toolchain UI forms (profiles / connections / gateways / catalog / invocations) ----
 
