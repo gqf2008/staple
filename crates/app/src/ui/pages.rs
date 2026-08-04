@@ -110,6 +110,11 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/secret-bindings"), lang))>(t(lang, "secretBindings.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/folders"), lang))>(t(lang, "folders.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/my-issues"), lang))>(t(lang, "myIssues.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>(t(lang, "whatNeedsMe.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang))>(t(lang, "timeline.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/smoke-runs"), lang))>(t(lang, "smoke.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/feedback-exports"), lang))>(t(lang, "feedbackExports.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
@@ -2090,7 +2095,9 @@ pub async fn status_cards(cx: &Cx) -> Result {
                 <ul class="list">
                     for card in card_rows {
                         <li>
-                            <strong>(card.title.clone().unwrap_or_else(|| t(lang, "statusCards.untitled")))</strong>
+                            <a href=(with_lang(&format!("/companies/{company_id}/status-cards/{}/updates", card.id), lang))>
+                                <strong>(card.title.clone().unwrap_or_else(|| t(lang, "statusCards.untitled")))</strong>
+                            </a>
                             " " <span class=(status_badge_class(&card.state))>(card.state)</span>
                             " " <span class="meta-row">(t(lang, "statusCards.changes")) ": " (card.pending_change_count)</span>
                             if card.archived_at.is_none() {
@@ -2783,6 +2790,290 @@ pub async fn environments(cx: &Cx) -> Result {
                             <strong>(environment.name.clone())</strong>
                             " " <span class="badge badge-default">(environment.driver.clone())</span>
                             " " <span class=(status_badge_class(&environment.status))>(environment.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// My issues page: issues actively assigned and in progress.
+#[page("/companies/{company_id}/my-issues")]
+pub async fn my_issues(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .into_iter()
+        .filter(|issue| issue.assignee_agent_id.is_some())
+        .collect::<Vec<_>>();
+    view! {
+        <h1 class="page-title">(t(lang, "myIssues.title"))</h1>
+        <section>
+            <h2>(t(lang, "myIssues.list"))</h2>
+            if issue_rows.is_empty() {
+                <p class="empty">(t(lang, "myIssues.none"))</p>
+            } else {
+                <ul class="list">
+                    for issue in issue_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                <span class="mono">(issue.identifier.clone())</span>
+                                " " <strong>(issue.title.clone())</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// What needs me page: issues awaiting attention.
+#[page("/companies/{company_id}/what-needs-me")]
+pub async fn what_needs_me(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .into_iter()
+        .filter(|issue| {
+            matches!(
+                issue.status.as_str(),
+                "backlog" | "todo" | "in_review" | "blocked"
+            )
+        })
+        .collect::<Vec<_>>();
+    view! {
+        <h1 class="page-title">(t(lang, "whatNeedsMe.title"))</h1>
+        <section>
+            <h2>(t(lang, "whatNeedsMe.list"))</h2>
+            if issue_rows.is_empty() {
+                <p class="empty">(t(lang, "whatNeedsMe.none"))</p>
+            } else {
+                <ul class="list">
+                    for issue in issue_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                <span class="mono">(issue.identifier.clone())</span>
+                                " " <strong>(issue.title.clone())</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Timeline page: company activity log.
+#[page("/companies/{company_id}/timeline")]
+pub async fn timeline(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let activity_rows = state
+        .activity
+        .list(&company_id, 50)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "timeline.title"))</h1>
+        <section>
+            <h2>(t(lang, "timeline.list"))</h2>
+            if activity_rows.is_empty() {
+                <p class="empty">(t(lang, "timeline.none"))</p>
+            } else {
+                <ul class="list">
+                    for entry in activity_rows {
+                        <li>
+                            <span class="mono">(entry.created_at.clone())</span>
+                            " " <strong>(entry.action.clone())</strong>
+                            " " <span class="meta-row">(entry.entity_type.clone()) "/" (entry.entity_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Status card updates page.
+#[page("/companies/{company_id}/status-cards/{id}/updates")]
+pub async fn status_card_updates(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let card_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let update_rows = state
+        .scattered
+        .list_status_card_updates(&card_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "statusUpdates.title"))</h1>
+        <p class="mono">(card_id.clone())</p>
+        <section>
+            <h2>(t(lang, "statusUpdates.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/status-cards/{card_id}/updates/ui"), lang))>
+                <label>(t(lang, "statusUpdates.kindLabel"))</label>
+                <select name="kind">
+                    <option value="compile">"compile"</option>
+                    <option value="full">"full"</option>
+                    <option value="incremental">"incremental"</option>
+                </select>
+                <label>(t(lang, "statusUpdates.triggerLabel"))</label>
+                <select name="trigger">
+                    <option value="manual">"manual"</option>
+                    <option value="interval">"interval"</option>
+                    <option value="reactive">"reactive"</option>
+                </select>
+                <label>(t(lang, "statusUpdates.statusLabel"))</label>
+                <select name="status">
+                    <option value="running">"running"</option>
+                    <option value="ok">"ok"</option>
+                    <option value="failed">"failed"</option>
+                </select>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "statusUpdates.list"))</h2>
+            if update_rows.is_empty() {
+                <p class="empty">(t(lang, "statusUpdates.none"))</p>
+            } else {
+                <ul class="list">
+                    for update in update_rows {
+                        <li>
+                            <span class="badge badge-default">(update.kind.clone())</span>
+                            " " <span class=(status_badge_class(&update.status))>(update.status)</span>
+                            " " <span class="meta-row">(update.started_at.clone())</span>
+                            if let Some(summary) = &update.change_summary {
+                                " " <span class="meta-row">(summary.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Smoke runs page for one company.
+#[page("/companies/{company_id}/smoke-runs")]
+pub async fn smoke_runs(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let run_rows = state
+        .scattered
+        .list_smoke_runs(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "smoke.title"))</h1>
+        <section>
+            <h2>(t(lang, "smoke.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/smoke-runs/ui"), lang))>
+                <label>(t(lang, "smoke.triggerLabel"))</label>
+                <select name="trigger">
+                    <option value="manual">"manual"</option>
+                    <option value="scheduled">"scheduled"</option>
+                </select>
+                <label>(t(lang, "smoke.statusLabel"))</label>
+                <input type="text" name="status" value="running">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "smoke.list"))</h2>
+            if run_rows.is_empty() {
+                <p class="empty">(t(lang, "smoke.none"))</p>
+            } else {
+                <ul class="list">
+                    for run in run_rows {
+                        <li>
+                            <span class="badge badge-default">(run.trigger.clone())</span>
+                            " " <span class=(status_badge_class(&run.status))>(run.status)</span>
+                            " " <span class="meta-row">(run.started_at.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Feedback exports page for one company.
+#[page("/companies/{company_id}/feedback-exports")]
+pub async fn feedback_exports(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let export_rows = state
+        .scattered
+        .list_feedback_exports(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "feedbackExports.title"))</h1>
+        <section>
+            <h2>(t(lang, "feedbackExports.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/feedback-exports/ui"), lang))>
+                <label>(t(lang, "feedbackExports.voteIdLabel"))</label>
+                <input type="text" name="feedback_vote_id" required="required">
+                <label>(t(lang, "feedbackExports.issueLabel"))</label>
+                <select name="issue_id">
+                    for issue in &issue_rows {
+                        <option value=(issue.id.clone())>(issue.identifier.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "feedbackExports.authorLabel"))</label>
+                <input type="text" name="author_user_id" required="required">
+                <label>(t(lang, "feedbackExports.targetLabel"))</label>
+                <input type="text" name="target_type" required="required">
+                <input type="text" name="target_id" required="required">
+                <label>(t(lang, "feedbackExports.voteLabel"))</label>
+                <select name="vote">
+                    <option value="up">"up"</option>
+                    <option value="down">"down"</option>
+                </select>
+                <label>(t(lang, "feedbackExports.targetSummaryLabel"))</label>
+                <input type="text" name="target_summary" placeholder="{}">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "feedbackExports.list"))</h2>
+            if export_rows.is_empty() {
+                <p class="empty">(t(lang, "feedbackExports.none"))</p>
+            } else {
+                <ul class="list">
+                    for export in export_rows {
+                        <li>
+                            <span class="badge badge-default">(export.target_type.clone())</span>
+                            " " <span class="mono">(export.target_id.clone())</span>
+                            " " <span class=(status_badge_class(&export.status))>(export.status)</span>
+                            " " <span class="meta-row">(export.author_user_id.clone())</span>
                         </li>
                     }
                 </ul>
