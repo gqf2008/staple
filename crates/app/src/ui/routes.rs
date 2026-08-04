@@ -2389,3 +2389,170 @@ pub async fn create_user_secret_declaration_ui(
     }
     Ok(see_other(&format!("/companies/{company_id}/user-secrets")))
 }
+
+// --- Infrastructure UI forms (folders / watchdogs / users / envs) --------
+
+/// Folder create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FolderUiForm {
+    /// Folder kind.
+    pub kind: String,
+    /// Folder name.
+    pub name: String,
+    /// Folder slug.
+    pub slug: String,
+    /// Parent folder id.
+    pub parent_id: Option<String>,
+    /// Color.
+    pub color: Option<String>,
+}
+
+/// Watchdog create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WatchdogUiForm {
+    /// Watchdog agent id.
+    pub watchdog_agent_id: String,
+    /// Instructions.
+    pub instructions: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+}
+
+/// User create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserUiForm {
+    /// User id.
+    pub id: String,
+    /// Display name.
+    pub name: String,
+    /// Email.
+    pub email: String,
+}
+
+/// Environment create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnvUiForm {
+    /// Environment name.
+    pub name: String,
+    /// Description.
+    pub description: Option<String>,
+    /// Driver.
+    pub driver: Option<String>,
+}
+
+/// `POST /companies/{companyId}/folders/ui` — creates a folder.
+#[route(POST "/companies/{company_id}/folders/ui")]
+pub async fn create_folder_ui(
+    cx: &Cx,
+    Form(form): Form<FolderUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.kind.trim().is_empty() && !form.name.trim().is_empty() && !form.slug.trim().is_empty()
+    {
+        let _ = state
+            .infrastructure
+            .create_folder(staple_data::NewFolder {
+                company_id: company_id.clone(),
+                kind: form.kind,
+                parent_id: form.parent_id.filter(|value| !value.is_empty()),
+                name: form.name,
+                slug: form.slug,
+                system_key: None,
+                color: form.color.filter(|value| !value.is_empty()),
+                position: 0,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/folders")))
+}
+
+/// `POST /companies/{companyId}/folders/{id}/delete/ui` — deletes a folder.
+#[route(POST "/companies/{company_id}/folders/{id}/delete/ui")]
+pub async fn delete_folder_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let folder_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .infrastructure
+        .delete_folder(&company_id, &folder_id)
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/folders")))
+}
+
+/// `POST /issues/{issueId}/watchdogs/ui` — creates an issue watchdog.
+#[route(POST "/issues/{id}/watchdogs/ui")]
+pub async fn create_watchdog_ui(
+    cx: &Cx,
+    Form(form): Form<WatchdogUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let issue_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(issue) = state.issues.get(&issue_id).await.ok().flatten() else {
+        return Ok(see_other("/"));
+    };
+    if !form.watchdog_agent_id.trim().is_empty() {
+        let _ = state
+            .infrastructure
+            .create_watchdog(staple_data::NewIssueWatchdog {
+                company_id: issue.company_id.clone(),
+                issue_id: issue_id.clone(),
+                watchdog_agent_id: form.watchdog_agent_id,
+                instructions: form.instructions,
+                status: form.status.unwrap_or_else(|| "active".to_owned()),
+                watchdog_issue_id: None,
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+                created_by_run_id: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/issues/{issue_id}/watchdogs")))
+}
+
+/// `POST /users/ui` — creates an auth user.
+#[route(POST "/users/ui")]
+pub async fn create_user_ui(
+    cx: &Cx,
+    Form(form): Form<UserUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    if !form.id.trim().is_empty() && !form.name.trim().is_empty() && !form.email.trim().is_empty() {
+        let _ = state
+            .infrastructure
+            .create_user(staple_data::NewUser {
+                id: form.id,
+                name: form.name,
+                email: form.email,
+                email_verified: false,
+                image: None,
+            })
+            .await;
+    }
+    Ok(see_other("/users"))
+}
+
+/// `POST /environments/ui` — creates an environment.
+#[route(POST "/environments/ui")]
+pub async fn create_environment_ui(
+    cx: &Cx,
+    Form(form): Form<EnvUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    if !form.name.trim().is_empty() {
+        let _ = state
+            .environments
+            .create(staple_data::NewEnvironment {
+                name: form.name,
+                description: form.description,
+                driver: form.driver.unwrap_or_else(|| "local".to_owned()),
+                config: None,
+            })
+            .await;
+    }
+    Ok(see_other("/environments"))
+}
