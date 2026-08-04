@@ -19,11 +19,11 @@ control plane for AI-agent companies, built with **Rust + Topcoat + Turso**.
 ## Runtime switch (dual-stack)
 
 The Rust binary is the default dev entrypoint (`make dev`). The Node reference
-snapshot is frozen and remains runnable as the rollback path (`make dev-node`)
-until the parity checklist is clear and the switch is confirmed.
+snapshot was frozen and removed from this repository (Phase 5); the reference mirror keeps the Node code
+for behavior comparison.
 
 - Switch to Rust: `make dev` (default).
-- Rollback to Node: `make dev-node`.
+- Rollback: use the reference mirror (`gqf2008/paperclip`) if a Node runtime is ever needed.
 - Smoke the core flow through the Rust binary: `make smoke`.
 
 See [doc/plans/2026-08-03-topcoat-turso-rewrite.md](doc/plans/2026-08-03-topcoat-turso-rewrite.md)
@@ -40,8 +40,7 @@ for the full roadmap.
 
 ## Layout
 
-The current tree is the upstream Node.js snapshot (`server/`, `ui/`,
-`packages/`) kept for functional reference. Rust code lands in `crates/` as the
+The Node.js snapshot (`server/`, `ui/`, `packages/`) was frozen and removed kept for functional reference. Rust code lands in `crates/` as the
 rewrite progresses; Node code is removed as it is replaced.
 
 - `doc/` — product docs, implementation spec, rewrite plan

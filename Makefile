@@ -21,9 +21,7 @@ build:
 smoke:
 	cargo test -p staple-app --test release_smoke
 
-# Node reference runtime (rollback path; kept until parity checklist is clear)
-dev-node:
-	pnpm dev
-
+# Node reference runtime was frozen and removed (Phase 5). The reference
+# mirror (gqf2008/paperclip) retains the Node code for behavior comparison.
 # Local pre-push check
 check: lint test
