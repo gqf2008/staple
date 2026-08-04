@@ -110,6 +110,11 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/secret-bindings"), lang))>(t(lang, "secretBindings.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/folders"), lang))>(t(lang, "folders.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/profiles"), lang))>(t(lang, "toolProfiles.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/connections"), lang))>(t(lang, "toolConnections.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/gateways"), lang))>(t(lang, "toolGateways.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/catalog"), lang))>(t(lang, "toolCatalog.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/invocations"), lang))>(t(lang, "toolInvocations.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/my-issues"), lang))>(t(lang, "myIssues.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>(t(lang, "whatNeedsMe.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang))>(t(lang, "timeline.title"))</a>
@@ -3905,6 +3910,491 @@ pub async fn pipeline_case_detail(cx: &Cx) -> Result {
                         <li>
                             <span class="mono">(event.r#type)</span>
                             " " <span class="meta-row">(event.actor_type) " / " (event.created_at)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Tool profiles page: access profiles and their entries for one company.
+#[page("/companies/{company_id}/tools/profiles")]
+pub async fn tool_profiles(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let profile_rows = state
+        .tool_catalog
+        .list_profiles(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let entry_rows = state
+        .tool_catalog
+        .list_profile_entries(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "toolProfiles.title"))</h1>
+        <section>
+            <h2>(t(lang, "toolProfiles.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/profiles/ui"), lang))>
+                <label>(t(lang, "toolProfiles.keyLabel"))</label>
+                <input type="text" name="profile_key" required="required">
+                <label>(t(lang, "toolProfiles.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "toolProfiles.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "toolProfiles.statusLabel"))</label>
+                <input type="text" name="status" value="active">
+                <label>(t(lang, "toolProfiles.defaultActionLabel"))</label>
+                <select name="default_action">
+                    <option value="deny">"deny"</option>
+                    <option value="allow">"allow"</option>
+                </select>
+                <label>(t(lang, "toolProfiles.metadataLabel"))</label>
+                <input type="text" name="metadata" placeholder="{}">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "toolProfiles.list"))</h2>
+            if profile_rows.is_empty() {
+                <p class="empty">(t(lang, "toolProfiles.none"))</p>
+            } else {
+                <ul class="list">
+                    for profile in &profile_rows {
+                        <li>
+                            <strong>(profile.name.clone())</strong>
+                            " " <span class="mono">(profile.profile_key.clone())</span>
+                            " " <span class=(status_badge_class(&profile.status))>(profile.status.clone())</span>
+                            " " <span class="badge badge-default">(profile.default_action.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "toolProfiles.entries"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/profile-entries/ui"), lang))>
+                <label>(t(lang, "toolProfiles.profileLabel"))</label>
+                <select name="profile_id">
+                    for profile in &profile_rows {
+                        <option value=(profile.id.clone())>(profile.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolProfiles.selectorTypeLabel"))</label>
+                <input type="text" name="selector_type" required="required">
+                <label>(t(lang, "toolProfiles.effectLabel"))</label>
+                <select name="effect">
+                    <option value="include">"include"</option>
+                    <option value="exclude">"exclude"</option>
+                </select>
+                <label>(t(lang, "toolProfiles.toolNameLabel"))</label>
+                <input type="text" name="tool_name">
+                <label>(t(lang, "toolProfiles.riskLevelLabel"))</label>
+                <input type="text" name="risk_level">
+                <label>(t(lang, "toolProfiles.conditionsLabel"))</label>
+                <input type="text" name="conditions" placeholder="null">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if entry_rows.is_empty() {
+                <p class="empty">(t(lang, "toolProfiles.entriesNone"))</p>
+            } else {
+                <ul class="list">
+                    for entry in entry_rows {
+                        <li>
+                            <span class="mono">(entry.profile_id.clone())</span>
+                            " " <span class="badge badge-default">(entry.selector_type.clone())</span>
+                            " " <span class="badge badge-default">(entry.effect.clone())</span>
+                            " " <span class="meta-row">(entry.tool_name.clone().unwrap_or_default())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Tool connections page: connections and installs for one company.
+#[page("/companies/{company_id}/tools/connections")]
+pub async fn tool_connections(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let connection_rows = state
+        .tool_connections
+        .list_connections(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let application_rows = state
+        .tool_catalog
+        .list_applications(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let install_rows = state
+        .tool_connections
+        .list_installs(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "toolConnections.title"))</h1>
+        <section>
+            <h2>(t(lang, "toolConnections.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/connections/ui"), lang))>
+                <label>(t(lang, "toolConnections.applicationLabel"))</label>
+                <select name="application_id">
+                    for application in &application_rows {
+                        <option value=(application.id.clone())>(application.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolConnections.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "toolConnections.uidLabel"))</label>
+                <input type="text" name="uid" required="required">
+                <label>(t(lang, "toolConnections.transportLabel"))</label>
+                <select name="transport">
+                    <option value="mcp_remote">"mcp_remote"</option>
+                    <option value="rest_api">"rest_api"</option>
+                    <option value="local_stdio">"local_stdio"</option>
+                </select>
+                <label>(t(lang, "toolConnections.connectionKindLabel"))</label>
+                <input type="text" name="connection_kind" value="managed">
+                <label>(t(lang, "toolConnections.ownershipLabel"))</label>
+                <input type="text" name="ownership" value="customer">
+                <label>(t(lang, "toolConnections.authKindLabel"))</label>
+                <select name="auth_kind">
+                    <option value="none">"none"</option>
+                    <option value="oauth">"oauth"</option>
+                    <option value="api_key">"api_key"</option>
+                </select>
+                <label>(t(lang, "toolConnections.statusLabel"))</label>
+                <input type="text" name="status" value="draft">
+                <label class="inline-label"><input type="checkbox" name="enabled" value="1"> (t(lang, "toolConnections.enabledLabel"))</label>
+                <label>(t(lang, "toolConnections.configLabel"))</label>
+                <input type="text" name="config" placeholder="{}">
+                <label>(t(lang, "toolConnections.transportConfigLabel"))</label>
+                <input type="text" name="transport_config" placeholder="{}">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "toolConnections.list"))</h2>
+            if connection_rows.is_empty() {
+                <p class="empty">(t(lang, "toolConnections.none"))</p>
+            } else {
+                <ul class="list">
+                    for connection in &connection_rows {
+                        <li>
+                            <strong>(connection.name.clone())</strong>
+                            " " <span class="mono">(connection.uid.clone())</span>
+                            " " <span class="badge badge-default">(connection.transport.clone())</span>
+                            " " <span class=(status_badge_class(&connection.status))>(connection.status.clone())</span>
+                            if connection.enabled {
+                                " " <span class="badge badge-done">(t(lang, "toolConnections.enabledLabel"))</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "toolConnections.installs"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/installs/ui"), lang))>
+                <label>(t(lang, "toolConnections.connectionLabel"))</label>
+                <select name="connection_id">
+                    for connection in &connection_rows {
+                        <option value=(connection.id.clone())>(connection.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolConnections.targetTypeLabel"))</label>
+                <input type="text" name="target_type" required="required">
+                <label>(t(lang, "toolConnections.targetIdLabel"))</label>
+                <input type="text" name="target_id" required="required">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if install_rows.is_empty() {
+                <p class="empty">(t(lang, "toolConnections.installsNone"))</p>
+            } else {
+                <ul class="list">
+                    for install in install_rows {
+                        <li>
+                            <span class="mono">(install.connection_id.clone())</span>
+                            " " <span class="badge badge-default">(install.target_type.clone())</span>
+                            " " <span class="meta-row">(install.target_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Tool gateways page: MCP gateways and their sessions for one company.
+#[page("/companies/{company_id}/tools/gateways")]
+pub async fn tool_gateways(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let gateway_rows = state
+        .tool_gateway
+        .list_gateways(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let profile_rows = state
+        .tool_catalog
+        .list_profiles(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let session_rows = state
+        .tool_gateway
+        .list_gateway_sessions(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "toolGateways.title"))</h1>
+        <section>
+            <h2>(t(lang, "toolGateways.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/gateways/ui"), lang))>
+                <label>(t(lang, "toolGateways.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "toolGateways.slugLabel"))</label>
+                <input type="text" name="slug" required="required">
+                <label>(t(lang, "toolGateways.displaySlugLabel"))</label>
+                <input type="text" name="display_slug">
+                <label>(t(lang, "toolGateways.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "toolGateways.statusLabel"))</label>
+                <input type="text" name="status" value="active">
+                <label>(t(lang, "toolGateways.profileLabel"))</label>
+                <select name="profile_id">
+                    for profile in &profile_rows {
+                        <option value=(profile.id.clone())>(profile.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolGateways.defaultProfileModeLabel"))</label>
+                <input type="text" name="default_profile_mode" value="gateway_only">
+                <label>(t(lang, "toolGateways.contextScopeTypeLabel"))</label>
+                <input type="text" name="context_scope_type" value="none">
+                <label>(t(lang, "toolGateways.contextScopeIdLabel"))</label>
+                <input type="text" name="context_scope_id">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "toolGateways.list"))</h2>
+            if gateway_rows.is_empty() {
+                <p class="empty">(t(lang, "toolGateways.none"))</p>
+            } else {
+                <ul class="list">
+                    for gateway in &gateway_rows {
+                        <li>
+                            <strong>(gateway.name.clone())</strong>
+                            " " <span class="mono">(gateway.slug.clone())</span>
+                            " " <span class=(status_badge_class(&gateway.status))>(gateway.status.clone())</span>
+                            " " <span class="badge badge-default">(gateway.default_profile_mode.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "toolGateways.sessions"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/gateway-sessions/ui"), lang))>
+                <label>(t(lang, "toolGateways.gatewayLabel"))</label>
+                <select name="gateway_id">
+                    for gateway in &gateway_rows {
+                        <option value=(gateway.id.clone())>(gateway.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolGateways.agentLabel"))</label>
+                <select name="agent_id">
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolGateways.runIdLabel"))</label>
+                <input type="text" name="run_id" required="required">
+                <label>(t(lang, "toolGateways.tokenHashLabel"))</label>
+                <input type="text" name="token_hash" required="required">
+                <label>(t(lang, "toolGateways.expiresAtLabel"))</label>
+                <input type="text" name="expires_at" placeholder="2026-08-04T00:00:00.000Z" required="required">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if session_rows.is_empty() {
+                <p class="empty">(t(lang, "toolGateways.sessionsNone"))</p>
+            } else {
+                <ul class="list">
+                    for session in session_rows {
+                        <li>
+                            <span class="mono">(session.run_id.clone())</span>
+                            " " <span class="badge badge-default">(session.agent_id.clone())</span>
+                            " " <span class="meta-row">(session.gateway_public_id.clone().unwrap_or_default())</span>
+                            " " <span class="meta-row">(session.expires_at.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Tool catalog page: discovered catalog entries for one company.
+#[page("/companies/{company_id}/tools/catalog")]
+pub async fn tool_catalog(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let catalog_rows = state
+        .tool_catalog
+        .list_catalog_entries(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let connection_rows = state
+        .tool_connections
+        .list_connections(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "toolCatalog.title"))</h1>
+        <section>
+            <h2>(t(lang, "toolCatalog.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/catalog/ui"), lang))>
+                <label>(t(lang, "toolCatalog.connectionLabel"))</label>
+                <select name="connection_id">
+                    for connection in &connection_rows {
+                        <option value=(connection.id.clone())>(connection.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolCatalog.entryKindLabel"))</label>
+                <input type="text" name="entry_kind" value="tool">
+                <label>(t(lang, "toolCatalog.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "toolCatalog.toolNameLabel"))</label>
+                <input type="text" name="tool_name" required="required">
+                <label>(t(lang, "toolCatalog.titleLabel"))</label>
+                <input type="text" name="title">
+                <label>(t(lang, "toolCatalog.descriptionLabel"))</label>
+                <input type="text" name="description">
+                <label>(t(lang, "toolCatalog.riskLevelLabel"))</label>
+                <input type="text" name="risk_level" value="medium">
+                <label>(t(lang, "toolCatalog.statusLabel"))</label>
+                <input type="text" name="status" value="active">
+                <label>(t(lang, "toolCatalog.versionLabel"))</label>
+                <input type="text" name="version">
+                <label>(t(lang, "toolCatalog.inputSchemaLabel"))</label>
+                <input type="text" name="input_schema" placeholder="{}">
+                <label class="inline-label"><input type="checkbox" name="is_read_only" value="1"> (t(lang, "toolCatalog.readOnlyLabel"))</label>
+                <label class="inline-label"><input type="checkbox" name="is_write" value="1"> (t(lang, "toolCatalog.writeLabel"))</label>
+                <label class="inline-label"><input type="checkbox" name="is_destructive" value="1"> (t(lang, "toolCatalog.destructiveLabel"))</label>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "toolCatalog.list"))</h2>
+            if catalog_rows.is_empty() {
+                <p class="empty">(t(lang, "toolCatalog.none"))</p>
+            } else {
+                <ul class="list">
+                    for entry in catalog_rows {
+                        <li>
+                            <strong>(entry.name.clone())</strong>
+                            " " <span class="mono">(entry.tool_name.clone())</span>
+                            " " <span class="badge badge-default">(entry.entry_kind.clone())</span>
+                            " " <span class="badge badge-default">(entry.risk_level.clone())</span>
+                            " " <span class=(status_badge_class(&entry.status))>(entry.status)</span>
+                            if entry.is_destructive {
+                                " " <span class="badge badge-blocked">(t(lang, "toolCatalog.destructiveLabel"))</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Tool invocations page: recorded tool calls for one company.
+#[page("/companies/{company_id}/tools/invocations")]
+pub async fn tool_invocations(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let invocation_rows = state
+        .tool_gateway
+        .list_invocations(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let connection_rows = state
+        .tool_connections
+        .list_connections(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "toolInvocations.title"))</h1>
+        <section>
+            <h2>(t(lang, "toolInvocations.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/tools/invocations/ui"), lang))>
+                <label>(t(lang, "toolInvocations.toolNameLabel"))</label>
+                <input type="text" name="tool_name" required="required">
+                <label>(t(lang, "toolInvocations.actorTypeLabel"))</label>
+                <input type="text" name="actor_type" value="system">
+                <label>(t(lang, "toolInvocations.statusLabel"))</label>
+                <input type="text" name="status" value="pending">
+                <label>(t(lang, "toolInvocations.approvalStateLabel"))</label>
+                <input type="text" name="approval_state" value="not_required">
+                <label>(t(lang, "toolInvocations.riskLevelLabel"))</label>
+                <input type="text" name="risk_level">
+                <label>(t(lang, "toolInvocations.connectionLabel"))</label>
+                <select name="connection_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for connection in &connection_rows {
+                        <option value=(connection.id.clone())>(connection.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolInvocations.agentLabel"))</label>
+                <select name="agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "toolInvocations.argumentsSummaryLabel"))</label>
+                <input type="text" name="arguments_summary" placeholder="null">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "toolInvocations.list"))</h2>
+            if invocation_rows.is_empty() {
+                <p class="empty">(t(lang, "toolInvocations.none"))</p>
+            } else {
+                <ul class="list">
+                    for invocation in invocation_rows {
+                        <li>
+                            <strong>(invocation.tool_name.clone())</strong>
+                            " " <span class="badge badge-default">(invocation.actor_type.clone())</span>
+                            " " <span class=(status_badge_class(&invocation.status))>(invocation.status)</span>
+                            " " <span class="meta-row">(invocation.approval_state.clone())</span>
+                            " " <span class="meta-row">(invocation.created_at.clone())</span>
                         </li>
                     }
                 </ul>

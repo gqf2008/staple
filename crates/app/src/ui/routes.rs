@@ -2556,7 +2556,6 @@ pub async fn create_environment_ui(
     }
     Ok(see_other("/environments"))
 }
-
 // --- Status card updates / smoke runs / feedback exports UI forms --------
 
 /// Status card update form.
@@ -2701,5 +2700,567 @@ pub async fn create_feedback_export_ui(
     }
     Ok(see_other(&format!(
         "/companies/{company_id}/feedback-exports"
+    )))
+}
+
+// --- Toolchain UI forms (profiles / connections / gateways / catalog / invocations) ----
+
+/// Tool profile create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolProfileUiForm {
+    /// Profile key.
+    pub profile_key: String,
+    /// Display name.
+    pub name: String,
+    /// Description.
+    pub description: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+    /// Default action for new tools.
+    pub default_action: Option<String>,
+    /// Metadata JSON.
+    pub metadata: Option<String>,
+}
+
+/// Tool profile entry create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolProfileEntryUiForm {
+    /// Profile id.
+    pub profile_id: String,
+    /// Selector type (application/connection/catalog_entry/tool_name).
+    pub selector_type: String,
+    /// Effect (include/exclude).
+    pub effect: Option<String>,
+    /// Tool name pattern.
+    pub tool_name: Option<String>,
+    /// Risk level.
+    pub risk_level: Option<String>,
+    /// Conditions JSON.
+    pub conditions: Option<String>,
+}
+
+/// Tool connection create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolConnectionUiForm {
+    /// Application id.
+    pub application_id: String,
+    /// Connection name.
+    pub name: String,
+    /// Connection uid.
+    pub uid: String,
+    /// Connection kind.
+    pub connection_kind: Option<String>,
+    /// Ownership.
+    pub ownership: Option<String>,
+    /// Transport.
+    pub transport: String,
+    /// Auth kind.
+    pub auth_kind: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+    /// Enabled checkbox (`1`).
+    #[serde(default)]
+    pub enabled: Option<String>,
+    /// Config JSON.
+    pub config: Option<String>,
+    /// Transport config JSON.
+    pub transport_config: Option<String>,
+}
+
+/// Tool connection install create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolInstallUiForm {
+    /// Connection id.
+    pub connection_id: String,
+    /// Target type (agent/issue/project).
+    pub target_type: String,
+    /// Target id.
+    pub target_id: String,
+}
+
+/// Tool gateway create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolGatewayUiForm {
+    /// Gateway name.
+    pub name: String,
+    /// Gateway slug.
+    pub slug: String,
+    /// Display slug.
+    pub display_slug: Option<String>,
+    /// Description.
+    pub description: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+    /// Profile id.
+    pub profile_id: String,
+    /// Default profile mode.
+    pub default_profile_mode: Option<String>,
+    /// Context scope type.
+    pub context_scope_type: Option<String>,
+    /// Context scope id.
+    pub context_scope_id: Option<String>,
+}
+
+/// Tool gateway session create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolGatewaySessionUiForm {
+    /// Gateway id.
+    pub gateway_id: String,
+    /// Agent id.
+    pub agent_id: String,
+    /// Run id.
+    pub run_id: String,
+    /// Token hash.
+    pub token_hash: String,
+    /// Expiry timestamp.
+    pub expires_at: String,
+}
+
+/// Tool catalog entry create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolCatalogEntryUiForm {
+    /// Connection id.
+    pub connection_id: String,
+    /// Entry kind.
+    pub entry_kind: Option<String>,
+    /// Entry name.
+    pub name: String,
+    /// Tool name.
+    pub tool_name: String,
+    /// Title.
+    pub title: Option<String>,
+    /// Description.
+    pub description: Option<String>,
+    /// Risk level.
+    pub risk_level: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+    /// Version.
+    pub version: Option<String>,
+    /// Input schema JSON.
+    pub input_schema: Option<String>,
+    /// Read only checkbox (`1`).
+    #[serde(default)]
+    pub is_read_only: Option<String>,
+    /// Write checkbox (`1`).
+    #[serde(default)]
+    pub is_write: Option<String>,
+    /// Destructive checkbox (`1`).
+    #[serde(default)]
+    pub is_destructive: Option<String>,
+}
+
+/// Tool invocation create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ToolInvocationUiForm {
+    /// Tool name.
+    pub tool_name: String,
+    /// Actor type.
+    pub actor_type: Option<String>,
+    /// Status.
+    pub status: Option<String>,
+    /// Approval state.
+    pub approval_state: Option<String>,
+    /// Risk level.
+    pub risk_level: Option<String>,
+    /// Connection id.
+    pub connection_id: Option<String>,
+    /// Agent id.
+    pub agent_id: Option<String>,
+    /// Arguments summary JSON.
+    pub arguments_summary: Option<String>,
+}
+
+/// `POST /companies/{companyId}/tools/profiles/ui` — creates a tool profile.
+#[route(POST "/companies/{company_id}/tools/profiles/ui")]
+pub async fn create_tool_profile_ui(
+    cx: &Cx,
+    Form(form): Form<ToolProfileUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.profile_key.trim().is_empty() && !form.name.trim().is_empty() {
+        let metadata = serde_json::from_str(form.metadata.as_deref().unwrap_or("{}"))
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let _ = state
+            .tool_catalog
+            .create_profile(staple_data::NewToolProfile {
+                company_id: company_id.clone(),
+                profile_key: form.profile_key,
+                name: form.name,
+                description: form.description.filter(|value| !value.is_empty()),
+                status: form.status.unwrap_or_else(|| "active".to_owned()),
+                default_action: form.default_action.unwrap_or_else(|| "deny".to_owned()),
+                new_tools_reviewed_at: None,
+                metadata,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/profiles"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/profile-entries/ui` — creates a tool
+/// profile entry.
+#[route(POST "/companies/{company_id}/tools/profile-entries/ui")]
+pub async fn create_tool_profile_entry_ui(
+    cx: &Cx,
+    Form(form): Form<ToolProfileEntryUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.profile_id.trim().is_empty() && !form.selector_type.trim().is_empty() {
+        let conditions = form
+            .conditions
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+            .and_then(|value| serde_json::from_str(value).ok());
+        let _ = state
+            .tool_catalog
+            .create_profile_entry(staple_data::NewToolProfileEntry {
+                company_id: company_id.clone(),
+                profile_id: form.profile_id,
+                selector_type: form.selector_type,
+                effect: form.effect.unwrap_or_else(|| "include".to_owned()),
+                application_id: None,
+                connection_id: None,
+                catalog_entry_id: None,
+                tool_name: form.tool_name.filter(|value| !value.is_empty()),
+                risk_level: form.risk_level.filter(|value| !value.is_empty()),
+                conditions,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/profiles"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/connections/ui` — creates a tool
+/// connection.
+#[route(POST "/companies/{company_id}/tools/connections/ui")]
+pub async fn create_tool_connection_ui(
+    cx: &Cx,
+    Form(form): Form<ToolConnectionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.name.trim().is_empty()
+        && !form.uid.trim().is_empty()
+        && !form.application_id.trim().is_empty()
+    {
+        let config = serde_json::from_str(form.config.as_deref().unwrap_or("{}"))
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let transport_config =
+            serde_json::from_str(form.transport_config.as_deref().unwrap_or("{}"))
+                .unwrap_or_else(|_| serde_json::json!({}));
+        let _ = state
+            .tool_connections
+            .create_connection(staple_data::NewToolConnection {
+                company_id: company_id.clone(),
+                application_id: form.application_id,
+                name: form.name,
+                uid: form.uid,
+                connection_kind: form
+                    .connection_kind
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "managed".to_owned()),
+                ownership: form
+                    .ownership
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "customer".to_owned()),
+                transport: form.transport,
+                auth_kind: form
+                    .auth_kind
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "none".to_owned()),
+                status: form
+                    .status
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "draft".to_owned()),
+                enabled: form.enabled.is_some(),
+                config,
+                transport_config,
+                credential_refs: serde_json::json!([]),
+                credential_secret_refs: serde_json::json!([]),
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/connections"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/installs/ui` — creates a tool connection
+/// install.
+#[route(POST "/companies/{company_id}/tools/installs/ui")]
+pub async fn create_tool_install_ui(
+    cx: &Cx,
+    Form(form): Form<ToolInstallUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.connection_id.trim().is_empty()
+        && !form.target_type.trim().is_empty()
+        && !form.target_id.trim().is_empty()
+    {
+        let _ = state
+            .tool_connections
+            .create_install(staple_data::NewToolConnectionInstall {
+                company_id: company_id.clone(),
+                connection_id: form.connection_id,
+                target_type: form.target_type,
+                target_id: form.target_id,
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/connections"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/gateways/ui` — creates a tool gateway.
+#[route(POST "/companies/{company_id}/tools/gateways/ui")]
+pub async fn create_tool_gateway_ui(
+    cx: &Cx,
+    Form(form): Form<ToolGatewayUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.name.trim().is_empty()
+        && !form.slug.trim().is_empty()
+        && !form.profile_id.trim().is_empty()
+    {
+        let _ = state
+            .tool_gateway
+            .create_gateway(staple_data::NewToolMcpGateway {
+                company_id: company_id.clone(),
+                name: form.name,
+                slug: form.slug,
+                display_slug: form
+                    .display_slug
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_default(),
+                description: form.description.filter(|value| !value.is_empty()),
+                status: form
+                    .status
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "active".to_owned()),
+                profile_id: form.profile_id,
+                default_profile_mode: form
+                    .default_profile_mode
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "gateway_only".to_owned()),
+                context_scope_type: form
+                    .context_scope_type
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "none".to_owned()),
+                context_scope_id: form.context_scope_id.filter(|value| !value.is_empty()),
+                agent_id: None,
+                project_id: None,
+                issue_id: None,
+                approval_issue_id: None,
+                auth_config: serde_json::json!({}),
+                header_policy: serde_json::json!({}),
+                metadata_policy: serde_json::json!({}),
+                on_demand_tools_config: serde_json::json!({}),
+                metadata: serde_json::json!({}),
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/gateways"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/gateway-sessions/ui` — creates a tool
+/// gateway session.
+#[route(POST "/companies/{company_id}/tools/gateway-sessions/ui")]
+pub async fn create_tool_gateway_session_ui(
+    cx: &Cx,
+    Form(form): Form<ToolGatewaySessionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.gateway_id.trim().is_empty()
+        && !form.agent_id.trim().is_empty()
+        && !form.run_id.trim().is_empty()
+        && !form.token_hash.trim().is_empty()
+        && !form.expires_at.trim().is_empty()
+    {
+        let _ = state
+            .tool_gateway
+            .create_gateway_session(staple_data::NewToolGatewaySession {
+                company_id: company_id.clone(),
+                agent_id: form.agent_id,
+                run_id: form.run_id,
+                issue_id: None,
+                project_id: None,
+                gateway_id: Some(form.gateway_id),
+                gateway_token_id: None,
+                gateway_public_id: None,
+                client_subject_type: None,
+                client_subject_id: None,
+                client_name: None,
+                mcp_session_id: None,
+                correlation_id: None,
+                token_hash: form.token_hash,
+                expires_at: form.expires_at,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/gateways"
+    )))
+}
+
+/// `POST /companies/{companyId}/tools/catalog/ui` — creates a tool catalog
+/// entry.
+#[route(POST "/companies/{company_id}/tools/catalog/ui")]
+pub async fn create_tool_catalog_entry_ui(
+    cx: &Cx,
+    Form(form): Form<ToolCatalogEntryUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.connection_id.trim().is_empty()
+        && !form.name.trim().is_empty()
+        && !form.tool_name.trim().is_empty()
+    {
+        let input_schema = serde_json::from_str(form.input_schema.as_deref().unwrap_or("{}"))
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let is_read_only = form.is_read_only.is_some();
+        let is_write = form.is_write.is_some();
+        let is_destructive = form.is_destructive.is_some();
+        let _ = state
+            .tool_catalog
+            .create_catalog_entry(staple_data::NewToolCatalogEntry {
+                company_id: company_id.clone(),
+                application_id: None,
+                connection_id: form.connection_id,
+                entry_kind: form
+                    .entry_kind
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "tool".to_owned()),
+                name: form.name,
+                tool_name: form.tool_name,
+                title: form.title.filter(|value| !value.is_empty()),
+                description: form.description.filter(|value| !value.is_empty()),
+                input_schema,
+                output_schema: None,
+                annotations: serde_json::json!({}),
+                risk_level: form
+                    .risk_level
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "medium".to_owned()),
+                is_read_only,
+                is_write,
+                is_destructive,
+                status: form
+                    .status
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "active".to_owned()),
+                version: form.version.filter(|value| !value.is_empty()),
+                version_hash: String::new(),
+                schema_hash: None,
+                reviewed_by_agent_id: None,
+                reviewed_by_user_id: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/tools/catalog")))
+}
+
+/// `POST /companies/{companyId}/tools/invocations/ui` — creates a tool
+/// invocation.
+#[route(POST "/companies/{company_id}/tools/invocations/ui")]
+pub async fn create_tool_invocation_ui(
+    cx: &Cx,
+    Form(form): Form<ToolInvocationUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let tool_name = form.tool_name.trim().to_owned();
+    if !tool_name.is_empty() {
+        let arguments_summary = form
+            .arguments_summary
+            .as_deref()
+            .filter(|value| !value.trim().is_empty())
+            .and_then(|value| serde_json::from_str(value).ok());
+        let _ = state
+            .tool_gateway
+            .create_invocation(staple_data::NewToolInvocation {
+                company_id: company_id.clone(),
+                idempotency_key: None,
+                actor_type: form
+                    .actor_type
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "system".to_owned()),
+                actor_id: None,
+                agent_id: form.agent_id.filter(|value| !value.is_empty()),
+                issue_id: None,
+                run_id: None,
+                gateway_id: None,
+                gateway_token_id: None,
+                gateway_public_id: None,
+                client_subject_type: None,
+                client_subject_id: None,
+                client_name: None,
+                mcp_session_id: None,
+                correlation_id: None,
+                application_id: None,
+                connection_id: form.connection_id.filter(|value| !value.is_empty()),
+                catalog_entry_id: None,
+                catalog_version_hash: None,
+                catalog_schema_hash: None,
+                provider_type: None,
+                application_key: None,
+                upstream_tool_name: None,
+                risk_level: form.risk_level.filter(|value| !value.is_empty()),
+                tool_name,
+                arguments_hash: None,
+                arguments_summary,
+                policy_decision: None,
+                matched_policy_ids: serde_json::json!([]),
+                policy_explanation: None,
+                credential_scope_summary: None,
+                header_policy_summary: None,
+                approval_state: form
+                    .approval_state
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "not_required".to_owned()),
+                status: form
+                    .status
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "pending".to_owned()),
+                upstream_request_id: None,
+                result_hash: None,
+                result_summary: None,
+                result_size_bytes: None,
+                result_artifact_id: None,
+                error_code: None,
+                error_message: None,
+                started_at: None,
+                completed_at: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/tools/invocations"
     )))
 }
