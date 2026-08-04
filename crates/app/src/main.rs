@@ -12,12 +12,13 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
+    TursoSkillCatalogRepository, TursoSkillRepository, TursoWorkProductRepository,
     TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
@@ -35,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let permission_grants_db = open(&db_config).await?;
     let memberships_db = open(&db_config).await?;
     let invites_db = open(&db_config).await?;
+    let infrastructure_db = open(&db_config).await?;
     let board_keys_db = open(&db_config).await?;
     let budget_policies_db = open(&db_config).await?;
     let cases_db = open(&db_config).await?;
@@ -60,6 +62,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let decision_actions_db = open(&db_config).await?;
     let external_objects_db = open(&db_config).await?;
     let external_object_catalog_db = open(&db_config).await?;
+    let skill_catalog_db = open(&db_config).await?;
+    let secret_bindings_db = open(&db_config).await?;
     let skills_db = open(&db_config).await?;
     let environments_db = open(&db_config).await?;
     let workspaces_db = open(&db_config).await?;
@@ -77,6 +81,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
@@ -105,6 +110,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
             external_object_catalog_db,
         )),
+        skill_catalog: Arc::new(TursoSkillCatalogRepository::new(skill_catalog_db)),
+        secret_bindings: Arc::new(TursoSecretBindingRepository::new(secret_bindings_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
