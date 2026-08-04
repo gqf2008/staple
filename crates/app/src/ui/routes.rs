@@ -1373,3 +1373,192 @@ pub async fn board_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
 }
+
+// --- Goals & Projects UI forms -------------------------------------------
+
+/// Goal form (create + edit).
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoalUiForm {
+    /// Goal title.
+    pub title: String,
+    /// Optional description.
+    pub description: Option<String>,
+    /// `company | team | agent | task`.
+    pub level: Option<String>,
+    /// Parent goal id (`""` clears).
+    pub parent_id: Option<String>,
+    /// Owning agent id (`""` clears).
+    pub owner_agent_id: Option<String>,
+    /// Goal status.
+    pub status: Option<String>,
+}
+
+/// Goal status form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct GoalStatusForm {
+    /// Target status.
+    pub status: String,
+}
+
+/// Project form (create).
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProjectUiForm {
+    /// Project name.
+    pub name: String,
+    /// Optional description.
+    pub description: Option<String>,
+    /// Linked goal id (`""` clears).
+    pub goal_id: Option<String>,
+    /// Lead agent id (`""` clears).
+    pub lead_agent_id: Option<String>,
+    /// Project status.
+    pub status: Option<String>,
+    /// Target date.
+    pub target_date: Option<String>,
+}
+
+/// `POST /companies/{companyId}/goals/ui` — creates a goal, redirects to the
+/// goals page.
+#[route(POST "/companies/{company_id}/goals/ui")]
+pub async fn create_goal_ui(
+    cx: &Cx,
+    Form(form): Form<GoalUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let title = form.title.trim().to_owned();
+    if !title.is_empty()
+        && let Ok(goal) = state
+            .goals
+            .create(staple_data::NewGoal {
+                company_id: company_id.clone(),
+                title,
+                description: form.description,
+                level: form.level.unwrap_or_else(|| "company".to_owned()),
+                parent_id: form.parent_id.filter(|value| !value.is_empty()),
+                owner_agent_id: form.owner_agent_id.filter(|value| !value.is_empty()),
+                status: form.status.unwrap_or_else(|| "planned".to_owned()),
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &goal.company_id,
+            "goal.created",
+            "goal",
+            &goal.id,
+            Some(serde_json::json!({ "title": goal.title })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/goals")))
+}
+
+/// `POST /goals/{id}/edit/ui` — updates a goal, redirects to its detail.
+#[route(POST "/goals/{id}/edit/ui")]
+pub async fn update_goal_ui(
+    cx: &Cx,
+    Form(form): Form<GoalUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let goal_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(_goal) = state.goals.get(&goal_id).await.ok().flatten() else {
+        return Ok(see_other("/"));
+    };
+    let title = form.title.trim().to_owned();
+    let _ = state
+        .goals
+        .update(
+            &goal_id,
+            staple_data::GoalPatch {
+                title: Some(title),
+                description: Some(form.description),
+                level: form.level,
+                parent_id: Some(form.parent_id.filter(|value| !value.is_empty())),
+                owner_agent_id: Some(form.owner_agent_id.filter(|value| !value.is_empty())),
+                status: form.status,
+            },
+        )
+        .await;
+    Ok(see_other(&format!("/goals/{goal_id}")))
+}
+
+/// `POST /goals/{id}/status/ui` — sets a goal status, redirects to its detail.
+#[route(POST "/goals/{id}/status/ui")]
+pub async fn set_goal_status_ui(
+    cx: &Cx,
+    Form(form): Form<GoalStatusForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let goal_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(goal) = state.goals.get(&goal_id).await.ok().flatten() else {
+        return Ok(see_other("/"));
+    };
+    let company_id = goal.company_id.clone();
+    let status = form.status.clone();
+    let _ = state
+        .goals
+        .update(
+            &goal_id,
+            staple_data::GoalPatch {
+                title: None,
+                description: None,
+                level: None,
+                parent_id: None,
+                owner_agent_id: None,
+                status: Some(status),
+            },
+        )
+        .await;
+    let _ = log_activity(
+        &state.activity,
+        &company_id,
+        "goal.status_updated",
+        "goal",
+        &goal_id,
+        Some(serde_json::json!({ "status": form.status })),
+    )
+    .await;
+    Ok(see_other(&format!("/goals/{goal_id}")))
+}
+
+/// `POST /companies/{companyId}/projects/ui` — creates a project, redirects to
+/// the projects page.
+#[route(POST "/companies/{company_id}/projects/ui")]
+pub async fn create_project_ui(
+    cx: &Cx,
+    Form(form): Form<ProjectUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let name = form.name.trim().to_owned();
+    if !name.is_empty()
+        && let Ok(project) = state
+            .projects
+            .create(staple_data::NewProject {
+                company_id: company_id.clone(),
+                goal_id: form.goal_id.filter(|value| !value.is_empty()),
+                name,
+                description: form.description,
+                status: form.status.unwrap_or_else(|| "backlog".to_owned()),
+                lead_agent_id: form.lead_agent_id.filter(|value| !value.is_empty()),
+                target_date: form.target_date,
+                env: None,
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &project.company_id,
+            "project.created",
+            "project",
+            &project.id,
+            Some(serde_json::json!({ "name": project.name })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/projects")))
+}
