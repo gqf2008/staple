@@ -12,8 +12,9 @@ use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
     TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
-    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
+    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
+    TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
@@ -185,6 +186,11 @@ async fn core_business_flow_smoke() {
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, cipher)),
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        decision_actions: Arc::new(TursoDecisionActionRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

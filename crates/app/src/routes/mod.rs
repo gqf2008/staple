@@ -15,6 +15,7 @@ pub mod cases;
 pub mod comments;
 pub mod companies;
 pub mod costs;
+pub mod decision_actions;
 pub mod decisions;
 pub mod documents;
 pub mod external_objects;

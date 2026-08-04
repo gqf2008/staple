@@ -15,6 +15,7 @@ pub mod budget_policies;
 pub mod cases;
 pub mod companies;
 pub mod costs;
+pub mod decision_actions;
 pub mod decision_desk;
 pub mod documents;
 pub mod environments;
@@ -84,6 +85,12 @@ pub use companies::{
 pub use costs::{
     AgentCostRow, BudgetSummary, CostError, CostEventOutcome, CostEventRecord, CostRepository,
     NewCostEvent, TursoCostRepository,
+};
+pub use decision_actions::{
+    DecisionActionError, DecisionActionRepository, DecisionBundleRecord,
+    DecisionEffectExecutionRecord, DecisionRecord, DecisionTargetIssueRecord,
+    DecisionTrainingExampleRecord, NewDecision, NewDecisionBundle, NewDecisionEffectExecution,
+    NewDecisionTrainingExample, ResolveDecision, TursoDecisionActionRepository,
 };
 pub use decision_desk::{
     DecisionError, DecisionOutboxRecord, DecisionQueueItemRecord, DecisionQueueRecord,

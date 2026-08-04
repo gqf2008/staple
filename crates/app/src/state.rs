@@ -5,13 +5,14 @@ use std::sync::Arc;
 use staple_data::{
     ActivityRepository, AgentRepository, AgentRuntimeRepository, ApiKeyRepository,
     ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
-    CaseRepository, CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
-    EnvironmentRepository, ExternalObjectCatalogRepository, ExternalObjectRepository,
-    GoalRepository, HeartbeatRepository, InviteRepository, IssueCommentRepository,
-    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
-    MembershipRepository, PermissionGrantRepository, PipelineRepository, PluginRepository,
-    PluginRuntimeRepository, PreferenceRepository, ProjectRepository, RoutineRepository,
-    SecretRepository, SkillRepository, WorkProductRepository, WorkspaceRepository,
+    CaseRepository, CompanyRepository, CostRepository, DecisionActionRepository,
+    DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectCatalogRepository,
+    ExternalObjectRepository, GoalRepository, HeartbeatRepository, InviteRepository,
+    IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
+    LabelRepository, MembershipRepository, PermissionGrantRepository, PipelineRepository,
+    PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
+    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -78,6 +79,8 @@ pub struct AppState {
     pub api_keys: Arc<dyn ApiKeyRepository>,
     /// Decision desk repository.
     pub decisions: Arc<dyn DecisionRepository>,
+    /// Decision action domain repository (bundles/decisions/effects/training).
+    pub decision_actions: Arc<dyn DecisionActionRepository>,
     /// External object repository (legacy issue links).
     pub external_objects: Arc<dyn ExternalObjectRepository>,
     /// External-object catalog + mentions repository (upstream alignment).

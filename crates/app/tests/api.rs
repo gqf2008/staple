@@ -13,8 +13,9 @@ use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
     TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
-    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
+    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
+    TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
@@ -119,6 +120,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let decisions_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let decision_actions_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     let external_objects_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
@@ -177,6 +181,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         secrets: Arc::new(TursoSecretRepository::new(secrets_db, secret_cipher)),
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
+        decision_actions: Arc::new(TursoDecisionActionRepository::new(decision_actions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
         external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
             external_object_catalog_db,
