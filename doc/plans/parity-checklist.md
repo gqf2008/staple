@@ -64,11 +64,11 @@
 |---|---|---|
 | 第 1 批 | 执行面：heartbeat_runs +37 列、issues +16 列 + 索引（迁移 0021） | ✅ 完成（issue #96/PR #97） |
 | 第 2 批 | Case 附属表（case_issue_links/case_events/case_documents/case_labels/case_attachments）+ external_objects 目录/mentions 对齐（旧 issue_external_objects 保留） | ✅ 完成（issue #98/PR #99） |
-| 第 3 批 | 决策桌扩展（decisions/bundles/effect_executions/target_issues/training_examples） | ⏳ 待办 |
-| 第 4 批 | Skills 版本体系 + Secret provider/bindings + user_secret_* | ⏳ 待办 |
-| 第 5 批 | 工具链域（tool_*，约 30 张） | ⏳ 待办 |
-| 第 6 批 | 基础设施（user/session/account/verification/instance_settings/folders 等） | ⏳ 待办 |
-| 收尾 | 其余散表（status_cards/summary_slots/smoke_*/feedback_*/finance_*/heartbeat_run_events/watchdogs 等） | ⏳ 待办 |
+| 第 3 批 | 决策桌扩展（decision_bundles/decisions/decision_target_issues/decision_effect_executions/decision_training_examples） | ✅ 完成（issue #100/PR #101） |
+| 第 4 批 | Skills 版本体系（versions/policies/comments/stars/tests）+ Secret provider/bindings + user_secret_*/secret_access_events | ✅ 完成（issue #104/PR #107） |
+| 第 5 批 | 工具链域（tool_* + connection_*，23 张） | ✅ 完成（issue #103/PR #108） |
+| 第 6 批 | 基础设施（auth 四表/instance_settings/folders/agent_config_revisions/watchdogs/holds/heartbeat 事件/environment images/用户偏好等 27 张） | ✅ 完成（issue #102/PR #105） |
+| 收尾 | 其余散表（status_cards(+updates)/summary_slots/smoke_runs(+steps)/feedback_*/finance_events/document_annotations 等 11 张） | ✅ 完成（issue #106/PR #109） |
 
 ## 参考镜像同步登记
 
