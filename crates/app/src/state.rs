@@ -6,12 +6,12 @@ use staple_data::{
     ActivityRepository, AgentRepository, AgentRuntimeRepository, ApiKeyRepository,
     ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
     CaseRepository, CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
-    EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
-    InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
-    IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
-    PipelineRepository, PluginRepository, PluginRuntimeRepository, PreferenceRepository,
-    ProjectRepository, RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
-    WorkspaceRepository,
+    EnvironmentRepository, ExternalObjectCatalogRepository, ExternalObjectRepository,
+    GoalRepository, HeartbeatRepository, InviteRepository, IssueCommentRepository,
+    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
+    MembershipRepository, PermissionGrantRepository, PipelineRepository, PluginRepository,
+    PluginRuntimeRepository, PreferenceRepository, ProjectRepository, RoutineRepository,
+    SecretRepository, SkillRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -78,8 +78,10 @@ pub struct AppState {
     pub api_keys: Arc<dyn ApiKeyRepository>,
     /// Decision desk repository.
     pub decisions: Arc<dyn DecisionRepository>,
-    /// External object repository.
+    /// External object repository (legacy issue links).
     pub external_objects: Arc<dyn ExternalObjectRepository>,
+    /// External-object catalog + mentions repository (upstream alignment).
+    pub external_object_catalog: Arc<dyn ExternalObjectCatalogRepository>,
     /// Skills repository.
     pub skills: Arc<dyn SkillRepository>,
     /// Environments repository.

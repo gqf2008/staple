@@ -14,13 +14,13 @@ use staple_data::{
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
     TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
     TursoCaseRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
-    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoInviteRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
-    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
-    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
+    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
+    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -122,6 +122,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let external_objects_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let external_object_catalog_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     let skills_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
@@ -175,6 +178,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
+        external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
+            external_object_catalog_db,
+        )),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),

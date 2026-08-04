@@ -212,7 +212,7 @@ pub struct NewPipelineCase {
 
 /// Input for appending an event.
 #[derive(Debug, Clone)]
-pub struct NewCaseEvent {
+pub struct NewPipelineCaseEvent {
     pub company_id: String,
     pub case_id: String,
     pub r#type: String,
@@ -443,7 +443,7 @@ pub trait PipelineRepository: Send + Sync {
 
     async fn add_event(
         &self,
-        input: NewCaseEvent,
+        input: NewPipelineCaseEvent,
     ) -> Result<PipelineCaseEventRecord, PipelineError>;
     async fn list_events(
         &self,
@@ -1329,7 +1329,7 @@ impl PipelineRepository for TursoPipelineRepository {
 
     async fn add_event(
         &self,
-        input: NewCaseEvent,
+        input: NewPipelineCaseEvent,
     ) -> Result<PipelineCaseEventRecord, PipelineError> {
         let conn = crate::connection::connect(&self.db).await?;
         let mut case_rows = conn

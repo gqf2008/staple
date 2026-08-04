@@ -2,7 +2,7 @@
 
 use serde::Deserialize;
 use serde_json::json;
-use staple_data::{CasePatch, CaseRecord, NewCase};
+use staple_data::{CasePatch, CaseRecord, NewCase, NewCaseEvent};
 use topcoat::{
     Result,
     context::{Cx, app_context},
@@ -312,6 +312,367 @@ fn case_error_to_api(error: staple_data::CaseError) -> ApiError {
         ),
         other => ApiError::internal(other.to_string()),
     }
+}
+
+/// Body for `POST /api/cases/{id}/issue-links`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkIssueRequest {
+    /// Issue id.
+    pub issue_id: String,
+    /// Link role (`origin` | `work` | `reference`).
+    #[serde(default = "default_link_role")]
+    pub role: String,
+}
+
+fn default_link_role() -> String {
+    "work".to_owned()
+}
+
+/// Body for `POST /api/cases/{id}/events`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddCaseEventRequest {
+    /// Event kind (upstream `case_events.kind` CHECK).
+    pub kind: String,
+    /// Actor type (`user` | `agent` | `system`).
+    pub actor_type: String,
+    /// Actor user id.
+    #[serde(default)]
+    pub actor_user_id: Option<String>,
+    /// Actor agent id.
+    #[serde(default)]
+    pub actor_agent_id: Option<String>,
+    /// Originating run id.
+    #[serde(default)]
+    pub run_id: Option<String>,
+    /// Event payload.
+    #[serde(default)]
+    pub payload: Option<serde_json::Value>,
+}
+
+/// Body for `POST /api/cases/{id}/documents`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkDocumentRequest {
+    /// Document id.
+    pub document_id: String,
+    /// Document key within the case.
+    pub key: String,
+}
+
+/// Body for `POST /api/cases/{id}/labels`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddCaseLabelRequest {
+    /// Label id.
+    pub label_id: String,
+}
+
+/// Body for `POST /api/cases/{id}/attachments`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AddCaseAttachmentRequest {
+    /// Asset id.
+    pub asset_id: String,
+}
+
+const CASE_EVENT_KINDS: [&str; 11] = [
+    "created",
+    "updated",
+    "fields_changed",
+    "status_changed",
+    "issue_linked",
+    "issue_unlinked",
+    "document_revised",
+    "child_linked",
+    "attachment_added",
+    "label_added",
+    "label_removed",
+];
+
+/// Resolves the owning company of `case_id` and enforces board scope.
+async fn case_company(cx: &Cx, state: &AppState, case_id: &str) -> Result<String, ApiError> {
+    let Some(company_id) = state
+        .cases
+        .company_of(case_id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    Ok(company_id)
+}
+
+/// `POST /api/cases/{id}/issue-links` — links an issue to a case.
+#[route(POST "/api/cases/{id}/issue-links")]
+pub async fn link_case_issue(
+    cx: &Cx,
+    Json(body): Json<LinkIssueRequest>,
+) -> Result<(StatusCode, Json<staple_data::CaseIssueLinkRecord>), ApiError> {
+    if body.issue_id.trim().is_empty() {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["issueId"], "message": "String must contain at least 1 character(s)" }]),
+        ));
+    }
+    if !matches!(body.role.as_str(), "origin" | "work" | "reference") {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["role"], "message": "Invalid enum value. Expected 'origin' | 'work' | 'reference'" }]),
+        ));
+    }
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let record = state
+        .cases
+        .link_issue(&company_id, &case_id, &body.issue_id, &body.role)
+        .await
+        .map_err(case_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &company_id,
+        "case.issue_linked",
+        "case",
+        &case_id,
+        Some(json!({ "issueId": body.issue_id, "role": body.role })),
+    )
+    .await?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/cases/{id}/issue-links` — lists linked issues.
+#[route(GET "/api/cases/{id}/issue-links")]
+pub async fn list_case_issue_links(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::CaseIssueLinkRecord>>, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let records = state
+        .cases
+        .list_issue_links(&company_id, &case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(records))
+}
+
+/// `DELETE /api/cases/{id}/issue-links/{issue_id}` — unlinks an issue.
+#[route(DELETE "/api/cases/{id}/issue-links/{issue_id}")]
+pub async fn unlink_case_issue(cx: &Cx) -> Result<StatusCode, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let issue_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let removed = state
+        .cases
+        .unlink_issue(&company_id, &case_id, &issue_id)
+        .await
+        .map_err(case_error_to_api)?;
+    if !removed {
+        return Err(ApiError::not_found("Issue link not found"));
+    }
+    log_activity(
+        &state.activity,
+        &company_id,
+        "case.issue_unlinked",
+        "case",
+        &case_id,
+        Some(json!({ "issueId": issue_id })),
+    )
+    .await?;
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// `POST /api/cases/{id}/events` — records a case event.
+#[route(POST "/api/cases/{id}/events")]
+pub async fn add_case_event(
+    cx: &Cx,
+    Json(body): Json<AddCaseEventRequest>,
+) -> Result<(StatusCode, Json<staple_data::CaseEventRecord>), ApiError> {
+    if !CASE_EVENT_KINDS.contains(&body.kind.as_str()) {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["kind"], "message": "Invalid case event kind" }]),
+        ));
+    }
+    if !matches!(body.actor_type.as_str(), "user" | "agent" | "system") {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["actorType"], "message": "Invalid enum value. Expected 'user' | 'agent' | 'system'" }]),
+        ));
+    }
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let record = state
+        .cases
+        .add_event(NewCaseEvent {
+            company_id,
+            case_id,
+            kind: body.kind,
+            actor_type: body.actor_type,
+            actor_user_id: body.actor_user_id,
+            actor_agent_id: body.actor_agent_id,
+            run_id: body.run_id,
+            payload: body.payload,
+        })
+        .await
+        .map_err(case_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/cases/{id}/events` — lists case events.
+#[route(GET "/api/cases/{id}/events")]
+pub async fn list_case_events(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::CaseEventRecord>>, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let records = state
+        .cases
+        .list_events(&company_id, &case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(records))
+}
+
+/// `POST /api/cases/{id}/documents` — links a document to a case.
+#[route(POST "/api/cases/{id}/documents")]
+pub async fn link_case_document(
+    cx: &Cx,
+    Json(body): Json<LinkDocumentRequest>,
+) -> Result<(StatusCode, Json<staple_data::CaseDocumentRecord>), ApiError> {
+    if body.document_id.trim().is_empty() || body.key.trim().is_empty() {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["documentId"], "message": "documentId and key are required" }]),
+        ));
+    }
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let record = state
+        .cases
+        .link_document(&company_id, &case_id, &body.document_id, &body.key)
+        .await
+        .map_err(case_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/cases/{id}/documents` — lists case documents.
+#[route(GET "/api/cases/{id}/documents")]
+pub async fn list_case_documents(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::CaseDocumentRecord>>, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let records = state
+        .cases
+        .list_documents(&company_id, &case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(records))
+}
+
+/// `POST /api/cases/{id}/labels` — adds a label to a case.
+#[route(POST "/api/cases/{id}/labels")]
+pub async fn add_case_label(
+    cx: &Cx,
+    Json(body): Json<AddCaseLabelRequest>,
+) -> Result<(StatusCode, Json<staple_data::CaseLabelRecord>), ApiError> {
+    if body.label_id.trim().is_empty() {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["labelId"], "message": "String must contain at least 1 character(s)" }]),
+        ));
+    }
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let record = state
+        .cases
+        .add_label(&company_id, &case_id, &body.label_id)
+        .await
+        .map_err(case_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/cases/{id}/labels` — lists case labels.
+#[route(GET "/api/cases/{id}/labels")]
+pub async fn list_case_labels(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::CaseLabelRecord>>, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let records = state
+        .cases
+        .list_labels(&company_id, &case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(records))
+}
+
+/// `DELETE /api/cases/{id}/labels/{label_id}` — removes a case label.
+#[route(DELETE "/api/cases/{id}/labels/{label_id}")]
+pub async fn remove_case_label(cx: &Cx) -> Result<StatusCode, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let label_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let removed = state
+        .cases
+        .remove_label(&company_id, &case_id, &label_id)
+        .await
+        .map_err(case_error_to_api)?;
+    if !removed {
+        return Err(ApiError::not_found("Case label not found"));
+    }
+    Ok(StatusCode::NO_CONTENT)
+}
+
+/// `POST /api/cases/{id}/attachments` — attaches an asset to a case.
+#[route(POST "/api/cases/{id}/attachments")]
+pub async fn add_case_attachment(
+    cx: &Cx,
+    Json(body): Json<AddCaseAttachmentRequest>,
+) -> Result<(StatusCode, Json<staple_data::CaseAttachmentRecord>), ApiError> {
+    if body.asset_id.trim().is_empty() {
+        return Err(ApiError::unprocessable(
+            "Validation error",
+            json!([{ "path": ["assetId"], "message": "String must contain at least 1 character(s)" }]),
+        ));
+    }
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let record = state
+        .cases
+        .add_attachment(&company_id, &case_id, &body.asset_id)
+        .await
+        .map_err(case_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/cases/{id}/attachments` — lists case attachments.
+#[route(GET "/api/cases/{id}/attachments")]
+pub async fn list_case_attachments(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::CaseAttachmentRecord>>, ApiError> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = case_company(cx, state, &case_id).await?;
+    let records = state
+        .cases
+        .list_attachments(&company_id, &case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(records))
 }
 
 /// Silence unused import warnings when no uuid validation is used yet.
