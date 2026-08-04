@@ -12,6 +12,7 @@ pub mod approvals;
 pub mod assets;
 pub mod board_keys;
 pub mod budget_policies;
+pub mod cases;
 pub mod companies;
 pub mod costs;
 pub mod decision_desk;
@@ -70,6 +71,10 @@ pub use board_keys::{
 pub use budget_policies::{
     BudgetIncidentRecord, BudgetPolicyError, BudgetPolicyRecord, BudgetPolicyRepository,
     NewBudgetIncident, NewBudgetPolicy, TursoBudgetPolicyRepository,
+};
+pub use cases::{
+    CaseError, CasePatch, CaseRecord, CaseRepository, NewCase, TursoCaseRepository,
+    allowed_case_transition,
 };
 pub use companies::{
     CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,

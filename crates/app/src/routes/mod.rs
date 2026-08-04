@@ -11,6 +11,7 @@ pub mod assets;
 pub mod auth;
 pub mod board_keys;
 pub mod budget_policies;
+pub mod cases;
 pub mod comments;
 pub mod companies;
 pub mod costs;

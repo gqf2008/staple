@@ -8,7 +8,7 @@ use staple_app::{config::AppConfig, router, state::AppState};
 use staple_data::{
     SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoAgentRuntimeRepository,
     TursoApiKeyRepository, TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
-    TursoBudgetPolicyRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
     TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
@@ -35,6 +35,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let invites_db = open(&db_config).await?;
     let board_keys_db = open(&db_config).await?;
     let budget_policies_db = open(&db_config).await?;
+    let cases_db = open(&db_config).await?;
     let preferences_db = open(&db_config).await?;
     let plugins_db = open(&db_config).await?;
     let plugin_runtime_db = open(&db_config).await?;
@@ -72,6 +73,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
+        cases: Arc::new(TursoCaseRepository::new(cases_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
         plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),

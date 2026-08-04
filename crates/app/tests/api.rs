@@ -13,14 +13,15 @@ use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
     TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository, TursoDocumentRepository,
-    TursoEnvironmentRepository, TursoExternalObjectRepository, TursoGoalRepository,
-    TursoHeartbeatRepository, TursoInviteRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
-    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
+    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectRepository,
+    TursoGoalRepository, TursoHeartbeatRepository, TursoInviteRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
+    TursoPermissionGrantRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -55,6 +56,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let budget_policies_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let cases_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let preferences_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -146,6 +150,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
+        cases: Arc::new(TursoCaseRepository::new(cases_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
         plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
@@ -4703,4 +4708,109 @@ async fn scheduler_wakeup_routine_cron_and_sweep() {
     )
     .await;
     assert_eq!(runs.as_array().unwrap().len(), 1);
+}
+
+#[tokio::test]
+async fn cases_lifecycle_status_and_boundary() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/cases",
+        json!({ "caseType": "support", "key": "k1", "title": "Billing issue", "fields": { "severity": "high" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let case_id = body["id"].as_str().unwrap().to_owned();
+    assert_eq!(body["identifier"], "ALPHA-CASE-1");
+    assert_eq!(body["status"], "draft");
+
+    // Status machine.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cases/{case_id}/status"),
+        json!({ "status": "in_progress" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "in_progress");
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cases/{case_id}/status"),
+        json!({ "status": "done" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    // Terminal case rejects forward moves.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cases/{case_id}/status"),
+        json!({ "status": "in_review" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // Update + get + list.
+    let (status, body) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/cases/{case_id}"),
+        json!({ "title": "Billing issue v2", "summary": "escalated" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["title"], "Billing issue v2");
+    let (status, cases) = send_json(&app, Method::GET, "/api/companies/c1/cases", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(cases.as_array().unwrap().len(), 1);
+
+    // Duplicate type+key rejected.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/cases",
+        json!({ "caseType": "support", "key": "k1", "title": "Dup" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // Cross-company get is 404.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/cases/{case_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    // Delete.
+    let (status, _) = send_json(
+        &app,
+        Method::DELETE,
+        &format!("/api/cases/{case_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/cases/{case_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }

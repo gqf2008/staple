@@ -91,6 +91,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/decision-desk"), lang))>(t(lang, "decision.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
@@ -1787,6 +1788,110 @@ struct AdapterRunQuery {
     #[serde(rename = "runId")]
     run_id: Option<String>,
 }
+
+/// Cases list page: create form + list.
+#[page("/companies/{company_id}/cases")]
+pub async fn cases_list(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let rows = state
+        .cases
+        .list(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "cases.title"))</h1>
+        <form class="inline-form" method="post"
+              action=(with_lang(&format!("/companies/{company_id}/cases/ui"), lang))>
+            <input type="text" name="case_type" placeholder=(t(lang, "cases.type"))>
+            <input type="text" name="title" placeholder=(t(lang, "cases.title"))>
+            <button type="submit">(t(lang, "settings.add"))</button>
+        </form>
+        if rows.is_empty() {
+            <p class="empty">(t(lang, "cases.empty"))</p>
+        } else {
+            <ul class="list">
+                for case in rows {
+                    <li>
+                        <a href=(with_lang(&format!("/cases/{}", case.id), lang))>
+                            <span class="mono">(case.identifier.clone())</span>
+                            " " <strong>(case.title.clone())</strong>
+                        </a>
+                        " " <span class=(status_badge_class(&case.status))>(case.status)</span>
+                        " " <span class="badge badge-default">(case.case_type)</span>
+                    </li>
+                }
+            </ul>
+        }
+    }
+}
+
+/// Case detail: attributes, fields, parent, and status moves.
+#[page("/cases/{case_id}")]
+pub async fn case_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let case_id = path_param::<CasePathId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .cases
+        .company_of(&case_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let Some(case) = state
+        .cases
+        .get(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let next_statuses = ["in_progress", "in_review", "approved", "done", "cancelled"];
+    let status_url = with_lang(&format!("/cases/{case_id}/status/ui"), lang);
+    view! {
+        <h1 class="page-title">(case.title.clone())</h1>
+        <p class="mono">(case.identifier.clone()) " #" (case.case_number)</p>
+        <p>
+            <span class=(status_badge_class(&case.status))>(case.status.clone())</span>
+            " " <span class="badge badge-default">(case.case_type)</span>
+            if let Some(summary) = &case.summary {
+                " " <span class="meta-row">(summary.clone())</span>
+            }
+        </p>
+        <section>
+            <h2>(t(lang, "cases.move"))</h2>
+            <form class="inline-form" method="post" action=(status_url)>
+                <select name="status">
+                    for candidate in next_statuses {
+                        if candidate != case.status {
+                            <option value=(candidate)>(candidate)</option>
+                        }
+                    }
+                </select>
+                <button type="submit">(t(lang, "cases.move"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "cases.fields"))</h2>
+            <p class="mono">(case.fields.to_string())</p>
+        </section>
+        if let Some(parent_id) = &case.parent_case_id {
+            <section>
+                <h2>(t(lang, "cases.parent"))</h2>
+                <a href=(with_lang(&format!("/cases/{parent_id}"), lang))>
+                    <span class="mono">(parent_id.clone())</span>
+                </a>
+            </section>
+        }
+    }
+}
+
+/// `{case_id}` path parameter for UI pages.
+#[path_param(error = bad_request("Invalid case id"))]
+pub(crate) struct CasePathId(String);
 
 /// `{type}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid adapter type"))]
