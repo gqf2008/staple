@@ -445,6 +445,26 @@ async fn core_business_flow_smoke() {
             "User secrets",
         ),
         (format!("/companies/{company_id}/folders"), "Folders"),
+        (
+            format!("/companies/{company_id}/tools/profiles"),
+            "Tool profiles",
+        ),
+        (
+            format!("/companies/{company_id}/tools/connections"),
+            "Tool connections",
+        ),
+        (
+            format!("/companies/{company_id}/tools/gateways"),
+            "Tool gateways",
+        ),
+        (
+            format!("/companies/{company_id}/tools/catalog"),
+            "Tool catalog",
+        ),
+        (
+            format!("/companies/{company_id}/tools/invocations"),
+            "Tool invocations",
+        ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
