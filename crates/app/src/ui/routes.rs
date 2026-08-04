@@ -1562,3 +1562,205 @@ pub async fn create_project_ui(
     }
     Ok(see_other(&format!("/companies/{company_id}/projects")))
 }
+
+// --- Decisions & training example UI forms --------------------------------
+
+/// Decision create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DecisionUiForm {
+    /// Decision title.
+    pub title: String,
+    /// Decision body.
+    pub body: Option<String>,
+    /// Options JSON array.
+    pub options: Option<String>,
+    /// Decision status.
+    pub status: Option<String>,
+    /// ISO 8601 expiry.
+    pub expires_at: String,
+    /// Origin agent id.
+    pub origin_agent_id: String,
+    /// Origin issue id.
+    pub origin_issue_id: String,
+    /// Origin run id.
+    pub origin_run_id: String,
+}
+
+/// Decision resolve form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResolveDecisionUiForm {
+    /// Target status.
+    pub status: String,
+    /// Chosen option id.
+    pub chosen_option_id: Option<String>,
+    /// Deciding user id.
+    pub decided_by_user_id: Option<String>,
+}
+
+/// Training example create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TrainingExampleUiForm {
+    /// Source kind.
+    pub source_kind: String,
+    /// Source id.
+    pub source_id: String,
+    /// Issue id.
+    pub issue_id: String,
+    /// ISO 8601 cutoff.
+    pub cutoff_at: String,
+    /// Snapshot JSON.
+    pub snapshot: Option<String>,
+    /// Creating user id.
+    pub created_by_user_id: String,
+}
+
+/// `POST /companies/{companyId}/decisions/ui` — creates a decision, redirects
+/// to the decisions page.
+#[route(POST "/companies/{company_id}/decisions/ui")]
+pub async fn create_decision_ui(
+    cx: &Cx,
+    Form(form): Form<DecisionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let title = form.title.trim().to_owned();
+    let expires_at = form.expires_at.trim().to_owned();
+    let options = serde_json::from_str(form.options.as_deref().unwrap_or("[]"))
+        .unwrap_or_else(|_| serde_json::json!([]));
+    if !title.is_empty()
+        && !expires_at.is_empty()
+        && !form.origin_agent_id.is_empty()
+        && !form.origin_issue_id.is_empty()
+        && !form.origin_run_id.is_empty()
+        && let Ok(decision) = state
+            .decision_actions
+            .create_decision(staple_data::NewDecision {
+                company_id: company_id.clone(),
+                bundle_id: None,
+                origin_agent_id: form.origin_agent_id,
+                origin_issue_id: form.origin_issue_id,
+                origin_run_id: form.origin_run_id,
+                rule_key: None,
+                title,
+                body: form.body.unwrap_or_default(),
+                options,
+                inputs: None,
+                status: form.status.unwrap_or_else(|| "open".to_owned()),
+                execution_status: None,
+                chosen_option_id: None,
+                input_values: None,
+                decided_by_user_id: None,
+                decided_at: None,
+                expires_at,
+                idempotency_key: None,
+                signed_spec: "manual".to_owned(),
+                target_snapshots: serde_json::json!({}),
+                continuation_policy: "none".to_owned(),
+                metadata: serde_json::json!({}),
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &decision.company_id,
+            "decision.created",
+            "decision",
+            &decision.id,
+            Some(serde_json::json!({ "title": decision.title })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/decisions")))
+}
+
+/// `POST /decisions/{id}/resolve/ui` — resolves a decision, redirects to its
+/// detail.
+#[route(POST "/decisions/{id}/resolve/ui")]
+pub async fn resolve_decision_ui(
+    cx: &Cx,
+    Form(form): Form<ResolveDecisionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let decision_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .decision_actions
+        .decision_company(&decision_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    let _ = state
+        .decision_actions
+        .resolve_decision(staple_data::ResolveDecision {
+            company_id: company_id.clone(),
+            decision_id: decision_id.clone(),
+            status: form.status,
+            execution_status: None,
+            chosen_option_id: form.chosen_option_id.filter(|value| !value.is_empty()),
+            decided_by_user_id: form.decided_by_user_id.filter(|value| !value.is_empty()),
+            decided_at: None,
+            input_values: None,
+        })
+        .await;
+    let _ = log_activity(
+        &state.activity,
+        &company_id,
+        "decision.resolved",
+        "decision",
+        &decision_id,
+        Some(serde_json::json!({ "id": decision_id })),
+    )
+    .await;
+    Ok(see_other(&format!("/decisions/{decision_id}")))
+}
+
+/// `POST /companies/{companyId}/decision-training-examples/ui` — creates a
+/// training example, redirects to the list.
+#[route(POST "/companies/{company_id}/decision-training-examples/ui")]
+pub async fn create_training_example_ui(
+    cx: &Cx,
+    Form(form): Form<TrainingExampleUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let snapshot = serde_json::from_str(form.snapshot.as_deref().unwrap_or("{}"))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if !form.source_kind.trim().is_empty()
+        && !form.source_id.trim().is_empty()
+        && !form.cutoff_at.trim().is_empty()
+        && let Ok(example) = state
+            .decision_actions
+            .create_training_example(staple_data::NewDecisionTrainingExample {
+                company_id: company_id.clone(),
+                source_kind: form.source_kind,
+                source_id: form.source_id,
+                issue_id: form.issue_id,
+                cutoff_at: form.cutoff_at,
+                notes: String::new(),
+                notes_history: serde_json::json!([]),
+                decision_outcome: None,
+                retention_policy: "scrub_deleted_comments_v1".to_owned(),
+                snapshot,
+                created_by_user_id: form.created_by_user_id,
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &example.company_id,
+            "decision.training_example_created",
+            "decision_training_example",
+            &example.id,
+            Some(serde_json::json!({ "sourceKind": example.source_kind })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/decision-training-examples"
+    )))
+}
