@@ -63,7 +63,7 @@
 | 批次 | 范围 | 状态 |
 |---|---|---|
 | 第 1 批 | 执行面：heartbeat_runs +37 列、issues +16 列 + 索引（迁移 0021） | ✅ 完成（issue #96/PR #97） |
-| 第 2 批 | Case 附属表（case_attachments/documents/events/issue_links/labels）+ external_objects 重命名 | ⏳ 待办 |
+| 第 2 批 | Case 附属表（case_issue_links/case_events/case_documents/case_labels/case_attachments）+ external_objects 目录/mentions 对齐（旧 issue_external_objects 保留） | ✅ 完成（issue #98/PR #99） |
 | 第 3 批 | 决策桌扩展（decisions/bundles/effect_executions/target_issues/training_examples） | ⏳ 待办 |
 | 第 4 批 | Skills 版本体系 + Secret provider/bindings + user_secret_* | ⏳ 待办 |
 | 第 5 批 | 工具链域（tool_*，约 30 张） | ⏳ 待办 |
