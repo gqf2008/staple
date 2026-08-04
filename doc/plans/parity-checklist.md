@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成 + scheduler + UI 批次 + Pipelines 全套 + 38 语言 locale + P3 双栈切换 #27）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27）。
 
 ## 使用方式
 
@@ -45,18 +45,18 @@
 | **P2 UI：issue 详情** | 属性/评论/文档/附件/work products | ✅ 完成 | `ui/pages.rs` issue_detail |
 | **P2 UI：agents/inbox/决策桌/访问/成本/例行/密钥/技能/实例设置** | agents 列表/详情、收件箱、决策桌、公司访问（成员/邀请/加入申请/授权）、成本、例行任务、密钥、技能、实例设置（角色/board keys/CLI 挑战） | ✅ 完成 | `pages.rs` + `ui/routes.rs` 表单路由；issue #65；release smoke 覆盖全部新页面 |
 | **P2 扩展：Pipelines（核心五表）** | pipelines/stages/transitions/cases/events + 强制流转 + 阶段移动 + 事件审计 | ✅ 完成 | 迁移 0019 + `pipelines` 仓库/路由/UI；issue #86/PR #87；issue_links/blockers/documents/automation 延后批次 |
-| **P2 UI：搜索/看板/设置** | 任务搜索、看板列 + 状态移动、设置页（公司/预算/密钥/技能） | ✅ 完成 | `pages.rs` board/search/settings + `ui/routes.rs` 表单；issue #65；release smoke 覆盖页面渲染 |
+| **P2 UI：搜索/看板/设置** | 任务搜索、看板列 + 原生 HTML5 拖拽状态变更、设置页（公司/预算/密钥/技能） | ✅ 完成 | `pages.rs` + `ui/routes.rs` + `board.js`；issue #65 + #94；smoke 覆盖渲染与脚本 |
 | **P2 UI：审批流** | 发起/审批/拒绝 | ✅ 完成 | `ui/pages.rs` approvals + 表单路由 |
 | **P2 UI：审计视图** | 审计日志 | ✅ 完成 | `ui/pages.rs` activity |
 | **P2 插件生态** | 外部适配器插件契约（版本化） | ✅ 完成 | `plugins.rs`；诊断报告 + 覆盖内置 |
 | **P3 数据迁移** | Postgres → Turso 导出/导入 | ✅ 完成 | `tools/migrate/`（#26 + #66）；Postgres 读取器（`export_postgres`）+ 列感知导入 + verify；本地 Postgres 契约测试 + CLI 端到端 |
-| **P3 双栈切换** | Node 冻结与删除 | ✅ 完成 | #27：server/ui/packages + Node workflows/scripts 移除；Rust 单二进制为唯一入口；参考镜像保留 Node 代码 |
+| **P3 双栈切换** | Node 冻结与删除 | ✅ 完成 | #27：Node 树/workflows/scripts 与全部 Node 时代残留移除；Rust 单二进制唯一入口；参考镜像保留 Node 代码 |
 
 ## 未对齐/明确延后的上游能力（登记为需求）
 
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
-| **UI 国际化（i18n）** | 上游 10172 键/语言 locale；Rust `crates/app/src/i18n.rs` 直接嵌入 en/zh-CN/zh-TW 全量键集（`crates/app/locales/*.json`），`?lang=` 三语切换，本地键 fallback | ✅ 完成（#50 + #65；上游其余 35 种语言可按需嵌入） |
+| **UI 国际化（i18n）** | 上游全部 38 种语言 locale（各 10172 键）嵌入 `crates/app/locales/`；`?lang=` 全语言切换，本地键 fallback | ✅ 完成（#50 + #65 + #90） |
 
 ## 参考镜像同步登记
 
