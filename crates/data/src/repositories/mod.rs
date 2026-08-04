@@ -38,7 +38,9 @@ pub mod plugins;
 pub mod preferences;
 pub mod projects;
 pub mod routines;
+pub mod secret_bindings;
 pub mod secrets;
+pub mod skill_catalog;
 pub mod skills;
 pub mod work_products;
 pub mod workspaces;
@@ -195,9 +197,21 @@ pub use routines::{
     NewRoutine, NewTrigger, RoutineError, RoutineRecord, RoutineRepository, RoutineRunRecord,
     TursoRoutineRepository, UpdateRoutine,
 };
+pub use secret_bindings::{
+    NewSecretAccessEvent, NewSecretBinding, NewSecretProviderConfig, NewUserSecretDeclaration,
+    NewUserSecretDefinition, SecretAccessEventRecord, SecretBindingError, SecretBindingRecord,
+    SecretBindingRepository, SecretProviderConfigRecord, TursoSecretBindingRepository,
+    UserSecretDeclarationRecord, UserSecretDefinitionRecord,
+};
 pub use secrets::{
     CompanySecretRecord, NewSecret, SecretError, SecretRepository, SecretVersionRecord,
     TursoSecretRepository,
+};
+pub use skill_catalog::{
+    NewSkillComment, NewSkillStar, NewSkillTestInput, NewSkillTestRun, NewSkillTestRunTemplate,
+    NewSkillVersion, SetSkillPolicy, SkillCatalogError, SkillCatalogRepository, SkillCommentRecord,
+    SkillPolicyRecord, SkillStarRecord, SkillTestInputRecord, SkillTestRunRecord,
+    SkillTestRunTemplateRecord, SkillVersionRecord, TursoSkillCatalogRepository,
 };
 pub use skills::{NewSkill, SkillError, SkillRecord, SkillRepository, TursoSkillRepository};
 pub use work_products::{

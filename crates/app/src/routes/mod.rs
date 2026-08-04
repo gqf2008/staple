@@ -35,7 +35,9 @@ pub mod preferences;
 pub mod projects;
 pub mod relations;
 pub mod routines;
+pub mod secret_bindings;
 pub mod secrets;
+pub mod skill_catalog;
 pub mod skills;
 pub mod work_products;
 pub mod workspaces;
@@ -43,6 +45,10 @@ pub mod workspaces;
 /// Shared `{id}` path parameter (goals, projects, and future resources).
 #[path_param(error = bad_request("Invalid id"))]
 pub(crate) struct Id(String);
+
+/// `{skill_id}` path parameter (skill catalog routes).
+#[path_param(error = bad_request("Invalid skill id"))]
+pub(crate) struct SkillId(String);
 
 /// Shared `{company_id}` path parameter.
 #[path_param(error = bad_request("Invalid company id"))]
