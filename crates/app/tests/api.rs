@@ -17,13 +17,15 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
+    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository, migrate,
+    open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -52,6 +54,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let invites_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let infrastructure_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let board_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -157,6 +162,12 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let tool_gateway_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let skill_catalog_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let secret_bindings_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -168,6 +179,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
@@ -196,6 +208,8 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
             external_object_catalog_db,
         )),
+        skill_catalog: Arc::new(TursoSkillCatalogRepository::new(skill_catalog_db)),
+        secret_bindings: Arc::new(TursoSecretBindingRepository::new(secret_bindings_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
@@ -5146,6 +5160,174 @@ async fn pipeline_extensions_api() {
 }
 
 #[tokio::test]
+async fn skill_catalog_and_secret_binding_routes() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO company_skills (id, company_id, name) VALUES ('s1', 'c1', 'code_review')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('a1', 'c1', 'Reviewer', 'senior', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+         VALUES ('i1', 'c1', 'Review all', 1, 'ALPHA-1')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO company_secrets (id, company_id, name) VALUES ('sec1', 'c1', 'github_token')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Skill version publish + list.
+    let (status, version) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/skills/s1/versions",
+        json!({ "label": "v1", "releaseId": "rel-1", "fileInventory": [] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {version}");
+    assert_eq!(version["revisionNumber"], 1);
+    let (status, versions) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/skills/s1/versions",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(versions.as_array().unwrap().len(), 1);
+
+    // Policy set + get.
+    let (status, policy) = send_json(
+        &app,
+        Method::PUT,
+        "/api/companies/c1/skill-policies",
+        json!({ "defaultEffect": "allow", "rules": [] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {policy}");
+    assert_eq!(policy["revision"], 1);
+    let (status, fetched) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/skill-policies",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(fetched["defaultEffect"], "allow");
+
+    // Secret binding set + list.
+    let (status, binding) = send_json(
+        &app,
+        Method::PUT,
+        "/api/companies/c1/secret-bindings",
+        json!({
+            "secretId": "sec1",
+            "targetType": "agent",
+            "targetId": "a1",
+            "configPath": "env.GITHUB_TOKEN"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {binding}");
+    assert_eq!(binding["configPath"], "env.GITHUB_TOKEN");
+    let (status, bindings) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/secret-bindings",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(bindings.as_array().unwrap().len(), 1);
+
+    // User secret definition + declaration.
+    let (status, definition) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/user-secret-definitions",
+        json!({ "key": "gh_pat", "name": "GitHub PAT" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {definition}");
+    let definition_id = definition["id"].as_str().unwrap().to_owned();
+    let (status, declaration) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/user-secret-declarations",
+        json!({
+            "userSecretDefinitionId": definition_id,
+            "targetType": "agent",
+            "targetId": "a1",
+            "configPath": "env.GH_PAT",
+            "envKey": "GH_PAT"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {declaration}");
+    assert_eq!(declaration["envKey"], "GH_PAT");
+    let (status, declarations) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/user-secret-declarations",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(declarations.as_array().unwrap().len(), 1);
+
+    // Access event create + list.
+    let (status, event) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/secret-access-events",
+        json!({
+            "secretId": "sec1",
+            "provider": "local_encrypted",
+            "actorType": "agent",
+            "actorId": "a1",
+            "consumerType": "heartbeat",
+            "consumerId": "h1",
+            "outcome": "granted"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {event}");
+    assert_eq!(event["outcome"], "granted");
+    let (status, events) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/secret-access-events",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(events.as_array().unwrap().len(), 1);
+}
+#[tokio::test]
+
 async fn toolchain_routes_flow() {
     let state = test_state().await;
     let app = router(state);
