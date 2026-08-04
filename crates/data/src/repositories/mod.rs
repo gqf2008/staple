@@ -139,8 +139,10 @@ pub use permission_grants::{
     TursoPermissionGrantRepository,
 };
 pub use pipelines::{
-    NewCaseEvent, NewPipeline, NewPipelineCase, NewStage, NewTransition, PipelineCaseEventRecord,
-    PipelineCaseRecord, PipelineError, PipelineRecord, PipelineRepository, PipelineStageRecord,
+    NewCaseEvent, NewPipeline, NewPipelineCase, NewStage, NewTransition,
+    PipelineAutomationExecutionRecord, PipelineCaseBlockerRecord, PipelineCaseDocumentRecord,
+    PipelineCaseEventRecord, PipelineCaseIssueLinkRecord, PipelineCaseRecord,
+    PipelineDocumentRecord, PipelineError, PipelineRecord, PipelineRepository, PipelineStageRecord,
     PipelineTransitionRecord, TursoPipelineRepository,
 };
 pub use plugin_runtime::{

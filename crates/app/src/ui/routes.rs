@@ -1229,3 +1229,136 @@ pub struct MoveForm {
     /// Target stage id.
     pub to_stage_id: Option<String>,
 }
+
+/// `POST /pipeline-cases/{id}/issue-links/ui` — links an issue to a case.
+#[route(POST "/pipeline-cases/{id}/issue-links/ui")]
+pub async fn pipeline_link_issue_ui(
+    cx: &Cx,
+    Form(form): Form<LinkIssueUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Some(company_id) = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .ok()
+        .flatten()
+    {
+        let issue_id = form.issue_id.trim().to_owned();
+        if !issue_id.is_empty() {
+            let _ = state
+                .pipelines
+                .link_issue(&company_id, &case_id, &issue_id, &form.role)
+                .await;
+        }
+    }
+    Ok(see_other(&format!("/pipeline-cases/{case_id}")))
+}
+
+/// `POST /pipeline-cases/{id}/blockers/ui` — adds a blocker edge.
+#[route(POST "/pipeline-cases/{id}/blockers/ui")]
+pub async fn pipeline_add_blocker_ui(
+    cx: &Cx,
+    Form(form): Form<BlockerUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Some(company_id) = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .ok()
+        .flatten()
+    {
+        let blocked_by = form.blocked_by_case_id.trim().to_owned();
+        if !blocked_by.is_empty() {
+            let _ = state
+                .pipelines
+                .add_blocker(&company_id, &case_id, &blocked_by)
+                .await;
+        }
+    }
+    Ok(see_other(&format!("/pipeline-cases/{case_id}")))
+}
+
+/// `POST /pipeline-cases/{id}/documents/ui` — links a document to a case.
+#[route(POST "/pipeline-cases/{id}/documents/ui")]
+pub async fn pipeline_link_case_doc_ui(
+    cx: &Cx,
+    Form(form): Form<DocumentUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Some(company_id) = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .ok()
+        .flatten()
+    {
+        let document_id = form.document_id.trim().to_owned();
+        if !document_id.is_empty() && !form.key.trim().is_empty() {
+            let _ = state
+                .pipelines
+                .link_case_document(&company_id, &case_id, &document_id, &form.key)
+                .await;
+        }
+    }
+    Ok(see_other(&format!("/pipeline-cases/{case_id}")))
+}
+
+/// `POST /pipelines/{id}/documents/ui` — links a document to a pipeline.
+#[route(POST "/pipelines/{id}/documents/ui")]
+pub async fn pipeline_link_doc_ui(
+    cx: &Cx,
+    Form(form): Form<DocumentUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let pipeline_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .ok()
+        .flatten()
+    {
+        let document_id = form.document_id.trim().to_owned();
+        if !document_id.is_empty() && !form.key.trim().is_empty() {
+            let _ = state
+                .pipelines
+                .link_pipeline_document(&company_id, &pipeline_id, &document_id, &form.key)
+                .await;
+        }
+    }
+    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
+}
+
+/// Link-issue form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkIssueUiForm {
+    /// Issue id.
+    pub issue_id: String,
+    /// Role.
+    #[serde(default)]
+    pub role: String,
+}
+
+/// Blocker form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockerUiForm {
+    /// Blocking case id.
+    pub blocked_by_case_id: String,
+}
+
+/// Document form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentUiForm {
+    /// Document id.
+    pub document_id: String,
+    /// Key.
+    pub key: String,
+}

@@ -1967,6 +1967,16 @@ pub async fn pipeline_detail(cx: &Cx) -> Result {
         .list_cases(&company_id, &pipeline_id)
         .await
         .map_err(to_topcoat_error)?;
+    let blockers = state
+        .pipelines
+        .list_blockers(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let pipeline_docs = state
+        .pipelines
+        .list_pipeline_documents(&company_id, &pipeline_id)
+        .await
+        .map_err(to_topcoat_error)?;
     let stage_names: std::collections::HashMap<String, String> = stages
         .iter()
         .map(|stage| (stage.id.clone(), stage.name.clone()))
@@ -2074,6 +2084,36 @@ pub async fn pipeline_detail(cx: &Cx) -> Result {
                 </ul>
             }
         </section>
+        <section>
+            <h2>(t(lang, "pipelines.blockers"))</h2>
+            if blockers.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noBlockers"))</p>
+            } else {
+                <ul class="list">
+                    for blocker in blockers {
+                        <li><span class="mono">(blocker.blocked_by_case_id)</span></li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.documents"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/pipelines/{pipeline_id}/documents/ui"), lang))>
+                <input type="text" name="document_id" placeholder="document id">
+                <input type="text" name="key" placeholder="key">
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+            if pipeline_docs.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noDocuments"))</p>
+            } else {
+                <ul class="list">
+                    for doc in pipeline_docs {
+                        <li><span class="mono">(doc.key)</span> " " <span class="meta-row">(doc.document_id)</span></li>
+                    }
+                </ul>
+            }
+        </section>
     }
 }
 
@@ -2109,6 +2149,26 @@ pub async fn pipeline_case_detail(cx: &Cx) -> Result {
         .list_events(&company_id, &case_id)
         .await
         .map_err(to_topcoat_error)?;
+    let issue_links = state
+        .pipelines
+        .list_issue_links(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let blockers = state
+        .pipelines
+        .list_blockers(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let case_docs = state
+        .pipelines
+        .list_case_documents(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let automations = state
+        .pipelines
+        .list_automations(&company_id, &case_id)
+        .await
+        .map_err(to_topcoat_error)?;
     let stage_names: std::collections::HashMap<String, String> = stages
         .iter()
         .map(|stage| (stage.id.clone(), stage.name.clone()))
@@ -2141,6 +2201,80 @@ pub async fn pipeline_case_detail(cx: &Cx) -> Result {
         <section>
             <h2>(t(lang, "cases.fields"))</h2>
             <p class="mono">(case.fields.to_string())</p>
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.issueLinks"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/pipeline-cases/{case_id}/issue-links/ui"), lang))>
+                <input type="text" name="issue_id" placeholder="issue id">
+                <select name="role">
+                    <option value="work">"work"</option>
+                    <option value="origin">"origin"</option>
+                    <option value="conversation">"conversation"</option>
+                    <option value="automation">"automation"</option>
+                </select>
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+            if issue_links.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noIssueLinks"))</p>
+            } else {
+                <ul class="list">
+                    for link in issue_links {
+                        <li><span class="mono">(link.issue_id)</span> " " <span class="badge badge-default">(link.role)</span></li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.blockers"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/pipeline-cases/{case_id}/blockers/ui"), lang))>
+                <input type="text" name="blocked_by_case_id" placeholder="case id">
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+            if blockers.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noBlockers"))</p>
+            } else {
+                <ul class="list">
+                    for blocker in blockers {
+                        <li><span class="mono">(blocker.blocked_by_case_id)</span></li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.documents"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/pipeline-cases/{case_id}/documents/ui"), lang))>
+                <input type="text" name="document_id" placeholder="document id">
+                <input type="text" name="key" placeholder="key">
+                <button type="submit">(t(lang, "settings.add"))</button>
+            </form>
+            if case_docs.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noDocuments"))</p>
+            } else {
+                <ul class="list">
+                    for doc in case_docs {
+                        <li><span class="mono">(doc.key)</span> " " <span class="meta-row">(doc.document_id)</span></li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "pipelines.automations"))</h2>
+            if automations.is_empty() {
+                <p class="empty">(t(lang, "pipelines.noAutomations"))</p>
+            } else {
+                <ul class="list">
+                    for automation in automations {
+                        <li>
+                            <span class="mono">(automation.automation_id)</span>
+                            " " <span class=(status_badge_class(&automation.status))>(automation.status)</span>
+                            " " <span class="meta-row">(automation.routine_id)</span>
+                        </li>
+                    }
+                </ul>
+            }
         </section>
         <section>
             <h2>(t(lang, "pipelines.events"))</h2>

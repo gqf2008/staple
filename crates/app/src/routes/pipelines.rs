@@ -683,3 +683,383 @@ fn pipeline_error_to_api(error: staple_data::PipelineError) -> ApiError {
         other => ApiError::internal(other.to_string()),
     }
 }
+
+// ---------------------------------------------------------------------------
+// Extension surfaces: issue links, blockers, documents, automation executions
+// ---------------------------------------------------------------------------
+
+/// `POST /api/pipeline-cases/{id}/issue-links` — links an issue to a case.
+#[route(POST "/api/pipeline-cases/{id}/issue-links")]
+pub async fn link_issue(
+    cx: &Cx,
+    Json(body): Json<LinkIssueRequest>,
+) -> Result<(StatusCode, Json<staple_data::PipelineCaseIssueLinkRecord>), ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let link = state
+        .pipelines
+        .link_issue(
+            &company_id,
+            &id,
+            &body.issue_id,
+            body.role.as_deref().unwrap_or("work"),
+        )
+        .await
+        .map_err(pipeline_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(link)))
+}
+
+/// `GET /api/pipeline-cases/{id}/issue-links` — lists issue links.
+#[route(GET "/api/pipeline-cases/{id}/issue-links")]
+pub async fn list_issue_links(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::PipelineCaseIssueLinkRecord>>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let rows = state
+        .pipelines
+        .list_issue_links(&company_id, &id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+    Ok(Json(rows))
+}
+
+/// `DELETE /api/pipeline-cases/{id}/issue-links/{issue_id}` — unlinks.
+#[route(DELETE "/api/pipeline-cases/{id}/issue-links/{issue_id}")]
+pub async fn unlink_issue(cx: &Cx) -> Result<StatusCode, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let issue_id = path_param::<IssueId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    if state
+        .pipelines
+        .unlink_issue(&company_id, &id, &issue_id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(ApiError::not_found("Issue link not found"))
+    }
+}
+
+/// `POST /api/pipeline-cases/{id}/blockers` — adds a blocker edge.
+#[route(POST "/api/pipeline-cases/{id}/blockers")]
+pub async fn add_blocker(
+    cx: &Cx,
+    Json(body): Json<BlockerRequest>,
+) -> Result<(StatusCode, Json<staple_data::PipelineCaseBlockerRecord>), ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let blocker = state
+        .pipelines
+        .add_blocker(&company_id, &id, &body.blocked_by_case_id)
+        .await
+        .map_err(pipeline_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(blocker)))
+}
+
+/// `GET /api/pipeline-cases/{id}/blockers` — lists blockers.
+#[route(GET "/api/pipeline-cases/{id}/blockers")]
+pub async fn list_blockers(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::PipelineCaseBlockerRecord>>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let rows = state
+        .pipelines
+        .list_blockers(&company_id, &id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+    Ok(Json(rows))
+}
+
+/// `DELETE /api/pipeline-cases/{id}/blockers/{blocked_by_case_id}` — removes.
+#[route(DELETE "/api/pipeline-cases/{id}/blockers/{blocked_by_case_id}")]
+pub async fn remove_blocker(cx: &Cx) -> Result<StatusCode, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let blocked_by = path_param::<BlockerId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    if state
+        .pipelines
+        .remove_blocker(&company_id, &id, &blocked_by)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    {
+        Ok(StatusCode::NO_CONTENT)
+    } else {
+        Err(ApiError::not_found("Blocker not found"))
+    }
+}
+
+/// `POST /api/pipelines/{id}/documents` — links a document to a pipeline.
+#[route(POST "/api/pipelines/{id}/documents")]
+pub async fn link_pipeline_document(
+    cx: &Cx,
+    Json(body): Json<DocumentLinkRequest>,
+) -> Result<(StatusCode, Json<staple_data::PipelineDocumentRecord>), ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Pipeline not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let link = state
+        .pipelines
+        .link_pipeline_document(&company_id, &id, &body.document_id, &body.key)
+        .await
+        .map_err(pipeline_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(link)))
+}
+
+/// `GET /api/pipelines/{id}/documents` — lists pipeline documents.
+#[route(GET "/api/pipelines/{id}/documents")]
+pub async fn list_pipeline_documents(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::PipelineDocumentRecord>>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Pipeline not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let rows = state
+        .pipelines
+        .list_pipeline_documents(&company_id, &id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+    Ok(Json(rows))
+}
+
+/// `POST /api/pipeline-cases/{id}/documents` — links a document to a case.
+#[route(POST "/api/pipeline-cases/{id}/documents")]
+pub async fn link_case_document(
+    cx: &Cx,
+    Json(body): Json<DocumentLinkRequest>,
+) -> Result<(StatusCode, Json<staple_data::PipelineCaseDocumentRecord>), ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let link = state
+        .pipelines
+        .link_case_document(&company_id, &id, &body.document_id, &body.key)
+        .await
+        .map_err(pipeline_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(link)))
+}
+
+/// `GET /api/pipeline-cases/{id}/documents` — lists case documents.
+#[route(GET "/api/pipeline-cases/{id}/documents")]
+pub async fn list_case_documents(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::PipelineCaseDocumentRecord>>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let rows = state
+        .pipelines
+        .list_case_documents(&company_id, &id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+    Ok(Json(rows))
+}
+
+/// `POST /api/pipeline-cases/{id}/automations` — records an automation execution.
+#[route(POST "/api/pipeline-cases/{id}/automations")]
+pub async fn record_automation(
+    cx: &Cx,
+    Json(body): Json<AutomationRequest>,
+) -> Result<
+    (
+        StatusCode,
+        Json<staple_data::PipelineAutomationExecutionRecord>,
+    ),
+    ApiError,
+> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let record = state
+        .pipelines
+        .record_automation(
+            &company_id,
+            &id,
+            &body.automation_id,
+            &body.triggering_event_id,
+            &body.routine_id,
+            &body.status,
+            body.execution_issue_id,
+            body.error,
+        )
+        .await
+        .map_err(pipeline_error_to_api)?;
+    Ok((StatusCode::CREATED, Json(record)))
+}
+
+/// `GET /api/pipeline-cases/{id}/automations` — lists automation executions.
+#[route(GET "/api/pipeline-cases/{id}/automations")]
+pub async fn list_automations(
+    cx: &Cx,
+) -> Result<Json<Vec<staple_data::PipelineAutomationExecutionRecord>>, ApiError> {
+    let id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?
+    else {
+        return Err(ApiError::not_found("Case not found"));
+    };
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let rows = state
+        .pipelines
+        .list_automations(&company_id, &id)
+        .await
+        .map_err(|e| ApiError::internal(e.to_string()))?;
+    Ok(Json(rows))
+}
+
+/// Body for linking an issue.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LinkIssueRequest {
+    /// Issue id.
+    pub issue_id: String,
+    /// Role (`origin` | `conversation` | `work` | `automation`).
+    #[serde(default)]
+    pub role: Option<String>,
+}
+
+/// Body for adding a blocker.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BlockerRequest {
+    /// Blocking case id.
+    pub blocked_by_case_id: String,
+}
+
+/// Body for linking a document.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DocumentLinkRequest {
+    /// Document id.
+    pub document_id: String,
+    /// Key.
+    pub key: String,
+}
+
+/// Body for recording an automation execution.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AutomationRequest {
+    /// Automation id.
+    pub automation_id: String,
+    /// Triggering event id.
+    pub triggering_event_id: String,
+    /// Routine id.
+    pub routine_id: String,
+    /// Status (`succeeded` | `failed`).
+    pub status: String,
+    /// Execution issue id.
+    #[serde(default)]
+    pub execution_issue_id: Option<String>,
+    /// Error.
+    #[serde(default)]
+    pub error: Option<String>,
+}
+
+/// `{issue_id}` path parameter.
+#[path_param(error = bad_request("Invalid issue id"))]
+pub(crate) struct IssueId(String);
+
+/// `{blocked_by_case_id}` path parameter.
+#[path_param(error = bad_request("Invalid case id"))]
+pub(crate) struct BlockerId(String);
