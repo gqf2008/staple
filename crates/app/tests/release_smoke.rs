@@ -368,6 +368,17 @@ async fn core_business_flow_smoke() {
     assert_eq!(status, StatusCode::OK);
     assert!(activity.as_array().unwrap().len() >= 6);
 
+    // 3.5. Create a skill for the skill detail UI check.
+    let (status, skill) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/skills"),
+        json!({ "name": "Reviewer" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let skill_id = skill["id"].as_str().unwrap().to_owned();
+
     // 4. UI renders the company overview.
     let request = Request::builder()
         .method(Method::GET)
@@ -421,6 +432,18 @@ async fn core_business_flow_smoke() {
         ),
         (format!("/companies/{company_id}/secrets"), "Secrets"),
         (format!("/companies/{company_id}/skills"), "Skills"),
+        (
+            format!("/companies/{company_id}/skills/{skill_id}"),
+            "Reviewer",
+        ),
+        (
+            format!("/companies/{company_id}/secret-bindings"),
+            "Secret bindings",
+        ),
+        (
+            format!("/companies/{company_id}/user-secrets"),
+            "User secrets",
+        ),
         ("/instance/settings".to_string(), "Instance"),
         (format!("/companies/{company_id}/dashboard"), "Dashboard"),
         (format!("/projects/{project_id}"), project_id.as_str()),

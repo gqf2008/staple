@@ -2019,3 +2019,373 @@ pub async fn create_feedback_vote_ui(
         "/companies/{company_id}/feedback-votes"
     )))
 }
+
+// --- Skill catalog & secret bindings UI forms ----------------------------
+
+/// Skill version publish form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillVersionUiForm {
+    /// Version label.
+    pub label: Option<String>,
+}
+
+/// Skill policy form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillPolicyUiForm {
+    /// Default effect (allow/deny).
+    pub default_effect: String,
+    /// Rules JSON.
+    pub rules: Option<String>,
+}
+
+/// Skill comment form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillCommentUiForm {
+    /// Comment body.
+    pub body: String,
+}
+
+/// Skill star form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillStarUiForm {
+    /// Starring user id.
+    pub user_id: Option<String>,
+}
+
+/// Skill test input form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillTestInputUiForm {
+    /// Test name.
+    pub name: String,
+    /// Test content.
+    pub content: String,
+}
+
+/// Secret provider config form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecretProviderUiForm {
+    /// Provider key.
+    pub provider: String,
+    /// Display name.
+    pub display_name: String,
+    /// Config JSON.
+    pub config: Option<String>,
+}
+
+/// Secret binding form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SecretBindingUiForm {
+    /// Secret id.
+    pub secret_id: String,
+    /// Target type.
+    pub target_type: String,
+    /// Target id.
+    pub target_id: String,
+    /// Config path.
+    pub config_path: String,
+    /// Version selector.
+    pub version_selector: Option<String>,
+}
+
+/// User secret definition form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserSecretDefinitionUiForm {
+    /// Secret key.
+    pub key: String,
+    /// Display name.
+    pub name: String,
+    /// Provider.
+    pub provider: String,
+    /// Managed mode.
+    pub managed_mode: Option<String>,
+}
+
+/// User secret declaration form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserSecretDeclarationUiForm {
+    /// Definition id.
+    pub user_secret_definition_id: String,
+    /// Target type.
+    pub target_type: String,
+    /// Target id.
+    pub target_id: String,
+    /// Env key.
+    pub env_key: String,
+    /// Config path.
+    pub config_path: String,
+}
+
+/// `POST /companies/{companyId}/skills/{skillId}/version/ui` — publishes a
+/// skill version.
+#[route(POST "/companies/{company_id}/skills/{skill_id}/version/ui")]
+pub async fn publish_skill_version_ui(
+    cx: &Cx,
+    Form(form): Form<SkillVersionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let skill_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .skill_catalog
+        .publish_version(staple_data::NewSkillVersion {
+            company_id: company_id.clone(),
+            company_skill_id: skill_id.clone(),
+            label: form.label.filter(|value| !value.is_empty()),
+            release_id: None,
+            release_name: None,
+            released_at: None,
+            file_inventory: serde_json::json!([]),
+            author_agent_id: None,
+            author_user_id: Some("board".to_owned()),
+        })
+        .await;
+    Ok(see_other(&format!(
+        "/companies/{company_id}/skills/{skill_id}"
+    )))
+}
+
+/// `POST /companies/{companyId}/skills/policy/ui` — sets the company skill
+/// policy.
+#[route(POST "/companies/{company_id}/skills/policy/ui")]
+pub async fn set_skill_policy_ui(
+    cx: &Cx,
+    Form(form): Form<SkillPolicyUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let rules = serde_json::from_str(form.rules.as_deref().unwrap_or("[]"))
+        .unwrap_or_else(|_| serde_json::json!([]));
+    let _ = state
+        .skill_catalog
+        .set_policy(staple_data::SetSkillPolicy {
+            company_id: company_id.clone(),
+            schema_version: 1,
+            default_effect: form.default_effect,
+            rules,
+        })
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/skills")))
+}
+
+/// `POST /companies/{companyId}/skills/{skillId}/comments/ui` — adds a skill
+/// comment.
+#[route(POST "/companies/{company_id}/skills/{skill_id}/comments/ui")]
+pub async fn add_skill_comment_ui(
+    cx: &Cx,
+    Form(form): Form<SkillCommentUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let skill_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.body.trim().is_empty() {
+        let _ = state
+            .skill_catalog
+            .create_comment(staple_data::NewSkillComment {
+                company_id: company_id.clone(),
+                company_skill_id: skill_id.clone(),
+                parent_comment_id: None,
+                author_agent_id: None,
+                author_user_id: Some("board".to_owned()),
+                body: form.body,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/skills/{skill_id}"
+    )))
+}
+
+/// `POST /companies/{companyId}/skills/{skillId}/stars/ui` — stars a skill.
+#[route(POST "/companies/{company_id}/skills/{skill_id}/stars/ui")]
+pub async fn star_skill_ui(
+    cx: &Cx,
+    Form(form): Form<SkillStarUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let skill_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .skill_catalog
+        .create_star(staple_data::NewSkillStar {
+            company_id: company_id.clone(),
+            company_skill_id: skill_id.clone(),
+            agent_id: None,
+            user_id: form.user_id.filter(|value| !value.is_empty()),
+        })
+        .await;
+    Ok(see_other(&format!(
+        "/companies/{company_id}/skills/{skill_id}"
+    )))
+}
+
+/// `POST /companies/{companyId}/skills/{skillId}/test-inputs/ui` — adds a
+/// skill test input.
+#[route(POST "/companies/{company_id}/skills/{skill_id}/test-inputs/ui")]
+pub async fn add_skill_test_input_ui(
+    cx: &Cx,
+    Form(form): Form<SkillTestInputUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let skill_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.name.trim().is_empty() {
+        let _ = state
+            .skill_catalog
+            .create_test_input(staple_data::NewSkillTestInput {
+                company_id: company_id.clone(),
+                skill_id: skill_id.clone(),
+                name: form.name,
+                content: form.content,
+                created_by: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/skills/{skill_id}"
+    )))
+}
+
+/// `POST /companies/{companyId}/secret-bindings/providers/ui` — creates a
+/// secret provider config.
+#[route(POST "/companies/{company_id}/secret-bindings/providers/ui")]
+pub async fn create_secret_provider_ui(
+    cx: &Cx,
+    Form(form): Form<SecretProviderUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let config = serde_json::from_str(form.config.as_deref().unwrap_or("{}"))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if !form.provider.trim().is_empty() && !form.display_name.trim().is_empty() {
+        let _ = state
+            .secret_bindings
+            .create_provider_config(staple_data::NewSecretProviderConfig {
+                company_id: company_id.clone(),
+                provider: form.provider,
+                display_name: form.display_name,
+                status: "active".to_owned(),
+                is_default: false,
+                config,
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/secret-bindings"
+    )))
+}
+
+/// `POST /companies/{companyId}/secret-bindings/bindings/ui` — sets a secret
+/// binding.
+#[route(POST "/companies/{company_id}/secret-bindings/bindings/ui")]
+pub async fn set_secret_binding_ui(
+    cx: &Cx,
+    Form(form): Form<SecretBindingUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.secret_id.trim().is_empty()
+        && !form.target_type.trim().is_empty()
+        && !form.target_id.trim().is_empty()
+        && !form.config_path.trim().is_empty()
+    {
+        let _ = state
+            .secret_bindings
+            .set_binding(staple_data::NewSecretBinding {
+                company_id: company_id.clone(),
+                secret_id: form.secret_id,
+                target_type: form.target_type,
+                target_id: form.target_id,
+                config_path: form.config_path,
+                version_selector: form
+                    .version_selector
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "latest".to_owned()),
+                required: false,
+                label: None,
+                projection_class: "env".to_owned(),
+                projection_allowlist_key: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/secret-bindings"
+    )))
+}
+
+/// `POST /companies/{companyId}/user-secrets/definitions/ui` — creates a user
+/// secret definition.
+#[route(POST "/companies/{company_id}/user-secrets/definitions/ui")]
+pub async fn create_user_secret_definition_ui(
+    cx: &Cx,
+    Form(form): Form<UserSecretDefinitionUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.key.trim().is_empty()
+        && !form.name.trim().is_empty()
+        && !form.provider.trim().is_empty()
+    {
+        let _ = state
+            .secret_bindings
+            .create_user_secret_definition(staple_data::NewUserSecretDefinition {
+                company_id: company_id.clone(),
+                key: form.key,
+                name: form.name,
+                description: None,
+                status: "active".to_owned(),
+                provider: form.provider,
+                managed_mode: form.managed_mode.unwrap_or_else(|| "manual".to_owned()),
+                provider_config_id: None,
+                provider_metadata: None,
+                usage_guidance: None,
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/user-secrets")))
+}
+
+/// `POST /companies/{companyId}/user-secrets/declarations/ui` — creates a user
+/// secret declaration.
+#[route(POST "/companies/{company_id}/user-secrets/declarations/ui")]
+pub async fn create_user_secret_declaration_ui(
+    cx: &Cx,
+    Form(form): Form<UserSecretDeclarationUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.user_secret_definition_id.trim().is_empty()
+        && !form.target_type.trim().is_empty()
+        && !form.target_id.trim().is_empty()
+        && !form.env_key.trim().is_empty()
+    {
+        let _ = state
+            .secret_bindings
+            .create_user_secret_declaration(staple_data::NewUserSecretDeclaration {
+                company_id: company_id.clone(),
+                user_secret_definition_id: form.user_secret_definition_id,
+                target_type: form.target_type,
+                target_id: form.target_id,
+                config_path: form.config_path,
+                env_key: form.env_key,
+                version_selector: "latest".to_owned(),
+                required: false,
+                allow_missing_override: true,
+                label: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/user-secrets")))
+}

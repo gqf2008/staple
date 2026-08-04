@@ -28,6 +28,10 @@ pub(crate) struct GoalId(String);
 #[path_param(error = bad_request("Invalid decision id"))]
 pub(crate) struct DecisionId(String);
 
+/// Typed `{skill_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid skill id"))]
+pub(crate) struct SkillId(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -103,6 +107,8 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/summary-slots"), lang))>(t(lang, "summarySlots.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/finance-events"), lang))>(t(lang, "finance.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/feedback-votes"), lang))>(t(lang, "feedback.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/secret-bindings"), lang))>(t(lang, "secretBindings.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
@@ -1184,7 +1190,9 @@ pub async fn skills_page(cx: &Cx) -> Result {
             <ul class="list">
                 for skill in skills {
                     <li>
-                        <strong>(skill.name)</strong>
+                        <a href=(with_lang(&format!("/companies/{company_id}/skills/{}", skill.id), lang))>
+                            <strong>(skill.name)</strong>
+                        </a>
                         " " <span class="badge badge-default">(skill.status)</span>
                         if let Some(description) = &skill.description {
                             " " <span class="meta-row">(description.clone())</span>
@@ -2280,6 +2288,294 @@ pub async fn feedback_votes(cx: &Cx) -> Result {
                             " " <span class="meta-row">(vote.target_type.clone())</span>
                             " " <span class="mono">(vote.target_id.clone())</span>
                             " " <span class="meta-row">(vote.author_user_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Skill detail: versions, policy, comments, stars, and test inputs.
+#[page("/companies/{company_id}/skills/{skill_id}")]
+pub async fn skill_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let skill_id = path_param::<SkillId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(skill) = state
+        .skills
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .into_iter()
+        .find(|skill| skill.id == skill_id)
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let version_rows = state
+        .skill_catalog
+        .list_versions(&company_id, &skill_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let policy = state
+        .skill_catalog
+        .get_policy(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let comment_rows = state
+        .skill_catalog
+        .list_comments(&company_id, &skill_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let star_rows = state
+        .skill_catalog
+        .list_stars(&company_id, &skill_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let test_rows = state
+        .skill_catalog
+        .list_test_inputs(&company_id, &skill_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(skill.name.clone())</h1>
+        <p class="meta-row">(skill.description.clone().unwrap_or_default())</p>
+        <p class="mono">(skill.id.clone())</p>
+        <section>
+            <h2>(t(lang, "skillDetail.versions"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/skills/{skill_id}/version/ui"), lang))>
+                <input type="text" name="label" placeholder=(t(lang, "skillDetail.versionLabel"))>
+                <button type="submit">(t(lang, "skillDetail.publish"))</button>
+            </form>
+            if version_rows.is_empty() {
+                <p class="empty">(t(lang, "skillDetail.noVersions"))</p>
+            } else {
+                <ul class="list">
+                    for version in version_rows {
+                        <li>
+                            <span class="badge badge-default">(version.revision_number)</span>
+                            " " <span class="meta-row">(version.label.clone().unwrap_or_default())</span>
+                            " " <span class="meta-row">(version.created_at.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "skillDetail.policy"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/skills/policy/ui"), lang))>
+                <input type="text" name="default_effect" value=(policy.as_ref().map(|p| p.default_effect.clone()).unwrap_or_else(|| "allow".to_owned()))>
+                <input type="text" name="rules" placeholder="[]">
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+            if let Some(policy) = &policy {
+                <p class="meta-row">(t(lang, "skillDetail.policyRevision")) ": " (policy.revision)</p>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "skillDetail.comments"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/skills/{skill_id}/comments/ui"), lang))>
+                <input type="text" name="body" placeholder=(t(lang, "skillDetail.commentPlaceholder"))>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if comment_rows.is_empty() {
+                <p class="empty">(t(lang, "skillDetail.noComments"))</p>
+            } else {
+                <ul class="list">
+                    for comment in comment_rows {
+                        <li>
+                            <span class="meta-row">(comment.body.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "skillDetail.stars"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/skills/{skill_id}/stars/ui"), lang))>
+                <input type="text" name="user_id" placeholder=(t(lang, "skillDetail.starUser"))>
+                <button type="submit">(t(lang, "skillDetail.star"))</button>
+            </form>
+            <p class="meta-row">(t(lang, "skillDetail.starCount")) ": " (star_rows.len())</p>
+        </section>
+        <section>
+            <h2>(t(lang, "skillDetail.testInputs"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/skills/{skill_id}/test-inputs/ui"), lang))>
+                <input type="text" name="name" placeholder=(t(lang, "skillDetail.testName"))>
+                <input type="text" name="content" placeholder=(t(lang, "skillDetail.testContent"))>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if test_rows.is_empty() {
+                <p class="empty">(t(lang, "skillDetail.noTestInputs"))</p>
+            } else {
+                <ul class="list">
+                    for test in test_rows {
+                        <li>
+                            <strong>(test.name.clone())</strong>
+                            " " <span class="meta-row">(test.content.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Secret bindings page: provider configs and bindings.
+#[page("/companies/{company_id}/secret-bindings")]
+pub async fn secret_bindings(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let provider_rows = state
+        .secret_bindings
+        .list_provider_configs(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let binding_rows = state
+        .secret_bindings
+        .list_bindings(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "secretBindings.title"))</h1>
+        <section>
+            <h2>(t(lang, "secretBindings.newProvider"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/secret-bindings/providers/ui"), lang))>
+                <label>(t(lang, "secretBindings.providerLabel"))</label>
+                <input type="text" name="provider" required="required">
+                <label>(t(lang, "secretBindings.displayNameLabel"))</label>
+                <input type="text" name="display_name" required="required">
+                <label>(t(lang, "secretBindings.configLabel"))</label>
+                <input type="text" name="config" placeholder="{}">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if provider_rows.is_empty() {
+                <p class="empty">(t(lang, "secretBindings.noProviders"))</p>
+            } else {
+                <ul class="list">
+                    for provider in provider_rows {
+                        <li>
+                            <strong>(provider.display_name.clone())</strong>
+                            " " <span class="badge badge-default">(provider.provider.clone())</span>
+                            " " <span class=(status_badge_class(&provider.status))>(provider.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "secretBindings.newBinding"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/secret-bindings/bindings/ui"), lang))>
+                <label>(t(lang, "secretBindings.secretIdLabel"))</label>
+                <input type="text" name="secret_id" required="required">
+                <label>(t(lang, "secretBindings.targetLabel"))</label>
+                <input type="text" name="target_type" required="required">
+                <input type="text" name="target_id" required="required">
+                <label>(t(lang, "secretBindings.configPathLabel"))</label>
+                <input type="text" name="config_path" required="required">
+                <label>(t(lang, "secretBindings.versionSelectorLabel"))</label>
+                <input type="text" name="version_selector" value="latest">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if binding_rows.is_empty() {
+                <p class="empty">(t(lang, "secretBindings.noBindings"))</p>
+            } else {
+                <ul class="list">
+                    for binding in binding_rows {
+                        <li>
+                            <span class="mono">(binding.secret_id.clone())</span>
+                            " " <span class="badge badge-default">(binding.target_type.clone())</span>
+                            " " <span class="meta-row">(binding.target_id.clone())</span>
+                            " " <span class="meta-row">(binding.config_path.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// User secrets page: definitions and declarations.
+#[page("/companies/{company_id}/user-secrets")]
+pub async fn user_secrets(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let definition_rows = state
+        .secret_bindings
+        .list_user_secret_definitions(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let declaration_rows = state
+        .secret_bindings
+        .list_user_secret_declarations(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "userSecrets.title"))</h1>
+        <section>
+            <h2>(t(lang, "userSecrets.newDefinition"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/user-secrets/definitions/ui"), lang))>
+                <label>(t(lang, "userSecrets.keyLabel"))</label>
+                <input type="text" name="key" required="required">
+                <label>(t(lang, "userSecrets.nameLabel"))</label>
+                <input type="text" name="name" required="required">
+                <label>(t(lang, "userSecrets.providerLabel"))</label>
+                <input type="text" name="provider" required="required">
+                <label>(t(lang, "userSecrets.managedModeLabel"))</label>
+                <input type="text" name="managed_mode" value="manual">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if definition_rows.is_empty() {
+                <p class="empty">(t(lang, "userSecrets.noDefinitions"))</p>
+            } else {
+                <ul class="list">
+                    for definition in definition_rows {
+                        <li>
+                            <strong>(definition.name.clone())</strong>
+                            " " <span class="mono">(definition.key.clone())</span>
+                            " " <span class="badge badge-default">(definition.provider.clone())</span>
+                            " " <span class=(status_badge_class(&definition.status))>(definition.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "userSecrets.newDeclaration"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/user-secrets/declarations/ui"), lang))>
+                <label>(t(lang, "userSecrets.definitionIdLabel"))</label>
+                <input type="text" name="user_secret_definition_id" required="required">
+                <label>(t(lang, "userSecrets.targetLabel"))</label>
+                <input type="text" name="target_type" required="required">
+                <input type="text" name="target_id" required="required">
+                <label>(t(lang, "userSecrets.envKeyLabel"))</label>
+                <input type="text" name="env_key" required="required">
+                <label>(t(lang, "userSecrets.configPathLabel"))</label>
+                <input type="text" name="config_path" required="required">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            if declaration_rows.is_empty() {
+                <p class="empty">(t(lang, "userSecrets.noDeclarations"))</p>
+            } else {
+                <ul class="list">
+                    for declaration in declaration_rows {
+                        <li>
+                            <span class="mono">(declaration.user_secret_definition_id.clone())</span>
+                            " " <span class="meta-row">(declaration.env_key.clone())</span>
+                            " " <span class="meta-row">(declaration.target_type.clone())</span>
+                            " " <span class="meta-row">(declaration.target_id.clone())</span>
                         </li>
                     }
                 </ul>
