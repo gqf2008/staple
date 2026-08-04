@@ -12,13 +12,14 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretBindingRepository,
-    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
+    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path,
+    migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -35,6 +36,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let permission_grants_db = open(&db_config).await?;
     let memberships_db = open(&db_config).await?;
     let invites_db = open(&db_config).await?;
+    let infrastructure_db = open(&db_config).await?;
     let board_keys_db = open(&db_config).await?;
     let budget_policies_db = open(&db_config).await?;
     let cases_db = open(&db_config).await?;
@@ -78,6 +80,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),

@@ -16,13 +16,13 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretBindingRepository,
-    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -93,6 +93,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         invites: Arc::new(TursoInviteRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        infrastructure: Arc::new(TursoInfrastructureRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

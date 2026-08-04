@@ -7,12 +7,12 @@ use staple_data::{
     ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
     CaseRepository, CompanyRepository, CostRepository, DecisionActionRepository,
     DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectCatalogRepository,
-    ExternalObjectRepository, GoalRepository, HeartbeatRepository, InviteRepository,
-    IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
-    LabelRepository, MembershipRepository, PermissionGrantRepository, PipelineRepository,
-    PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
-    RoutineRepository, SecretBindingRepository, SecretRepository, SkillCatalogRepository,
-    SkillRepository, WorkProductRepository, WorkspaceRepository,
+    ExternalObjectRepository, GoalRepository, HeartbeatRepository, InfrastructureRepository,
+    InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
+    IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
+    PipelineRepository, PluginRepository, PluginRuntimeRepository, PreferenceRepository,
+    ProjectRepository, RoutineRepository, SecretBindingRepository, SecretRepository,
+    SkillCatalogRepository, SkillRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -33,6 +33,8 @@ pub struct AppState {
     pub memberships: Arc<dyn MembershipRepository>,
     /// Invites / join requests repository.
     pub invites: Arc<dyn InviteRepository>,
+    /// Infrastructure repository (auth/settings/folders/watchdogs/events).
+    pub infrastructure: Arc<dyn InfrastructureRepository>,
     /// Board API keys / CLI auth challenges repository.
     pub board_keys: Arc<dyn BoardKeyRepository>,
     /// Budget policies / incidents repository.
