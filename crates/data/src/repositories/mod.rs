@@ -74,8 +74,9 @@ pub use budget_policies::{
     NewBudgetIncident, NewBudgetPolicy, TursoBudgetPolicyRepository,
 };
 pub use cases::{
-    CaseError, CasePatch, CaseRecord, CaseRepository, NewCase, TursoCaseRepository,
-    allowed_case_transition,
+    CaseAttachmentRecord, CaseDocumentRecord, CaseError, CaseEventRecord, CaseIssueLinkRecord,
+    CaseLabelRecord, CasePatch, CaseRecord, CaseRepository, NewCase, NewCaseEvent,
+    TursoCaseRepository, allowed_case_transition,
 };
 pub use companies::{
     CompanyPatch, CompanyRecord, CompanyRepository, NewCompany, RepoError, TursoCompanyRepository,
@@ -98,7 +99,9 @@ pub use environments::{
     TursoEnvironmentRepository,
 };
 pub use external_objects::{
-    ExternalObjectError, ExternalObjectRecord, ExternalObjectRepository, NewExternalObject,
+    ExternalObjectCatalogRecord, ExternalObjectCatalogRepository, ExternalObjectError,
+    ExternalObjectMentionRecord, ExternalObjectRecord, ExternalObjectRepository, NewExternalObject,
+    NewExternalObjectCatalog, NewExternalObjectMention, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository,
 };
 pub use goals::{GoalError, GoalPatch, GoalRecord, GoalRepository, NewGoal, TursoGoalRepository};
@@ -139,7 +142,7 @@ pub use permission_grants::{
     TursoPermissionGrantRepository,
 };
 pub use pipelines::{
-    NewCaseEvent, NewPipeline, NewPipelineCase, NewStage, NewTransition,
+    NewPipeline, NewPipelineCase, NewPipelineCaseEvent, NewStage, NewTransition,
     PipelineAutomationExecutionRecord, PipelineCaseBlockerRecord, PipelineCaseDocumentRecord,
     PipelineCaseEventRecord, PipelineCaseIssueLinkRecord, PipelineCaseRecord,
     PipelineDocumentRecord, PipelineError, PipelineRecord, PipelineRepository, PipelineStageRecord,

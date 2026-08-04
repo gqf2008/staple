@@ -10,13 +10,14 @@ use staple_data::{
     TursoApiKeyRepository, TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
     TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionRepository, TursoDocumentRepository, TursoEnvironmentRepository,
-    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
+    TursoExternalObjectCatalogRepository, TursoExternalObjectRepository, TursoGoalRepository,
+    TursoHeartbeatRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -56,6 +57,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let api_keys_db = open(&db_config).await?;
     let decisions_db = open(&db_config).await?;
     let external_objects_db = open(&db_config).await?;
+    let external_object_catalog_db = open(&db_config).await?;
     let skills_db = open(&db_config).await?;
     let environments_db = open(&db_config).await?;
     let workspaces_db = open(&db_config).await?;
@@ -96,6 +98,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
         api_keys: Arc::new(TursoApiKeyRepository::new(api_keys_db)),
         decisions: Arc::new(TursoDecisionRepository::new(decisions_db)),
         external_objects: Arc::new(TursoExternalObjectRepository::new(external_objects_db)),
+        external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
+            external_object_catalog_db,
+        )),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),

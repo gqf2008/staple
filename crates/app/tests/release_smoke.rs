@@ -13,13 +13,13 @@ use staple_data::{
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
     TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
     TursoCaseRepository, TursoCompanyRepository, TursoCostRepository, TursoDecisionRepository,
-    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectRepository,
-    TursoGoalRepository, TursoHeartbeatRepository, TursoInviteRepository,
-    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
-    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
-    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
-    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoDocumentRepository, TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
+    TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
+    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
+    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
+    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
+    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -190,6 +190,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         external_objects: Arc::new(TursoExternalObjectRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

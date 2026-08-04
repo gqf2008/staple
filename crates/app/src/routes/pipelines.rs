@@ -3,8 +3,9 @@
 use serde::Deserialize;
 use serde_json::json;
 use staple_data::{
-    NewCaseEvent, NewPipeline, NewPipelineCase, NewStage, NewTransition, PipelineCaseEventRecord,
-    PipelineCaseRecord, PipelineRecord, PipelineStageRecord, PipelineTransitionRecord,
+    NewPipeline, NewPipelineCase, NewPipelineCaseEvent, NewStage, NewTransition,
+    PipelineCaseEventRecord, PipelineCaseRecord, PipelineRecord, PipelineStageRecord,
+    PipelineTransitionRecord,
 };
 use topcoat::{
     Result,
@@ -646,7 +647,7 @@ pub async fn add_event(
     crate::auth::enforce_company_scope(cx, &company_id)?;
     let event = state
         .pipelines
-        .add_event(NewCaseEvent {
+        .add_event(NewPipelineCaseEvent {
             company_id: company_id.clone(),
             case_id: id,
             r#type: body.r#type,

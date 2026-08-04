@@ -83,6 +83,90 @@ pub struct CasePatch {
     pub parent_case_id: Option<Option<String>>,
 }
 
+/// A case ↔ issue link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseIssueLinkRecord {
+    pub id: String,
+    pub company_id: String,
+    pub case_id: String,
+    pub issue_id: String,
+    pub role: String,
+    pub created_by_run_id: Option<String>,
+    pub created_at: String,
+}
+
+/// A case event.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseEventRecord {
+    pub id: String,
+    pub company_id: String,
+    pub case_id: String,
+    pub kind: String,
+    pub actor_type: String,
+    pub actor_user_id: Option<String>,
+    pub actor_agent_id: Option<String>,
+    pub run_id: Option<String>,
+    pub payload: serde_json::Value,
+    pub created_at: String,
+}
+
+/// A case document link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseDocumentRecord {
+    pub id: String,
+    pub company_id: String,
+    pub case_id: String,
+    pub document_id: String,
+    pub key: String,
+    pub created_at: String,
+}
+
+/// A case label link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseLabelRecord {
+    pub id: String,
+    pub company_id: String,
+    pub case_id: String,
+    pub label_id: String,
+    pub created_at: String,
+}
+
+/// A case attachment link.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseAttachmentRecord {
+    pub id: String,
+    pub company_id: String,
+    pub case_id: String,
+    pub asset_id: String,
+    pub created_at: String,
+}
+
+/// Input for recording a case event.
+#[derive(Debug, Clone)]
+pub struct NewCaseEvent {
+    /// Owning company id.
+    pub company_id: String,
+    /// Case id.
+    pub case_id: String,
+    /// Event kind (upstream `case_events.kind` CHECK).
+    pub kind: String,
+    /// Actor type (`user` | `agent` | `system`).
+    pub actor_type: String,
+    /// Actor user id.
+    pub actor_user_id: Option<String>,
+    /// Actor agent id.
+    pub actor_agent_id: Option<String>,
+    /// Originating run id.
+    pub run_id: Option<String>,
+    /// Event payload JSON.
+    pub payload: Option<serde_json::Value>,
+}
+
 /// Case repository errors.
 #[derive(Debug, Error)]
 pub enum CaseError {
@@ -188,6 +272,80 @@ pub trait CaseRepository: Send + Sync {
     ///
     /// Returns [`CaseError`] on database failure.
     async fn delete(&self, company_id: &str, id: &str) -> Result<Option<CaseRecord>, CaseError>;
+
+    // Issue links ---------------------------------------------------------
+    async fn link_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+        role: &str,
+    ) -> Result<CaseIssueLinkRecord, CaseError>;
+    async fn list_issue_links(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseIssueLinkRecord>, CaseError>;
+    async fn unlink_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+    ) -> Result<bool, CaseError>;
+
+    // Events --------------------------------------------------------------
+    async fn add_event(&self, input: NewCaseEvent) -> Result<CaseEventRecord, CaseError>;
+    async fn list_events(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseEventRecord>, CaseError>;
+
+    // Documents -----------------------------------------------------------
+    async fn link_document(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<CaseDocumentRecord, CaseError>;
+    async fn list_documents(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseDocumentRecord>, CaseError>;
+
+    // Labels --------------------------------------------------------------
+    async fn add_label(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        label_id: &str,
+    ) -> Result<CaseLabelRecord, CaseError>;
+    async fn list_labels(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseLabelRecord>, CaseError>;
+    async fn remove_label(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        label_id: &str,
+    ) -> Result<bool, CaseError>;
+
+    // Attachments ---------------------------------------------------------
+    async fn add_attachment(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        asset_id: &str,
+    ) -> Result<CaseAttachmentRecord, CaseError>;
+    async fn list_attachments(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseAttachmentRecord>, CaseError>;
 }
 
 /// Turso/libSQL implementation of [`CaseRepository`].
@@ -492,6 +650,327 @@ impl CaseRepository for TursoCaseRepository {
             .await?;
         Ok(Some(record))
     }
+
+    async fn link_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+        role: &str,
+    ) -> Result<CaseIssueLinkRecord, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        for (table, id) in [("cases", case_id), ("issues", issue_id)] {
+            if !helpers::row_belongs_to_company(&conn, table, id, company_id).await? {
+                return Err(CaseError::ReferenceNotFound);
+            }
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute(
+                "INSERT INTO case_issue_links (id, company_id, case_id, issue_id, role, created_at, updated_at)
+                 VALUES (?1, ?2, ?3, ?4, ?5, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+                libsql::params![id.clone(), company_id, case_id, issue_id, role],
+            )
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn
+                    .query("SELECT id, company_id, case_id, issue_id, role, created_by_run_id, created_at FROM case_issue_links WHERE id = ?1", libsql::params![id])
+                    .await?;
+                let row = rows.next().await?.expect("link was just inserted");
+                Ok(row_to_case_issue_link(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(CaseError::ReferenceNotFound)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_issue_links(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseIssueLinkRecord>, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query("SELECT id, company_id, case_id, issue_id, role, created_by_run_id, created_at FROM case_issue_links WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at", libsql::params![company_id, case_id])
+            .await?;
+        let mut links = Vec::new();
+        while let Some(row) = rows.next().await? {
+            links.push(row_to_case_issue_link(&row)?);
+        }
+        Ok(links)
+    }
+
+    async fn unlink_issue(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        issue_id: &str,
+    ) -> Result<bool, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute("DELETE FROM case_issue_links WHERE company_id = ?1 AND case_id = ?2 AND issue_id = ?3", libsql::params![company_id, case_id, issue_id])
+            .await?;
+        Ok(updated > 0)
+    }
+
+    async fn add_event(&self, input: NewCaseEvent) -> Result<CaseEventRecord, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::row_belongs_to_company(&conn, "cases", &input.case_id, &input.company_id)
+            .await?
+        {
+            return Err(CaseError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let payload = input
+            .payload
+            .map(|v| v.to_string())
+            .unwrap_or_else(|| "{}".to_owned());
+        conn.execute(
+            "INSERT INTO case_events (id, company_id, case_id, kind, actor_type, actor_user_id, actor_agent_id, run_id, payload, created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            libsql::params![
+                id.clone(),
+                input.company_id,
+                input.case_id,
+                input.kind,
+                input.actor_type,
+                input.actor_user_id,
+                input.actor_agent_id,
+                input.run_id,
+                payload
+            ],
+        )
+        .await?;
+        let mut rows = conn
+            .query("SELECT id, company_id, case_id, kind, actor_type, actor_user_id, actor_agent_id, run_id, payload, created_at FROM case_events WHERE id = ?1", libsql::params![id])
+            .await?;
+        let row = rows.next().await?.expect("event was just inserted");
+        Ok(row_to_case_event(&row)?)
+    }
+
+    async fn list_events(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseEventRecord>, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query("SELECT id, company_id, case_id, kind, actor_type, actor_user_id, actor_agent_id, run_id, payload, created_at FROM case_events WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at", libsql::params![company_id, case_id])
+            .await?;
+        let mut events = Vec::new();
+        while let Some(row) = rows.next().await? {
+            events.push(row_to_case_event(&row)?);
+        }
+        Ok(events)
+    }
+
+    async fn link_document(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        document_id: &str,
+        key: &str,
+    ) -> Result<CaseDocumentRecord, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::row_belongs_to_company(&conn, "cases", case_id, company_id).await?
+            || !helpers::row_belongs_to_company(&conn, "documents", document_id, company_id).await?
+        {
+            return Err(CaseError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn
+            .execute("INSERT INTO case_documents (id, company_id, case_id, document_id, key, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, ?5, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))", libsql::params![id.clone(), company_id, case_id, document_id, key])
+            .await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn.query("SELECT id, company_id, case_id, document_id, key, created_at FROM case_documents WHERE id = ?1", libsql::params![id]).await?;
+                let row = rows.next().await?.expect("document link was just inserted");
+                Ok(row_to_case_document(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(CaseError::ReferenceNotFound)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_documents(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseDocumentRecord>, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn.query("SELECT id, company_id, case_id, document_id, key, created_at FROM case_documents WHERE company_id = ?1 AND case_id = ?2 ORDER BY key", libsql::params![company_id, case_id]).await?;
+        let mut docs = Vec::new();
+        while let Some(row) = rows.next().await? {
+            docs.push(row_to_case_document(&row)?);
+        }
+        Ok(docs)
+    }
+
+    async fn add_label(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        label_id: &str,
+    ) -> Result<CaseLabelRecord, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::row_belongs_to_company(&conn, "cases", case_id, company_id).await?
+            || !helpers::row_belongs_to_company(&conn, "labels", label_id, company_id).await?
+        {
+            return Err(CaseError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn.execute("INSERT INTO case_labels (id, company_id, case_id, label_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))", libsql::params![id.clone(), company_id, case_id, label_id]).await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn.query("SELECT id, company_id, case_id, label_id, created_at FROM case_labels WHERE id = ?1", libsql::params![id]).await?;
+                let row = rows.next().await?.expect("label link was just inserted");
+                Ok(row_to_case_label(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(CaseError::ReferenceNotFound)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_labels(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseLabelRecord>, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn.query("SELECT id, company_id, case_id, label_id, created_at FROM case_labels WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at", libsql::params![company_id, case_id]).await?;
+        let mut labels = Vec::new();
+        while let Some(row) = rows.next().await? {
+            labels.push(row_to_case_label(&row)?);
+        }
+        Ok(labels)
+    }
+
+    async fn remove_label(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        label_id: &str,
+    ) -> Result<bool, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "DELETE FROM case_labels WHERE company_id = ?1 AND case_id = ?2 AND label_id = ?3",
+                libsql::params![company_id, case_id, label_id],
+            )
+            .await?;
+        Ok(updated > 0)
+    }
+
+    async fn add_attachment(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        asset_id: &str,
+    ) -> Result<CaseAttachmentRecord, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::row_belongs_to_company(&conn, "cases", case_id, company_id).await?
+            || !helpers::row_belongs_to_company(&conn, "assets", asset_id, company_id).await?
+        {
+            return Err(CaseError::ReferenceNotFound);
+        }
+        let id = Uuid::new_v4().to_string();
+        let result = conn.execute("INSERT INTO case_attachments (id, company_id, case_id, asset_id, created_at, updated_at) VALUES (?1, ?2, ?3, ?4, strftime('%Y-%m-%dT%H:%M:%fZ','now'), strftime('%Y-%m-%dT%H:%M:%fZ','now'))", libsql::params![id.clone(), company_id, case_id, asset_id]).await;
+        match result {
+            Ok(_) => {
+                let mut rows = conn.query("SELECT id, company_id, case_id, asset_id, created_at FROM case_attachments WHERE id = ?1", libsql::params![id]).await?;
+                let row = rows
+                    .next()
+                    .await?
+                    .expect("attachment link was just inserted");
+                Ok(row_to_case_attachment(&row)?)
+            }
+            Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
+                Err(CaseError::ReferenceNotFound)
+            }
+            Err(error) => Err(error.into()),
+        }
+    }
+
+    async fn list_attachments(
+        &self,
+        company_id: &str,
+        case_id: &str,
+    ) -> Result<Vec<CaseAttachmentRecord>, CaseError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn.query("SELECT id, company_id, case_id, asset_id, created_at FROM case_attachments WHERE company_id = ?1 AND case_id = ?2 ORDER BY created_at", libsql::params![company_id, case_id]).await?;
+        let mut attachments = Vec::new();
+        while let Some(row) = rows.next().await? {
+            attachments.push(row_to_case_attachment(&row)?);
+        }
+        Ok(attachments)
+    }
+}
+
+fn row_to_case_issue_link(row: &libsql::Row) -> Result<CaseIssueLinkRecord, libsql::Error> {
+    Ok(CaseIssueLinkRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        issue_id: helpers::row_text(row, 3)?.expect("issue_id"),
+        role: helpers::row_text(row, 4)?.expect("role"),
+        created_by_run_id: helpers::row_text(row, 5)?,
+        created_at: helpers::row_text(row, 6)?.expect("created_at"),
+    })
+}
+
+fn row_to_case_event(row: &libsql::Row) -> Result<CaseEventRecord, libsql::Error> {
+    Ok(CaseEventRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        kind: helpers::row_text(row, 3)?.expect("kind"),
+        actor_type: helpers::row_text(row, 4)?.expect("actor_type"),
+        actor_user_id: helpers::row_text(row, 5)?,
+        actor_agent_id: helpers::row_text(row, 6)?,
+        run_id: helpers::row_text(row, 7)?,
+        payload: helpers::row_text(row, 8)?
+            .and_then(|raw| serde_json::from_str(&raw).ok())
+            .unwrap_or(serde_json::Value::Null),
+        created_at: helpers::row_text(row, 9)?.expect("created_at"),
+    })
+}
+
+fn row_to_case_document(row: &libsql::Row) -> Result<CaseDocumentRecord, libsql::Error> {
+    Ok(CaseDocumentRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        document_id: helpers::row_text(row, 3)?.expect("document_id"),
+        key: helpers::row_text(row, 4)?.expect("key"),
+        created_at: helpers::row_text(row, 5)?.expect("created_at"),
+    })
+}
+
+fn row_to_case_label(row: &libsql::Row) -> Result<CaseLabelRecord, libsql::Error> {
+    Ok(CaseLabelRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        label_id: helpers::row_text(row, 3)?.expect("label_id"),
+        created_at: helpers::row_text(row, 4)?.expect("created_at"),
+    })
+}
+
+fn row_to_case_attachment(row: &libsql::Row) -> Result<CaseAttachmentRecord, libsql::Error> {
+    Ok(CaseAttachmentRecord {
+        id: helpers::row_text(row, 0)?.expect("id"),
+        company_id: helpers::row_text(row, 1)?.expect("company_id"),
+        case_id: helpers::row_text(row, 2)?.expect("case_id"),
+        asset_id: helpers::row_text(row, 3)?.expect("asset_id"),
+        created_at: helpers::row_text(row, 4)?.expect("created_at"),
+    })
 }
 
 #[cfg(test)]
@@ -659,5 +1138,180 @@ mod tests {
             .unwrap_err(),
             CaseError::ReferenceNotFound
         ));
+    }
+
+    #[tokio::test]
+    async fn attachment_tables_lifecycle_and_scoping() {
+        let dir = TempDir::new().unwrap();
+        let db = open(&crate::DbConfig::local(dir.path().join("test.db")))
+            .await
+            .unwrap();
+        migrate(&db).await.unwrap();
+        let conn = crate::connect(&db).await.unwrap();
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c2', 'Beta', 'BETA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+             VALUES ('i1', 'c1', 'Issue 1', 1, 'ALPHA-1')",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO documents (id, company_id, title) VALUES ('d1', 'c1', 'Doc 1')",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO labels (id, company_id, name, color)
+             VALUES ('l1', 'c1', 'bug', '#ff0000')",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO assets (id, company_id, provider, object_key, content_type,
+                                 byte_size, sha256)
+             VALUES ('a1', 'c1', 'local', 'k1', 'text/plain', 3, 'abc')",
+            (),
+        )
+        .await
+        .unwrap();
+        let repo = TursoCaseRepository::new(db);
+
+        let case = repo
+            .create(NewCase {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                case_type: "support".to_owned(),
+                key: Some("k1".to_owned()),
+                title: "First".to_owned(),
+                summary: None,
+                fields: None,
+                parent_case_id: None,
+                created_by_agent_id: None,
+                created_by_user_id: None,
+            })
+            .await
+            .unwrap();
+
+        // Issue links.
+        let link = repo.link_issue("c1", &case.id, "i1", "work").await.unwrap();
+        assert_eq!(link.role, "work");
+        assert_eq!(
+            repo.list_issue_links("c1", &case.id).await.unwrap().len(),
+            1
+        );
+        // Duplicate link rejected.
+        assert!(matches!(
+            repo.link_issue("c1", &case.id, "i1", "reference")
+                .await
+                .unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+        assert!(repo.unlink_issue("c1", &case.id, "i1").await.unwrap());
+        assert!(
+            repo.list_issue_links("c1", &case.id)
+                .await
+                .unwrap()
+                .is_empty()
+        );
+
+        // Events.
+        let event = repo
+            .add_event(NewCaseEvent {
+                company_id: "c1".to_owned(),
+                case_id: case.id.clone(),
+                kind: "status_changed".to_owned(),
+                actor_type: "user".to_owned(),
+                actor_user_id: Some("u1".to_owned()),
+                actor_agent_id: None,
+                run_id: None,
+                payload: Some(serde_json::json!({ "from": "draft", "to": "in_progress" })),
+            })
+            .await
+            .unwrap();
+        assert_eq!(event.kind, "status_changed");
+        assert_eq!(event.payload["to"].as_str(), Some("in_progress"));
+        assert_eq!(repo.list_events("c1", &case.id).await.unwrap().len(), 1);
+
+        // Documents.
+        let doc = repo
+            .link_document("c1", &case.id, "d1", "root")
+            .await
+            .unwrap();
+        assert_eq!(doc.key, "root");
+        assert_eq!(repo.list_documents("c1", &case.id).await.unwrap().len(), 1);
+        assert!(matches!(
+            repo.link_document("c1", &case.id, "d1", "other")
+                .await
+                .unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+
+        // Labels.
+        let label = repo.add_label("c1", &case.id, "l1").await.unwrap();
+        assert_eq!(label.label_id, "l1");
+        assert_eq!(repo.list_labels("c1", &case.id).await.unwrap().len(), 1);
+        assert!(matches!(
+            repo.add_label("c1", &case.id, "l1").await.unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+        assert!(repo.remove_label("c1", &case.id, "l1").await.unwrap());
+        assert!(repo.list_labels("c1", &case.id).await.unwrap().is_empty());
+
+        // Attachments.
+        let attachment = repo.add_attachment("c1", &case.id, "a1").await.unwrap();
+        assert_eq!(attachment.asset_id, "a1");
+        assert_eq!(
+            repo.list_attachments("c1", &case.id).await.unwrap().len(),
+            1
+        );
+        assert!(matches!(
+            repo.add_attachment("c1", &case.id, "a1").await.unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+
+        // Cross-company references are rejected (foreign rows belong to c1).
+        assert!(matches!(
+            repo.link_issue("c2", &case.id, "i1", "work")
+                .await
+                .unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+        assert!(matches!(
+            repo.add_event(NewCaseEvent {
+                company_id: "c2".to_owned(),
+                case_id: case.id.clone(),
+                kind: "updated".to_owned(),
+                actor_type: "system".to_owned(),
+                actor_user_id: None,
+                actor_agent_id: None,
+                run_id: None,
+                payload: None,
+            })
+            .await
+            .unwrap_err(),
+            CaseError::ReferenceNotFound
+        ));
+        assert!(
+            repo.list_issue_links("c2", &case.id)
+                .await
+                .unwrap()
+                .is_empty()
+        );
     }
 }
