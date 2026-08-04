@@ -11,8 +11,8 @@ use staple_data::{
     IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
     LabelRepository, MembershipRepository, PermissionGrantRepository, PipelineRepository,
     PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
-    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
-    WorkspaceRepository,
+    RoutineRepository, SecretBindingRepository, SecretRepository, SkillCatalogRepository,
+    SkillRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -85,6 +85,10 @@ pub struct AppState {
     pub external_objects: Arc<dyn ExternalObjectRepository>,
     /// External-object catalog + mentions repository (upstream alignment).
     pub external_object_catalog: Arc<dyn ExternalObjectCatalogRepository>,
+    /// Skill catalog repository (versions/policies/comments/stars/test runs).
+    pub skill_catalog: Arc<dyn SkillCatalogRepository>,
+    /// Secret binding repository (provider configs/bindings/user secrets).
+    pub secret_bindings: Arc<dyn SecretBindingRepository>,
     /// Skills repository.
     pub skills: Arc<dyn SkillRepository>,
     /// Environments repository.

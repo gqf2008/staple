@@ -16,7 +16,8 @@ use staple_data::{
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
     TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
     TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoSecretBindingRepository,
+    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
@@ -59,6 +60,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let decision_actions_db = open(&db_config).await?;
     let external_objects_db = open(&db_config).await?;
     let external_object_catalog_db = open(&db_config).await?;
+    let skill_catalog_db = open(&db_config).await?;
+    let secret_bindings_db = open(&db_config).await?;
     let skills_db = open(&db_config).await?;
     let environments_db = open(&db_config).await?;
     let workspaces_db = open(&db_config).await?;
@@ -103,6 +106,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
         external_object_catalog: Arc::new(TursoExternalObjectCatalogRepository::new(
             external_object_catalog_db,
         )),
+        skill_catalog: Arc::new(TursoSkillCatalogRepository::new(skill_catalog_db)),
+        secret_bindings: Arc::new(TursoSecretBindingRepository::new(secret_bindings_db)),
         skills: Arc::new(TursoSkillRepository::new(skills_db)),
         environments: Arc::new(TursoEnvironmentRepository::new(environments_db)),
         workspaces: Arc::new(TursoWorkspaceRepository::new(workspaces_db)),
