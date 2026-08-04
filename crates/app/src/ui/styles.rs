@@ -168,4 +168,8 @@ section { margin-bottom: var(--space-8); }
 
 form.stack-form { display: flex; flex-direction: column; gap: var(--space-2); max-width: 24rem; }
 form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
+
+.board-card { cursor: grab; }
+.board-card.dragging { opacity: 0.5; }
+.board-column.drag-over { outline: 2px dashed var(--color-primary); outline-offset: -2px; }
 "#;
