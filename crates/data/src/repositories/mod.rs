@@ -23,6 +23,7 @@ pub mod external_objects;
 pub mod goals;
 pub mod heartbeat_runs;
 pub mod helpers;
+pub mod infrastructure;
 pub mod invites;
 pub mod issue_comments;
 pub mod issue_relations;
@@ -115,6 +116,21 @@ pub use goals::{GoalError, GoalPatch, GoalRecord, GoalRepository, NewGoal, Turso
 pub use heartbeat_runs::{
     CompleteHeartbeatRun, HeartbeatError, HeartbeatRepository, HeartbeatRunRecord, NewHeartbeatRun,
     TursoHeartbeatRepository,
+};
+pub use infrastructure::{
+    AgentConfigRevisionRecord, ApprovalCommentRecord, BuiltInResourceRecord,
+    DocumentMembershipRecord, EnvImageTemplateRecord, EnvLeaseRecord, EnvSetupSessionRecord,
+    FolderRecord, HeartbeatRunEventRecord, HeartbeatWatchdogDecisionRecord, InboxAgentPolicyRecord,
+    InboxDismissalRecord, InfrastructureError, InfrastructureRepository, InstanceSettingsRecord,
+    IssueIdempotencyRecord, IssueInboxArchiveRecord, IssuePlanDecompositionRecord,
+    IssueReferenceMentionRecord, IssueTreeHoldMemberRecord, IssueTreeHoldRecord,
+    IssueWatchdogRecord, NewAgentConfigRevision, NewApprovalComment, NewBuiltInResource,
+    NewDocumentMembership, NewEnvImageTemplate, NewEnvLease, NewEnvSetupSession, NewFolder,
+    NewHeartbeatRunEvent, NewHeartbeatWatchdogDecision, NewInboxAgentPolicy, NewInboxDismissal,
+    NewIssueInboxArchive, NewIssuePlanDecomposition, NewIssueReferenceMention, NewIssueTreeHold,
+    NewIssueTreeHoldMember, NewIssueWatchdog, NewRoutineDocument, NewSession, NewUser,
+    ReleaseTreeHold, RoutineDocumentRecord, SessionRecord, TursoInfrastructureRepository,
+    UserRecord, UserSidebarPreferenceRecord,
 };
 pub use invites::{
     InviteError, InviteRecord, InviteRepository, JoinRequestRecord, NewInvite, NewJoinRequest,

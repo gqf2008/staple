@@ -17,12 +17,13 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInviteRepository, TursoIssueCommentRepository, TursoIssueRelationRepository,
-    TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
-    TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
-    TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
+    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
+    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
+    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
+    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -51,6 +52,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let invites_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let infrastructure_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let board_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -158,6 +162,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
