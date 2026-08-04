@@ -11,8 +11,8 @@ use staple_data::{
     IssueCommentRepository, IssueRelationRepository, IssueRepository, IssueStructureRepository,
     LabelRepository, MembershipRepository, PermissionGrantRepository, PipelineRepository,
     PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
-    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
-    WorkspaceRepository,
+    RoutineRepository, SecretRepository, SkillRepository, ToolCatalogRepository,
+    ToolConnectionRepository, ToolGatewayRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -97,6 +97,12 @@ pub struct AppState {
     pub issue_structure: Arc<dyn IssueStructureRepository>,
     /// Routines repository.
     pub routines: Arc<dyn RoutineRepository>,
+    /// Tool catalog repository (applications, catalog entries, profiles).
+    pub tool_catalog: Arc<dyn ToolCatalogRepository>,
+    /// Tool connection repository (connections, grants, installs, oauth, issuances).
+    pub tool_connections: Arc<dyn ToolConnectionRepository>,
+    /// Tool gateway repository (gateways, tokens, invocations, audit events).
+    pub tool_gateway: Arc<dyn ToolGatewayRepository>,
     /// Adapter registry.
     pub adapters: Arc<AdapterRegistry>,
     /// Plugin load diagnostics.

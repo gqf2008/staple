@@ -15,6 +15,25 @@ pub use migrations::{
     MigrateError, Migration, load_migrations, migrate, migrate_conn, migrate_down,
 };
 pub use repositories::helpers::sha256_hex;
+pub use repositories::toolchain::{
+    ConnectionGrantRecord, ConnectionTokenIssuanceRecord, NewConnectionGrant,
+    NewConnectionTokenIssuance, NewToolAccessAuditEvent, NewToolActionRequest, NewToolApplication,
+    NewToolCallEvent, NewToolCatalogEntry, NewToolConnection, NewToolConnectionInstall,
+    NewToolGatewayRateLimitCounter, NewToolGatewaySession, NewToolInvocation, NewToolMcpGateway,
+    NewToolMcpGatewayToken, NewToolOauthState, NewToolPolicy, NewToolProfile,
+    NewToolProfileBinding, NewToolProfileEntry, NewToolRateLimitCounter,
+    NewToolRuntimeMetricCounter, NewToolRuntimeSlot, NewToolStdioCommandTemplate,
+    ToolAccessAuditEventRecord, ToolActionRequestRecord, ToolApplicationRecord,
+    ToolCallEventRecord, ToolCatalogEntryRecord, ToolCatalogRepository,
+    ToolConnectionInstallRecord, ToolConnectionRecord, ToolConnectionRepository,
+    ToolGatewayRateLimitCounterRecord, ToolGatewayRepository, ToolGatewaySessionRecord,
+    ToolInvocationRecord, ToolMcpGatewayRecord, ToolMcpGatewayTokenRecord, ToolOauthStateRecord,
+    ToolPolicyRecord, ToolProfileBindingRecord, ToolProfileEntryRecord, ToolProfileRecord,
+    ToolRateLimitCounterRecord, ToolRuntimeMetricCounterRecord, ToolRuntimeSlotRecord,
+    ToolStdioCommandTemplateRecord, ToolchainError, TursoToolCatalogRepository,
+    TursoToolConnectionRepository, TursoToolGatewayRepository, UpdateToolConnection,
+    UpdateToolProfile,
+};
 pub use repositories::{
     ActivityEntry, ActivityError, ActivityRepository, AgentApiKeyRecord, AgentBudgetRecord,
     AgentCostRow, AgentError, AgentHierarchyRow, AgentPrincipal, AgentRecord, AgentRepository,

@@ -36,6 +36,7 @@ pub mod relations;
 pub mod routines;
 pub mod secrets;
 pub mod skills;
+pub mod toolchain;
 pub mod work_products;
 pub mod workspaces;
 
