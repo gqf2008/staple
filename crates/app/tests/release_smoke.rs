@@ -17,10 +17,10 @@ use staple_data::{
     TursoGoalRepository, TursoHeartbeatRepository, TursoInviteRepository,
     TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
     TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
-    TursoPermissionGrantRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, migrate, open,
+    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -111,6 +111,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         preferences: Arc::new(TursoPreferenceRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        pipelines: Arc::new(TursoPipelineRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
@@ -352,6 +357,7 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/dashboard/live"), "Live"),
         ("/adapters/cli_local".to_string(), "Invoke"),
         (format!("/companies/{company_id}/cases"), "Cases"),
+        (format!("/companies/{company_id}/pipelines"), "Pipelines"),
     ] {
         let request = Request::builder()
             .method(Method::GET)

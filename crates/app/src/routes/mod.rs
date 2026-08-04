@@ -26,6 +26,7 @@ pub mod issue_structure;
 pub mod issues;
 pub mod memberships;
 pub mod permission_grants;
+pub mod pipelines;
 pub mod plugin_runtime;
 pub mod plugins;
 pub mod preferences;

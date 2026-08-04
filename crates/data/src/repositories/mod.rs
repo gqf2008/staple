@@ -30,6 +30,7 @@ pub mod issues;
 pub mod labels;
 pub mod memberships;
 pub mod permission_grants;
+pub mod pipelines;
 pub mod plugin_runtime;
 pub mod plugins;
 pub mod preferences;
@@ -136,6 +137,11 @@ pub use memberships::{
 pub use permission_grants::{
     NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,
     TursoPermissionGrantRepository,
+};
+pub use pipelines::{
+    NewCaseEvent, NewPipeline, NewPipelineCase, NewStage, NewTransition, PipelineCaseEventRecord,
+    PipelineCaseRecord, PipelineError, PipelineRecord, PipelineRepository, PipelineStageRecord,
+    PipelineTransitionRecord, TursoPipelineRepository,
 };
 pub use plugin_runtime::{
     NewPluginEntity, NewPluginJob, NewPluginJobRun, NewPluginLog, NewPluginMigration,

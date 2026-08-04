@@ -999,3 +999,233 @@ pub struct CaseStatusForm {
     /// Target status.
     pub status: String,
 }
+
+/// `POST /companies/{company_id}/pipelines/ui` — creates a pipeline.
+#[route(POST "/companies/{company_id}/pipelines/ui")]
+pub async fn pipeline_create_ui(
+    cx: &Cx,
+    Form(form): Form<PipelineForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let key = form.key.trim().to_owned();
+    let name = form.name.trim().to_owned();
+    if !key.is_empty()
+        && !name.is_empty()
+        && let Ok(pipeline) = state
+            .pipelines
+            .create_pipeline(staple_data::NewPipeline {
+                company_id: company_id.clone(),
+                project_id: None,
+                key,
+                name,
+                description: None,
+                enforce_transitions: form.enforce == Some("1".to_owned()),
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await
+    {
+        return Ok(see_other(&format!("/pipelines/{}", pipeline.id)));
+    }
+    Ok(see_other(&format!("/companies/{company_id}/pipelines")))
+}
+
+/// `POST /pipelines/{id}/stages/ui` — creates a stage.
+#[route(POST "/pipelines/{id}/stages/ui")]
+pub async fn pipeline_stage_ui(
+    cx: &Cx,
+    Form(form): Form<StageForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let pipeline_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    let key = form.key.trim().to_owned();
+    let name = form.name.trim().to_owned();
+    if !key.is_empty() && !name.is_empty() {
+        let _ = state
+            .pipelines
+            .create_stage(staple_data::NewStage {
+                company_id: company_id.clone(),
+                pipeline_id: pipeline_id.clone(),
+                key,
+                name,
+                kind: form.kind.clone(),
+                position: form.position.unwrap_or(1),
+                config: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
+}
+
+/// `POST /pipelines/{id}/transitions/ui` — creates a transition edge.
+#[route(POST "/pipelines/{id}/transitions/ui")]
+pub async fn pipeline_transition_ui(
+    cx: &Cx,
+    Form(form): Form<TransitionForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let pipeline_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    if let (Some(from), Some(to)) = (&form.from_stage_id, &form.to_stage_id) {
+        let _ = state
+            .pipelines
+            .create_transition(staple_data::NewTransition {
+                company_id: company_id.clone(),
+                pipeline_id: pipeline_id.clone(),
+                from_stage_id: from.clone(),
+                to_stage_id: to.clone(),
+                label: None,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
+}
+
+/// `POST /pipelines/{id}/cases/ui` — creates a pipeline case.
+#[route(POST "/pipelines/{id}/cases/ui")]
+pub async fn pipeline_case_ui(
+    cx: &Cx,
+    Form(form): Form<PipelineCaseForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let pipeline_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    let case_key = form.case_key.trim().to_owned();
+    let title = form.title.trim().to_owned();
+    if !case_key.is_empty()
+        && !title.is_empty()
+        && let Some(stage_id) = &form.stage_id
+    {
+        let _ = state
+            .pipelines
+            .create_case(staple_data::NewPipelineCase {
+                company_id: company_id.clone(),
+                pipeline_id: pipeline_id.clone(),
+                stage_id: stage_id.clone(),
+                case_key,
+                title,
+                summary: None,
+                fields: None,
+                workspace_ref: None,
+                parent_case_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
+}
+
+/// `POST /pipeline-cases/{id}/move/ui` — moves a pipeline case.
+#[route(POST "/pipeline-cases/{id}/move/ui")]
+pub async fn pipeline_case_move_ui(
+    cx: &Cx,
+    Form(form): Form<MoveForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    if let Some(to_stage_id) = &form.to_stage_id {
+        let _ = state
+            .pipelines
+            .move_case(
+                &company_id,
+                &case_id,
+                to_stage_id,
+                "user",
+                Some("board".to_owned()),
+                None,
+                false,
+            )
+            .await;
+    }
+    Ok(see_other(&format!("/pipeline-cases/{case_id}")))
+}
+
+/// Pipeline create form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PipelineForm {
+    /// Pipeline key.
+    pub key: String,
+    /// Pipeline name.
+    pub name: String,
+    /// Enforce transitions (checkbox `1`).
+    #[serde(default)]
+    pub enforce: Option<String>,
+}
+
+/// Stage form.
+#[derive(Debug, serde::Deserialize)]
+pub struct StageForm {
+    /// Stage key.
+    pub key: String,
+    /// Stage name.
+    pub name: String,
+    /// Stage kind.
+    pub kind: String,
+    /// Stage position.
+    #[serde(default)]
+    pub position: Option<i64>,
+}
+
+/// Transition form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TransitionForm {
+    /// From stage id.
+    pub from_stage_id: Option<String>,
+    /// To stage id.
+    pub to_stage_id: Option<String>,
+}
+
+/// Pipeline case form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineCaseForm {
+    /// Case key.
+    pub case_key: String,
+    /// Title.
+    pub title: String,
+    /// Stage id.
+    pub stage_id: Option<String>,
+}
+
+/// Move form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct MoveForm {
+    /// Target stage id.
+    pub to_stage_id: Option<String>,
+}

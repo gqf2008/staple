@@ -9,8 +9,8 @@ use staple_data::{
     EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
     InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
     IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
-    PluginRepository, PluginRuntimeRepository, PreferenceRepository, ProjectRepository,
-    RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
+    PipelineRepository, PluginRepository, PluginRuntimeRepository, PreferenceRepository,
+    ProjectRepository, RoutineRepository, SecretRepository, SkillRepository, WorkProductRepository,
     WorkspaceRepository,
 };
 
@@ -40,6 +40,8 @@ pub struct AppState {
     pub cases: Arc<dyn CaseRepository>,
     /// Sidebar preferences / company logos repository.
     pub preferences: Arc<dyn PreferenceRepository>,
+    /// Pipelines repository.
+    pub pipelines: Arc<dyn PipelineRepository>,
     /// Plugin registry/config/settings/resources repository.
     pub plugins: Arc<dyn PluginRepository>,
     /// Plugin runtime (state/entities/jobs/logs/webhooks/db) repository.
