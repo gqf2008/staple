@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成 + scheduler + UI 剩余领域批次 1/2 + Pipelines 核心五表）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（扩展 issues 全部完成 + scheduler + UI 批次 + Pipelines 全套 + 38 语言 locale + P3 双栈切换 #27）。
 
 ## 使用方式
 
@@ -50,7 +50,7 @@
 | **P2 UI：审计视图** | 审计日志 | ✅ 完成 | `ui/pages.rs` activity |
 | **P2 插件生态** | 外部适配器插件契约（版本化） | ✅ 完成 | `plugins.rs`；诊断报告 + 覆盖内置 |
 | **P3 数据迁移** | Postgres → Turso 导出/导入 | ✅ 完成 | `tools/migrate/`（#26 + #66）；Postgres 读取器（`export_postgres`）+ 列感知导入 + verify；本地 Postgres 契约测试 + CLI 端到端 |
-| **P3 双栈切换** | Node 冻结与删除 | ⏳ 进行中 | #27 |
+| **P3 双栈切换** | Node 冻结与删除 | ✅ 完成 | #27：server/ui/packages + Node workflows/scripts 移除；Rust 单二进制为唯一入口；参考镜像保留 Node 代码 |
 
 ## 未对齐/明确延后的上游能力（登记为需求）
 
