@@ -62,6 +62,38 @@ pub struct IssueRecord {
     pub created_at: String,
     /// ISO 8601 last update time.
     pub updated_at: String,
+    /// Project workspace id.
+    pub project_workspace_id: Option<String>,
+    /// Harness kind.
+    pub harness_kind: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
+    /// ISO 8601 monitor next check.
+    pub monitor_next_check_at: Option<String>,
+    /// ISO 8601 monitor wake requested.
+    pub monitor_wake_requested_at: Option<String>,
+    /// ISO 8601 monitor last triggered.
+    pub monitor_last_triggered_at: Option<String>,
+    /// Monitor attempt count.
+    pub monitor_attempt_count: i64,
+    /// Monitor notes.
+    pub monitor_notes: Option<String>,
+    /// Monitor scheduled by.
+    pub monitor_scheduled_by: Option<String>,
+    /// Execution workspace id.
+    pub execution_workspace_id: Option<String>,
+    /// Execution workspace preference.
+    pub execution_workspace_preference: Option<String>,
+    /// Execution workspace settings JSON.
+    pub execution_workspace_settings: Option<String>,
+    /// Source trust JSON.
+    pub source_trust: Option<String>,
+    /// Unblock descriptor JSON.
+    pub unblock_descriptor: Option<String>,
+    /// ISO 8601 blocked transition.
+    pub blocked_transition_at: Option<String>,
+    /// ISO 8601 blocked owner notified.
+    pub blocked_owner_notified_at: Option<String>,
 }
 
 /// Input for creating an issue.
@@ -231,7 +263,12 @@ impl TursoIssueRepository {
 const ISSUE_COLUMNS: &str = "id, company_id, project_id, goal_id, parent_id, title, description,
     status, priority, assignee_agent_id, assignee_user_id, created_by_agent_id,
     created_by_user_id, issue_number, identifier, request_depth, work_mode, billing_code,
-    started_at, completed_at, cancelled_at, hidden_at, created_at, updated_at";
+    started_at, completed_at, cancelled_at, hidden_at, created_at, updated_at,
+    project_workspace_id, harness_kind, responsible_user_id, monitor_next_check_at,
+    monitor_wake_requested_at, monitor_last_triggered_at, monitor_attempt_count, monitor_notes,
+    monitor_scheduled_by, execution_workspace_id, execution_workspace_preference,
+    execution_workspace_settings, source_trust, unblock_descriptor, blocked_transition_at,
+    blocked_owner_notified_at";
 
 fn row_to_issue(row: &libsql::Row) -> Result<IssueRecord, libsql::Error> {
     Ok(IssueRecord {
@@ -259,6 +296,22 @@ fn row_to_issue(row: &libsql::Row) -> Result<IssueRecord, libsql::Error> {
         hidden_at: helpers::row_text(row, 21)?,
         created_at: helpers::row_text(row, 22)?.expect("created_at is NOT NULL"),
         updated_at: helpers::row_text(row, 23)?.expect("updated_at is NOT NULL"),
+        project_workspace_id: helpers::row_text(row, 24)?,
+        harness_kind: helpers::row_text(row, 25)?,
+        responsible_user_id: helpers::row_text(row, 26)?,
+        monitor_next_check_at: helpers::row_text(row, 27)?,
+        monitor_wake_requested_at: helpers::row_text(row, 28)?,
+        monitor_last_triggered_at: helpers::row_text(row, 29)?,
+        monitor_attempt_count: helpers::row_i64(row, 30)?,
+        monitor_notes: helpers::row_text(row, 31)?,
+        monitor_scheduled_by: helpers::row_text(row, 32)?,
+        execution_workspace_id: helpers::row_text(row, 33)?,
+        execution_workspace_preference: helpers::row_text(row, 34)?,
+        execution_workspace_settings: helpers::row_text(row, 35)?,
+        source_trust: helpers::row_text(row, 36)?,
+        unblock_descriptor: helpers::row_text(row, 37)?,
+        blocked_transition_at: helpers::row_text(row, 38)?,
+        blocked_owner_notified_at: helpers::row_text(row, 39)?,
     })
 }
 
@@ -789,5 +842,46 @@ mod tests {
         let by_id = repo.search("c1", "docs").await.unwrap();
         assert_eq!(by_id.len(), 1);
         assert!(repo.search("c1", "nothing-here").await.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn new_exec_fields_are_readable() {
+        let (_dir, repo, conn) = repo().await;
+        seed(&conn).await;
+        let issue = repo
+            .create(NewIssue {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                goal_id: None,
+                parent_id: None,
+                title: "Exec".to_owned(),
+                description: None,
+                status: None,
+                priority: None,
+                assignee_agent_id: None,
+                assignee_user_id: None,
+                created_by_user_id: None,
+                work_mode: None,
+                billing_code: None,
+            })
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE issues SET harness_kind = 'standard', monitor_attempt_count = 2,
+                    monitor_next_check_at = '2026-08-04T00:00:00.000Z',
+                    execution_workspace_id = 'w1', source_trust = '{}',
+                    blocked_transition_at = '2026-08-04T00:00:00.000Z'
+             WHERE id = ?1",
+            libsql::params![issue.id.clone()],
+        )
+        .await
+        .unwrap();
+        let fetched = repo.get(&issue.id).await.unwrap().unwrap();
+        assert_eq!(fetched.harness_kind.as_deref(), Some("standard"));
+        assert_eq!(fetched.monitor_attempt_count, 2);
+        assert_eq!(fetched.execution_workspace_id.as_deref(), Some("w1"));
+        assert_eq!(fetched.source_trust.as_deref(), Some("{}"));
+        assert!(fetched.blocked_transition_at.is_some());
+        assert!(fetched.project_workspace_id.is_none());
     }
 }
