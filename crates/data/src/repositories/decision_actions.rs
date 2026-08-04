@@ -235,6 +235,9 @@ pub trait DecisionActionRepository: Send + Sync {
         id: &str,
     ) -> Result<Option<DecisionRecord>, DecisionActionError>;
 
+    /// Resolves the owning company of a decision.
+    async fn decision_company(&self, id: &str) -> Result<Option<String>, DecisionActionError>;
+
     /// Lists decisions for a company, optionally filtered by status.
     async fn list_decisions(
         &self,
@@ -478,6 +481,20 @@ impl DecisionActionRepository for TursoDecisionActionRepository {
             .await?;
         match rows.next().await? {
             Some(row) => Ok(Some(row_to_decision(&row)?)),
+            None => Ok(None),
+        }
+    }
+
+    async fn decision_company(&self, id: &str) -> Result<Option<String>, DecisionActionError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT company_id FROM decisions WHERE id = ?1",
+                libsql::params![id],
+            )
+            .await?;
+        match rows.next().await? {
+            Some(row) => Ok(helpers::row_text(&row, 0)?),
             None => Ok(None),
         }
     }

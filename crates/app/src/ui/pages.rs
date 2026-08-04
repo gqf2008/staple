@@ -24,6 +24,10 @@ pub(crate) struct CompanyId(String);
 #[path_param(error = bad_request("Invalid goal id"))]
 pub(crate) struct GoalId(String);
 
+/// Typed `{decision_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid decision id"))]
+pub(crate) struct DecisionId(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -93,6 +97,8 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang))>(t(lang, "agents.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>(t(lang, "inbox.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/decision-desk"), lang))>(t(lang, "decision.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/decisions"), lang))>(t(lang, "decisions.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/decision-training-examples"), lang))>(t(lang, "training.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
@@ -1758,6 +1764,259 @@ pub async fn projects(cx: &Cx) -> Result {
                                 <strong>(project.name)</strong>
                             </a>
                             " " <span class=(status_badge_class(&project.status))>(project.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Decisions list page for one company.
+#[page("/companies/{company_id}/decisions")]
+pub async fn decisions(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let decision_rows = state
+        .decision_actions
+        .list_decisions(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let run_rows = state
+        .heartbeat
+        .list(&company_id, None, 50)
+        .await
+        .map_err(to_topcoat_error)?;
+    let statuses = ["open", "decided", "cancelled", "expired"];
+    view! {
+        <h1 class="page-title">(t(lang, "decisions.title"))</h1>
+        <section>
+            <h2>(t(lang, "decisions.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/decisions/ui"), lang))>
+                <label>(t(lang, "decisions.titleLabel"))</label>
+                <input type="text" name="title" required="required">
+                <label>(t(lang, "decisions.bodyLabel"))</label>
+                <input type="text" name="body">
+                <label>(t(lang, "decisions.optionsLabel"))</label>
+                <input type="text" name="options" placeholder="[{\"id\": \"a\", \"label\": \"A\"}]">
+                <label>(t(lang, "decisions.statusLabel"))</label>
+                <select name="status">
+                    for status in statuses {
+                        <option value=(status)>(status)</option>
+                    }
+                </select>
+                <label>(t(lang, "decisions.expiresAtLabel"))</label>
+                <input type="text" name="expires_at" placeholder="2026-12-31T00:00:00.000Z">
+                <label>(t(lang, "decisions.originAgentLabel"))</label>
+                <select name="origin_agent_id">
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "decisions.originIssueLabel"))</label>
+                <select name="origin_issue_id">
+                    for issue in &issue_rows {
+                        <option value=(issue.id.clone())>(issue.identifier.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "decisions.originRunLabel"))</label>
+                <select name="origin_run_id">
+                    for run in &run_rows {
+                        <option value=(run.id.clone())>(run.id.clone())</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "section.decisions"))</h2>
+            if decision_rows.is_empty() {
+                <p class="empty">(t(lang, "decisions.none"))</p>
+            } else {
+                <ul class="list">
+                    for decision in decision_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/decisions/{}", decision.id), lang))>
+                                <strong>(decision.title)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&decision.status))>(decision.status)</span>
+                            " " <span class="meta-row">(t(lang, "decisions.expires")) ": " (decision.expires_at)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Decision detail: attributes, resolve form, target issues, effect executions.
+#[page("/decisions/{decision_id}")]
+pub async fn decision_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let decision_id = path_param::<DecisionId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .decision_actions
+        .decision_company(&decision_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let Some(decision) = state
+        .decision_actions
+        .get_decision(&company_id, &decision_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let target_rows = state
+        .decision_actions
+        .list_target_issues(&company_id, &decision_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let effect_rows = state
+        .decision_actions
+        .list_effect_executions(&company_id, &decision_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let statuses = ["open", "decided", "cancelled", "expired"];
+    view! {
+        <h1 class="page-title">(decision.title.clone())</h1>
+        <p class="mono">(decision.id.clone())</p>
+        <p>
+            <span class=(status_badge_class(&decision.status))>(decision.status.clone())</span>
+            if let Some(execution_status) = &decision.execution_status {
+                " " <span class="badge badge-default">(execution_status.clone())</span>
+            }
+        </p>
+        <p class="meta-row">(decision.body.clone())</p>
+        <p class="meta-row">(t(lang, "decisions.options")) ": " (serde_json::to_string(&decision.options).unwrap_or_default())</p>
+        <p class="meta-row">(t(lang, "decisions.expires")) ": " (decision.expires_at.clone())</p>
+        <section>
+            <h2>(t(lang, "decisions.resolve"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/decisions/{decision_id}/resolve/ui"), lang))>
+                <label>(t(lang, "decisions.statusLabel"))</label>
+                <select name="status">
+                    for status in statuses {
+                        if status == decision.status {
+                            <option value=(status) selected="selected">(status)</option>
+                        } else {
+                            <option value=(status)>(status)</option>
+                        }
+                    }
+                </select>
+                <label>(t(lang, "decisions.chosenOptionLabel"))</label>
+                <input type="text" name="chosen_option_id" value=(decision.chosen_option_id.clone().unwrap_or_default())>
+                <label>(t(lang, "decisions.decidedByLabel"))</label>
+                <input type="text" name="decided_by_user_id" value=(decision.decided_by_user_id.clone().unwrap_or_default())>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "decisions.targetIssues"))</h2>
+            if target_rows.is_empty() {
+                <p class="empty">(t(lang, "decisions.noTargets"))</p>
+            } else {
+                <ul class="list">
+                    for link in target_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/issues/{}", link.issue_id), lang))>
+                                <span class="mono">(link.issue_id.clone())</span>
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "decisions.effectExecutions"))</h2>
+            if effect_rows.is_empty() {
+                <p class="empty">(t(lang, "decisions.noEffects"))</p>
+            } else {
+                <ul class="list">
+                    for effect in effect_rows {
+                        <li>
+                            <span class="badge badge-default">(effect.effect_type.clone())</span>
+                            " " <span class=(status_badge_class(&effect.status))>(effect.status)</span>
+                            " " <span class="meta-row">(t(lang, "decisions.target")) ": " (effect.target_issue_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Decision training examples page for one company.
+#[page("/companies/{company_id}/decision-training-examples")]
+pub async fn training_examples(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let example_rows = state
+        .decision_actions
+        .list_training_examples(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "training.title"))</h1>
+        <section>
+            <h2>(t(lang, "training.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/decision-training-examples/ui"), lang))>
+                <label>(t(lang, "training.sourceKindLabel"))</label>
+                <input type="text" name="source_kind" required="required">
+                <label>(t(lang, "training.sourceIdLabel"))</label>
+                <input type="text" name="source_id" required="required">
+                <label>(t(lang, "training.issueLabel"))</label>
+                <select name="issue_id">
+                    for issue in &issue_rows {
+                        <option value=(issue.id.clone())>(issue.identifier.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "training.cutoffAtLabel"))</label>
+                <input type="text" name="cutoff_at" placeholder="2026-08-01T00:00:00.000Z" required="required">
+                <label>(t(lang, "training.snapshotLabel"))</label>
+                <input type="text" name="snapshot" placeholder="{}">
+                <label>(t(lang, "training.createdByLabel"))</label>
+                <input type="text" name="created_by_user_id" value="board">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "training.list"))</h2>
+            if example_rows.is_empty() {
+                <p class="empty">(t(lang, "training.none"))</p>
+            } else {
+                <ul class="list">
+                    for example in example_rows {
+                        <li>
+                            <strong>(example.source_kind.clone())</strong>
+                            " " <span class="mono">(example.source_id.clone())</span>
+                            " " <span class="meta-row">(example.cutoff_at.clone())</span>
+                            if let Some(outcome) = &example.decision_outcome {
+                                " " <span class="badge badge-default">(outcome.clone())</span>
+                            }
                         </li>
                     }
                 </ul>

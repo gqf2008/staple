@@ -398,6 +398,11 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/goals"), "Ship"),
         (format!("/companies/{company_id}/projects"), "Project X"),
         (format!("/goals/{goal_id}"), "Ship"),
+        (format!("/companies/{company_id}/decisions"), "Decisions"),
+        (
+            format!("/companies/{company_id}/decision-training-examples"),
+            "Training examples",
+        ),
         (format!("/companies/{company_id}/secrets"), "Secrets"),
         (format!("/companies/{company_id}/skills"), "Skills"),
         ("/instance/settings".to_string(), "Instance"),
