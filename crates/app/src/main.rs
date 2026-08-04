@@ -17,9 +17,9 @@ use staple_data::{
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
     TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
-    TursoSkillRepository, TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path,
-    migrate, open,
+    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
+    TursoSkillCatalogRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -70,6 +70,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let labels_db = open(&db_config).await?;
     let issue_structure_db = open(&db_config).await?;
     let routines_db = open(&db_config).await?;
+    let scattered_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let secret_cipher = SecretCipher::load_or_create(default_key_path())
         .map_err(|error| Box::<dyn Error>::from(error.to_string()))?;
@@ -117,6 +118,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         labels: Arc::new(TursoLabelRepository::new(labels_db)),
         issue_structure: Arc::new(TursoIssueStructureRepository::new(issue_structure_db)),
         routines: Arc::new(TursoRoutineRepository::new(routines_db)),
+        scattered: Arc::new(TursoScatteredRepository::new(scattered_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
