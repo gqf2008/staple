@@ -338,6 +338,10 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/secrets"), "Secrets"),
         (format!("/companies/{company_id}/skills"), "Skills"),
         ("/instance/settings".to_string(), "Instance"),
+        (format!("/companies/{company_id}/dashboard"), "Dashboard"),
+        (format!("/projects/{project_id}"), project_id.as_str()),
+        (format!("/companies/{company_id}/workspaces"), "Workspaces"),
+        ("/adapters".to_string(), "Adapters"),
     ] {
         let request = Request::builder()
             .method(Method::GET)

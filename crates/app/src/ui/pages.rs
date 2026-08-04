@@ -80,6 +80,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
         <p class="mono">(company.id)</p>
 
         <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/search"), lang))>(t(lang, "nav.search"))</a>
@@ -93,6 +94,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/secrets"), lang))>(t(lang, "settings.secrets"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>(t(lang, "settings.skills"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang))>(t(lang, "workspaces.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "nav.settings"))</a>
         </nav>
 
@@ -1279,6 +1281,336 @@ pub async fn instance_settings(cx: &Cx) -> Result {
 /// `{agent_id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid agent id"))]
 pub(crate) struct AgentPathId(String);
+
+/// Dashboard: issue/agent/budget statistics plus recent activity.
+#[page("/companies/{company_id}/dashboard")]
+pub async fn dashboard(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let issues = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let summary = state
+        .costs
+        .summary(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let activity_rows = state
+        .activity
+        .list(&company_id, 10)
+        .await
+        .map_err(to_topcoat_error)?;
+    let statuses = [
+        "backlog",
+        "todo",
+        "in_progress",
+        "in_review",
+        "blocked",
+        "done",
+    ];
+    view! {
+        <h1 class="page-title">(t(lang, "dashboard.title"))</h1>
+        <section>
+            <h2>(t(lang, "dashboard.issues"))</h2>
+            <ul class="list">
+                for status in statuses {
+                    <li>
+                        <span class=(status_badge_class(status))>(status)</span>
+                        " " <strong>(issues.iter().filter(|i| i.status == status).count())</strong>
+                    </li>
+                }
+                <li>
+                    <span class="badge badge-default">(t(lang, "dashboard.total"))</span>
+                    " " <strong>(issues.len())</strong>
+                </li>
+            </ul>
+        </section>
+        <section>
+            <h2>(t(lang, "dashboard.agents"))</h2>
+            if agent_rows.is_empty() {
+                <p class="empty">(t(lang, "agents.noAgents"))</p>
+            } else {
+                <ul class="list">
+                    for agent in agent_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/agents/{}", agent.id), lang))>
+                                <strong>(agent.name)</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&agent.status))>(agent.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        if let Some(summary) = &summary {
+            <section>
+                <h2>(t(lang, "dashboard.budget"))</h2>
+                <ul class="list">
+                    <li>(t(lang, "costs.budget")) ": " (summary.budget_monthly_cents) "¢"</li>
+                    <li>(t(lang, "costs.spent")) ": " (summary.spent_monthly_cents) "¢"</li>
+                    <li>(t(lang, "costs.pausedAgents")) ": " (summary.paused_agents)</li>
+                </ul>
+            </section>
+        }
+        <section>
+            <h2>(t(lang, "dashboard.activity"))</h2>
+            if activity_rows.is_empty() {
+                <p class="empty">(t(lang, "activity.noActivity"))</p>
+            } else {
+                <ul class="list">
+                    for entry in activity_rows {
+                        <li>
+                            <span class="mono">(entry.created_at)</span>
+                            " " <strong>(entry.action)</strong>
+                            " " <span class="meta-row">(entry.actor_type) "/" (entry.actor_id)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Project detail: attributes, linked issues, and an edit form.
+#[page("/projects/{project_id}")]
+pub async fn project_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let project_id = path_param::<ProjectId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(project) = state
+        .projects
+        .get(&project_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let issues = state
+        .issues
+        .list(&project.company_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .into_iter()
+        .filter(|issue| issue.project_id.as_deref() == Some(project_id.as_str()))
+        .collect::<Vec<_>>();
+    let statuses = [
+        "backlog",
+        "planned",
+        "in_progress",
+        "completed",
+        "cancelled",
+    ];
+    view! {
+        <h1 class="page-title">(project.name.clone())</h1>
+        <p class="mono">(project.id.clone())</p>
+        <p>
+            <span class=(status_badge_class(&project.status))>(project.status.clone())</span>
+            if let Some(description) = &project.description {
+                " " <span class="meta-row">(description.clone())</span>
+            }
+        </p>
+        <section>
+            <h2>(t(lang, "projects.edit"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/projects/{project_id}/edit/ui"), lang))>
+                <label>"Name"</label>
+                <input type="text" name="name" value=(project.name.clone())>
+                <label>"Description"</label>
+                <input type="text" name="description" value=(project.description.clone().unwrap_or_default())>
+                <label>"Status"</label>
+                <select name="status">
+                    for status in statuses {
+                        if status == project.status {
+                            <option value=(status) selected="selected">(status)</option>
+                        } else {
+                            <option value=(status)>(status)</option>
+                        }
+                    }
+                </select>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "projects.issues"))</h2>
+            if issues.is_empty() {
+                <p class="empty">(t(lang, "empty.noIssues"))</p>
+            } else {
+                <ul class="list">
+                    for issue in issues {
+                        <li>
+                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                <span class="mono">(issue.identifier.clone())</span>
+                                " " <strong>(issue.title.clone())</strong>
+                            </a>
+                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Workspaces page: project/execution workspaces, runtime services, operations.
+#[page("/companies/{company_id}/workspaces")]
+pub async fn workspaces(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let project_workspaces = state
+        .workspaces
+        .list_project_workspaces(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let execution_workspaces = state
+        .workspaces
+        .list_execution_workspaces(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let services = state
+        .workspaces
+        .list_runtime_services(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let operations = state
+        .workspaces
+        .list_operations(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "workspaces.title"))</h1>
+        <section>
+            <h2>(t(lang, "workspaces.project"))</h2>
+            if project_workspaces.is_empty() {
+                <p class="empty">(t(lang, "workspaces.empty"))</p>
+            } else {
+                <ul class="list">
+                    for workspace in project_workspaces {
+                        <li>
+                            <strong>(workspace.name)</strong>
+                            " " <span class="badge badge-default">(workspace.source_type)</span>
+                            if let Some(repo) = &workspace.repo_url {
+                                " " <span class="mono">(repo.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "workspaces.execution"))</h2>
+            if execution_workspaces.is_empty() {
+                <p class="empty">(t(lang, "workspaces.empty"))</p>
+            } else {
+                <ul class="list">
+                    for workspace in execution_workspaces {
+                        <li>
+                            <span class="mono">(workspace.name)</span>
+                            " " <span class=(status_badge_class(if workspace.materialized { "done" } else { "backlog" }))>
+                                (if workspace.materialized { "materialized" } else { "not materialized" })
+                            </span>
+                            if !workspace.materialized {
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/companies/{company_id}/workspaces/{}/materialize/ui", workspace.id), lang))>
+                                    <button type="submit" class="secondary">(t(lang, "workspaces.materialize"))</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "workspaces.services"))</h2>
+            if services.is_empty() {
+                <p class="empty">(t(lang, "workspaces.empty"))</p>
+            } else {
+                <ul class="list">
+                    for service in services {
+                        <li>
+                            <strong>(service.service_name)</strong>
+                            " " <span class="badge badge-default">(service.status)</span>
+                            " " <span class="mono">(service.scope_type)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "workspaces.operations"))</h2>
+            if operations.is_empty() {
+                <p class="empty">(t(lang, "workspaces.empty"))</p>
+            } else {
+                <ul class="list">
+                    for operation in operations {
+                        <li>
+                            <span class=(status_badge_class(&operation.phase))>(operation.phase)</span>
+                            " " <span class="mono">(operation.command.clone().unwrap_or_default())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Adapters page: registered adapters and plugin diagnostics.
+#[page("/adapters")]
+pub async fn adapters(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let names = state.adapters.names();
+    let reports = state.plugin_reports.clone();
+    view! {
+        <h1 class="page-title">(t(lang, "adapters.title"))</h1>
+        <section>
+            <h2>(t(lang, "adapters.registered"))</h2>
+            if names.is_empty() {
+                <p class="empty">(t(lang, "adapters.empty"))</p>
+            } else {
+                <ul class="list">
+                    for name in names {
+                        <li>
+                            <span class="mono">(name)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "adapters.plugins"))</h2>
+            if reports.is_empty() {
+                <p class="empty">(t(lang, "adapters.noPlugins"))</p>
+            } else {
+                <ul class="list">
+                    for report in reports {
+                        <li>
+                            <span class="mono">(report.r#type)</span>
+                            " " <span class=(status_badge_class(if report.loaded { "done" } else { "cancelled" }))>
+                                (if report.loaded { "loaded" } else { "failed" })
+                            </span>
+                            if let Some(error) = &report.error {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// `{project_id}` path parameter for UI pages.
+#[path_param(error = bad_request("Invalid project id"))]
+pub(crate) struct ProjectId(String);
 
 /// Shared `{id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid id"))]
