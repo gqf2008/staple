@@ -22,10 +22,10 @@ use staple_data::{
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
     TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
-    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
-    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository, migrate,
-    open,
+    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
+    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
+    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -162,6 +162,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let tool_gateway_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let scattered_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     let skill_catalog_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
@@ -219,6 +222,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         tool_catalog: Arc::new(TursoToolCatalogRepository::new(tool_catalog_db)),
         tool_connections: Arc::new(TursoToolConnectionRepository::new(tool_connections_db)),
         tool_gateway: Arc::new(TursoToolGatewayRepository::new(tool_gateway_db)),
+        scattered: Arc::new(TursoScatteredRepository::new(scattered_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));

@@ -17,10 +17,10 @@ use staple_data::{
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
     TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
-    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
-    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository,
-    default_key_path, migrate, open,
+    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
+    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
+    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -74,6 +74,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let tool_catalog_db = open(&db_config).await?;
     let tool_connections_db = open(&db_config).await?;
     let tool_gateway_db = open(&db_config).await?;
+    let scattered_db = open(&db_config).await?;
     migrate(&companies_db).await?;
     let secret_cipher = SecretCipher::load_or_create(default_key_path())
         .map_err(|error| Box::<dyn Error>::from(error.to_string()))?;
@@ -124,6 +125,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         tool_catalog: Arc::new(TursoToolCatalogRepository::new(tool_catalog_db)),
         tool_connections: Arc::new(TursoToolConnectionRepository::new(tool_connections_db)),
         tool_gateway: Arc::new(TursoToolGatewayRepository::new(tool_gateway_db)),
+        scattered: Arc::new(TursoScatteredRepository::new(scattered_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));

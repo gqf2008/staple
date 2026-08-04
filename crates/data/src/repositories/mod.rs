@@ -38,6 +38,7 @@ pub mod plugins;
 pub mod preferences;
 pub mod projects;
 pub mod routines;
+pub mod scattered;
 pub mod secret_bindings;
 pub mod secrets;
 pub mod skill_catalog;
@@ -197,6 +198,14 @@ pub use projects::{
 pub use routines::{
     NewRoutine, NewTrigger, RoutineError, RoutineRecord, RoutineRepository, RoutineRunRecord,
     TursoRoutineRepository, UpdateRoutine,
+};
+pub use scattered::{
+    AnchorSnapshotRecord, AnnotationCommentRecord, AnnotationThreadRecord, FeedbackExportRecord,
+    FeedbackVoteRecord, FinanceEventRecord, NewAnchorSnapshot, NewAnnotationComment,
+    NewAnnotationThread, NewFeedbackExport, NewFeedbackVote, NewFinanceEvent, NewSmokeRun,
+    NewSmokeRunStep, NewStatusCard, NewStatusCardUpdate, NewSummarySlot, ScatteredError,
+    ScatteredRepository, SmokeRunRecord, SmokeRunStepRecord, StatusCardRecord,
+    StatusCardUpdateRecord, SummarySlotRecord, TursoScatteredRepository,
 };
 pub use secret_bindings::{
     NewSecretAccessEvent, NewSecretBinding, NewSecretProviderConfig, NewUserSecretDeclaration,
