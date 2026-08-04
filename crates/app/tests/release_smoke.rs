@@ -20,8 +20,9 @@ use staple_data::{
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
     TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
     TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -226,6 +227,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         routines: Arc::new(TursoRoutineRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        scattered: Arc::new(TursoScatteredRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

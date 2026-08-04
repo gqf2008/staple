@@ -1,0 +1,12 @@
+DROP TABLE IF EXISTS document_annotation_anchor_snapshots;
+DROP TABLE IF EXISTS document_annotation_comments;
+DROP TABLE IF EXISTS document_annotation_threads;
+DROP TABLE IF EXISTS finance_events;
+DROP TABLE IF EXISTS feedback_exports;
+DROP TABLE IF EXISTS feedback_votes;
+DROP TABLE IF EXISTS smoke_run_steps;
+DROP TABLE IF EXISTS smoke_runs;
+DROP TABLE IF EXISTS summary_slots;
+DROP TABLE IF EXISTS status_card_updates;
+DROP TABLE IF EXISTS status_cards;
+DROP INDEX IF EXISTS cost_events_company_id_uq;

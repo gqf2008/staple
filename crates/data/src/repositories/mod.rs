@@ -37,6 +37,7 @@ pub mod plugins;
 pub mod preferences;
 pub mod projects;
 pub mod routines;
+pub mod scattered;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
@@ -178,6 +179,14 @@ pub use projects::{
 pub use routines::{
     NewRoutine, NewTrigger, RoutineError, RoutineRecord, RoutineRepository, RoutineRunRecord,
     TursoRoutineRepository, UpdateRoutine,
+};
+pub use scattered::{
+    AnchorSnapshotRecord, AnnotationCommentRecord, AnnotationThreadRecord, FeedbackExportRecord,
+    FeedbackVoteRecord, FinanceEventRecord, NewAnchorSnapshot, NewAnnotationComment,
+    NewAnnotationThread, NewFeedbackExport, NewFeedbackVote, NewFinanceEvent, NewSmokeRun,
+    NewSmokeRunStep, NewStatusCard, NewStatusCardUpdate, NewSummarySlot, ScatteredError,
+    ScatteredRepository, SmokeRunRecord, SmokeRunStepRecord, StatusCardRecord,
+    StatusCardUpdateRecord, SummarySlotRecord, TursoScatteredRepository,
 };
 pub use secrets::{
     CompanySecretRecord, NewSecret, SecretError, SecretRepository, SecretVersionRecord,

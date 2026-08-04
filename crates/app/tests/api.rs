@@ -21,8 +21,9 @@ use staple_data::{
     TursoIssueRepository, TursoIssueStructureRepository, TursoLabelRepository,
     TursoMembershipRepository, TursoPermissionGrantRepository, TursoPipelineRepository,
     TursoPluginRepository, TursoPluginRuntimeRepository, TursoPreferenceRepository,
-    TursoProjectRepository, TursoRoutineRepository, TursoSecretRepository, TursoSkillRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
+    TursoSecretRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -147,6 +148,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let routines_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let scattered_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -192,6 +196,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         labels: Arc::new(TursoLabelRepository::new(labels_db)),
         issue_structure: Arc::new(TursoIssueStructureRepository::new(issue_structure_db)),
         routines: Arc::new(TursoRoutineRepository::new(routines_db)),
+        scattered: Arc::new(TursoScatteredRepository::new(scattered_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));

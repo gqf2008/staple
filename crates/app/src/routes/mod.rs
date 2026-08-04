@@ -34,6 +34,7 @@ pub mod preferences;
 pub mod projects;
 pub mod relations;
 pub mod routines;
+pub mod scattered;
 pub mod secrets;
 pub mod skills;
 pub mod work_products;
