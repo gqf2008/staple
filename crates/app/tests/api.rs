@@ -23,7 +23,8 @@ use staple_data::{
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
     TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
     TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
-    TursoSkillCatalogRepository, TursoSkillRepository, TursoWorkProductRepository,
+    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
+    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
     TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -152,6 +153,15 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let routines_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let tool_catalog_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let tool_connections_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let tool_gateway_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     let scattered_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
@@ -209,6 +219,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         labels: Arc::new(TursoLabelRepository::new(labels_db)),
         issue_structure: Arc::new(TursoIssueStructureRepository::new(issue_structure_db)),
         routines: Arc::new(TursoRoutineRepository::new(routines_db)),
+        tool_catalog: Arc::new(TursoToolCatalogRepository::new(tool_catalog_db)),
+        tool_connections: Arc::new(TursoToolConnectionRepository::new(tool_connections_db)),
+        tool_gateway: Arc::new(TursoToolGatewayRepository::new(tool_gateway_db)),
         scattered: Arc::new(TursoScatteredRepository::new(scattered_db)),
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
@@ -5316,4 +5329,150 @@ async fn skill_catalog_and_secret_binding_routes() {
     .await;
     assert_eq!(status, StatusCode::OK);
     assert_eq!(events.as_array().unwrap().len(), 1);
+}
+#[tokio::test]
+
+async fn toolchain_routes_flow() {
+    let state = test_state().await;
+    let app = router(state);
+
+    // Create a company.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies",
+        json!({ "name": "ToolCo", "budgetMonthlyCents": 1000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let company_id = created["id"].as_str().unwrap().to_owned();
+    let other_company_id = "c-other-1".to_owned();
+
+    // Application.
+    let (status, app_record) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/applications"),
+        json!({ "name": "App 1", "type": "internal" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert_eq!(app_record["name"], "App 1");
+    let app_id = app_record["id"].as_str().unwrap().to_owned();
+
+    // Profile CRUD.
+    let (status, profile) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/profiles"),
+        json!({ "profileKey": "default", "name": "Default" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let profile_id = profile["id"].as_str().unwrap().to_owned();
+    let (status, patched) = send_json(
+        &app,
+        Method::PATCH,
+        &format!("/api/companies/{company_id}/tools/profiles/{profile_id}"),
+        json!({ "status": "disabled" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(patched["status"], "disabled");
+
+    // Connection (with app ref).
+    let (status, connection) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/connections"),
+        json!({ "applicationId": app_id, "name": "Conn 1", "uid": "conn-uid-1",
+                "transport": "mcp_remote" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let connection_id = connection["id"].as_str().unwrap().to_owned();
+
+    // Cross-company connection is rejected (application belongs to other company).
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{other_company_id}/connections"),
+        json!({ "applicationId": app_id, "name": "Conn 2", "uid": "conn-uid-2",
+                "transport": "mcp_remote" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Gateway.
+    let (status, gateway) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/gateways"),
+        json!({ "name": "Gateway 1", "slug": "gateway-1", "profileId": profile_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    assert!(
+        gateway["gatewayPublicId"]
+            .as_str()
+            .unwrap()
+            .starts_with("gw_")
+    );
+
+    // Invocation + call event.
+    let (status, invocation) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/invocations"),
+        json!({ "toolName": "create_file", "status": "succeeded",
+                "idempotencyKey": "inv-api-1", "correlationId": "corr-api-1" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let invocation_id = invocation["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/invocations/{invocation_id}/call-events"),
+        json!({ "eventType": "call_started", "outcome": "succeeded" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, events) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/tools/invocations/{invocation_id}/call-events"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(events.as_array().unwrap().len(), 1);
+
+    // Lists.
+    let (status, gateways) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/tools/gateways"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(gateways.as_array().unwrap().len(), 1);
+    let (status, connections) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/connections"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(connections.as_array().unwrap().len(), 1);
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/connections/{connection_id}/grants"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
 }

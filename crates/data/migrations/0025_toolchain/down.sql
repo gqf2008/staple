@@ -1,0 +1,24 @@
+DROP TABLE IF EXISTS tool_runtime_metric_counters;
+DROP TABLE IF EXISTS tool_rate_limit_counters;
+DROP TABLE IF EXISTS connection_token_issuances;
+DROP TABLE IF EXISTS tool_access_audit_events;
+DROP TABLE IF EXISTS tool_call_events;
+DROP TABLE IF EXISTS tool_action_requests;
+DROP TABLE IF EXISTS tool_invocations;
+DROP TABLE IF EXISTS tool_gateway_rate_limit_counters;
+DROP TABLE IF EXISTS tool_gateway_sessions;
+DROP TABLE IF EXISTS tool_stdio_command_templates;
+DROP TABLE IF EXISTS tool_runtime_slots;
+DROP TABLE IF EXISTS tool_policies;
+DROP TABLE IF EXISTS tool_mcp_gateway_tokens;
+DROP TABLE IF EXISTS tool_mcp_gateways;
+DROP TABLE IF EXISTS tool_profile_bindings;
+DROP TABLE IF EXISTS tool_profile_entries;
+DROP TABLE IF EXISTS tool_profiles;
+DROP TABLE IF EXISTS tool_catalog_entries;
+DROP TABLE IF EXISTS tool_oauth_states;
+DROP TABLE IF EXISTS tool_connection_installs;
+DROP TABLE IF EXISTS connection_grants;
+DROP TABLE IF EXISTS tool_connections;
+DROP TABLE IF EXISTS tool_applications;
+

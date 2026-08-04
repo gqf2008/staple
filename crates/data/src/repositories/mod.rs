@@ -43,6 +43,7 @@ pub mod secret_bindings;
 pub mod secrets;
 pub mod skill_catalog;
 pub mod skills;
+pub mod toolchain;
 pub mod work_products;
 pub mod workspaces;
 
@@ -223,6 +224,25 @@ pub use skill_catalog::{
     SkillTestRunTemplateRecord, SkillVersionRecord, TursoSkillCatalogRepository,
 };
 pub use skills::{NewSkill, SkillError, SkillRecord, SkillRepository, TursoSkillRepository};
+pub use toolchain::{
+    ConnectionGrantRecord, ConnectionTokenIssuanceRecord, NewConnectionGrant,
+    NewConnectionTokenIssuance, NewToolAccessAuditEvent, NewToolActionRequest, NewToolApplication,
+    NewToolCallEvent, NewToolCatalogEntry, NewToolConnection, NewToolConnectionInstall,
+    NewToolGatewayRateLimitCounter, NewToolGatewaySession, NewToolInvocation, NewToolMcpGateway,
+    NewToolMcpGatewayToken, NewToolOauthState, NewToolPolicy, NewToolProfile,
+    NewToolProfileBinding, NewToolProfileEntry, NewToolRateLimitCounter,
+    NewToolRuntimeMetricCounter, NewToolRuntimeSlot, NewToolStdioCommandTemplate,
+    ToolAccessAuditEventRecord, ToolActionRequestRecord, ToolApplicationRecord,
+    ToolCallEventRecord, ToolCatalogEntryRecord, ToolCatalogRepository,
+    ToolConnectionInstallRecord, ToolConnectionRecord, ToolConnectionRepository,
+    ToolGatewayRateLimitCounterRecord, ToolGatewayRepository, ToolGatewaySessionRecord,
+    ToolInvocationRecord, ToolMcpGatewayRecord, ToolMcpGatewayTokenRecord, ToolOauthStateRecord,
+    ToolPolicyRecord, ToolProfileBindingRecord, ToolProfileEntryRecord, ToolProfileRecord,
+    ToolRateLimitCounterRecord, ToolRuntimeMetricCounterRecord, ToolRuntimeSlotRecord,
+    ToolStdioCommandTemplateRecord, ToolchainError, TursoToolCatalogRepository,
+    TursoToolConnectionRepository, TursoToolGatewayRepository, UpdateToolConnection,
+    UpdateToolProfile,
+};
 pub use work_products::{
     NewWorkProduct, TursoWorkProductRepository, WorkProductError, WorkProductPatch,
     WorkProductRecord, WorkProductRepository,
