@@ -44,6 +44,76 @@ pub struct HeartbeatRunRecord {
     pub created_at: String,
     /// ISO 8601 last update time.
     pub updated_at: String,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
+    /// Wakeup request id.
+    pub wakeup_request_id: Option<String>,
+    /// Process exit code.
+    pub exit_code: Option<i64>,
+    /// Termination signal.
+    pub signal: Option<String>,
+    /// Usage JSON.
+    pub usage_json: Option<String>,
+    /// Result JSON.
+    pub result_json: Option<String>,
+    /// Session id before the run.
+    pub session_id_before: Option<String>,
+    /// Session id after the run.
+    pub session_id_after: Option<String>,
+    /// Log store.
+    pub log_store: Option<String>,
+    /// Log reference.
+    pub log_ref: Option<String>,
+    /// Log SHA-256.
+    pub log_sha256: Option<String>,
+    /// Whether logs are compressed.
+    pub log_compressed: i64,
+    /// Stdout excerpt.
+    pub stdout_excerpt: Option<String>,
+    /// Stderr excerpt.
+    pub stderr_excerpt: Option<String>,
+    /// Error code.
+    pub error_code: Option<String>,
+    /// Process pid.
+    pub process_pid: Option<i64>,
+    /// Process group id.
+    pub process_group_id: Option<i64>,
+    /// ISO 8601 process start.
+    pub process_started_at: Option<String>,
+    /// ISO 8601 last output.
+    pub last_output_at: Option<String>,
+    /// Last output sequence.
+    pub last_output_seq: Option<i64>,
+    /// Last output stream.
+    pub last_output_stream: Option<String>,
+    /// Last output bytes.
+    pub last_output_bytes: Option<i64>,
+    /// Retry-of run id.
+    pub retry_of_run_id: Option<String>,
+    /// Process loss retry count.
+    pub process_loss_retry_count: Option<i64>,
+    /// ISO 8601 scheduled retry.
+    pub scheduled_retry_at: Option<String>,
+    /// Scheduled retry attempt.
+    pub scheduled_retry_attempt: Option<i64>,
+    /// Scheduled retry reason.
+    pub scheduled_retry_reason: Option<String>,
+    /// Issue comment status.
+    pub issue_comment_status: Option<String>,
+    /// Satisfying comment id.
+    pub issue_comment_satisfied_by_comment_id: Option<String>,
+    /// ISO 8601 comment retry queued.
+    pub issue_comment_retry_queued_at: Option<String>,
+    /// Liveness state.
+    pub liveness_state: Option<String>,
+    /// Liveness reason.
+    pub liveness_reason: Option<String>,
+    /// Continuation attempt.
+    pub continuation_attempt: i64,
+    /// ISO 8601 last useful action.
+    pub last_useful_action_at: Option<String>,
+    /// Next action.
+    pub next_action: Option<String>,
 }
 
 /// Input for starting a heartbeat run.
@@ -181,7 +251,14 @@ impl TursoHeartbeatRepository {
 
 const RUN_COLUMNS: &str = "id, company_id, agent_id, invocation_source, status, started_at,
     finished_at, error, error_kind, external_run_id, context_snapshot, trigger_detail,
-    log_bytes, created_at, updated_at";
+    log_bytes, created_at, updated_at, responsible_user_id, wakeup_request_id, exit_code,
+    signal, usage_json, result_json, session_id_before, session_id_after, log_store, log_ref,
+    log_sha256, log_compressed, stdout_excerpt, stderr_excerpt, error_code, process_pid,
+    process_group_id, process_started_at, last_output_at, last_output_seq, last_output_stream,
+    last_output_bytes, retry_of_run_id, process_loss_retry_count, scheduled_retry_at,
+    scheduled_retry_attempt, scheduled_retry_reason, issue_comment_status,
+    issue_comment_satisfied_by_comment_id, issue_comment_retry_queued_at, liveness_state,
+    liveness_reason, continuation_attempt, last_useful_action_at, next_action";
 
 fn row_to_run(row: &libsql::Row) -> Result<HeartbeatRunRecord, libsql::Error> {
     Ok(HeartbeatRunRecord {
@@ -200,6 +277,41 @@ fn row_to_run(row: &libsql::Row) -> Result<HeartbeatRunRecord, libsql::Error> {
         log_bytes: helpers::row_i64(row, 12)?,
         created_at: helpers::row_text(row, 13)?.expect("created_at is NOT NULL"),
         updated_at: helpers::row_text(row, 14)?.expect("updated_at is NOT NULL"),
+        responsible_user_id: helpers::row_text(row, 15)?,
+        wakeup_request_id: helpers::row_text(row, 16)?,
+        exit_code: helpers::row_i64_opt(row, 17)?,
+        signal: helpers::row_text(row, 18)?,
+        usage_json: helpers::row_text(row, 19)?,
+        result_json: helpers::row_text(row, 20)?,
+        session_id_before: helpers::row_text(row, 21)?,
+        session_id_after: helpers::row_text(row, 22)?,
+        log_store: helpers::row_text(row, 23)?,
+        log_ref: helpers::row_text(row, 24)?,
+        log_sha256: helpers::row_text(row, 25)?,
+        log_compressed: helpers::row_i64(row, 26)?,
+        stdout_excerpt: helpers::row_text(row, 27)?,
+        stderr_excerpt: helpers::row_text(row, 28)?,
+        error_code: helpers::row_text(row, 29)?,
+        process_pid: helpers::row_i64_opt(row, 30)?,
+        process_group_id: helpers::row_i64_opt(row, 31)?,
+        process_started_at: helpers::row_text(row, 32)?,
+        last_output_at: helpers::row_text(row, 33)?,
+        last_output_seq: helpers::row_i64_opt(row, 34)?,
+        last_output_stream: helpers::row_text(row, 35)?,
+        last_output_bytes: helpers::row_i64_opt(row, 36)?,
+        retry_of_run_id: helpers::row_text(row, 37)?,
+        process_loss_retry_count: helpers::row_i64_opt(row, 38)?,
+        scheduled_retry_at: helpers::row_text(row, 39)?,
+        scheduled_retry_attempt: helpers::row_i64_opt(row, 40)?,
+        scheduled_retry_reason: helpers::row_text(row, 41)?,
+        issue_comment_status: helpers::row_text(row, 42)?,
+        issue_comment_satisfied_by_comment_id: helpers::row_text(row, 43)?,
+        issue_comment_retry_queued_at: helpers::row_text(row, 44)?,
+        liveness_state: helpers::row_text(row, 45)?,
+        liveness_reason: helpers::row_text(row, 46)?,
+        continuation_attempt: helpers::row_i64(row, 47)?,
+        last_useful_action_at: helpers::row_text(row, 48)?,
+        next_action: helpers::row_text(row, 49)?,
     })
 }
 
@@ -691,5 +803,38 @@ mod tests {
                 .await
                 .unwrap()
         );
+    }
+
+    #[tokio::test]
+    async fn new_exec_fields_are_readable() {
+        let (_dir, repo, conn) = repo().await;
+        seed(&conn).await;
+        let run = repo
+            .start(NewHeartbeatRun {
+                company_id: "c1".to_owned(),
+                agent_id: "a1".to_owned(),
+                invocation_source: "manual".to_owned(),
+                issue_id: None,
+                context_snapshot: None,
+                trigger_detail: None,
+            })
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE heartbeat_runs SET liveness_state = 'running', continuation_attempt = 3,
+                    responsible_user_id = 'u1', process_pid = 42, exit_code = 1,
+                    log_sha256 = 'abc'
+             WHERE id = ?1",
+            libsql::params![run.id.clone()],
+        )
+        .await
+        .unwrap();
+        let fetched = repo.get(&run.id).await.unwrap().unwrap();
+        assert_eq!(fetched.liveness_state.as_deref(), Some("running"));
+        assert_eq!(fetched.continuation_attempt, 3);
+        assert_eq!(fetched.responsible_user_id.as_deref(), Some("u1"));
+        assert_eq!(fetched.process_pid, Some(42));
+        assert_eq!(fetched.exit_code, Some(1));
+        assert_eq!(fetched.log_sha256.as_deref(), Some("abc"));
     }
 }
