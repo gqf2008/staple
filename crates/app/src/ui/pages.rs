@@ -99,6 +99,10 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/decision-desk"), lang))>(t(lang, "decision.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/decisions"), lang))>(t(lang, "decisions.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/decision-training-examples"), lang))>(t(lang, "training.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/status-cards"), lang))>(t(lang, "statusCards.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/summary-slots"), lang))>(t(lang, "summarySlots.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/finance-events"), lang))>(t(lang, "finance.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/feedback-votes"), lang))>(t(lang, "feedback.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
@@ -2017,6 +2021,265 @@ pub async fn training_examples(cx: &Cx) -> Result {
                             if let Some(outcome) = &example.decision_outcome {
                                 " " <span class="badge badge-default">(outcome.clone())</span>
                             }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Status cards page for one company.
+#[page("/companies/{company_id}/status-cards")]
+pub async fn status_cards(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let card_rows = state
+        .scattered
+        .list_status_cards(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "statusCards.title"))</h1>
+        <section>
+            <h2>(t(lang, "statusCards.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/status-cards/ui"), lang))>
+                <label>(t(lang, "statusCards.titleLabel"))</label>
+                <input type="text" name="title">
+                <label>(t(lang, "statusCards.interestPromptLabel"))</label>
+                <input type="text" name="interest_prompt" required="required">
+                <label>(t(lang, "statusCards.queriesLabel"))</label>
+                <input type="text" name="queries" placeholder="[]">
+                <label>(t(lang, "statusCards.refreshPolicyLabel"))</label>
+                <input type="text" name="refresh_policy" placeholder="{\"interval\": \"15m\"}">
+                <label>(t(lang, "statusCards.agentLabel"))</label>
+                <select name="agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "statusCards.list"))</h2>
+            if card_rows.is_empty() {
+                <p class="empty">(t(lang, "statusCards.none"))</p>
+            } else {
+                <ul class="list">
+                    for card in card_rows {
+                        <li>
+                            <strong>(card.title.clone().unwrap_or_else(|| t(lang, "statusCards.untitled")))</strong>
+                            " " <span class=(status_badge_class(&card.state))>(card.state)</span>
+                            " " <span class="meta-row">(t(lang, "statusCards.changes")) ": " (card.pending_change_count)</span>
+                            if card.archived_at.is_none() {
+                                " "
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/companies/{company_id}/status-cards/{}/archive/ui", card.id), lang))>
+                                    <button type="submit">(t(lang, "statusCards.archive"))</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Summary slots page for one company.
+#[page("/companies/{company_id}/summary-slots")]
+pub async fn summary_slots(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let slot_rows = state
+        .scattered
+        .list_summary_slots(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "summarySlots.title"))</h1>
+        <section>
+            <h2>(t(lang, "summarySlots.upsert"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/summary-slots/ui"), lang))>
+                <label>(t(lang, "summarySlots.scopeKindLabel"))</label>
+                <input type="text" name="scope_kind" required="required">
+                <label>(t(lang, "summarySlots.scopeIdLabel"))</label>
+                <input type="text" name="scope_id">
+                <label>(t(lang, "summarySlots.slotKeyLabel"))</label>
+                <input type="text" name="slot_key" required="required">
+                <label>(t(lang, "summarySlots.statusLabel"))</label>
+                <input type="text" name="status" value="idle">
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "summarySlots.list"))</h2>
+            if slot_rows.is_empty() {
+                <p class="empty">(t(lang, "summarySlots.none"))</p>
+            } else {
+                <ul class="list">
+                    for slot in slot_rows {
+                        <li>
+                            <span class="badge badge-default">(slot.scope_kind.clone())</span>
+                            " " <span class="mono">(slot.slot_key.clone())</span>
+                            " " <span class=(status_badge_class(&slot.status))>(slot.status)</span>
+                            if let Some(scope_id) = &slot.scope_id {
+                                " " <span class="meta-row">(scope_id.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Finance events page for one company.
+#[page("/companies/{company_id}/finance-events")]
+pub async fn finance_events(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let event_rows = state
+        .scattered
+        .list_finance_events(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "finance.title"))</h1>
+        <section>
+            <h2>(t(lang, "finance.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/finance-events/ui"), lang))>
+                <label>(t(lang, "finance.eventKindLabel"))</label>
+                <input type="text" name="event_kind" required="required">
+                <label>(t(lang, "finance.billerLabel"))</label>
+                <input type="text" name="biller" required="required">
+                <label>(t(lang, "finance.amountLabel"))</label>
+                <input type="number" name="amount_cents" required="required">
+                <label>(t(lang, "finance.directionLabel"))</label>
+                <select name="direction">
+                    <option value="debit">"debit"</option>
+                    <option value="credit">"credit"</option>
+                </select>
+                <label>(t(lang, "finance.agentLabel"))</label>
+                <select name="agent_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for agent in &agent_rows {
+                        <option value=(agent.id.clone())>(agent.name.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "finance.issueLabel"))</label>
+                <select name="issue_id">
+                    <option value="">(t(lang, "common.none"))</option>
+                    for issue in &issue_rows {
+                        <option value=(issue.id.clone())>(issue.identifier.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "finance.occurredAtLabel"))</label>
+                <input type="text" name="occurred_at" placeholder="2026-08-04T00:00:00.000Z" required="required">
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "finance.list"))</h2>
+            if event_rows.is_empty() {
+                <p class="empty">(t(lang, "finance.none"))</p>
+            } else {
+                <ul class="list">
+                    for event in event_rows {
+                        <li>
+                            <span class="badge badge-default">(event.event_kind.clone())</span>
+                            " " <strong>(event.amount_cents)</strong> "¢ "
+                            <span class="meta-row">(event.biller.clone())</span>
+                            " " <span class="meta-row">(event.occurred_at.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Feedback votes page for one company.
+#[page("/companies/{company_id}/feedback-votes")]
+pub async fn feedback_votes(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let issue_rows = state
+        .issues
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let mut vote_rows = Vec::new();
+    for issue in &issue_rows {
+        let rows = state
+            .scattered
+            .list_feedback_votes(&company_id, &issue.id)
+            .await
+            .map_err(to_topcoat_error)?;
+        vote_rows.extend(rows);
+    }
+    view! {
+        <h1 class="page-title">(t(lang, "feedback.title"))</h1>
+        <section>
+            <h2>(t(lang, "feedback.create"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/feedback-votes/ui"), lang))>
+                <label>(t(lang, "feedback.issueLabel"))</label>
+                <select name="issue_id">
+                    for issue in &issue_rows {
+                        <option value=(issue.id.clone())>(issue.identifier.clone())</option>
+                    }
+                </select>
+                <label>(t(lang, "feedback.targetTypeLabel"))</label>
+                <input type="text" name="target_type" required="required">
+                <label>(t(lang, "feedback.targetIdLabel"))</label>
+                <input type="text" name="target_id" required="required">
+                <label>(t(lang, "feedback.authorLabel"))</label>
+                <input type="text" name="author_user_id" required="required">
+                <label>(t(lang, "feedback.voteLabel"))</label>
+                <select name="vote">
+                    <option value="up">"up"</option>
+                    <option value="down">"down"</option>
+                </select>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "feedback.list"))</h2>
+            if vote_rows.is_empty() {
+                <p class="empty">(t(lang, "feedback.none"))</p>
+            } else {
+                <ul class="list">
+                    for vote in vote_rows {
+                        <li>
+                            <span class="badge badge-default">(vote.vote.clone())</span>
+                            " " <span class="meta-row">(vote.target_type.clone())</span>
+                            " " <span class="mono">(vote.target_id.clone())</span>
+                            " " <span class="meta-row">(vote.author_user_id.clone())</span>
                         </li>
                     }
                 </ul>

@@ -403,6 +403,22 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/decision-training-examples"),
             "Training examples",
         ),
+        (
+            format!("/companies/{company_id}/status-cards"),
+            "Status cards",
+        ),
+        (
+            format!("/companies/{company_id}/summary-slots"),
+            "Summary slots",
+        ),
+        (
+            format!("/companies/{company_id}/finance-events"),
+            "Finance events",
+        ),
+        (
+            format!("/companies/{company_id}/feedback-votes"),
+            "Feedback",
+        ),
         (format!("/companies/{company_id}/secrets"), "Secrets"),
         (format!("/companies/{company_id}/skills"), "Skills"),
         ("/instance/settings".to_string(), "Instance"),
