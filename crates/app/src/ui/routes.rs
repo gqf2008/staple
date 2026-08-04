@@ -1764,3 +1764,258 @@ pub async fn create_training_example_ui(
         "/companies/{company_id}/decision-training-examples"
     )))
 }
+
+// --- Status cards / summary slots / finance / feedback UI forms ----------
+
+/// Status card create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct StatusCardUiForm {
+    /// Card title.
+    pub title: Option<String>,
+    /// Interest prompt.
+    pub interest_prompt: String,
+    /// Queries JSON.
+    pub queries: Option<String>,
+    /// Refresh policy JSON.
+    pub refresh_policy: Option<String>,
+    /// Summarizer agent id.
+    pub agent_id: Option<String>,
+}
+
+/// Summary slot upsert form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SummarySlotUiForm {
+    /// Scope kind.
+    pub scope_kind: String,
+    /// Scope id.
+    pub scope_id: Option<String>,
+    /// Slot key.
+    pub slot_key: String,
+    /// Slot status.
+    pub status: Option<String>,
+}
+
+/// Finance event create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FinanceEventUiForm {
+    /// Event kind.
+    pub event_kind: String,
+    /// Biller.
+    pub biller: String,
+    /// Amount in cents.
+    pub amount_cents: i64,
+    /// Debit or credit.
+    pub direction: Option<String>,
+    /// Agent id.
+    pub agent_id: Option<String>,
+    /// Issue id.
+    pub issue_id: Option<String>,
+    /// ISO 8601 occurred at.
+    pub occurred_at: String,
+}
+
+/// Feedback vote create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackVoteUiForm {
+    /// Issue id.
+    pub issue_id: String,
+    /// Target type.
+    pub target_type: String,
+    /// Target id.
+    pub target_id: String,
+    /// Author user id.
+    pub author_user_id: String,
+    /// Vote (up/down).
+    pub vote: String,
+}
+
+/// `POST /companies/{companyId}/status-cards/ui` — creates a status card.
+#[route(POST "/companies/{company_id}/status-cards/ui")]
+pub async fn create_status_card_ui(
+    cx: &Cx,
+    Form(form): Form<StatusCardUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let interest_prompt = form.interest_prompt.trim().to_owned();
+    let queries = serde_json::from_str(form.queries.as_deref().unwrap_or("[]"))
+        .unwrap_or_else(|_| serde_json::json!([]));
+    let refresh_policy = serde_json::from_str(form.refresh_policy.as_deref().unwrap_or("{}"))
+        .unwrap_or_else(|_| serde_json::json!({}));
+    if !interest_prompt.is_empty()
+        && let Ok(card) = state
+            .scattered
+            .create_status_card(staple_data::NewStatusCard {
+                company_id: company_id.clone(),
+                created_by_user_id: Some("board".to_owned()),
+                created_by_agent_id: None,
+                title: form.title.filter(|value| !value.is_empty()),
+                title_pinned: false,
+                interest_prompt,
+                queries,
+                query_version: 0,
+                agent_id: form.agent_id.filter(|value| !value.is_empty()),
+                refresh_policy,
+                state: "compiling".to_owned(),
+                document_id: None,
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &card.company_id,
+            "status_card.created",
+            "status_card",
+            &card.id,
+            Some(serde_json::json!({ "title": card.title })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/status-cards")))
+}
+
+/// `POST /companies/{companyId}/status-cards/{id}/archive/ui` — archives a
+/// status card.
+#[route(POST "/companies/{company_id}/status-cards/{id}/archive/ui")]
+pub async fn archive_status_card_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let card_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .scattered
+        .archive_status_card(&company_id, &card_id)
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/status-cards")))
+}
+
+/// `POST /companies/{companyId}/summary-slots/ui` — upserts a summary slot.
+#[route(POST "/companies/{company_id}/summary-slots/ui")]
+pub async fn upsert_summary_slot_ui(
+    cx: &Cx,
+    Form(form): Form<SummarySlotUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .scattered
+        .upsert_summary_slot(staple_data::NewSummarySlot {
+            company_id: company_id.clone(),
+            scope_kind: form.scope_kind,
+            scope_id: form.scope_id.filter(|value| !value.is_empty()),
+            slot_key: form.slot_key,
+            document_id: None,
+            status: form.status.unwrap_or_else(|| "idle".to_owned()),
+            failure_reason: None,
+            generating_issue_id: None,
+            last_generated_at: None,
+            last_generated_by_agent_id: None,
+            last_model: None,
+        })
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/summary-slots")))
+}
+
+/// `POST /companies/{companyId}/finance-events/ui` — creates a finance event.
+#[route(POST "/companies/{company_id}/finance-events/ui")]
+pub async fn create_finance_event_ui(
+    cx: &Cx,
+    Form(form): Form<FinanceEventUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.event_kind.trim().is_empty()
+        && !form.biller.trim().is_empty()
+        && !form.occurred_at.trim().is_empty()
+        && let Ok(event) = state
+            .scattered
+            .create_finance_event(staple_data::NewFinanceEvent {
+                company_id: company_id.clone(),
+                agent_id: form.agent_id.filter(|value| !value.is_empty()),
+                issue_id: form.issue_id.filter(|value| !value.is_empty()),
+                project_id: None,
+                goal_id: None,
+                heartbeat_run_id: None,
+                cost_event_id: None,
+                billing_code: None,
+                description: None,
+                event_kind: form.event_kind,
+                direction: form.direction.unwrap_or_else(|| "debit".to_owned()),
+                biller: form.biller,
+                provider: None,
+                execution_adapter_type: None,
+                pricing_tier: None,
+                region: None,
+                model: None,
+                quantity: None,
+                unit: None,
+                amount_cents: form.amount_cents,
+                currency: "USD".to_owned(),
+                estimated: false,
+                external_invoice_id: None,
+                metadata_json: None,
+                occurred_at: form.occurred_at,
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &event.company_id,
+            "finance_event.created",
+            "finance_event",
+            &event.id,
+            Some(serde_json::json!({ "eventKind": event.event_kind })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/finance-events"
+    )))
+}
+
+/// `POST /companies/{companyId}/feedback-votes/ui` — creates a feedback vote.
+#[route(POST "/companies/{company_id}/feedback-votes/ui")]
+pub async fn create_feedback_vote_ui(
+    cx: &Cx,
+    Form(form): Form<FeedbackVoteUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if !form.target_type.trim().is_empty()
+        && !form.target_id.trim().is_empty()
+        && !form.author_user_id.trim().is_empty()
+        && !form.vote.trim().is_empty()
+        && let Ok(vote) = state
+            .scattered
+            .create_feedback_vote(staple_data::NewFeedbackVote {
+                company_id: company_id.clone(),
+                issue_id: form.issue_id,
+                target_type: form.target_type,
+                target_id: form.target_id,
+                author_user_id: form.author_user_id,
+                vote: form.vote,
+                reason: None,
+                shared_with_labs: false,
+                shared_at: None,
+                consent_version: None,
+                redaction_summary: None,
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &vote.company_id,
+            "feedback.vote_created",
+            "feedback_vote",
+            &vote.id,
+            Some(serde_json::json!({ "targetType": vote.target_type })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!(
+        "/companies/{company_id}/feedback-votes"
+    )))
+}
