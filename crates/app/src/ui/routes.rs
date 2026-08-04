@@ -934,3 +934,68 @@ pub(crate) struct Type(String);
 /// `{run_id}` path parameter for UI routes.
 #[path_param(error = bad_request("Invalid run id"))]
 pub(crate) struct RunId(String);
+
+/// `POST /companies/{company_id}/cases/ui` — creates a case, redirects to the
+/// cases list.
+#[route(POST "/companies/{company_id}/cases/ui")]
+pub async fn case_create_ui(
+    cx: &Cx,
+    Form(form): Form<CaseForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let case_type = form.case_type.trim().to_owned();
+    let title = form.title.trim().to_owned();
+    if !case_type.is_empty() && !title.is_empty() {
+        let _ = state
+            .cases
+            .create(staple_data::NewCase {
+                company_id: company_id.clone(),
+                project_id: None,
+                case_type,
+                key: None,
+                title,
+                summary: None,
+                fields: None,
+                parent_case_id: None,
+                created_by_agent_id: None,
+                created_by_user_id: Some("board".to_owned()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/cases")))
+}
+
+/// `POST /cases/{id}/status/ui` — moves a case, redirects to it.
+#[route(POST "/cases/{id}/status/ui")]
+pub async fn case_status_ui(
+    cx: &Cx,
+    Form(form): Form<CaseStatusForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let case_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let status = form.status.trim().to_owned();
+    if !status.is_empty()
+        && let Ok(Some(company_id)) = state.cases.company_of(&case_id).await
+    {
+        let _ = state.cases.set_status(&company_id, &case_id, &status).await;
+    }
+    Ok(see_other(&format!("/cases/{case_id}")))
+}
+
+/// Case create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CaseForm {
+    /// Case type.
+    pub case_type: String,
+    /// Title.
+    pub title: String,
+}
+
+/// Case status form.
+#[derive(Debug, serde::Deserialize)]
+pub struct CaseStatusForm {
+    /// Target status.
+    pub status: String,
+}

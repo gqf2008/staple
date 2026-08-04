@@ -5,7 +5,7 @@ use std::sync::Arc;
 use staple_data::{
     ActivityRepository, AgentRepository, AgentRuntimeRepository, ApiKeyRepository,
     ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
-    CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
+    CaseRepository, CompanyRepository, CostRepository, DecisionRepository, DocumentRepository,
     EnvironmentRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
     InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
     IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
@@ -36,6 +36,8 @@ pub struct AppState {
     pub board_keys: Arc<dyn BoardKeyRepository>,
     /// Budget policies / incidents repository.
     pub budget_policies: Arc<dyn BudgetPolicyRepository>,
+    /// Cases repository.
+    pub cases: Arc<dyn CaseRepository>,
     /// Sidebar preferences / company logos repository.
     pub preferences: Arc<dyn PreferenceRepository>,
     /// Plugin registry/config/settings/resources repository.
