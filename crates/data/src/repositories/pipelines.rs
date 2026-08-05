@@ -365,6 +365,12 @@ pub enum PipelineError {
     /// The transition is not allowed by the pipeline.
     #[error("transition not allowed")]
     TransitionNotAllowed,
+    /// The pending suggestion does not match (missing or wrong id).
+    #[error("pipeline suggestion is not pending")]
+    SuggestionNotPending,
+    /// The case version moved since the suggestion was made.
+    #[error("case version conflict")]
+    VersionConflict,
 }
 
 /// Pipeline persistence contract.
@@ -479,7 +485,50 @@ pub trait PipelineRepository: Send + Sync {
         case_id: &str,
     ) -> Result<Vec<PipelineCaseEventRecord>, PipelineError>;
 
-    // Issue links ---------------------------------------------------------
+    // Attention / review / learnings -------------------------------------
+    async fn list_attention(
+        &self,
+        company_id: &str,
+        limit: i64,
+    ) -> Result<serde_json::Value, PipelineError>;
+    async fn list_company_case_events(
+        &self,
+        company_id: &str,
+        types: &[String],
+        limit: i64,
+        offset: i64,
+    ) -> Result<serde_json::Value, PipelineError>;
+    async fn list_review_cases(
+        &self,
+        company_id: &str,
+        pipeline_id: Option<&str>,
+        parent_case_id: Option<&str>,
+    ) -> Result<Vec<serde_json::Value>, PipelineError>;
+    async fn resolve_suggestion(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        suggestion_id: &str,
+        decision: &str,
+        expected_version: Option<i64>,
+        reason: Option<&str>,
+        actor_type: &str,
+        actor_user_id: Option<&str>,
+        actor_agent_id: Option<&str>,
+    ) -> Result<PipelineCaseRecord, PipelineError>;
+
+    async fn review_case(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        decision: &str,
+        expected_version: i64,
+        reason: Option<&str>,
+        actor_type: &str,
+        actor_user_id: Option<&str>,
+        actor_agent_id: Option<&str>,
+    ) -> Result<PipelineCaseRecord, PipelineError>;
+
     async fn link_issue(
         &self,
         company_id: &str,
@@ -1488,6 +1537,627 @@ impl PipelineRepository for TursoPipelineRepository {
         Ok(events)
     }
 
+    async fn list_attention(
+        &self,
+        company_id: &str,
+        limit: i64,
+    ) -> Result<serde_json::Value, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        // Suggestions: non-terminal cases carrying a pending transition suggestion.
+        let mut rows = conn
+            .query(
+                "SELECT c.id, c.case_key, c.title, c.summary, c.version, c.terminal_kind,
+                        c.parent_case_id, c.updated_at, c.created_at, c.pending_suggestion,
+                        p.id, p.key, p.name, s.id, s.key, s.name, s.kind,
+                        ts.key, ts.name, ag.id, ag.name
+                 FROM pipeline_cases c
+                 JOIN pipelines p ON p.id = c.pipeline_id AND p.company_id = c.company_id
+                 JOIN pipeline_stages s ON s.id = c.stage_id AND s.company_id = c.company_id
+                 LEFT JOIN pipeline_stages ts
+                   ON ts.pipeline_id = c.pipeline_id
+                  AND ts.company_id = c.company_id
+                  AND ts.key = json_extract(c.pending_suggestion, '$.toStageKey')
+                 LEFT JOIN agents ag
+                   ON ag.id = json_extract(c.pending_suggestion, '$.suggestedByAgentId')
+                 WHERE c.company_id = ?1 AND c.terminal_kind IS NULL
+                   AND c.pending_suggestion IS NOT NULL
+                 ORDER BY c.updated_at DESC LIMIT ?2",
+                libsql::params![company_id, limit],
+            )
+            .await?;
+        let mut suggestions = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let pending: serde_json::Value = helpers::row_text(&row, 9)?
+                .and_then(|raw| serde_json::from_str(&raw).ok())
+                .unwrap_or_else(|| serde_json::json!({}));
+            let suggestion_agent_id = helpers::row_text(&row, 19)?;
+            let suggestion_agent_name = helpers::row_text(&row, 20)?;
+            let suggested_by = suggestion_agent_id.map(|agent_id| {
+                serde_json::json!({
+                    "agentId": agent_id,
+                    "agentName": suggestion_agent_name,
+                })
+            });
+            suggestions.push(serde_json::json!({
+                "case": {
+                    "id": helpers::row_text(&row, 0)?,
+                    "caseKey": helpers::row_text(&row, 1)?,
+                    "title": helpers::row_text(&row, 2)?,
+                    "summary": helpers::row_text(&row, 3)?,
+                    "version": helpers::row_i64(&row, 4)?,
+                    "terminalKind": helpers::row_text(&row, 5)?,
+                    "parentCaseId": helpers::row_text(&row, 6)?,
+                    "updatedAt": helpers::row_text(&row, 7)?,
+                    "createdAt": helpers::row_text(&row, 8)?,
+                    "pipeline": {
+                        "id": helpers::row_text(&row, 10)?,
+                        "key": helpers::row_text(&row, 11)?,
+                        "name": helpers::row_text(&row, 12)?,
+                    },
+                    "stage": {
+                        "id": helpers::row_text(&row, 13)?,
+                        "key": helpers::row_text(&row, 14)?,
+                        "name": helpers::row_text(&row, 15)?,
+                        "kind": helpers::row_text(&row, 16)?,
+                    },
+                },
+                "suggestion": {
+                    "id": pending.get("id").cloned().unwrap_or_default(),
+                    "fromStageKey": helpers::row_text(&row, 14)?,
+                    "fromStageName": helpers::row_text(&row, 15)?,
+                    "toStageKey": pending.get("toStageKey").cloned().unwrap_or_default(),
+                    "toStageName": helpers::row_text(&row, 18)?,
+                    "rationale": pending.get("rationale").cloned().unwrap_or_default(),
+                    "confidence": pending.get("confidence").cloned().unwrap_or(serde_json::Value::Null),
+                    "createdAt": pending.get("createdAt").cloned().unwrap_or_default(),
+                    "suggestedBy": suggested_by,
+                },
+            }));
+        }
+        // Reviews: non-terminal cases in a review-kind stage.
+        let mut rows = conn
+            .query(
+                "SELECT c.id, c.case_key, c.title, c.summary, c.version, c.terminal_kind,
+                        c.parent_case_id, c.updated_at, c.created_at,
+                        p.id, p.key, p.name, s.id, s.key, s.name, s.kind, s.config
+                 FROM pipeline_cases c
+                 JOIN pipelines p ON p.id = c.pipeline_id AND p.company_id = c.company_id
+                 JOIN pipeline_stages s ON s.id = c.stage_id AND s.company_id = c.company_id
+                 WHERE c.company_id = ?1 AND c.terminal_kind IS NULL AND s.kind = 'review'
+                 ORDER BY c.created_at ASC LIMIT ?2",
+                libsql::params![company_id, limit],
+            )
+            .await?;
+        let mut reviews = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let config: serde_json::Value = helpers::row_text(&row, 16)?
+                .and_then(|raw| serde_json::from_str(&raw).ok())
+                .unwrap_or_else(|| serde_json::json!({}));
+            let require_approval = config
+                .get("requireApproval")
+                .and_then(serde_json::Value::as_bool);
+            let reviewer_kind = config
+                .get("reviewerKind")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned)
+                .unwrap_or_else(|| {
+                    if require_approval == Some(false) {
+                        "any".to_owned()
+                    } else {
+                        "human".to_owned()
+                    }
+                });
+            reviews.push(serde_json::json!({
+                "case": {
+                    "id": helpers::row_text(&row, 0)?,
+                    "caseKey": helpers::row_text(&row, 1)?,
+                    "title": helpers::row_text(&row, 2)?,
+                    "summary": helpers::row_text(&row, 3)?,
+                    "version": helpers::row_i64(&row, 4)?,
+                    "terminalKind": helpers::row_text(&row, 5)?,
+                    "parentCaseId": helpers::row_text(&row, 6)?,
+                    "updatedAt": helpers::row_text(&row, 7)?,
+                    "createdAt": helpers::row_text(&row, 8)?,
+                    "pipeline": {
+                        "id": helpers::row_text(&row, 9)?,
+                        "key": helpers::row_text(&row, 10)?,
+                        "name": helpers::row_text(&row, 11)?,
+                    },
+                    "stage": {
+                        "id": helpers::row_text(&row, 12)?,
+                        "key": helpers::row_text(&row, 13)?,
+                        "name": helpers::row_text(&row, 14)?,
+                        "kind": helpers::row_text(&row, 15)?,
+                    },
+                },
+                "review": {
+                    "expectedVersion": helpers::row_i64(&row, 4)?,
+                    "approveToStageKey": config.get("approveToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "rejectToStageKey": config.get("rejectToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "requestChangesToStageKey": config.get("requestChangesToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "requireRejectReason": config.get("requireRejectReason").and_then(serde_json::Value::as_bool).unwrap_or(true),
+                    "requireRequestChangesReason": config.get("requireRequestChangesReason").and_then(serde_json::Value::as_bool).unwrap_or(true),
+                    "reviewerKind": reviewer_kind,
+                },
+            }));
+        }
+        Ok(serde_json::json!({
+            "suggestions": suggestions,
+            "reviews": reviews,
+            "headsUp": [],
+            "counts": {
+                "suggestions": suggestions.len(),
+                "reviews": reviews.len(),
+                "headsUp": 0,
+            },
+        }))
+    }
+
+    async fn list_company_case_events(
+        &self,
+        company_id: &str,
+        types: &[String],
+        limit: i64,
+        offset: i64,
+    ) -> Result<serde_json::Value, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut sql = String::from(
+            "SELECT e.id, e.type, e.payload, e.created_at,
+                    c.id, c.case_key, c.title, c.terminal_kind,
+                    p.id, p.key, p.name,
+                    fs.id, fs.key, fs.name, fs.kind,
+                    ts.id, ts.key, ts.name, ts.kind,
+                    ag.id, ag.name
+             FROM pipeline_case_events e
+             JOIN pipeline_cases c ON c.id = e.case_id AND c.company_id = e.company_id
+             JOIN pipelines p ON p.id = c.pipeline_id AND p.company_id = e.company_id
+             LEFT JOIN pipeline_stages fs ON fs.id = e.from_stage_id AND fs.company_id = e.company_id
+             LEFT JOIN pipeline_stages ts ON ts.id = e.to_stage_id AND ts.company_id = e.company_id
+             LEFT JOIN agents ag ON ag.id = e.actor_agent_id AND ag.company_id = e.company_id
+             WHERE e.company_id = ?1",
+        );
+        let mut params: Vec<libsql::Value> = vec![libsql::Value::Text(company_id.to_owned())];
+        if !types.is_empty() {
+            let placeholders = types
+                .iter()
+                .enumerate()
+                .map(|(idx, _)| format!("?{}", idx + 2))
+                .collect::<Vec<_>>()
+                .join(", ");
+            sql.push_str(&format!(" AND e.type IN ({placeholders})"));
+            params.extend(types.iter().cloned().map(libsql::Value::Text));
+        }
+        sql.push_str(" ORDER BY e.created_at DESC, e.id DESC LIMIT ?");
+        params.push(libsql::Value::Integer(limit + 1));
+        sql.push_str(" OFFSET ?");
+        params.push(libsql::Value::Integer(offset));
+        let mut rows = conn.query(&sql, libsql::params_from_iter(params)).await?;
+        let mut items = Vec::new();
+        let mut has_more = false;
+        let mut count = 0;
+        while let Some(row) = rows.next().await? {
+            count += 1;
+            if count > limit {
+                has_more = true;
+                break;
+            }
+            let from_stage_id = helpers::row_text(&row, 11)?;
+            let from_stage_key = helpers::row_text(&row, 12)?;
+            let from_stage_name = helpers::row_text(&row, 13)?;
+            let from_stage_kind = helpers::row_text(&row, 14)?;
+            let to_stage_id = helpers::row_text(&row, 15)?;
+            let to_stage_key = helpers::row_text(&row, 16)?;
+            let to_stage_name = helpers::row_text(&row, 17)?;
+            let to_stage_kind = helpers::row_text(&row, 18)?;
+            let actor_agent_id = helpers::row_text(&row, 19)?;
+            let actor_agent_name = helpers::row_text(&row, 20)?;
+            items.push(serde_json::json!({
+                "id": helpers::row_text(&row, 0)?,
+                "type": helpers::row_text(&row, 1)?,
+                "payload": helpers::row_text(&row, 2)?.and_then(|raw| serde_json::from_str(&raw).ok()).unwrap_or(serde_json::json!({})),
+                "createdAt": helpers::row_text(&row, 3)?,
+                "case": {
+                    "id": helpers::row_text(&row, 4)?,
+                    "caseKey": helpers::row_text(&row, 5)?,
+                    "title": helpers::row_text(&row, 6)?,
+                    "terminalKind": helpers::row_text(&row, 7)?,
+                },
+                "pipeline": {
+                    "id": helpers::row_text(&row, 8)?,
+                    "key": helpers::row_text(&row, 9)?,
+                    "name": helpers::row_text(&row, 10)?,
+                },
+                "fromStage": from_stage_id.map(|id| serde_json::json!({
+                    "id": id,
+                    "key": from_stage_key,
+                    "name": from_stage_name,
+                    "kind": from_stage_kind,
+                })),
+                "toStage": to_stage_id.map(|id| serde_json::json!({
+                    "id": id,
+                    "key": to_stage_key,
+                    "name": to_stage_name,
+                    "kind": to_stage_kind,
+                })),
+                "actorAgent": actor_agent_id.map(|id| serde_json::json!({
+                    "id": id,
+                    "name": actor_agent_name,
+                })),
+            }));
+        }
+        Ok(serde_json::json!({
+            "items": items,
+            "pagination": { "limit": limit, "offset": offset, "hasMore": has_more },
+        }))
+    }
+
+    async fn list_review_cases(
+        &self,
+        company_id: &str,
+        pipeline_id: Option<&str>,
+        parent_case_id: Option<&str>,
+    ) -> Result<Vec<serde_json::Value>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut sql = String::from(
+            "SELECT c.id, c.case_key, c.title, c.summary, c.version, c.terminal_kind,
+                    c.parent_case_id, c.updated_at, c.created_at, c.pending_suggestion,
+                    p.id, p.key, p.name, s.id, s.key, s.name, s.kind, s.config
+             FROM pipeline_cases c
+             JOIN pipelines p ON p.id = c.pipeline_id AND p.company_id = c.company_id
+             JOIN pipeline_stages s ON s.id = c.stage_id AND s.company_id = c.company_id
+             WHERE c.company_id = ?1 AND c.terminal_kind IS NULL AND s.kind = 'review'",
+        );
+        let mut params: Vec<libsql::Value> = vec![libsql::Value::Text(company_id.to_owned())];
+        if let Some(pipeline_id) = pipeline_id {
+            params.push(libsql::Value::Text(pipeline_id.to_owned()));
+            sql.push_str(&format!(" AND c.pipeline_id = ?{}", params.len()));
+        }
+        if let Some(parent_case_id) = parent_case_id {
+            params.push(libsql::Value::Text(parent_case_id.to_owned()));
+            sql.push_str(&format!(" AND c.parent_case_id = ?{}", params.len()));
+        }
+        sql.push_str(" ORDER BY c.created_at ASC");
+        let mut rows = conn.query(&sql, libsql::params_from_iter(params)).await?;
+        let mut cases = Vec::new();
+        while let Some(row) = rows.next().await? {
+            let config: serde_json::Value = helpers::row_text(&row, 17)?
+                .and_then(|raw| serde_json::from_str(&raw).ok())
+                .unwrap_or_else(|| serde_json::json!({}));
+            let require_approval = config
+                .get("requireApproval")
+                .and_then(serde_json::Value::as_bool);
+            let reviewer_kind = config
+                .get("reviewerKind")
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned)
+                .unwrap_or_else(|| {
+                    if require_approval == Some(false) {
+                        "any".to_owned()
+                    } else {
+                        "human".to_owned()
+                    }
+                });
+            cases.push(serde_json::json!({
+                "case": {
+                    "id": helpers::row_text(&row, 0)?,
+                    "caseKey": helpers::row_text(&row, 1)?,
+                    "title": helpers::row_text(&row, 2)?,
+                    "summary": helpers::row_text(&row, 3)?,
+                    "version": helpers::row_i64(&row, 4)?,
+                    "terminalKind": helpers::row_text(&row, 5)?,
+                    "parentCaseId": helpers::row_text(&row, 6)?,
+                    "updatedAt": helpers::row_text(&row, 7)?,
+                    "createdAt": helpers::row_text(&row, 8)?,
+                    "pipeline": {
+                        "id": helpers::row_text(&row, 10)?,
+                        "key": helpers::row_text(&row, 11)?,
+                        "name": helpers::row_text(&row, 12)?,
+                    },
+                    "stage": {
+                        "id": helpers::row_text(&row, 13)?,
+                        "key": helpers::row_text(&row, 14)?,
+                        "name": helpers::row_text(&row, 15)?,
+                        "kind": helpers::row_text(&row, 16)?,
+                    },
+                },
+                "pendingSuggestion": helpers::row_text(&row, 9)?.and_then(|raw| serde_json::from_str(&raw).ok()).unwrap_or(serde_json::Value::Null),
+                "reviewConfig": {
+                    "expectedVersion": helpers::row_i64(&row, 4)?,
+                    "approveToStageKey": config.get("approveToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "rejectToStageKey": config.get("rejectToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "requestChangesToStageKey": config.get("requestChangesToStageKey").cloned().unwrap_or(serde_json::Value::Null),
+                    "requireRejectReason": config.get("requireRejectReason").and_then(serde_json::Value::as_bool).unwrap_or(true),
+                    "requireRequestChangesReason": config.get("requireRequestChangesReason").and_then(serde_json::Value::as_bool).unwrap_or(true),
+                    "reviewerKind": reviewer_kind,
+                },
+            }));
+        }
+        Ok(cases)
+    }
+
+    async fn resolve_suggestion(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        suggestion_id: &str,
+        decision: &str,
+        expected_version: Option<i64>,
+        reason: Option<&str>,
+        actor_type: &str,
+        actor_user_id: Option<&str>,
+        actor_agent_id: Option<&str>,
+    ) -> Result<PipelineCaseRecord, PipelineError> {
+        let case = {
+            let conn = crate::connection::connect(&self.db).await?;
+            let mut rows = conn
+                .query(
+                    &format!(
+                        "SELECT {CASE_COLUMNS} FROM pipeline_cases WHERE company_id = ?1 AND id = ?2"
+                    ),
+                    libsql::params![company_id, case_id],
+                )
+                .await?;
+            let Some(row) = rows.next().await? else {
+                return Err(PipelineError::NotFound);
+            };
+            row_to_case(&row)?
+        };
+        let Some(pending) = case.pending_suggestion.clone() else {
+            return Err(PipelineError::SuggestionNotPending);
+        };
+        let pending_id = pending
+            .get("id")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
+        if pending_id != suggestion_id {
+            return Err(PipelineError::SuggestionNotPending);
+        }
+        if let Some(expected) = expected_version
+            && expected != case.version
+        {
+            return Err(PipelineError::VersionConflict);
+        }
+        if decision == "dismiss" {
+            {
+                let conn = crate::connection::connect(&self.db).await?;
+                conn.execute(
+                    "UPDATE pipeline_cases SET pending_suggestion = NULL,
+                            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                     WHERE company_id = ?1 AND id = ?2",
+                    libsql::params![company_id, case_id],
+                )
+                .await?;
+            }
+            let _ = self
+                .add_event(NewPipelineCaseEvent {
+                    company_id: company_id.to_owned(),
+                    case_id: case_id.to_owned(),
+                    r#type: "suggestion_resolved".to_owned(),
+                    actor_type: actor_type.to_owned(),
+                    actor_user_id: actor_user_id.map(str::to_owned),
+                    actor_agent_id: actor_agent_id.map(str::to_owned),
+                    run_id: None,
+                    from_stage_id: None,
+                    to_stage_id: None,
+                    payload: Some(serde_json::json!({
+                        "suggestionId": suggestion_id,
+                        "decision": "dismiss",
+                        "reason": reason,
+                    })),
+                })
+                .await?;
+            let conn = crate::connection::connect(&self.db).await?;
+            let mut rows = conn
+                .query(
+                    &format!(
+                        "SELECT {CASE_COLUMNS} FROM pipeline_cases WHERE company_id = ?1 AND id = ?2"
+                    ),
+                    libsql::params![company_id, case_id],
+                )
+                .await?;
+            let row = rows.next().await?.expect("case exists");
+            return Ok(row_to_case(&row)?);
+        }
+        // accept: transition to the suggested stage, then clear the suggestion.
+        let to_stage_key = pending
+            .get("toStageKey")
+            .and_then(serde_json::Value::as_str)
+            .unwrap_or_default();
+        let to_stage_id = {
+            let conn = crate::connection::connect(&self.db).await?;
+            let mut stage_rows = conn
+                .query(
+                    "SELECT id FROM pipeline_stages
+                     WHERE company_id = ?1 AND pipeline_id = ?2 AND key = ?3",
+                    libsql::params![company_id, case.pipeline_id.clone(), to_stage_key],
+                )
+                .await?;
+            let Some(stage_row) = stage_rows.next().await? else {
+                return Err(PipelineError::ReferenceNotFound);
+            };
+            helpers::row_text(&stage_row, 0)?.expect("stage id")
+        };
+        let _ = self
+            .move_case(
+                company_id,
+                case_id,
+                &to_stage_id,
+                actor_type,
+                actor_user_id.map(str::to_owned),
+                actor_agent_id.map(str::to_owned),
+                true,
+            )
+            .await?;
+        {
+            let conn = crate::connection::connect(&self.db).await?;
+            conn.execute(
+                "UPDATE pipeline_cases SET pending_suggestion = NULL,
+                        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE company_id = ?1 AND id = ?2",
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        }
+        let _ = self
+            .add_event(NewPipelineCaseEvent {
+                company_id: company_id.to_owned(),
+                case_id: case_id.to_owned(),
+                r#type: "suggestion_resolved".to_owned(),
+                actor_type: actor_type.to_owned(),
+                actor_user_id: actor_user_id.map(str::to_owned),
+                actor_agent_id: actor_agent_id.map(str::to_owned),
+                run_id: None,
+                from_stage_id: Some(case.stage_id.clone()),
+                to_stage_id: Some(to_stage_id.clone()),
+                payload: Some(serde_json::json!({
+                    "suggestionId": suggestion_id,
+                    "decision": "accept",
+                    "reason": reason,
+                })),
+            })
+            .await?;
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {CASE_COLUMNS} FROM pipeline_cases WHERE company_id = ?1 AND id = ?2"
+                ),
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("case exists");
+        Ok(row_to_case(&row)?)
+    }
+
+    async fn review_case(
+        &self,
+        company_id: &str,
+        case_id: &str,
+        decision: &str,
+        expected_version: i64,
+        reason: Option<&str>,
+        actor_type: &str,
+        actor_user_id: Option<&str>,
+        actor_agent_id: Option<&str>,
+    ) -> Result<PipelineCaseRecord, PipelineError> {
+        let (stage_id, stage_config, version) = {
+            let conn = crate::connection::connect(&self.db).await?;
+            let mut rows = conn
+                .query(
+                    "SELECT c.version, s.id, s.config
+                     FROM pipeline_cases c
+                     JOIN pipeline_stages s ON s.id = c.stage_id AND s.company_id = c.company_id
+                     WHERE c.company_id = ?1 AND c.id = ?2",
+                    libsql::params![company_id, case_id],
+                )
+                .await?;
+            let Some(row) = rows.next().await? else {
+                return Err(PipelineError::NotFound);
+            };
+            (
+                helpers::row_text(&row, 1)?.expect("stage id"),
+                helpers::row_text(&row, 2)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok())
+                    .unwrap_or_else(|| serde_json::json!({})),
+                helpers::row_i64(&row, 0)?,
+            )
+        };
+        if expected_version != version {
+            return Err(PipelineError::VersionConflict);
+        }
+        let to_stage_key = match decision {
+            "approve" => stage_config
+                .get("approveToStageKey")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+            "request_changes" => stage_config
+                .get("requestChangesToStageKey")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+            "reject" => stage_config
+                .get("rejectToStageKey")
+                .and_then(serde_json::Value::as_str)
+                .unwrap_or_default(),
+            _ => "",
+        };
+        if to_stage_key.is_empty() {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let reason_required = match decision {
+            "request_changes" => stage_config
+                .get("requireRequestChangesReason")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true),
+            "reject" => stage_config
+                .get("requireRejectReason")
+                .and_then(serde_json::Value::as_bool)
+                .unwrap_or(true),
+            _ => false,
+        };
+        if reason_required && reason.map(str::trim).unwrap_or_default().is_empty() {
+            return Err(PipelineError::ReferenceNotFound);
+        }
+        let to_stage_id = {
+            let conn = crate::connection::connect(&self.db).await?;
+            let mut rows = conn
+                .query(
+                    "SELECT id FROM pipeline_stages
+                     WHERE company_id = ?1 AND pipeline_id = (SELECT pipeline_id FROM pipeline_cases WHERE id = ?2)
+                       AND key = ?3",
+                    libsql::params![company_id, case_id, to_stage_key],
+                )
+                .await?;
+            let Some(row) = rows.next().await? else {
+                return Err(PipelineError::ReferenceNotFound);
+            };
+            helpers::row_text(&row, 0)?.expect("stage id")
+        };
+        let _ = self
+            .move_case(
+                company_id,
+                case_id,
+                &to_stage_id,
+                actor_type,
+                actor_user_id.map(str::to_owned),
+                actor_agent_id.map(str::to_owned),
+                true,
+            )
+            .await?;
+        let _ = self
+            .add_event(NewPipelineCaseEvent {
+                company_id: company_id.to_owned(),
+                case_id: case_id.to_owned(),
+                r#type: "review_decided".to_owned(),
+                actor_type: actor_type.to_owned(),
+                actor_user_id: actor_user_id.map(str::to_owned),
+                actor_agent_id: actor_agent_id.map(str::to_owned),
+                run_id: None,
+                from_stage_id: Some(stage_id),
+                to_stage_id: Some(to_stage_id),
+                payload: Some(serde_json::json!({
+                    "decision": decision,
+                    "reason": reason,
+                    "approvedCaseVersion": if decision == "approve" {
+                        serde_json::Value::Number(expected_version.into())
+                    } else {
+                        serde_json::Value::Null
+                    },
+                })),
+            })
+            .await?;
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {CASE_COLUMNS} FROM pipeline_cases WHERE company_id = ?1 AND id = ?2"
+                ),
+                libsql::params![company_id, case_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("case exists");
+        Ok(row_to_case(&row)?)
+    }
+
     async fn link_issue(
         &self,
         company_id: &str,
@@ -2441,5 +3111,327 @@ mod tests {
                 .unwrap()
                 .is_none()
         );
+    }
+
+    #[tokio::test]
+    async fn attention_and_review_cases_listing() {
+        let (_dir, repo) = repo().await;
+        let pipeline = repo
+            .create_pipeline(NewPipeline {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                key: "intake".to_owned(),
+                name: "Intake".to_owned(),
+                description: None,
+                enforce_transitions: false,
+                created_by_user_id: Some("u1".to_owned()),
+            })
+            .await
+            .unwrap();
+        let todo = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "todo".to_owned(),
+                name: "To do".to_owned(),
+                kind: "working".to_owned(),
+                position: 1,
+                config: None,
+            })
+            .await
+            .unwrap();
+        let review = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "review".to_owned(),
+                name: "Review".to_owned(),
+                kind: "review".to_owned(),
+                position: 2,
+                config: Some(serde_json::json!({
+                    "approveToStageKey": "done",
+                    "reviewerKind": "human",
+                })),
+            })
+            .await
+            .unwrap();
+        let case = repo
+            .create_case(NewPipelineCase {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                stage_id: todo.id.clone(),
+                case_key: "C-1".to_owned(),
+                title: "First".to_owned(),
+                summary: None,
+                fields: None,
+                workspace_ref: None,
+                parent_case_id: None,
+                created_by_user_id: Some("u1".to_owned()),
+            })
+            .await
+            .unwrap();
+
+        // Move into review: appears in reviews but not suggestions yet.
+        let moved = repo
+            .move_case(
+                "c1",
+                &case.id,
+                &review.id,
+                "user",
+                Some("u1".to_owned()),
+                None,
+                false,
+            )
+            .await
+            .unwrap()
+            .expect("moved");
+        assert_eq!(moved.stage_id, review.id);
+        let feed = repo.list_attention("c1", 50).await.unwrap();
+        assert_eq!(feed["reviews"].as_array().unwrap().len(), 1);
+        assert_eq!(feed["reviews"][0]["case"]["caseKey"], "C-1");
+        assert_eq!(feed["reviews"][0]["review"]["reviewerKind"], "human");
+        assert_eq!(feed["suggestions"].as_array().unwrap().len(), 0);
+        let review_cases = repo.list_review_cases("c1", None, None).await.unwrap();
+        assert_eq!(review_cases.len(), 1);
+        assert_eq!(review_cases[0]["case"]["id"], case.id);
+
+        // Set a pending suggestion: shows in suggestions too.
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE pipeline_cases SET pending_suggestion = ?1 WHERE id = ?2",
+                libsql::params![
+                    serde_json::json!({
+                        "id": "sug-1",
+                        "toStageKey": "todo",
+                        "rationale": "needs work",
+                        "confidence": 0.8,
+                        "suggestedByAgentId": "a1",
+                        "createdAt": "2026-08-05T00:00:00.000Z",
+                    })
+                    .to_string(),
+                    case.id.clone(),
+                ],
+            )
+            .await
+            .unwrap();
+        }
+        let feed = repo.list_attention("c1", 50).await.unwrap();
+        let suggestions = feed["suggestions"].as_array().unwrap();
+        assert_eq!(suggestions.len(), 1);
+        assert_eq!(suggestions[0]["suggestion"]["id"], "sug-1");
+        assert_eq!(suggestions[0]["suggestion"]["toStageKey"], "todo");
+        assert_eq!(suggestions[0]["suggestion"]["suggestedBy"]["agentId"], "a1");
+        assert_eq!(feed["counts"]["suggestions"], 1);
+
+        // Company-level events include the transition.
+        let events = repo
+            .list_company_case_events("c1", &[], 50, 0)
+            .await
+            .unwrap();
+        assert!(!events["items"].as_array().unwrap().is_empty());
+        let types: Vec<&str> = events["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .filter_map(|item| item["type"].as_str())
+            .collect();
+        assert!(types.contains(&"transitioned"));
+        // Type filter works.
+        let filtered = repo
+            .list_company_case_events("c1", &["suggestion_resolved".to_owned()], 50, 0)
+            .await
+            .unwrap();
+        assert_eq!(filtered["items"].as_array().unwrap().len(), 0);
+        assert_eq!(filtered["pagination"]["hasMore"], false);
+    }
+
+    #[tokio::test]
+    async fn resolve_suggestion_dismiss_and_accept() {
+        let (_dir, repo) = repo().await;
+        let pipeline = repo
+            .create_pipeline(NewPipeline {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                key: "intake".to_owned(),
+                name: "Intake".to_owned(),
+                description: None,
+                enforce_transitions: false,
+                created_by_user_id: Some("u1".to_owned()),
+            })
+            .await
+            .unwrap();
+        let todo = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "todo".to_owned(),
+                name: "To do".to_owned(),
+                kind: "working".to_owned(),
+                position: 1,
+                config: None,
+            })
+            .await
+            .unwrap();
+        let _review = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "review".to_owned(),
+                name: "Review".to_owned(),
+                kind: "review".to_owned(),
+                position: 2,
+                config: None,
+            })
+            .await
+            .unwrap();
+        let done = repo
+            .create_stage(NewStage {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                key: "done".to_owned(),
+                name: "Done".to_owned(),
+                kind: "done".to_owned(),
+                position: 3,
+                config: None,
+            })
+            .await
+            .unwrap();
+        let case = repo
+            .create_case(NewPipelineCase {
+                company_id: "c1".to_owned(),
+                pipeline_id: pipeline.id.clone(),
+                stage_id: todo.id.clone(),
+                case_key: "C-1".to_owned(),
+                title: "First".to_owned(),
+                summary: None,
+                fields: None,
+                workspace_ref: None,
+                parent_case_id: None,
+                created_by_user_id: Some("u1".to_owned()),
+            })
+            .await
+            .unwrap();
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE pipeline_cases SET pending_suggestion = ?1 WHERE id = ?2",
+                libsql::params![
+                    serde_json::json!({
+                        "id": "sug-1",
+                        "toStageKey": "done",
+                        "rationale": "approved",
+                    })
+                    .to_string(),
+                    case.id.clone(),
+                ],
+            )
+            .await
+            .unwrap();
+        }
+
+        // Wrong suggestion id -> not pending.
+        let err = repo
+            .resolve_suggestion(
+                "c1",
+                &case.id,
+                "sug-other",
+                "dismiss",
+                None,
+                None,
+                "user",
+                Some("u1"),
+                None,
+            )
+            .await
+            .unwrap_err();
+        assert!(matches!(err, PipelineError::SuggestionNotPending));
+
+        // Dismiss clears the suggestion and records an event.
+        let dismissed = repo
+            .resolve_suggestion(
+                "c1",
+                &case.id,
+                "sug-1",
+                "dismiss",
+                None,
+                Some("no"),
+                "user",
+                Some("u1"),
+                None,
+            )
+            .await
+            .unwrap();
+        assert!(dismissed.pending_suggestion.is_none());
+        assert_eq!(dismissed.stage_id, todo.id);
+        let events = repo.list_events("c1", &case.id).await.unwrap();
+        assert!(events.iter().any(|e| e.r#type == "suggestion_resolved"));
+
+        // Re-arm and accept: moves to the suggested stage, version bumps.
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE pipeline_cases SET pending_suggestion = ?1 WHERE id = ?2",
+                libsql::params![
+                    serde_json::json!({
+                        "id": "sug-2",
+                        "toStageKey": "done",
+                        "rationale": "approved",
+                    })
+                    .to_string(),
+                    case.id.clone(),
+                ],
+            )
+            .await
+            .unwrap();
+        }
+        let accepted = repo
+            .resolve_suggestion(
+                "c1",
+                &case.id,
+                "sug-2",
+                "accept",
+                None,
+                None,
+                "user",
+                Some("u1"),
+                None,
+            )
+            .await
+            .unwrap();
+        assert!(accepted.pending_suggestion.is_none());
+        assert_eq!(accepted.stage_id, done.id);
+        assert_eq!(accepted.terminal_kind.as_deref(), Some("done"));
+        assert!(accepted.version >= 2);
+
+        // Version conflict is rejected.
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE pipeline_cases SET pending_suggestion = ?1 WHERE id = ?2",
+                libsql::params![
+                    serde_json::json!({ "id": "sug-3", "toStageKey": "todo", "rationale": "x" })
+                        .to_string(),
+                    case.id.clone(),
+                ],
+            )
+            .await
+            .unwrap();
+        }
+        let err = repo
+            .resolve_suggestion(
+                "c1",
+                &case.id,
+                "sug-3",
+                "accept",
+                Some(1),
+                None,
+                "user",
+                Some("u1"),
+                None,
+            )
+            .await
+            .unwrap_err();
+        assert!(matches!(err, PipelineError::VersionConflict));
     }
 }

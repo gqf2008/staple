@@ -664,6 +664,219 @@ pub async fn add_event(
     Ok((StatusCode::CREATED, Json(event)))
 }
 
+/// Reads a query parameter value from the request.
+fn query_param(cx: &Cx, key: &str) -> Option<String> {
+    topcoat::context::try_request_context::<http::request::Parts>(cx).and_then(|parts| {
+        parts.uri.query().and_then(|query| {
+            query.split('&').find_map(|pair| {
+                let (k, value) = pair.split_once('=')?;
+                (k == key).then(|| value.to_owned())
+            })
+        })
+    })
+}
+
+/// Body for `POST /api/companies/{companyId}/review-cases/bulk`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BulkReviewItem {
+    /// Case id.
+    pub case_id: String,
+    /// Decision (`approve` | `request_changes` | `reject`).
+    pub decision: String,
+    /// Reason.
+    #[serde(default)]
+    pub reason: Option<String>,
+    /// Expected case version (optimistic lock).
+    #[serde(default)]
+    pub expected_version: Option<i64>,
+}
+
+/// Body for `POST /api/companies/{companyId}/review-cases/bulk`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BulkReviewRequest {
+    /// Review decisions.
+    pub items: Vec<BulkReviewItem>,
+}
+
+/// Body for `POST /api/cases/{caseId}/resolve-suggestion`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ResolveSuggestionRequest {
+    /// Suggestion id.
+    pub suggestion_id: String,
+    /// Decision (`accept` | `dismiss`).
+    pub decision: String,
+    /// Reason.
+    #[serde(default)]
+    pub reason: Option<String>,
+    /// Expected case version (optimistic lock).
+    #[serde(default)]
+    pub expected_version: Option<i64>,
+}
+
+/// `GET /api/companies/{companyId}/pipelines-attention` — attention feed.
+#[route(GET "/api/companies/{company_id}/pipelines-attention")]
+pub async fn pipelines_attention(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let limit = query_param(cx, "limit")
+        .and_then(|value| value.parse::<i64>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(50)
+        .min(100);
+    let state = app_context::<AppState>(cx);
+    let feed = state
+        .pipelines
+        .list_attention(&company_id, limit)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(feed))
+}
+
+/// `GET /api/companies/{companyId}/case-events` — company-wide case events.
+#[route(GET "/api/companies/{company_id}/case-events")]
+pub async fn company_case_events(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let types: Vec<String> = query_param(cx, "types")
+        .map(|value| value.split(',').map(str::to_owned).collect())
+        .unwrap_or_default();
+    let limit = query_param(cx, "limit")
+        .and_then(|value| value.parse::<i64>().ok())
+        .filter(|value| *value > 0)
+        .unwrap_or(50)
+        .min(100);
+    let offset = query_param(cx, "offset")
+        .and_then(|value| value.parse::<i64>().ok())
+        .filter(|value| *value >= 0)
+        .unwrap_or(0);
+    let state = app_context::<AppState>(cx);
+    let events = state
+        .pipelines
+        .list_company_case_events(&company_id, &types, limit, offset)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(events))
+}
+
+/// `GET /api/companies/{companyId}/review-cases` — review-stage cases.
+#[route(GET "/api/companies/{company_id}/review-cases")]
+pub async fn review_cases(cx: &Cx) -> Result<Json<Vec<serde_json::Value>>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let pipeline_id = query_param(cx, "pipelineId");
+    let parent_case_id = query_param(cx, "parentCaseId");
+    let state = app_context::<AppState>(cx);
+    let cases = state
+        .pipelines
+        .list_review_cases(
+            &company_id,
+            pipeline_id.as_deref(),
+            parent_case_id.as_deref(),
+        )
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(cases))
+}
+
+/// `POST /api/companies/{companyId}/review-cases/bulk` — bulk review decisions.
+#[route(POST "/api/companies/{company_id}/review-cases/bulk")]
+pub async fn bulk_review_cases(
+    cx: &Cx,
+    Json(body): Json<BulkReviewRequest>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let state = app_context::<AppState>(cx);
+    let mut results = Vec::new();
+    for item in body.items {
+        let expected = item.expected_version.unwrap_or(0);
+        let result = state
+            .pipelines
+            .review_case(
+                &company_id,
+                &item.case_id,
+                &item.decision,
+                expected,
+                item.reason.as_deref(),
+                "user",
+                Some("board"),
+                None,
+            )
+            .await;
+        match result {
+            Ok(case) => results.push(serde_json::json!({
+                "caseId": item.case_id,
+                "ok": true,
+                "result": case,
+            })),
+            Err(error) => results.push(serde_json::json!({
+                "caseId": item.case_id,
+                "ok": false,
+                "error": {
+                    "status": pipeline_error_status(&error),
+                    "message": error.to_string(),
+                },
+            })),
+        }
+    }
+    Ok(Json(json!({ "results": results })))
+}
+
+/// `POST /api/cases/{case_id}/resolve-suggestion` — resolve a pending suggestion.
+#[route(POST "/api/cases/{case_id}/resolve-suggestion")]
+pub async fn resolve_suggestion(
+    cx: &Cx,
+    Json(body): Json<ResolveSuggestionRequest>,
+) -> Result<Json<PipelineCaseRecord>, ApiError> {
+    let case_id = path_param::<CaseId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = state
+        .pipelines
+        .company_of_case(&case_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Case not found"))?;
+    crate::auth::enforce_company_scope(cx, &company_id)?;
+    let case = state
+        .pipelines
+        .resolve_suggestion(
+            &company_id,
+            &case_id,
+            &body.suggestion_id,
+            &body.decision,
+            body.expected_version,
+            body.reason.as_deref(),
+            "user",
+            Some("board"),
+            None,
+        )
+        .await
+        .map_err(pipeline_error_to_api)?;
+    log_activity(
+        &state.activity,
+        &company_id,
+        "pipeline.suggestion_resolved",
+        "pipeline_case",
+        &case_id,
+        Some(json!({ "decision": body.decision, "suggestionId": body.suggestion_id })),
+    )
+    .await?;
+    Ok(Json(case))
+}
+
+fn pipeline_error_status(error: &staple_data::PipelineError) -> u16 {
+    use staple_data::PipelineError as E;
+    match error {
+        E::SuggestionNotPending | E::VersionConflict => 409,
+        E::NotFound => 404,
+        E::ReferenceNotFound => 422,
+        _ => 500,
+    }
+}
+
 fn pipeline_error_to_api(error: staple_data::PipelineError) -> ApiError {
     use staple_data::PipelineError as E;
     match error {
@@ -681,6 +894,8 @@ fn pipeline_error_to_api(error: staple_data::PipelineError) -> ApiError {
             "Validation error",
             json!([{ "path": ["toStageId"], "message": "Transition not allowed by pipeline" }]),
         ),
+        E::SuggestionNotPending => ApiError::conflict("Pipeline suggestion is not pending"),
+        E::VersionConflict => ApiError::conflict("Case version conflict"),
         other => ApiError::internal(other.to_string()),
     }
 }
@@ -1060,6 +1275,10 @@ pub struct AutomationRequest {
 /// `{issue_id}` path parameter.
 #[path_param(error = bad_request("Invalid issue id"))]
 pub(crate) struct IssueId(String);
+
+/// `{case_id}` path parameter.
+#[path_param(error = bad_request("Invalid case id"))]
+pub(crate) struct CaseId(String);
 
 /// `{blocked_by_case_id}` path parameter.
 #[path_param(error = bad_request("Invalid case id"))]
