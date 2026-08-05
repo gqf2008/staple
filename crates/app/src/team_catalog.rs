@@ -464,6 +464,73 @@ pub fn preview(
     }
 }
 
+/// One team skill spec (parsed from SKILL.md frontmatter).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SkillSpec {
+    /// Skill name.
+    pub name: String,
+    /// Skill description.
+    pub description: Option<String>,
+}
+
+/// Scans a team package for `skills/**/SKILL.md` files and parses their
+/// name/description frontmatter.
+#[must_use]
+pub fn team_skills(root: &Path, catalog_ref: &str) -> Vec<SkillSpec> {
+    let Some(team) = detail_at(root, catalog_ref) else {
+        return Vec::new();
+    };
+    let team_root = root.join(&team.path);
+    let mut skills = Vec::new();
+    for file in &team.files {
+        if !file.ends_with("/SKILL.md") && file != "SKILL.md" {
+            continue;
+        }
+        let path = team_root.join(file);
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        let (frontmatter, _body) = parse_frontmatter(&text);
+        let name = frontmatter.get("name").cloned().unwrap_or_else(|| {
+            file.trim_end_matches("/SKILL.md")
+                .rsplit('/')
+                .next()
+                .unwrap_or("Imported Skill")
+                .to_owned()
+        });
+        skills.push(SkillSpec {
+            name,
+            description: frontmatter.get("description").cloned(),
+        });
+    }
+    skills
+}
+
+/// Parses simple `---`-delimited frontmatter into a key/value map plus the
+/// remaining body text.
+fn parse_frontmatter(text: &str) -> (std::collections::HashMap<String, String>, String) {
+    let mut frontmatter = std::collections::HashMap::new();
+    let trimmed = text.trim_start_matches('\u{feff}');
+    let rest = if let Some(rest) = trimmed.strip_prefix("---") {
+        if let Some(end) = rest.find("\n---") {
+            let header = &rest[..end];
+            let body = rest[end + 4..].trim_start_matches('\n').to_owned();
+            for line in header.lines() {
+                if let Some((key, value)) = line.split_once(':') {
+                    frontmatter.insert(key.trim().to_owned(), value.trim().to_owned());
+                }
+            }
+            body
+        } else {
+            trimmed.to_owned()
+        }
+    } else {
+        trimmed.to_owned()
+    };
+    (frontmatter, rest)
+}
+
 /// Builds agent metadata carrying the catalog provenance.
 #[must_use]
 pub fn provenance_metadata(
@@ -519,6 +586,13 @@ mod tests {
         fs::create_dir_all(&team_dir).unwrap();
         fs::write(team_dir.join("TEAM.md"), "# Core Team\n\nhello").unwrap();
         fs::write(team_dir.join("AGENTS.md"), "# Agents").unwrap();
+        let skill_dir = team_dir.join("skills/helper");
+        fs::create_dir_all(&skill_dir).unwrap();
+        fs::write(
+            skill_dir.join("SKILL.md"),
+            "---\nname: helper-skill\ndescription: A helper\n---\n\nUsage",
+        )
+        .unwrap();
         let manifest = serde_json::json!({
             "schemaVersion": 1,
             "packageName": "@test/teams-catalog",
@@ -535,7 +609,7 @@ mod tests {
                 "contentHash": "sha256:abc",
                 "counts": { "agents": 2 },
                 "tags": ["default"],
-                "files": ["TEAM.md", "AGENTS.md"]
+                "files": ["TEAM.md", "AGENTS.md", "skills/helper/SKILL.md"]
             }]
         });
         fs::write(
@@ -675,5 +749,16 @@ mod tests {
         assert_eq!(preview.skills.len(), 1);
         let metadata = provenance_metadata("t1", "k1", "sha256:abc");
         assert_eq!(metadata["paperclip"]["catalogTeam"]["catalogId"], "t1");
+    }
+
+    #[test]
+    fn team_skills_parses_skill_files() {
+        let dir = seed_catalog();
+        let root = dir.path();
+        let skills = team_skills(root, "test:bundled:acme:core-team");
+        assert_eq!(skills.len(), 1);
+        assert_eq!(skills[0].name, "helper-skill");
+        assert_eq!(skills[0].description.as_deref(), Some("A helper"));
+        assert!(team_skills(root, "missing").is_empty());
     }
 }

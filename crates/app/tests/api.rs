@@ -5916,6 +5916,13 @@ async fn team_catalog_install_api() {
     let team_dir = root.join("catalog/bundled/acme/core-team");
     std::fs::create_dir_all(&team_dir).unwrap();
     std::fs::write(team_dir.join("TEAM.md"), "# Core Team").unwrap();
+    let skill_dir = team_dir.join("skills/helper");
+    std::fs::create_dir_all(&skill_dir).unwrap();
+    std::fs::write(
+        skill_dir.join("SKILL.md"),
+        "---\nname: helper-skill\ndescription: A helper\n---\n\nUsage",
+    )
+    .unwrap();
     let manifest = serde_json::json!({
         "teams": [{
             "id": "test:bundled:acme:core-team",
@@ -5932,7 +5939,7 @@ async fn team_catalog_install_api() {
             "agentSlugs": ["ceo", "cto"],
             "projectSlugs": ["starter"],
             "requiredSkills": ["skill-a"],
-            "files": ["TEAM.md"]
+            "files": ["TEAM.md", "skills/helper/SKILL.md"]
         }]
     });
     std::fs::write(
@@ -5985,6 +5992,7 @@ async fn team_catalog_install_api() {
     assert_eq!(status, StatusCode::OK, "body: {body}");
     assert_eq!(body["createdAgents"], 2);
     assert_eq!(body["createdProjects"], 1);
+    assert_eq!(body["createdSkills"], 1);
 
     let (status, body) = send_json(
         &app,

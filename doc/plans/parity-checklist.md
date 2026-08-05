@@ -110,14 +110,14 @@
 
 | 上游能力 | 说明 | 状态 |
 |---|---|---|
-| **TeamCatalog（Phase E teams-catalog）** | 全新数据模型 + 列表/详情/文件/preview/install 端点 + TeamCatalog/NewAgentDialog/OnboardingWizard UI | ⏳ 明确延后（需先建表再实现，单独立项） |
-| **BoardClaim（board-claim/:token）** | 依赖 email/password 认证 + board claim challenge 端点 | ⏳ 明确延后（无认证栈） |
-| **apps 生态页面**（connections/browse/connect/review/gateways/advanced/app detail） | 上游应用市场/连接管理大功能；数据表 tool_* 已对齐，UI 层缺失 | ⏳ 明确延后（单独立项） |
-| **完整公司包导出/导入**（COMPANY.md/PROJECT.md/TASK.md/SKILL.md + documents/skills 全量打包 + zip 文件内容/frontmatter 预览） | 现为 JSON manifest（7 核心表）+ 附件 zip baseline | ⏳ 明确延后（单独立项） |
+| **TeamCatalog（Phase E teams-catalog）** | 已实现：catalog list/detail/files/installed + preview/install（agents/projects/skills + provenance）+ TeamCatalog 页面（issue #176/PR #177 + #178/PR #179 + #184/PR 本批） | ✅ 完成 |
+| **BoardClaim（board-claim/:token）** | 已实现：内存 challenge + GET/POST + 页面；board 隐式身份认领（issue #172/PR #174） | ✅ 完成 |
+| **apps 生态页面**（connections/browse/gateways/advanced/app detail） | 已实现：apps 聚合页 + 连接详情 + browse/gateways/advanced（issue #170/PR #171） | ✅ 完成 |
+| **完整公司包导出/导入**（COMPANY.md/PROJECT.md/TASK.md/SKILL.md + documents/skills 打包 + zip 文件内容/frontmatter 预览） | 已实现：zip 含 docs/skills + preview 内容/frontmatter + 全量导入 docs/skills（issue #180/PR #182 + #181/PR #183） | ✅ 完成 |
 | ~~InstanceAccess 按用户公司访问管理~~（setUserCompanyAccess） | 已实现：list_users / user_company_access / set_user_company_access + instance settings 用户访问区块（issue #167/PR #168） | ✅ 完成 |
 | **InstanceExperimentalSettings** | 上游实验设置页，无产品行为 | ⏳ 明确不迁移 |
 | ~~decision_desk repository 字段补齐~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
 | ~~routine_revisions/routine_triggers 读回 record~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
-| **UserProfile 公开页（u/:userSlug）** | 依赖认证用户资料系统 | ⏳ 明确延后 |
-| **Onboarding 向导**（onboarding 路由） | 依赖认证栈 + 引导流程 | ⏳ 明确延后 |
-| **cloud-upstream 设置**（company/settings/cloud-upstream） | 依赖上游云服务集成 | ⏳ 明确延后 |
+| **UserProfile 公开页（u/:userSlug）** | 已实现：principal 身份资料页 + 统计（issue #173/PR #175） | ✅ 完成 |
+| **Onboarding 向导**（onboarding 路由） | 已实现：欢迎页 + 首个公司创建表单（issue #173/PR #175） | ✅ 完成 |
+| **cloud-upstream 设置**（company/settings/cloud-upstream） | 依赖上游云服务集成 | ⏳ 明确不迁移 |
