@@ -1644,6 +1644,7 @@ pub(crate) struct ProfileQuery {
 #[page("/profile/settings")]
 pub async fn profile_settings(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
+    let actor_id = crate::auth::current_actor(cx);
     let state = app_context::<AppState>(cx);
     let query = topcoat::router::query_params::<ProfileQuery>(cx)
         .ok()
@@ -1689,6 +1690,21 @@ pub async fn profile_settings(cx: &Cx) -> Result {
             <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
             <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
         </nav>
+        <section>
+            <h2>(t(lang, "profile.currentOperator"))</h2>
+            <p class="meta-row"><strong>(t(lang, "profile.currentOperatorId"))</strong> " " <span class="mono">(actor_id.clone())</span></p>
+            <p class="meta-row">(t(lang, "profile.currentOperatorHint"))</p>
+            <form class="stack-form" method="get" action=(with_lang("/profile/settings", lang))>
+                <label>(t(lang, "profile.switchOperator"))</label>
+                <select name="user">
+                    <option value="">"board"</option>
+                    for user_row in &user_rows {
+                        <option value=(user_row.id.clone())>(user_row.name.clone())</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "profile.switch"))</button>
+            </form>
+        </section>
         <section>
             <h2>(t(lang, "profile.user"))</h2>
             <ul class="list">
