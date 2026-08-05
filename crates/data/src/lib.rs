@@ -129,7 +129,7 @@ pub use repositories::{
     TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
     TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
     TursoWorkProductRepository, TursoWorkspaceRepository, UpdateIssueDocument, UpdateRoutine,
-    UpsertCompanySettings, UpsertPluginConfig, UserAccessSummary, UserRecord,
+    UpsertCompanySettings, UpsertPluginConfig, UserAccessSummary, UserProfileRecord, UserRecord,
     UserSidebarPreferenceRecord, WorkProductError, WorkProductPatch, WorkProductRecord,
     WorkProductRepository, WorkspaceError, WorkspaceOperationRecord, WorkspaceRepository, activity,
     agent_runtime, agents, allowed_approval_transition, allowed_case_transition,

@@ -164,7 +164,7 @@ pub use labels::{
 pub use memberships::{
     CompanyAccessRow, CompanyMembershipRecord, InstanceUserRoleRecord, MembershipError,
     MembershipRepository, NewCompanyMembership, NewInstanceUserRole, TursoMembershipRepository,
-    UserAccessSummary,
+    UserAccessSummary, UserProfileRecord,
 };
 pub use permission_grants::{
     NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,

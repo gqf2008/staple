@@ -4,7 +4,7 @@ use serde::Deserialize;
 use serde_json::json;
 use staple_data::{
     CompanyAccessRow, CompanyMembershipRecord, InstanceUserRoleRecord, NewCompanyMembership,
-    NewInstanceUserRole, UserAccessSummary,
+    NewInstanceUserRole, UserAccessSummary, UserProfileRecord,
 };
 use topcoat::{
     Result,
@@ -338,4 +338,21 @@ pub async fn set_user_company_access(
     Ok(Json(
         json!({ "userId": user_id, "activeCompanyCount": active }),
     ))
+}
+
+/// `{user_slug}` path parameter for user profile routes.
+#[path_param(error = bad_request("Invalid user slug"))]
+pub(crate) struct UserSlug(String);
+
+/// `GET /api/users/{userSlug}` — public user profile (principal based).
+#[route(GET "/api/users/{user_slug}")]
+pub async fn user_profile(cx: &Cx) -> Result<Json<UserProfileRecord>, ApiError> {
+    let user_slug = path_param::<UserSlug>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let profile = state
+        .memberships
+        .user_profile(&user_slug)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(profile))
 }

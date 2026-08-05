@@ -48,6 +48,10 @@ pub(crate) struct ConnectionId(String);
 #[path_param(error = bad_request("Invalid claim token"))]
 pub(crate) struct ClaimToken(String);
 
+/// Typed `{user_slug}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid user slug"))]
+pub(crate) struct UserSlug(String);
+
 /// Typed `{token}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid token"))]
 pub(crate) struct InviteToken(String);
@@ -4502,6 +4506,78 @@ pub async fn invite_landing(cx: &Cx) -> Result {
             <a class="button" href=(access_url)>(t(lang, "inviteLanding.joinCta"))</a>
             <p class="empty">(t(lang, "inviteLanding.joinHint"))</p>
         }
+    }
+}
+
+/// User profile page (principal based, no auth table).
+#[page("/u/{user_slug}")]
+pub async fn user_profile(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let user_slug = path_param::<UserSlug>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let profile = state
+        .memberships
+        .user_profile(&user_slug)
+        .await
+        .map_err(to_topcoat_error)?;
+    let memberships = &profile.memberships;
+    view! {
+        <h1 class="page-title">(t(lang, "userProfile.title")) ": " (profile.user_id.clone())</h1>
+        if profile.instance_admin {
+            <p><span class="badge badge-done">(t(lang, "userProfile.admin"))</span></p>
+        }
+        <section>
+            <h2>(t(lang, "userProfile.memberOf"))</h2>
+            if memberships.is_empty() {
+                <p class="empty">(t(lang, "userProfile.noMemberships"))</p>
+            } else {
+                <ul class="list">
+                    for membership in memberships {
+                        <li>
+                            <strong>(membership.company_name.clone())</strong>
+                            " " <span class=(status_badge_class(&membership.status))>(membership.status.clone())</span>
+                            if let Some(role) = &membership.membership_role {
+                                " " <span class="badge badge-default">(t(lang, "userProfile.role")) ": " (role.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "userProfile.created"))</h2>
+            <p class="meta-row">(profile.created_issues)</p>
+        </section>
+        <section>
+            <h2>(t(lang, "userProfile.assignedOpen"))</h2>
+            <p class="meta-row">(profile.assigned_open_issues)</p>
+        </section>
+        <section>
+            <h2>(t(lang, "userProfile.comments"))</h2>
+            <p class="meta-row">(profile.comment_count)</p>
+        </section>
+    }
+}
+
+/// Onboarding page: welcome + first-company creation.
+#[page("/onboarding")]
+pub async fn onboarding(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    view! {
+        <h1 class="page-title">(t(lang, "onboarding.title"))</h1>
+        <p class="meta-row">(t(lang, "onboarding.hint"))</p>
+        <form class="stack-form" method="post" action=(with_lang("/companies/ui", lang))>
+            <label>(t(lang, "onboarding.name"))</label>
+            <input type="text" name="name" required="required">
+            <label>(t(lang, "onboarding.description"))</label>
+            <input type="text" name="description">
+            <label>(t(lang, "onboarding.budget"))</label>
+            <input type="number" name="budgetMonthlyCents" value="0" min="0">
+            <label>(t(lang, "onboarding.attachments"))</label>
+            <input type="number" name="attachmentMaxBytes" value="0" min="1">
+            <button type="submit">(t(lang, "onboarding.create"))</button>
+        </form>
+        <a class="button" href=(with_lang("/", lang))>(t(lang, "onboarding.openBoard"))</a>
     }
 }
 
