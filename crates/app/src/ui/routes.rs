@@ -4098,3 +4098,15 @@ pub async fn import_company_ui(
         "/companies/{company_id}/export-import?result={message}"
     )))
 }
+
+/// `GET /static/board_zip.js` — zip portability behavior for the
+/// export/import page.
+#[route(GET "/static/board_zip.js")]
+pub async fn board_zip_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("board_zip.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}

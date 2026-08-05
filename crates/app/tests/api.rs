@@ -329,6 +329,25 @@ async fn send(
     (status, String::from_utf8(bytes.to_vec()).unwrap())
 }
 
+async fn send_bytes(
+    router: &Router,
+    method: Method,
+    path: &str,
+    payload: Vec<u8>,
+) -> (StatusCode, String) {
+    let request = Request::builder()
+        .method(method)
+        .uri(path)
+        .header(CONTENT_TYPE, "application/octet-stream")
+        .body(Body::from(payload))
+        .unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    (status, String::from_utf8(bytes.to_vec()).unwrap())
+}
+
 async fn send_json(
     router: &Router,
     method: Method,
@@ -455,6 +474,84 @@ async fn company_export_import_roundtrip() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+}
+
+#[tokio::test]
+async fn company_zip_archive_preview_and_import() {
+    use std::io::Write;
+
+    let app = router(test_state().await);
+
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies",
+        json!({ "name": "Zip Co", "budgetMonthlyCents": 1000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let target_id = created["id"].as_str().unwrap().to_owned();
+
+    // Build a zip archive: manifest.json + one attachment.
+    let manifest = json!({
+        "version": 1,
+        "exportedAt": "2026-08-05T00:00:00.000Z",
+        "companyId": target_id,
+        "tables": [{
+            "name": "agents",
+            "rows": [{
+                "id": "a1", "company_id": target_id, "name": "Zip Agent",
+                "role": "engineer", "adapter_type": "cli", "status": "active",
+                "adapter_config": "{}", "runtime_config": "{}", "context_mode": "thin",
+                "budget_monthly_cents": 0, "spent_monthly_cents": 0, "permissions": "{}"
+            }]
+        }]
+    });
+    let mut writer = zip::ZipWriter::new(std::io::Cursor::new(Vec::new()));
+    let options = zip::write::SimpleFileOptions::default();
+    writer.start_file("manifest.json", options).unwrap();
+    writer
+        .write_all(serde_json::to_vec(&manifest).unwrap().as_slice())
+        .unwrap();
+    writer.start_file("attachments/k.txt", options).unwrap();
+    writer.write_all(b"hello attachment").unwrap();
+    let cursor = writer.finish().unwrap();
+    let zip_bytes = cursor.into_inner();
+
+    // Preview returns the file list and manifest summary.
+    let (status, preview) = send_bytes(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import/archive/preview"),
+        zip_bytes.clone(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "preview: {preview}");
+    assert!(preview.contains("attachments/k.txt"), "{preview}");
+    assert!(preview.contains("agents"), "{preview}");
+
+    // Import the archive (skip).
+    let (status, result) = send_bytes(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import/archive?strategy=skip"),
+        zip_bytes.clone(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "result: {result}");
+    let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
+    assert_eq!(parsed["summary"]["imported"], 1, "{result}");
+    assert_eq!(parsed["attachmentsRestored"], 1, "{result}");
+
+    // Second skip import conflicts (target not empty).
+    let (status, _) = send_bytes(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import/archive?strategy=skip"),
+        zip_bytes,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
 }
 
 #[tokio::test]

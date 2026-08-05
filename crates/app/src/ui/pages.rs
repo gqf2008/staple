@@ -4390,6 +4390,25 @@ pub async fn export_import(cx: &Cx) -> Result {
                 <button type="submit">(t(lang, "exportImport.import"))</button>
             </form>
         </section>
+        <section>
+            <h2>(t(lang, "exportImport.zip"))</h2>
+            <p class="meta-row">(t(lang, "exportImport.zipHint"))</p>
+            <a class="button" href=(with_lang(&format!("/api/companies/{company_id}/export/archive"), lang))>
+                (t(lang, "exportImport.downloadZip"))
+            </a>
+            <form class="stack-form" id="zip-form">
+                <input type="hidden" name="company_id" value=(company_id)>
+                <label>(t(lang, "exportImport.zipFile"))</label>
+                <input type="file" id="zip-file" name="archive" accept=".zip">
+                <label>(t(lang, "exportImport.strategyLabel"))</label>
+                <select name="strategy">
+                    <option value="skip">"skip"</option>
+                    <option value="overwrite">"overwrite"</option>
+                </select>
+                <button type="submit">(t(lang, "exportImport.preview"))</button>
+            </form>
+            <div id="zip-preview"></div>
+        </section>
     }
 }
 

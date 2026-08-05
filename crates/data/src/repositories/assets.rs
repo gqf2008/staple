@@ -130,6 +130,13 @@ pub trait AssetRepository: Send + Sync {
         &self,
         issue_id: &str,
     ) -> Result<Vec<IssueAttachmentRecord>, AssetError>;
+
+    /// Lists all assets for a company (for portability archives).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AssetError`] on database failure.
+    async fn list_for_company(&self, company_id: &str) -> Result<Vec<AssetRecord>, AssetError>;
 }
 
 /// Turso/libSQL implementation of [`AssetRepository`].
@@ -177,6 +184,23 @@ fn row_to_attachment(row: &libsql::Row) -> Result<IssueAttachmentRecord, libsql:
 
 #[async_trait]
 impl AssetRepository for TursoAssetRepository {
+    async fn list_for_company(&self, company_id: &str) -> Result<Vec<AssetRecord>, AssetError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, provider, object_key, content_type, byte_size, sha256,
+                        original_filename, created_at
+                 FROM assets WHERE company_id = ?1 ORDER BY created_at",
+                libsql::params![company_id],
+            )
+            .await?;
+        let mut assets = Vec::new();
+        while let Some(row) = rows.next().await? {
+            assets.push(row_to_asset(&row)?);
+        }
+        Ok(assets)
+    }
+
     async fn create_asset(&self, input: NewAsset) -> Result<AssetRecord, AssetError> {
         let conn = crate::connection::connect(&self.db).await?;
         let id = Uuid::new_v4().to_string();
@@ -277,6 +301,30 @@ mod tests {
 
     use super::*;
     use crate::{Connection, migrate, open};
+
+    #[tokio::test]
+    async fn list_for_company_returns_only_company_assets() {
+        let (_dir, repo, conn) = repo().await;
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO assets (id, company_id, provider, object_key, content_type, byte_size,
+                                 sha256, original_filename)
+             VALUES ('a1', 'c1', 'local_disk', 'k1', 'text/plain', 3, 'abc', 'a.txt'),
+                    ('a2', 'c2', 'local_disk', 'k2', 'text/plain', 3, 'def', 'b.txt')",
+            (),
+        )
+        .await
+        .unwrap();
+        let assets = repo.list_for_company("c1").await.unwrap();
+        assert_eq!(assets.len(), 1);
+        assert_eq!(assets[0].object_key, "k1");
+    }
 
     async fn repo() -> (TempDir, TursoAssetRepository, Connection) {
         let dir = TempDir::new().unwrap();

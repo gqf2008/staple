@@ -49,6 +49,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                 </nav>
                 <main class="app-main">(slot?)</main>
                 <script src="/static/board_chat.js"></script>
+                <script src="/static/board_zip.js"></script>
             </body>
         </html>
     }
