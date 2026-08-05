@@ -162,8 +162,9 @@ pub use labels::{
     IssueLabelRecord, LabelError, LabelRecord, LabelRepository, NewLabel, TursoLabelRepository,
 };
 pub use memberships::{
-    CompanyMembershipRecord, InstanceUserRoleRecord, MembershipError, MembershipRepository,
-    NewCompanyMembership, NewInstanceUserRole, TursoMembershipRepository,
+    CompanyAccessRow, CompanyMembershipRecord, InstanceUserRoleRecord, MembershipError,
+    MembershipRepository, NewCompanyMembership, NewInstanceUserRole, TursoMembershipRepository,
+    UserAccessSummary,
 };
 pub use permission_grants::{
     NewPermissionGrant, PermissionGrantError, PermissionGrantRecord, PermissionGrantRepository,
