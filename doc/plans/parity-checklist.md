@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 1/2 批）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 1/2 批 + Pipelines Review Queue/Learnings）。
 
 ## 使用方式
 
@@ -82,6 +82,7 @@
 | UI-13 | InviteLanding 真实落地页（公开 GET /api/invites/{token} 摘要 + 公司信息/状态/加入入口） | ✅ 完成（issue #150/PR #151） |
 | 实验/设计页 | 上游 UxLab/DesignGuide 实验页（BootstrapSetupUxLab、InviteUxLab、IssueChatUxLab、IssueChatLongThreadPerf、RunTranscriptUxLab、SystemNoticeUxLab、ResponsibleUserDenialUxLab、TaskChatLab、DesignGuide） | ⏳ 明确不迁移（登记为实验性页面，无产品行为） |
 | 公司可移植性 | CompanyExport/CompanyImport：JSON manifest + zip 归档（附件导出/导入、preview 文件树 + 冲突统计） | ✅ 完成（issue #142/PR #143 + #146/PR #147 + #148/PR #149） |
+| Pipelines 扩展 | Review Queue + Learnings（attention/case-events/review-cases/resolve-suggestion 数据+API+页面） | ✅ 完成（issue #159/PR #161 + issue #160/PR #162） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
