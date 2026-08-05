@@ -129,6 +129,16 @@ pub trait WorkProductRepository: Send + Sync {
         issue_id: &str,
     ) -> Result<Vec<WorkProductRecord>, WorkProductError>;
 
+    /// Lists all work products for a company, newest first.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkProductError`] on database failure.
+    async fn list_for_company(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<WorkProductRecord>, WorkProductError>;
+
     /// Fetches one work product by id.
     ///
     /// # Errors
@@ -251,6 +261,23 @@ impl WorkProductRepository for TursoWorkProductRepository {
             "SELECT {COLUMNS} FROM issue_work_products WHERE issue_id = ?1 ORDER BY created_at"
         );
         let mut rows = conn.query(&sql, libsql::params![issue_id]).await?;
+        let mut products = Vec::new();
+        while let Some(row) = rows.next().await? {
+            products.push(row_to_work_product(&row)?);
+        }
+        Ok(products)
+    }
+
+    async fn list_for_company(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<WorkProductRecord>, WorkProductError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let sql = format!(
+            "SELECT {COLUMNS} FROM issue_work_products WHERE company_id = ?1 \
+             ORDER BY created_at DESC"
+        );
+        let mut rows = conn.query(&sql, libsql::params![company_id]).await?;
         let mut products = Vec::new();
         while let Some(row) = rows.next().await? {
             products.push(row_to_work_product(&row)?);
@@ -390,6 +417,63 @@ mod tests {
 
         let deleted = repo.delete(&created.id).await.unwrap().unwrap();
         assert_eq!(deleted.id, created.id);
+    }
+
+    #[tokio::test]
+    async fn list_for_company_scopes_to_company() {
+        let (_dir, repo, conn) = repo().await;
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c1', 'Alpha', 'ALPHA', 1024),
+                    ('c2', 'Beta', 'BETA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO issues (id, company_id, title, issue_number, identifier)
+             VALUES ('i1', 'c1', 'T1', 1, 'ALPHA-1'),
+                    ('i2', 'c2', 'T2', 1, 'BETA-1')",
+            (),
+        )
+        .await
+        .unwrap();
+        for (issue_id, title) in [
+            ("i1", "Alpha artifact"),
+            ("i1", "Alpha second"),
+            ("i2", "Beta artifact"),
+        ] {
+            repo.create(NewWorkProduct {
+                issue_id: issue_id.to_owned(),
+                project_id: None,
+                r#type: "artifact".to_owned(),
+                provider: "paperclip".to_owned(),
+                external_id: None,
+                title: title.to_owned(),
+                url: None,
+                status: "active".to_owned(),
+                review_state: "none".to_owned(),
+                is_primary: false,
+                health_status: "unknown".to_owned(),
+                summary: None,
+                metadata: None,
+            })
+            .await
+            .unwrap();
+        }
+
+        let alpha = repo.list_for_company("c1").await.unwrap();
+        assert_eq!(alpha.len(), 2);
+        assert!(alpha.iter().all(|product| product.company_id == "c1"));
+        assert!(
+            alpha
+                .iter()
+                .any(|product| product.title == "Alpha artifact")
+        );
+        let beta = repo.list_for_company("c2").await.unwrap();
+        assert_eq!(beta.len(), 1);
+        assert_eq!(beta[0].title, "Beta artifact");
+        assert!(repo.list_for_company("missing").await.unwrap().is_empty());
     }
 
     #[tokio::test]

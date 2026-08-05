@@ -6,6 +6,7 @@
 use async_trait::async_trait;
 use libsql::Database;
 use thiserror::Error;
+use uuid::Uuid;
 
 use super::helpers;
 
@@ -76,6 +77,27 @@ pub struct AgentRecord {
     pub created_at: String,
 }
 
+/// Input for creating an agent.
+#[derive(Debug, Clone)]
+pub struct NewAgent {
+    /// Owning company id.
+    pub company_id: String,
+    /// Name.
+    pub name: String,
+    /// Role.
+    pub role: String,
+    /// Title.
+    pub title: Option<String>,
+    /// Icon.
+    pub icon: Option<String>,
+    /// Manager agent id.
+    pub reports_to: Option<String>,
+    /// Adapter type.
+    pub adapter_type: String,
+    /// Monthly budget in cents (0 = unlimited).
+    pub budget_monthly_cents: i64,
+}
+
 /// Agent repository errors.
 #[derive(Debug, Error)]
 pub enum AgentError {
@@ -116,6 +138,15 @@ pub trait AgentRepository: Send + Sync {
     ///
     /// Returns [`AgentError`] on database failure.
     async fn list(&self, company_id: &str) -> Result<Vec<AgentRecord>, AgentError>;
+
+    /// Creates an agent in a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AgentError::CompanyNotFound`] when the company is missing and
+    /// [`AgentError::AgentNotFound`] when the manager agent does not exist or
+    /// belongs to another company.
+    async fn create(&self, input: NewAgent) -> Result<AgentRecord, AgentError>;
 
     /// Gets one agent (company-scoped).
     ///
@@ -223,6 +254,54 @@ impl AgentRepository for TursoAgentRepository {
             agents.push(row_to_agent(&row)?);
         }
         Ok(agents)
+    }
+
+    async fn create(&self, input: NewAgent) -> Result<AgentRecord, AgentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::company_exists(&conn, &input.company_id).await? {
+            return Err(AgentError::CompanyNotFound);
+        }
+        if let Some(reports_to) = &input.reports_to {
+            let manager = helpers::row_company(&conn, "agents", reports_to).await?;
+            if manager.as_deref() != Some(input.company_id.as_str()) {
+                return Err(AgentError::AgentNotFound);
+            }
+        }
+        let id = Uuid::new_v4().to_string();
+        conn.execute(
+            "INSERT INTO agents
+               (id, company_id, name, role, title, icon, status, reports_to,
+                adapter_type, adapter_config, runtime_config, context_mode,
+                budget_monthly_cents, spent_monthly_cents, permissions,
+                created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, 'active', ?7, ?8, '{}', '{}',
+                     'thin', ?9, 0, '{}',
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            libsql::params![
+                id.clone(),
+                input.company_id,
+                input.name,
+                input.role,
+                input.title,
+                input.icon,
+                input.reports_to,
+                input.adapter_type,
+                input.budget_monthly_cents
+            ],
+        )
+        .await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, name, role, title, icon, status, reports_to,
+                        adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
+                        last_heartbeat_at, created_at
+                 FROM agents WHERE id = ?1",
+                libsql::params![id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("agent was just inserted");
+        Ok(row_to_agent(&row)?)
     }
 
     async fn get(
@@ -408,6 +487,67 @@ mod tests {
         assert!(repo.set_budget("c1", "missing", 1).await.unwrap().is_none());
         let err = repo.set_budget("c2", "a1", 1).await.unwrap_err();
         assert!(matches!(err, AgentError::CompanyNotFound));
+    }
+
+    #[tokio::test]
+    async fn create_agent() {
+        let (_dir, repo) = repo().await;
+        let created = repo
+            .create(NewAgent {
+                company_id: "c1".to_owned(),
+                name: "Helper".to_owned(),
+                role: "engineer".to_owned(),
+                title: Some("Staff Engineer".to_owned()),
+                icon: None,
+                reports_to: Some("a1".to_owned()),
+                adapter_type: "cli_local".to_owned(),
+                budget_monthly_cents: 25_000,
+            })
+            .await
+            .unwrap();
+        assert_eq!(created.company_id, "c1");
+        assert_eq!(created.name, "Helper");
+        assert_eq!(created.role, "engineer");
+        assert_eq!(created.title.as_deref(), Some("Staff Engineer"));
+        assert_eq!(created.reports_to.as_deref(), Some("a1"));
+        assert_eq!(created.adapter_type, "cli_local");
+        assert_eq!(created.budget_monthly_cents, 25_000);
+        assert_eq!(created.status, "active");
+
+        let agents = repo.list("c1").await.unwrap();
+        assert_eq!(agents.len(), 4);
+        assert!(repo.list("c2").await.unwrap().is_empty());
+
+        let err = repo
+            .create(NewAgent {
+                company_id: "c2".to_owned(),
+                name: "Ghost".to_owned(),
+                role: "general".to_owned(),
+                title: None,
+                icon: None,
+                reports_to: None,
+                adapter_type: "cli_local".to_owned(),
+                budget_monthly_cents: 0,
+            })
+            .await
+            .unwrap_err();
+        assert!(matches!(err, AgentError::CompanyNotFound));
+
+        // Missing or foreign manager is rejected.
+        let err = repo
+            .create(NewAgent {
+                company_id: "c1".to_owned(),
+                name: "Bad manager".to_owned(),
+                role: "general".to_owned(),
+                title: None,
+                icon: None,
+                reports_to: Some("missing".to_owned()),
+                adapter_type: "cli_local".to_owned(),
+                budget_monthly_cents: 0,
+            })
+            .await
+            .unwrap_err();
+        assert!(matches!(err, AgentError::AgentNotFound));
     }
 
     #[tokio::test]

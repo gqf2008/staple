@@ -364,6 +364,20 @@ pub trait PipelineRepository: Send + Sync {
         company_id: &str,
         id: &str,
     ) -> Result<Option<PipelineRecord>, PipelineError>;
+    /// Updates a pipeline's name, description, and archived status. `None`
+    /// leaves a field unchanged; `Some(None)` clears the description.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PipelineError`] on database failure.
+    async fn update_pipeline(
+        &self,
+        company_id: &str,
+        id: &str,
+        name: Option<String>,
+        description: Option<Option<String>>,
+        archived: Option<bool>,
+    ) -> Result<Option<PipelineRecord>, PipelineError>;
     async fn set_pipeline_archived(
         &self,
         company_id: &str,
@@ -747,6 +761,56 @@ impl PipelineRepository for TursoPipelineRepository {
             Some(row) => Ok(Some(row_to_pipeline(&row)?)),
             None => Ok(None),
         }
+    }
+
+    async fn update_pipeline(
+        &self,
+        company_id: &str,
+        id: &str,
+        name: Option<String>,
+        description: Option<Option<String>>,
+        archived: Option<bool>,
+    ) -> Result<Option<PipelineRecord>, PipelineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut sets = Vec::new();
+        let mut values: Vec<libsql::Value> = Vec::new();
+        if let Some(name) = name {
+            sets.push(format!("name = ?{}", values.len() + 1));
+            values.push(libsql::Value::from(name));
+        }
+        if let Some(description) = description {
+            sets.push(format!("description = ?{}", values.len() + 1));
+            values.push(
+                description
+                    .map(libsql::Value::from)
+                    .unwrap_or(libsql::Value::Null),
+            );
+        }
+        if let Some(archived) = archived {
+            sets.push(format!(
+                "archived_at = CASE WHEN ?{} = 1 \
+                 THEN strftime('%Y-%m-%dT%H:%M:%fZ','now') ELSE NULL END",
+                values.len() + 1
+            ));
+            values.push(libsql::Value::from(i64::from(archived)));
+        }
+        if sets.is_empty() {
+            return self.get_pipeline(company_id, id).await;
+        }
+        sets.push("updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')".to_owned());
+        let company_param = values.len() + 1;
+        let id_param = values.len() + 2;
+        values.push(libsql::Value::from(company_id.to_owned()));
+        values.push(libsql::Value::from(id.to_owned()));
+        let sql = format!(
+            "UPDATE pipelines SET {} WHERE company_id = ?{company_param} AND id = ?{id_param}",
+            sets.join(", ")
+        );
+        let updated = conn.execute(&sql, values).await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        self.get_pipeline(company_id, id).await
     }
 
     async fn set_pipeline_archived(
@@ -2291,6 +2355,67 @@ mod tests {
                 .await
                 .unwrap()
                 .is_empty()
+        );
+    }
+
+    #[tokio::test]
+    async fn update_pipeline_settings() {
+        let (_dir, repo) = repo().await;
+        let pipeline = repo
+            .create_pipeline(NewPipeline {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                key: "intake".to_owned(),
+                name: "Intake".to_owned(),
+                description: None,
+                enforce_transitions: true,
+                created_by_user_id: None,
+            })
+            .await
+            .unwrap();
+
+        let updated = repo
+            .update_pipeline(
+                "c1",
+                &pipeline.id,
+                Some("Intake v2".to_owned()),
+                Some(Some("Primary intake pipeline".to_owned())),
+                Some(true),
+            )
+            .await
+            .unwrap()
+            .expect("pipeline");
+        assert_eq!(updated.name, "Intake v2");
+        assert_eq!(
+            updated.description.as_deref(),
+            Some("Primary intake pipeline")
+        );
+        assert!(updated.archived_at.is_some());
+
+        // Clear the description and unarchive.
+        let updated = repo
+            .update_pipeline("c1", &pipeline.id, None, Some(None), Some(false))
+            .await
+            .unwrap()
+            .expect("pipeline");
+        assert_eq!(updated.name, "Intake v2");
+        assert!(updated.description.is_none());
+        assert!(updated.archived_at.is_none());
+
+        // Empty patch leaves the row untouched and still returns it.
+        let updated = repo
+            .update_pipeline("c1", &pipeline.id, None, None, None)
+            .await
+            .unwrap()
+            .expect("pipeline");
+        assert_eq!(updated.name, "Intake v2");
+
+        // Cross-company update is not found.
+        assert!(
+            repo.update_pipeline("c2", &pipeline.id, Some("x".to_owned()), None, None)
+                .await
+                .unwrap()
+                .is_none()
         );
     }
 }
