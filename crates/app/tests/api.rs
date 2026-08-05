@@ -5,7 +5,12 @@ use std::sync::Arc;
 
 use http::{Method, Request, header::CONTENT_TYPE};
 use serde_json::{Value, json};
-use staple_adapters::{AdapterRegistry, CliAdapter, CliAdapterConfig};
+use std::collections::HashMap;
+
+use staple_adapters::{
+    AdapterError, AdapterRegistry, AgentAdapter, CliAdapter, CliAdapterConfig, InvocationInput,
+    RunHandle, RunStatus,
+};
 use staple_app::router;
 use staple_app::state::AppState;
 use staple_app::storage::LocalStorage;
@@ -27,7 +32,44 @@ use staple_data::{
     TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
     TursoWorkspaceRepository, migrate, open,
 };
+use tokio::sync::Mutex;
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
+
+/// Test-only adapter that immediately succeeds with the task text as output,
+/// so SSE streaming tests are deterministic and do not spawn a shell.
+struct EchoAdapter {
+    runs: Mutex<HashMap<String, String>>,
+}
+
+#[async_trait::async_trait]
+impl AgentAdapter for EchoAdapter {
+    fn name(&self) -> &str {
+        "echo"
+    }
+
+    async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError> {
+        let run_id = uuid::Uuid::new_v4().to_string();
+        self.runs.lock().await.insert(run_id.clone(), input.task);
+        Ok(RunHandle {
+            run_id,
+            started_at: "2026-08-05T00:00:00.000Z".to_owned(),
+        })
+    }
+
+    async fn observe(&self, run_id: &str) -> Result<RunStatus, AdapterError> {
+        let mut runs = self.runs.lock().await;
+        match runs.remove(run_id) {
+            Some(output) => Ok(RunStatus::Succeeded { output }),
+            None => Ok(RunStatus::Failed {
+                error: "unknown run".to_owned(),
+            }),
+        }
+    }
+
+    async fn cancel(&self, _run_id: &str) -> Result<(), AdapterError> {
+        Ok(())
+    }
+}
 
 async fn test_state() -> AppState {
     test_state_with_db().await.0
@@ -226,6 +268,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         adapters: Arc::new({
             let mut registry = AdapterRegistry::new();
             registry.register(Box::new(CliAdapter::new(CliAdapterConfig::default())));
+            registry.register(Box::new(EchoAdapter {
+                runs: Mutex::new(HashMap::new()),
+            }));
             registry
         }),
         plugin_reports: Vec::new(),
@@ -287,6 +332,57 @@ async fn unknown_api_path_returns_json_404() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(body, r#"{"error":"not found"}"#);
+}
+
+#[tokio::test]
+async fn board_chat_stream_validation_and_sse() {
+    let app = router(test_state().await);
+
+    // Missing company id / empty message -> 422.
+    let (status, _) = send(
+        &app,
+        Method::POST,
+        "/api/board/chat/stream",
+        Some(r#"{"companyId":"","message":"hi"}"#),
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY);
+
+    // Unknown company -> 404.
+    let (status, _) = send(
+        &app,
+        Method::POST,
+        "/api/board/chat/stream",
+        Some(r#"{"companyId":"does-not-exist","message":"hi"}"#),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Valid request -> SSE stream (the cli adapter executes the task as a
+    // shell command, which fails fast; the endpoint still streams an event).
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies",
+        json!({ "name": "Board Co", "budgetMonthlyCents": 1000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let company_id = created["id"].as_str().unwrap().to_owned();
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        "/api/board/chat/stream",
+        Some(&format!(
+            r#"{{"companyId":"{company_id}","message":"list issues","adapterType":"echo"}}"#
+        )),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(
+        body.contains("data:"),
+        "expected SSE data event, body: {body}"
+    );
 }
 
 #[tokio::test]
