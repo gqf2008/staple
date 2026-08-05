@@ -50,6 +50,42 @@ async fn send_json(
     )
 }
 
+/// Percent-encodes a form field value (spaces become `+`).
+fn form_encode(value: &str) -> String {
+    let mut out = String::new();
+    for byte in value.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(char::from(byte));
+            }
+            b' ' => out.push('+'),
+            _ => out.push_str(&format!("%{byte:02X}")),
+        }
+    }
+    out
+}
+
+/// POSTs an `application/x-www-form-urlencoded` form and returns the response
+/// status and body (UI form handlers redirect with `303 See Other`).
+async fn send_form(router: &Router, path: &str, fields: &[(&str, &str)]) -> (StatusCode, String) {
+    let body = fields
+        .iter()
+        .map(|(key, value)| format!("{}={}", form_encode(key), form_encode(value)))
+        .collect::<Vec<_>>()
+        .join("&");
+    let request = Request::builder()
+        .method(Method::POST)
+        .uri(path)
+        .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(Body::from(body))
+        .unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).to_string())
+}
+
 #[tokio::test]
 async fn core_business_flow_smoke() {
     // Boot the full app state (single binary surface).
@@ -605,6 +641,75 @@ async fn core_business_flow_smoke() {
     )
     .await;
     assert_eq!(status, StatusCode::CREATED);
+    // 3.12. Pipeline + work product for the management page UI checks.
+    let (status, pipeline) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/pipelines"),
+        json!({ "key": "smoke", "name": "Smoke Pipeline" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "pipeline body: {pipeline}");
+    let pipeline_id = pipeline["id"].as_str().unwrap().to_owned();
+
+    let (status, work_product) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/issues/{issue_id}/work-products"),
+        json!({
+            "type": "artifact",
+            "provider": "paperclip",
+            "title": "Smoke artifact"
+        }),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::CREATED,
+        "work product body: {work_product}"
+    );
+    let work_product_id = work_product["id"].as_str().unwrap().to_owned();
+
+    // 3.13. UI form handlers: create company, create agent, pipeline settings.
+    let (status, _) = send_form(
+        &app,
+        "/companies/ui",
+        &[
+            ("name", "Smoke UI Co"),
+            ("description", "created from the home page"),
+            ("budgetMonthlyCents", "500"),
+            ("attachmentMaxBytes", "1024"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    let (status, _) = send_form(
+        &app,
+        &format!("/companies/{company_id}/agents/ui"),
+        &[
+            ("name", "Smoke Agent"),
+            ("role", "engineer"),
+            ("title", "Smoke engineer"),
+            ("adapter_type", "cli_local"),
+            ("budgetMonthlyCents", "1000"),
+            ("reports_to", ""),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    let (status, _) = send_form(
+        &app,
+        &format!("/pipelines/{pipeline_id}/settings/ui"),
+        &[
+            ("name", "Smoke Pipeline Renamed"),
+            ("description", "updated via settings"),
+            ("status", "archived"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
 
     // 4. UI renders the company overview.
     let request = Request::builder()
@@ -619,6 +724,22 @@ async fn core_business_flow_smoke() {
     let html = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(html.contains("Core task"));
 
+    // 4.1. Home page shows the company created through the UI form.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri("/")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains("Smoke UI Co"),
+        "home page missing UI-created company"
+    );
+
     // 5. New UI surfaces render: board, search, settings.
     for (path, needle) in [
         (format!("/companies/{company_id}/board"), "board-card"),
@@ -628,6 +749,20 @@ async fn core_business_flow_smoke() {
         ),
         (format!("/companies/{company_id}/settings"), "settings"),
         (format!("/companies/{company_id}/agents"), "Agents"),
+        (format!("/companies/{company_id}/agents"), "Smoke Agent"),
+        (
+            format!("/companies/{company_id}/artifacts"),
+            "Smoke artifact",
+        ),
+        (
+            format!("/companies/{company_id}/artifacts"),
+            work_product_id.as_str(),
+        ),
+        (
+            format!("/pipelines/{pipeline_id}"),
+            "Smoke Pipeline Renamed",
+        ),
+        (format!("/pipelines/{pipeline_id}"), "updated via settings"),
         (format!("/companies/{company_id}/inbox"), "Inbox"),
         (format!("/companies/{company_id}/decision-desk"), "Decision"),
         (format!("/companies/{company_id}/access"), "Access"),

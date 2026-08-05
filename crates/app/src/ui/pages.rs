@@ -48,6 +48,13 @@ pub async fn home(cx: &Cx) -> Result {
     let companies = state.companies.list().await.map_err(to_topcoat_error)?;
     view! {
         <h1 class="page-title">(t(lang, "page.title.companies"))</h1>
+        <form class="inline-form" method="post" action=(with_lang("/companies/ui", lang))>
+            <input type="text" name="name" placeholder=(t(lang, "companies.nameLabel")) required="required">
+            <input type="text" name="description" placeholder=(t(lang, "companies.descriptionLabel"))>
+            <input type="number" name="budgetMonthlyCents" value="0" min="0" placeholder=(t(lang, "companies.budgetLabel"))>
+            <input type="number" name="attachmentMaxBytes" value="0" min="1" placeholder=(t(lang, "companies.attachmentMaxLabel"))>
+            <button type="submit">(t(lang, "companies.create"))</button>
+        </form>
         if companies.is_empty() {
             <p class="empty">(t(lang, "empty.noCompanies"))</p>
         } else {
@@ -132,6 +139,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>(t(lang, "nav.approvals"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "nav.activity"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/cases"), lang))>(t(lang, "cases.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang))>(t(lang, "artifacts.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
@@ -813,6 +821,29 @@ pub async fn agents(cx: &Cx) -> Result {
         .map_err(to_topcoat_error)?;
     view! {
         <h1 class="page-title">(t(lang, "agents.title"))</h1>
+        <form class="inline-form" method="post"
+              action=(with_lang(&format!("/companies/{company_id}/agents/ui"), lang))>
+            <input type="text" name="name" placeholder=(t(lang, "agents.nameLabel")) required="required">
+            <select name="role">
+                <option value="general">"general"</option>
+                <option value="ceo">"ceo"</option>
+                <option value="cto">"cto"</option>
+                <option value="cmo">"cmo"</option>
+                <option value="cfo">"cfo"</option>
+                <option value="security">"security"</option>
+                <option value="engineer">"engineer"</option>
+                <option value="designer">"designer"</option>
+                <option value="pm">"pm"</option>
+                <option value="qa">"qa"</option>
+                <option value="devops">"devops"</option>
+                <option value="researcher">"researcher"</option>
+            </select>
+            <input type="text" name="title" placeholder=(t(lang, "agents.titleLabel"))>
+            <input type="text" name="adapter_type" value="cli_local" placeholder=(t(lang, "agents.adapterTypeLabel"))>
+            <input type="number" name="budgetMonthlyCents" value="0" min="0" placeholder=(t(lang, "agents.budgetLabel"))>
+            <input type="text" name="reports_to" placeholder=(t(lang, "agents.reportsToLabel"))>
+            <button type="submit">(t(lang, "agents.create"))</button>
+        </form>
         if agents.is_empty() {
             <p class="empty">(t(lang, "agents.noAgents"))</p>
         } else {
@@ -825,6 +856,37 @@ pub async fn agents(cx: &Cx) -> Result {
                         " " <span class=(status_badge_class(&agent.status))>(agent.status)</span>
                         " " <span class="badge badge-default">(agent.role)</span>
                         " " <span class="meta-row">(agent.adapter_type)</span>
+                    </li>
+                }
+            </ul>
+        }
+    }
+}
+
+/// Artifacts page: work products across a company.
+#[page("/companies/{company_id}/artifacts")]
+pub async fn artifacts(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let rows = state
+        .work_products
+        .list_for_company(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "artifacts.title"))</h1>
+        if rows.is_empty() {
+            <p class="empty">(t(lang, "artifacts.empty"))</p>
+        } else {
+            <ul class="list">
+                for artifact in rows {
+                    <li>
+                        <span class="mono">(artifact.id)</span>
+                        " " <strong>(artifact.title)</strong>
+                        " " <span class="badge badge-default">(artifact.r#type)</span>
+                        " " <span class="meta-row">(t(lang, "artifacts.issue")) ": " (artifact.issue_id)</span>
+                        " " <span class="meta-row">(artifact.created_at)</span>
                     </li>
                 }
             </ul>
@@ -4731,7 +4793,7 @@ pub async fn pipelines_list(cx: &Cx) -> Result {
 #[page("/pipelines/{pipeline_id}")]
 pub async fn pipeline_detail(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
-    let pipeline_id = path_param::<PipelinePathId>(cx)?.to_string();
+    let pipeline_id = path_param::<PipelineId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let Some(company_id) = state
         .pipelines
@@ -4781,9 +4843,23 @@ pub async fn pipeline_detail(cx: &Cx) -> Result {
     let stages_url = with_lang(&format!("/pipelines/{pipeline_id}/stages/ui"), lang);
     let transitions_url = with_lang(&format!("/pipelines/{pipeline_id}/transitions/ui"), lang);
     let cases_url = with_lang(&format!("/pipelines/{pipeline_id}/cases/ui"), lang);
+    let settings_url = with_lang(&format!("/pipelines/{pipeline_id}/settings/ui"), lang);
+    let description = pipeline.description.clone().unwrap_or_default();
     view! {
         <h1 class="page-title">(pipeline.name.clone())</h1>
         <p class="mono">(pipeline.key.clone())</p>
+        <section>
+            <h2>(t(lang, "pipelines.settings"))</h2>
+            <form class="inline-form" method="post" action=(settings_url)>
+                <input type="text" name="name" value=(pipeline.name.clone()) required="required">
+                <input type="text" name="description" value=(description)>
+                <select name="status">
+                    <option value="active" selected=(pipeline.archived_at.is_none())>"active"</option>
+                    <option value="archived" selected=(pipeline.archived_at.is_some())>"archived"</option>
+                </select>
+                <button type="submit">(t(lang, "settings.save"))</button>
+            </form>
+        </section>
         <section>
             <h2>(t(lang, "pipelines.stages"))</h2>
             <form class="inline-form" method="post" action=(stages_url)>
@@ -5578,7 +5654,7 @@ pub async fn tool_invocations(cx: &Cx) -> Result {
 
 /// `{pipeline_id}` path parameter for UI pages.
 #[path_param(error = bad_request("Invalid pipeline id"))]
-pub(crate) struct PipelinePathId(String);
+pub(crate) struct PipelineId(String);
 
 /// `{case_id}` path parameter for pipeline-case UI pages.
 #[path_param(error = bad_request("Invalid case id"))]

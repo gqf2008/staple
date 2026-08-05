@@ -72,7 +72,7 @@ pub use repositories::{
     IssueReferenceMentionRecord, IssueRelationError, IssueRelationRecord, IssueRelationRepository,
     IssueRepository, IssueStructureError, IssueStructureRepository, IssueTreeHoldMemberRecord,
     IssueTreeHoldRecord, IssueWatchdogRecord, JoinRequestRecord, LabelError, LabelRecord,
-    LabelRepository, MembershipError, MembershipRepository, NewActivity, NewAgentApiKey,
+    LabelRepository, MembershipError, MembershipRepository, NewActivity, NewAgent, NewAgentApiKey,
     NewAgentConfigRevision, NewAnchorSnapshot, NewAnnotationComment, NewAnnotationThread,
     NewApproval, NewApprovalComment, NewAsset, NewBoardApiKey, NewBudgetIncident, NewBudgetPolicy,
     NewBuiltInResource, NewCase, NewCaseEvent, NewCliAuthChallenge, NewCompany,
