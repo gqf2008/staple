@@ -40,6 +40,10 @@ pub(crate) struct WorkspaceId(String);
 #[path_param(error = bad_request("Invalid plugin id"))]
 pub(crate) struct PluginId(String);
 
+/// Typed `{connection_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid connection id"))]
+pub(crate) struct ConnectionId(String);
+
 /// Typed `{token}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid token"))]
 pub(crate) struct InviteToken(String);
@@ -6109,6 +6113,241 @@ pub async fn tool_gateways(cx: &Cx) -> Result {
 }
 
 /// Tool catalog page: discovered catalog entries for one company.
+/// Apps aggregate page: applications + connections overview.
+#[page("/companies/{company_id}/apps")]
+pub async fn apps(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let applications = state
+        .tool_catalog
+        .list_applications(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let connections = state
+        .tool_connections
+        .list_connections(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let gates = state
+        .tool_gateway
+        .list_gateways(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "apps.title"))</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/apps/browse"), lang))>(t(lang, "apps.browse"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/apps/gateways"), lang))>(t(lang, "apps.gateways"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/apps/advanced"), lang))>(t(lang, "apps.advanced"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "apps.connections"))</h2>
+            if connections.is_empty() {
+                <p class="empty">(t(lang, "apps.noConnections"))</p>
+            } else {
+                <ul class="list">
+                    for connection in &connections {
+                        <li>
+                            <a href=(with_lang(&format!("/companies/{company_id}/apps/connections/{}", connection.id), lang))>
+                                <strong>(connection.name.clone())</strong>
+                            </a>
+                            " " <span class="mono">(connection.transport.clone())</span>
+                            " " <span class="badge badge-default">(connection.status.clone())</span>
+                            " " <span class="meta-row">(connection.auth_kind.clone())</span>
+                            " " <a class="button" href=(with_lang(&format!("/companies/{company_id}/tools/connections"), lang))>
+                                (t(lang, "apps.manage"))
+                            </a>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "apps.detail"))</h2>
+            if applications.is_empty() {
+                <p class="empty">(t(lang, "apps.empty"))</p>
+            } else {
+                <ul class="list">
+                    for application in &applications {
+                        <li>
+                            <span class="mono">(application.r#type.clone())</span>
+                            " " <strong>(application.name.clone())</strong>
+                            " " <span class=(status_badge_class(&application.status))>(application.status.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "apps.gateways"))</h2>
+            if gates.is_empty() {
+                <p class="empty">(t(lang, "apps.noGateways"))</p>
+            } else {
+                <ul class="list">
+                    for gateway in &gates {
+                        <li>
+                            <strong>(gateway.name.clone())</strong>
+                            " " <span class="mono">(gateway.slug.clone())</span>
+                            " " <span class=(status_badge_class(&gateway.status))>(gateway.status.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// App detail page: one connection's overview.
+#[page("/companies/{company_id}/apps/connections/{connection_id}")]
+pub async fn app_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let connection_id = path_param::<ConnectionId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let connection = state
+        .tool_connections
+        .get_connection(&company_id, &connection_id)
+        .await
+        .map_err(to_topcoat_error)?
+        .ok_or_else(topcoat::router::error::not_found)?;
+    let grants = state
+        .tool_connections
+        .list_grants(&company_id, Some(&connection_id))
+        .await
+        .map_err(to_topcoat_error)?;
+    let installs = state
+        .tool_connections
+        .list_installs(&company_id, Some(&connection_id))
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "apps.detail")) ": " (connection.name.clone())</h1>
+        <p class="meta-row">(connection.id.clone())</p>
+        <p class="meta-row">(connection.uid.clone())</p>
+        <p class="meta-row">(connection.transport.clone()) " / " (connection.auth_kind.clone())</p>
+        <p class="meta-row">
+            (t(lang, "apps.connections")) ": " <span class=(status_badge_class(&connection.status))>(connection.status.clone())</span>
+        </p>
+        <section>
+            <h2>(t(lang, "apps.grants"))</h2>
+            if grants.is_empty() {
+                <p class="empty">(t(lang, "apps.noGrants"))</p>
+            } else {
+                <ul class="list">
+                    for grant in &grants {
+                        <li>
+                            <span class="mono">(grant.kind.clone())</span>
+                            " " <span class="meta-row">(grant.subject_user_id.clone().unwrap_or_default())</span>
+                            " " <span class=(status_badge_class(&grant.status))>(grant.status.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "toolConnections.installs"))</h2>
+            if installs.is_empty() {
+                <p class="empty">(t(lang, "toolConnections.installsNone"))</p>
+            } else {
+                <ul class="list">
+                    for install in &installs {
+                        <li>
+                            <span class="mono">(install.target_type.clone())</span>
+                            " " <span class="meta-row">(install.target_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <a class="button" href=(with_lang(&format!("/companies/{company_id}/tools/connections"), lang))>
+            (t(lang, "apps.manage"))
+        </a>
+    }
+}
+
+/// App browse page: catalog entries.
+#[page("/companies/{company_id}/apps/browse")]
+pub async fn apps_browse(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let entries = state
+        .tool_catalog
+        .list_catalog_entries(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "apps.browse"))</h1>
+        if entries.is_empty() {
+            <p class="empty">(t(lang, "apps.noCatalogEntries"))</p>
+        } else {
+            <ul class="list">
+                for entry in &entries {
+                    <li>
+                        <span class="mono">(entry.entry_kind.clone())</span>
+                        " " <strong>(entry.name.clone())</strong>
+                        " " <span class="badge badge-default">(entry.status.clone())</span>
+                        if let Some(title) = &entry.title {
+                            " " <span class="meta-row">(title.clone())</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+        <a class="button" href=(with_lang(&format!("/companies/{company_id}/tools/catalog"), lang))>
+            (t(lang, "apps.manage"))
+        </a>
+    }
+}
+
+/// Apps gateways page.
+#[page("/companies/{company_id}/apps/gateways")]
+pub async fn apps_gateways(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let gates = state
+        .tool_gateway
+        .list_gateways(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "apps.gateways"))</h1>
+        if gates.is_empty() {
+            <p class="empty">(t(lang, "apps.noGateways"))</p>
+        } else {
+            <ul class="list">
+                for gateway in &gates {
+                    <li>
+                        <strong>(gateway.name.clone())</strong>
+                        " " <span class="mono">(gateway.slug.clone())</span>
+                        " " <span class=(status_badge_class(&gateway.status))>(gateway.status.clone())</span>
+                    </li>
+                }
+            </ul>
+        }
+        <a class="button" href=(with_lang(&format!("/companies/{company_id}/tools/gateways"), lang))>
+            (t(lang, "apps.manage"))
+        </a>
+    }
+}
+
+/// Apps advanced tools page: profiles/invocations/audit entry points.
+#[page("/companies/{company_id}/apps/advanced")]
+pub async fn apps_advanced(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    view! {
+        <h1 class="page-title">(t(lang, "apps.advancedTools"))</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/profiles"), lang))>(t(lang, "apps.profiles"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/invocations"), lang))>(t(lang, "apps.invocations"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/tools/audit-events"), lang))>(t(lang, "apps.audit"))</a>
+        </nav>
+    }
+}
+
 #[page("/companies/{company_id}/tools/catalog")]
 pub async fn tool_catalog(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
