@@ -837,6 +837,9 @@ async fn core_business_flow_smoke() {
         (format!("/issues/{issue_id}"), "Claim"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
+        ("/auth".to_string(), "Auth"),
+        ("/cli-auth".to_string(), "CLI auth"),
+        ("/invite/demo-token".to_string(), "Invitation"),
         (format!("/companies/{company_id}/my-issues"), "My issues"),
         (
             format!("/companies/{company_id}/what-needs-me"),

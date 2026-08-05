@@ -40,6 +40,10 @@ pub(crate) struct WorkspaceId(String);
 #[path_param(error = bad_request("Invalid plugin id"))]
 pub(crate) struct PluginId(String);
 
+/// Typed `{token}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid token"))]
+pub(crate) struct InviteToken(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -2134,6 +2138,8 @@ pub async fn instance_settings(cx: &Cx) -> Result {
             <a href=(with_lang("/profile/settings", lang))>(t(lang, "profile.title"))</a>
             <a href=(with_lang("/users", lang))>(t(lang, "users.title"))</a>
             <a href=(with_lang("/environments", lang))>(t(lang, "environments.title"))</a>
+            <a href=(with_lang("/auth", lang))>(t(lang, "auth.title"))</a>
+            <a href=(with_lang("/cli-auth", lang))>(t(lang, "cliAuth.title"))</a>
         </nav>
         <section>
             <h2>(t(lang, "instance.general"))</h2>
@@ -4130,6 +4136,157 @@ pub async fn board_chat(cx: &Cx) -> Result {
             <input type="hidden" name="company_id" value=(company_id)>
             <button type="submit">(t(lang, "boardChat.send"))</button>
         </form>
+    }
+}
+
+/// Auth / operator page: shows the current actor and lets the operator
+/// switch identity (aligned with upstream Auth/UserContext behavior).
+#[page("/auth")]
+pub async fn auth(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let actor = crate::auth::current_actor(cx);
+    let state = app_context::<AppState>(cx);
+    let user_rows = state
+        .infrastructure
+        .list_users()
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "auth.title"))</h1>
+        <p class="meta-row">(t(lang, "auth.currentActor")) ": " (actor)</p>
+        <section>
+            <h2>(t(lang, "auth.switch"))</h2>
+            <form class="inline-form" method="get" action=(with_lang("/auth", lang))>
+                <select name="user">
+                    for user in &user_rows {
+                        <option value=(user.id.clone())>(user.name.clone()) " <" (user.email.clone()) ">"</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "auth.switch"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "auth.users"))</h2>
+            if user_rows.is_empty() {
+                <p class="empty">(t(lang, "users.none"))</p>
+            } else {
+                <ul class="list">
+                    for user in user_rows {
+                        <li>
+                            <strong>(user.name.clone())</strong>
+                            " " <span class="meta-row">(user.email.clone())</span>
+                            " " <span class="mono">(user.id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// CLI auth page: board API keys and CLI auth challenges.
+#[page("/cli-auth")]
+pub async fn cli_auth(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let key_rows = state
+        .board_keys
+        .list_keys()
+        .await
+        .map_err(to_topcoat_error)?;
+    let challenge_rows = state
+        .board_keys
+        .list_challenges()
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "cliAuth.title"))</h1>
+        <section>
+            <h2>(t(lang, "cliAuth.newKey"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang("/cli-auth/keys/ui", lang))>
+                <input type="text" name="user_id" placeholder=(t(lang, "cliAuth.userId"))>
+                <input type="text" name="name" placeholder=(t(lang, "cliAuth.keyName"))>
+                <button type="submit">(t(lang, "common.create"))</button>
+            </form>
+            <h2>(t(lang, "cliAuth.keys"))</h2>
+            if key_rows.is_empty() {
+                <p class="empty">(t(lang, "cliAuth.noKeys"))</p>
+            } else {
+                <ul class="list">
+                    for key in key_rows {
+                        <li>
+                            <strong>(key.name.clone())</strong>
+                            " " <span class="mono">(key.id.clone())</span>
+                            if key.revoked_at.is_some() {
+                                " " <span class="badge badge-paused">"revoked"</span>
+                            } else {
+                                " " <span class="badge badge-done">"active"</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "cliAuth.newChallenge"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang("/cli-auth/challenges/ui", lang))>
+                <label>(t(lang, "cliAuth.commandLabel"))</label>
+                <input type="text" name="command" required="required">
+                <label>(t(lang, "cliAuth.keyName"))</label>
+                <input type="text" name="pending_key_name" required="required">
+                <label>(t(lang, "cliAuth.accessLabel"))</label>
+                <input type="text" name="requested_access" value="board">
+                <label>(t(lang, "cliAuth.companyLabel"))</label>
+                <input type="text" name="requested_company_id">
+                <button type="submit">(t(lang, "cliAuth.createChallenge"))</button>
+            </form>
+            <h2>(t(lang, "cliAuth.challenges"))</h2>
+            if challenge_rows.is_empty() {
+                <p class="empty">(t(lang, "cliAuth.noChallenges"))</p>
+            } else {
+                <ul class="list">
+                    for challenge in challenge_rows {
+                        <li>
+                            <span class="mono">(challenge.id.clone())</span>
+                            if challenge.approved_at.is_some() {
+                                " " <span class="badge badge-done">"approved"</span>
+                            } else if challenge.cancelled_at.is_some() {
+                                " " <span class="badge badge-paused">"cancelled"</span>
+                            } else {
+                                " " <span class="badge badge-running">"pending"</span>
+                            }
+                            if challenge.approved_at.is_none() && challenge.cancelled_at.is_none() {
+                                " "
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/cli-auth/challenges/{}/approve/ui", challenge.id), lang))>
+                                    <button type="submit">(t(lang, "cliAuth.approve"))</button>
+                                </form>
+                                " "
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/cli-auth/challenges/{}/cancel/ui", challenge.id), lang))>
+                                    <button type="submit">(t(lang, "cliAuth.cancel"))</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Invite landing page: shows the token and guides the operator to join via
+/// the company access page (no public token lookup endpoint yet).
+#[page("/invite/{invite_token}")]
+pub async fn invite_landing(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let token = path_param::<InviteToken>(cx)?.to_string();
+    view! {
+        <h1 class="page-title">(t(lang, "inviteLanding.title"))</h1>
+        <p class="meta-row">(t(lang, "inviteLanding.token")) ": " (token)</p>
+        <p class="empty">(t(lang, "inviteLanding.hint"))</p>
     }
 }
 
