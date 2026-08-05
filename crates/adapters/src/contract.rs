@@ -3,8 +3,9 @@
 //! Mirrors the upstream heartbeat semantics: a run is created by `invoke`,
 //! its progress is read by `observe`, and it can be stopped by `cancel`.
 
-use std::path::PathBuf;
+use std::{path::PathBuf, pin::Pin};
 
+use futures_core::Stream;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
@@ -64,6 +65,9 @@ pub enum RunStatus {
     Cancelled,
 }
 
+/// Incremental output stream for a run (chunks as they are produced).
+pub type OutputStream = Pin<Box<dyn Stream<Item = String> + Send + 'static>>;
+
 /// The adapter contract implemented by every built-in and plugin adapter.
 #[async_trait::async_trait]
 pub trait AgentAdapter: Send + Sync {
@@ -83,6 +87,14 @@ pub trait AgentAdapter: Send + Sync {
     ///
     /// Returns [`AdapterError`] when the run is unknown or unreadable.
     async fn observe(&self, run_id: &str) -> Result<RunStatus, AdapterError>;
+
+    /// Subscribes to a run's incremental output (chunks as they are
+    /// produced; the stream ends when the run finishes).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AdapterError`] when the run is unknown.
+    async fn stream(&self, run_id: &str) -> Result<OutputStream, AdapterError>;
 
     /// Stops a run.
     ///

@@ -42,7 +42,9 @@ impl AdapterRegistry {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::contract::{AdapterError, AgentAdapter, InvocationInput, RunHandle, RunStatus};
+    use crate::contract::{
+        AdapterError, AgentAdapter, InvocationInput, OutputStream, RunHandle, RunStatus,
+    };
 
     struct FakeAdapter;
 
@@ -63,6 +65,12 @@ mod tests {
             Ok(RunStatus::Succeeded {
                 output: "ok".to_owned(),
             })
+        }
+
+        async fn stream(&self, _run_id: &str) -> Result<OutputStream, AdapterError> {
+            Err(AdapterError::Observe(
+                "streaming not supported for fake adapter".to_owned(),
+            ))
         }
 
         async fn cancel(&self, _run_id: &str) -> Result<(), AdapterError> {

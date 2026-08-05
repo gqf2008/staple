@@ -2811,6 +2811,7 @@ name = "staple-adapters"
 version = "0.1.0"
 dependencies = [
  "async-trait",
+ "futures-core",
  "reqwest",
  "serde",
  "serde_json",
