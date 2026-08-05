@@ -737,6 +737,7 @@ static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
         ("teamCatalog.routines", "routines"),
         ("teamCatalog.skills", "skills"),
         ("teamCatalog.present", "present"),
+        ("teamCatalog.install", "Install team"),
         ("teamCatalog.outOfDate", "out of date"),
         ("onboarding.title", "Welcome to Paperclip"),
         (
@@ -1613,6 +1614,7 @@ static ZH_CN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
         ("teamCatalog.routines", "例程"),
         ("teamCatalog.skills", "技能"),
         ("teamCatalog.present", "存在"),
+        ("teamCatalog.install", "安装团队"),
         ("teamCatalog.outOfDate", "已过期"),
         ("onboarding.title", "欢迎使用 Paperclip"),
         ("onboarding.hint", "创建第一个公司以开始使用。"),

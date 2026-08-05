@@ -35,6 +35,12 @@ pub struct CatalogTeam {
     pub tags: Vec<String>,
     /// Files within the team package.
     pub files: Vec<String>,
+    /// Agent slugs defined by the team.
+    pub agent_slugs: Vec<String>,
+    /// Project slugs defined by the team.
+    pub project_slugs: Vec<String>,
+    /// Required skill slugs.
+    pub required_skills: Vec<String>,
 }
 
 /// A team file read result.
@@ -90,6 +96,19 @@ pub fn catalog_root() -> PathBuf {
     } else {
         PathBuf::new()
     }
+}
+
+fn string_array(value: Option<&serde_json::Value>) -> Vec<String> {
+    value
+        .and_then(serde_json::Value::as_array)
+        .map(|items| {
+            items
+                .iter()
+                .filter_map(serde_json::Value::as_str)
+                .map(str::to_owned)
+                .collect()
+        })
+        .unwrap_or_default()
 }
 
 /// Lists all catalog teams from an explicit root.
@@ -183,6 +202,9 @@ pub fn list_at(root: &Path) -> Vec<CatalogTeam> {
                         .collect()
                 })
                 .unwrap_or_default();
+            let agent_slugs = string_array(team.get("agentSlugs"));
+            let project_slugs = string_array(team.get("projectSlugs"));
+            let required_skills = string_array(team.get("requiredSkills"));
             Some(CatalogTeam {
                 id,
                 key,
@@ -197,6 +219,9 @@ pub fn list_at(root: &Path) -> Vec<CatalogTeam> {
                 counts,
                 tags,
                 files,
+                agent_slugs,
+                project_slugs,
+                required_skills,
             })
         })
         .collect()
@@ -350,6 +375,111 @@ pub fn installed(agents: &[staple_data::AgentRecord]) -> Vec<InstalledCatalogTea
     result
 }
 
+/// One planned agent creation.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewAgent {
+    /// Agent slug/name.
+    pub slug: String,
+    /// Whether an agent with this name already exists in the company.
+    pub conflict: bool,
+}
+
+/// One planned project creation.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewProject {
+    /// Project slug/name.
+    pub slug: String,
+    /// Whether a project with this name already exists in the company.
+    pub conflict: bool,
+}
+
+/// One required skill.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewSkill {
+    /// Skill slug.
+    pub slug: String,
+}
+
+/// Install preview result.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewResult {
+    /// Catalog id.
+    pub catalog_id: String,
+    /// Team name.
+    pub team_name: String,
+    /// Planned agents.
+    pub agents: Vec<PreviewAgent>,
+    /// Planned projects.
+    pub projects: Vec<PreviewProject>,
+    /// Required skills (import deferred to the company-package batch).
+    pub skills: Vec<PreviewSkill>,
+}
+
+/// Computes an install preview against existing company rows.
+#[must_use]
+pub fn preview(
+    team: &CatalogTeam,
+    existing_agents: &[staple_data::AgentRecord],
+    existing_projects: &[staple_data::ProjectRecord],
+) -> PreviewResult {
+    let existing_agent_names: std::collections::HashSet<String> = existing_agents
+        .iter()
+        .map(|agent| agent.name.to_lowercase())
+        .collect();
+    let existing_project_names: std::collections::HashSet<String> = existing_projects
+        .iter()
+        .map(|project| project.name.to_lowercase())
+        .collect();
+    let agents = team
+        .agent_slugs
+        .iter()
+        .map(|slug| PreviewAgent {
+            slug: slug.clone(),
+            conflict: existing_agent_names.contains(&slug.to_lowercase()),
+        })
+        .collect();
+    let projects = team
+        .project_slugs
+        .iter()
+        .map(|slug| PreviewProject {
+            slug: slug.clone(),
+            conflict: existing_project_names.contains(&slug.to_lowercase()),
+        })
+        .collect();
+    let skills = team
+        .required_skills
+        .iter()
+        .map(|slug| PreviewSkill { slug: slug.clone() })
+        .collect();
+    PreviewResult {
+        catalog_id: team.id.clone(),
+        team_name: team.name.clone(),
+        agents,
+        projects,
+        skills,
+    }
+}
+
+/// Builds agent metadata carrying the catalog provenance.
+#[must_use]
+pub fn provenance_metadata(
+    catalog_id: &str,
+    catalog_key: &str,
+    origin_hash: &str,
+) -> serde_json::Value {
+    serde_json::json!({
+        "paperclip": { "catalogTeam": {
+            "catalogId": catalog_id,
+            "catalogKey": catalog_key,
+            "originHash": origin_hash,
+        } }
+    })
+}
+
 /// Canonicalizes a catalog reference for path use (id/key with `/` and `:`).
 #[must_use]
 pub fn normalize_catalog_ref(reference: &str) -> String {
@@ -496,5 +626,54 @@ mod tests {
         unsafe {
             std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
         }
+    }
+
+    #[test]
+    fn preview_detects_conflicts() {
+        let team = CatalogTeam {
+            id: "t1".to_owned(),
+            key: "k1".to_owned(),
+            kind: "bundled".to_owned(),
+            category: "acme".to_owned(),
+            slug: "core".to_owned(),
+            name: "Core".to_owned(),
+            description: String::new(),
+            path: "catalog/core".to_owned(),
+            entrypoint: "TEAM.md".to_owned(),
+            content_hash: "sha256:abc".to_owned(),
+            counts: serde_json::json!({}),
+            tags: Vec::new(),
+            files: Vec::new(),
+            agent_slugs: vec!["ceo".to_owned(), "cto".to_owned()],
+            project_slugs: vec!["starter".to_owned()],
+            required_skills: vec!["skill-a".to_owned()],
+        };
+        let existing_agents = vec![staple_data::AgentRecord {
+            id: "a1".to_owned(),
+            company_id: "c1".to_owned(),
+            name: "CEO".to_owned(),
+            role: "worker".to_owned(),
+            title: None,
+            icon: None,
+            status: "idle".to_owned(),
+            reports_to: None,
+            adapter_type: "cli".to_owned(),
+            budget_monthly_cents: 0,
+            spent_monthly_cents: 0,
+            pause_reason: None,
+            default_environment_id: None,
+            error_reason: None,
+            last_heartbeat_at: None,
+            metadata: serde_json::json!({}),
+            created_at: String::new(),
+        }];
+        let preview = preview(&team, &existing_agents, &[]);
+        assert!(preview.agents[0].conflict); // ceo exists (case-insensitive)
+        assert!(!preview.agents[1].conflict);
+        assert_eq!(preview.projects.len(), 1);
+        assert!(!preview.projects[0].conflict);
+        assert_eq!(preview.skills.len(), 1);
+        let metadata = provenance_metadata("t1", "k1", "sha256:abc");
+        assert_eq!(metadata["paperclip"]["catalogTeam"]["catalogId"], "t1");
     }
 }
