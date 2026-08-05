@@ -73,6 +73,24 @@ pub struct CompanyAccessRow {
     pub membership_role: Option<String>,
 }
 
+/// Public user profile (no auth table; principal-id based).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserProfileRecord {
+    /// User id (principal id).
+    pub user_id: String,
+    /// Whether the user holds an instance admin role.
+    pub instance_admin: bool,
+    /// Company memberships with names/roles/statuses.
+    pub memberships: Vec<CompanyAccessRow>,
+    /// Issues created by the user.
+    pub created_issues: i64,
+    /// Open issues assigned to the user (not done/cancelled).
+    pub assigned_open_issues: i64,
+    /// Comments authored by the user.
+    pub comment_count: i64,
+}
+
 /// Input for creating a company membership.
 #[derive(Debug, Clone)]
 pub struct NewCompanyMembership {
@@ -223,6 +241,13 @@ pub trait MembershipRepository: Send + Sync {
         user_id: &str,
         company_ids: &[String],
     ) -> Result<usize, MembershipError>;
+
+    /// Builds a public user profile (memberships + roles + issue stats).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MembershipError`] on database failure.
+    async fn user_profile(&self, user_id: &str) -> Result<UserProfileRecord, MembershipError>;
 }
 
 /// Turso/libSQL implementation of [`MembershipRepository`].
@@ -663,6 +688,48 @@ impl MembershipRepository for TursoMembershipRepository {
         let row = rows.next().await?.expect("count");
         Ok(helpers::row_i64(&row, 0)? as usize)
     }
+
+    async fn user_profile(&self, user_id: &str) -> Result<UserProfileRecord, MembershipError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let memberships = self.user_company_access(user_id).await?;
+        let mut roles = conn
+            .query(
+                "SELECT 1 FROM instance_user_roles WHERE user_id = ?1 AND role = 'instance_admin'",
+                libsql::params![user_id],
+            )
+            .await?;
+        let instance_admin = roles.next().await?.is_some();
+        let mut created = conn
+            .query(
+                "SELECT COUNT(*) FROM issues WHERE created_by_user_id = ?1",
+                libsql::params![user_id],
+            )
+            .await?;
+        let created_issues = helpers::row_i64(&created.next().await?.expect("count"), 0)?;
+        let mut assigned = conn
+            .query(
+                "SELECT COUNT(*) FROM issues
+                 WHERE assignee_user_id = ?1 AND status NOT IN ('done', 'cancelled')",
+                libsql::params![user_id],
+            )
+            .await?;
+        let assigned_open_issues = helpers::row_i64(&assigned.next().await?.expect("count"), 0)?;
+        let mut comments = conn
+            .query(
+                "SELECT COUNT(*) FROM issue_comments WHERE author_user_id = ?1",
+                libsql::params![user_id],
+            )
+            .await?;
+        let comment_count = helpers::row_i64(&comments.next().await?.expect("count"), 0)?;
+        Ok(UserProfileRecord {
+            user_id: user_id.to_owned(),
+            instance_admin,
+            memberships,
+            created_issues,
+            assigned_open_issues,
+            comment_count,
+        })
+    }
 }
 
 #[cfg(test)]
@@ -880,5 +947,54 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(error, MembershipError::CompanyNotFound));
+    }
+
+    #[tokio::test]
+    async fn user_profile_aggregates_memberships_and_stats() {
+        let (_dir, repo) = repo().await;
+        let conn = crate::connect(&repo.db).await.unwrap();
+        repo.upsert(NewCompanyMembership {
+            company_id: "c1".to_owned(),
+            principal_type: "user".to_owned(),
+            principal_id: "u1".to_owned(),
+            membership_role: Some("operator".to_owned()),
+        })
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO issues (id, company_id, title, issue_number, identifier, status,
+                                 created_by_user_id, assignee_user_id)
+             VALUES ('i1', 'c1', 'One', 1, 'ALPHA-1', 'in_progress', 'u1', 'u1'),
+                    ('i2', 'c1', 'Two', 2, 'ALPHA-2', 'done', 'u1', NULL),
+                    ('i3', 'c1', 'Three', 3, 'ALPHA-3', 'todo', NULL, 'u1')",
+            (),
+        )
+        .await
+        .unwrap();
+        conn.execute(
+            "INSERT INTO issue_comments (id, company_id, issue_id, body, author_user_id)
+             VALUES ('c1', 'c1', 'i1', 'hello', 'u1')",
+            (),
+        )
+        .await
+        .unwrap();
+
+        let profile = repo.user_profile("u1").await.unwrap();
+        assert_eq!(profile.user_id, "u1");
+        assert!(!profile.instance_admin);
+        assert_eq!(profile.memberships.len(), 1);
+        assert_eq!(profile.memberships[0].company_name, "Alpha");
+        assert_eq!(profile.created_issues, 2);
+        assert_eq!(profile.assigned_open_issues, 2); // i1 in_progress + i3 todo
+        assert_eq!(profile.comment_count, 1);
+
+        repo.upsert_role(NewInstanceUserRole {
+            user_id: "u1".to_owned(),
+            role: "instance_admin".to_owned(),
+        })
+        .await
+        .unwrap();
+        let profile = repo.user_profile("u1").await.unwrap();
+        assert!(profile.instance_admin);
     }
 }

@@ -5785,6 +5785,72 @@ async fn pipelines_full_flow() {
 }
 
 #[tokio::test]
+async fn user_profile_endpoint() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('a1', 'c1', 'one', 'engineer', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issues (id, company_id, title, issue_number, identifier, status,
+                             created_by_user_id, assignee_user_id)
+         VALUES ('i1', 'c1', 'One', 1, 'ALPHA-1', 'in_progress', '22222222-2222-2222-2222-222222222222', '22222222-2222-2222-2222-222222222222'),
+                ('i2', 'c1', 'Two', 2, 'ALPHA-2', 'done', '22222222-2222-2222-2222-222222222222', NULL)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issue_comments (id, company_id, issue_id, body, author_user_id)
+         VALUES ('c1', 'c1', 'i1', 'hello', '22222222-2222-2222-2222-222222222222')",
+        (),
+    )
+    .await
+    .unwrap();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/memberships",
+        json!({ "principalType": "user", "principalId": "22222222-2222-2222-2222-222222222222", "membershipRole": "operator" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+
+    let (status, profile) = send_json(
+        &app,
+        Method::GET,
+        "/api/users/22222222-2222-2222-2222-222222222222",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {profile}");
+    assert_eq!(profile["userId"], "22222222-2222-2222-2222-222222222222");
+    assert_eq!(profile["instanceAdmin"], false);
+    assert_eq!(profile["memberships"].as_array().unwrap().len(), 1);
+    assert_eq!(profile["memberships"][0]["companyName"], "Alpha");
+    assert_eq!(profile["createdIssues"], 2);
+    assert_eq!(profile["assignedOpenIssues"], 1);
+    assert_eq!(profile["commentCount"], 1);
+
+    // Unknown user -> empty profile, not an error.
+    let (status, profile) = send_json(&app, Method::GET, "/api/users/nobody", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(profile["createdIssues"], 0);
+}
+
+#[tokio::test]
 async fn board_claim_challenge_flow() {
     let (state, db) = test_state_with_db().await;
     let app = router(state.clone());
