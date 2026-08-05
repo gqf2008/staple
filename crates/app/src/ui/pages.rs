@@ -130,6 +130,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/folders"), lang))>(t(lang, "folders.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/board/chat"), lang))>(t(lang, "boardChat.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/export-import"), lang))>(t(lang, "exportImport.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/profiles"), lang))>(t(lang, "toolProfiles.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/connections"), lang))>(t(lang, "toolConnections.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/gateways"), lang))>(t(lang, "toolGateways.title"))</a>
@@ -4345,6 +4346,50 @@ pub async fn invite_landing(cx: &Cx) -> Result {
         <h1 class="page-title">(t(lang, "inviteLanding.title"))</h1>
         <p class="meta-row">(t(lang, "inviteLanding.token")) ": " (token)</p>
         <p class="empty">(t(lang, "inviteLanding.hint"))</p>
+    }
+}
+
+/// Company export/import page (JSON manifest baseline).
+#[page("/companies/{company_id}/export-import")]
+pub async fn export_import(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let result = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts.uri.query().and_then(|query| {
+                query.split('&').find_map(|pair| {
+                    let (key, value) = pair.split_once('=')?;
+                    (key == "result").then_some(value.to_owned())
+                })
+            })
+        })
+        .unwrap_or_default();
+    view! {
+        <h1 class="page-title">(t(lang, "exportImport.title"))</h1>
+        <p class="meta-row">(t(lang, "exportImport.hint"))</p>
+        if !result.is_empty() {
+            <p class="meta-row">(t(lang, "exportImport.result")) ": " (result)</p>
+        }
+        <section>
+            <h2>(t(lang, "exportImport.export"))</h2>
+            <a class="button" href=(with_lang(&format!("/api/companies/{company_id}/export"), lang))>
+                (t(lang, "exportImport.download"))
+            </a>
+        </section>
+        <section>
+            <h2>(t(lang, "exportImport.import"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/import/ui"), lang))>
+                <label>(t(lang, "exportImport.manifestLabel"))</label>
+                <textarea name="manifest" rows="12" required="required" placeholder="{}"></textarea>
+                <label>(t(lang, "exportImport.strategyLabel"))</label>
+                <select name="strategy">
+                    <option value="skip">"skip"</option>
+                    <option value="overwrite">"overwrite"</option>
+                </select>
+                <button type="submit">(t(lang, "exportImport.import"))</button>
+            </form>
+        </section>
     }
 }
 

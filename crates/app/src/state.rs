@@ -10,10 +10,11 @@ use staple_data::{
     ExternalObjectRepository, GoalRepository, HeartbeatRepository, InfrastructureRepository,
     InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
     IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
-    PipelineRepository, PluginRepository, PluginRuntimeRepository, PreferenceRepository,
-    ProjectRepository, RoutineRepository, ScatteredRepository, SecretBindingRepository,
-    SecretRepository, SkillCatalogRepository, SkillRepository, ToolCatalogRepository,
-    ToolConnectionRepository, ToolGatewayRepository, WorkProductRepository, WorkspaceRepository,
+    PipelineRepository, PluginRepository, PluginRuntimeRepository, PortabilityRepository,
+    PreferenceRepository, ProjectRepository, RoutineRepository, ScatteredRepository,
+    SecretBindingRepository, SecretRepository, SkillCatalogRepository, SkillRepository,
+    ToolCatalogRepository, ToolConnectionRepository, ToolGatewayRepository, WorkProductRepository,
+    WorkspaceRepository,
 };
 
 use crate::storage::LocalStorage;
@@ -46,6 +47,8 @@ pub struct AppState {
     pub preferences: Arc<dyn PreferenceRepository>,
     /// Pipelines repository.
     pub pipelines: Arc<dyn PipelineRepository>,
+    /// Company portability repository (export/import manifests).
+    pub portability: Arc<dyn PortabilityRepository>,
     /// Plugin registry/config/settings/resources repository.
     pub plugins: Arc<dyn PluginRepository>,
     /// Plugin runtime (state/entities/jobs/logs/webhooks/db) repository.

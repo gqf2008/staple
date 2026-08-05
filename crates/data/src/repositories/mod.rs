@@ -35,6 +35,7 @@ pub mod permission_grants;
 pub mod pipelines;
 pub mod plugin_runtime;
 pub mod plugins;
+pub mod portability;
 pub mod preferences;
 pub mod projects;
 pub mod routines;
@@ -186,6 +187,10 @@ pub use plugins::{
     NewManagedResource, NewPlugin, PluginCompanySettingRecord, PluginConfigRecord, PluginError,
     PluginManagedResourceRecord, PluginRecord, PluginRepository, TursoPluginRepository,
     UpsertCompanySettings, UpsertPluginConfig,
+};
+pub use portability::{
+    CompanyManifest, ImportStrategy, ImportSummary, ManifestTable, PortabilityError,
+    PortabilityRepository, TursoPortabilityRepository,
 };
 pub use preferences::{
     CompanyLogoRecord, PreferenceError, PreferenceRepository, SidebarPreferenceRecord,

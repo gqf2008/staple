@@ -26,11 +26,11 @@ use staple_data::{
     TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
-    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
-    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, migrate, open,
+    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
+    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
+    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use tokio::sync::Mutex;
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -117,6 +117,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let pipelines_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let portability_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let plugin_runtime_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -230,6 +233,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         pipelines: Arc::new(TursoPipelineRepository::new(pipelines_db)),
+        portability: Arc::new(TursoPortabilityRepository::new(portability_db)),
         plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
         plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),
@@ -332,6 +336,98 @@ async fn unknown_api_path_returns_json_404() {
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
     assert_eq!(body, r#"{"error":"not found"}"#);
+}
+
+#[tokio::test]
+async fn company_export_import_roundtrip() {
+    let app = router(test_state().await);
+
+    // Create a source company with an agent + issue.
+    let (status, created) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies",
+        json!({ "name": "Portable Co", "budgetMonthlyCents": 1000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let source_id = created["id"].as_str().unwrap().to_owned();
+    // Export of an empty company returns an (empty) manifest.
+    let (status, manifest) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{source_id}/export"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(manifest["companyId"], source_id);
+
+    // Create a second company and import a hand-written manifest (skip).
+    let (status, created2) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies",
+        json!({ "name": "Restored Co", "budgetMonthlyCents": 1000 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let target_id = created2["id"].as_str().unwrap().to_owned();
+    let portable_manifest = json!({
+        "version": 1,
+        "exportedAt": "2026-08-05T00:00:00.000Z",
+        "companyId": target_id,
+        "tables": [{
+            "name": "agents",
+            "rows": [{
+                "id": "a1", "company_id": target_id, "name": "Portable Agent",
+                "role": "engineer", "adapter_type": "cli", "status": "active",
+                "adapter_config": "{}", "runtime_config": "{}", "context_mode": "thin",
+                "budget_monthly_cents": 0, "spent_monthly_cents": 0, "permissions": "{}"
+            }]
+        }]
+    });
+    let (status, summary) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import"),
+        json!({ "manifest": portable_manifest, "strategy": "skip" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "summary: {summary}");
+    assert_eq!(summary["imported"], 1, "{summary}");
+    assert_eq!(summary["failed"], 0, "{summary}");
+
+    // Second skip import conflicts (target not empty).
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import"),
+        json!({ "manifest": portable_manifest, "strategy": "skip" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Overwrite replaces the agent.
+    let (status, summary) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import"),
+        json!({ "manifest": portable_manifest, "strategy": "overwrite" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{summary}");
+    assert_eq!(summary["imported"], 1, "{summary}");
+
+    // Unknown company -> 404.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/nope/import",
+        json!({ "manifest": portable_manifest, "strategy": "skip" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]

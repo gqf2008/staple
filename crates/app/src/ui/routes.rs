@@ -4049,3 +4049,52 @@ pub async fn cancel_cli_challenge_ui(cx: &Cx) -> Result<topcoat::router::error::
     let _ = state.board_keys.cancel_challenge(&challenge_id).await;
     Ok(see_other("/cli-auth"))
 }
+
+// --- Company portability UI forms ----------------------------------------
+
+/// Import form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ImportUiForm {
+    /// Manifest JSON.
+    pub manifest: String,
+    /// Strategy (`skip` | `overwrite`).
+    pub strategy: Option<String>,
+}
+
+/// `POST /companies/{companyId}/import/ui` — imports a manifest and redirects
+/// with a result summary.
+#[route(POST "/companies/{company_id}/import/ui")]
+pub async fn import_company_ui(
+    cx: &Cx,
+    Form(form): Form<ImportUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let strategy = match form.strategy.as_deref() {
+        Some("overwrite") => staple_data::ImportStrategy::Overwrite,
+        _ => staple_data::ImportStrategy::Skip,
+    };
+    let manifest: staple_data::CompanyManifest = match serde_json::from_str(&form.manifest) {
+        Ok(manifest) => manifest,
+        Err(error) => {
+            return Ok(see_other(&format!(
+                "/companies/{company_id}/export-import?result=invalid+manifest:+{error}"
+            )));
+        }
+    };
+    let message = match state
+        .portability
+        .import_company(&company_id, manifest, strategy)
+        .await
+    {
+        Ok(summary) => format!(
+            "imported+{},+skipped+{},+failed+{}",
+            summary.imported, summary.skipped, summary.failed
+        ),
+        Err(error) => format!("error:+{}", error.to_string().replace(' ', "+")),
+    };
+    Ok(see_other(&format!(
+        "/companies/{company_id}/export-import?result={message}"
+    )))
+}
