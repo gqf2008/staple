@@ -516,10 +516,20 @@ async fn company_zip_archive_preview_and_import() {
         .unwrap();
     writer.start_file("attachments/k.txt", options).unwrap();
     writer.write_all(b"hello attachment").unwrap();
+    writer.start_file("docs/d1.md", options).unwrap();
+    writer
+        .write_all(b"---\ntitle: Doc One\n---\n\nBody text")
+        .unwrap();
+    writer
+        .start_file("skills/zip-skill/SKILL.md", options)
+        .unwrap();
+    writer
+        .write_all(b"---\nname: zip-skill\ndescription: A skill\n---\n\nUsage")
+        .unwrap();
     let cursor = writer.finish().unwrap();
     let zip_bytes = cursor.into_inner();
 
-    // Preview returns the file list and manifest summary.
+    // Preview returns the file list, manifest summary, and file contents.
     let (status, preview) = send_bytes(
         &app,
         Method::POST,
@@ -529,9 +539,14 @@ async fn company_zip_archive_preview_and_import() {
     .await;
     assert_eq!(status, StatusCode::OK, "preview: {preview}");
     assert!(preview.contains("attachments/k.txt"), "{preview}");
+    assert!(preview.contains("docs/d1.md"), "{preview}");
+    assert!(preview.contains("skills/zip-skill/SKILL.md"), "{preview}");
     assert!(preview.contains("agents"), "{preview}");
     assert!(preview.contains("filesTree"), "{preview}");
     assert!(preview.contains("existing"), "{preview}");
+    assert!(preview.contains("\"encoding\":\"text\""), "{preview}");
+    assert!(preview.contains("Body text"), "{preview}");
+    assert!(preview.contains("Doc One"), "{preview}");
 
     // Import the archive (skip).
     let (status, result) = send_bytes(
@@ -5851,96 +5866,6 @@ async fn user_profile_endpoint() {
 }
 
 #[tokio::test]
-async fn team_catalog_browse_api() {
-    let (state, db) = test_state_with_db().await;
-    let app = router(state.clone());
-    let conn = staple_data::connect(&db).await.unwrap();
-    conn.execute(
-        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
-         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
-        (),
-    )
-    .await
-    .unwrap();
-    conn.execute(
-        "INSERT INTO agents (id, company_id, name, role, adapter_type, metadata)
-         VALUES ('a1', 'c1', 'one', 'engineer', 'cli',
-                 '{\"paperclip\":{\"catalogTeam\":{\"catalogId\":\"test:bundled:acme:core-team\",\"originHash\":\"sha256:old\"}}}')",
-        (),
-    )
-    .await
-    .unwrap();
-
-    // Seed a temporary catalog package.
-    let dir = tempfile::TempDir::new().unwrap();
-    let root = dir.path();
-    std::fs::create_dir_all(root.join("generated")).unwrap();
-    let team_dir = root.join("catalog/bundled/acme/core-team");
-    std::fs::create_dir_all(&team_dir).unwrap();
-    std::fs::write(team_dir.join("TEAM.md"), "# Core Team").unwrap();
-    let manifest = serde_json::json!({
-        "teams": [{
-            "id": "test:bundled:acme:core-team",
-            "key": "test/bundled/acme/core-team",
-            "kind": "bundled",
-            "category": "acme",
-            "slug": "core-team",
-            "name": "Core Team",
-            "description": "A test team",
-            "path": "catalog/bundled/acme/core-team",
-            "entrypoint": "TEAM.md",
-            "contentHash": "sha256:abc",
-            "counts": { "agents": 2 },
-            "tags": ["default"],
-            "files": ["TEAM.md"]
-        }]
-    });
-    std::fs::write(
-        root.join("generated/catalog.json"),
-        serde_json::to_vec(&manifest).unwrap(),
-    )
-    .unwrap();
-    unsafe {
-        std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", root);
-    }
-
-    let (status, body) = send_json(&app, Method::GET, "/api/teams/catalog", json!({})).await;
-    assert_eq!(status, StatusCode::OK, "body: {body}");
-    assert_eq!(body.as_array().unwrap().len(), 1);
-    assert_eq!(body[0]["name"], "Core Team");
-
-    let (status, body) = send_json(
-        &app,
-        Method::GET,
-        "/api/teams/catalog/test%3Abundled%3Aacme%3Acore-team/files?path=TEAM.md",
-        json!({}),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {body}");
-    assert_eq!(body["encoding"], "text");
-    assert!(body["data"].as_str().unwrap().contains("Core Team"));
-
-    let (status, body) = send_json(
-        &app,
-        Method::GET,
-        "/api/companies/c1/teams/catalog/installed",
-        json!({}),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {body}");
-    let installed = body.as_array().unwrap();
-    assert_eq!(installed.len(), 1);
-    assert_eq!(installed[0]["catalogId"], "test:bundled:acme:core-team");
-    assert_eq!(installed[0]["agentCount"], 1);
-    assert_eq!(installed[0]["present"], true);
-    assert_eq!(installed[0]["outOfDate"], true);
-
-    unsafe {
-        std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
-    }
-}
-
-#[tokio::test]
 async fn team_catalog_install_api() {
     let (state, db) = test_state_with_db().await;
     let app = router(state.clone());
@@ -5994,6 +5919,22 @@ async fn team_catalog_install_api() {
     unsafe {
         std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", root);
     }
+
+    // Browse surface: list + file content.
+    let (status, body) = send_json(&app, Method::GET, "/api/teams/catalog", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+    assert_eq!(body[0]["name"], "Core Team");
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/teams/catalog/test%3Abundled%3Aacme%3Acore-team/files?path=TEAM.md",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["encoding"], "text");
+    assert!(body["data"].as_str().unwrap().contains("Core Team"));
 
     // Preview: ceo conflicts with the pre-existing agent.
     let (status, body) = send_json(

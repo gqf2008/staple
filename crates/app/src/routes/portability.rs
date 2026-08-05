@@ -124,6 +124,11 @@ fn build_file_tree(entries: &[(String, u64)]) -> Vec<serde_json::Value> {
 const MANIFEST_ENTRY: &str = "manifest.json";
 const ATTACHMENTS_PREFIX: &str = "attachments/";
 
+fn base64_encode(bytes: &[u8]) -> String {
+    use base64::Engine;
+    base64::engine::general_purpose::STANDARD.encode(bytes)
+}
+
 /// `GET /api/companies/{companyId}/export/archive` — downloads a zip archive
 /// containing `manifest.json` plus the company's attachments.
 #[route(GET "/api/companies/{company_id}/export/archive")]
@@ -165,6 +170,47 @@ pub async fn export_company_archive(cx: &Cx) -> Result<topcoat::router::Response
             .map_err(|error| ApiError::internal(error.to_string()))?;
         writer
             .write_all(&bytes)
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+    }
+    // Documents -> docs/{id}.md with a title frontmatter.
+    let documents = state
+        .documents
+        .list_company_documents(&company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    for document in documents {
+        let body = format!(
+            "---\ntitle: {}\n---\n\n{}",
+            document.title.unwrap_or_default(),
+            document.latest_body
+        );
+        let name = format!("docs/{}.md", document.id);
+        writer
+            .start_file(name, options)
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+        writer
+            .write_all(body.as_bytes())
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+    }
+    // Skills -> skills/{slug}/SKILL.md with a name/description frontmatter.
+    let skills = state
+        .skills
+        .list(&company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    for skill in skills {
+        let slug = skill.name.to_lowercase().replace(' ', "-");
+        let description = skill.description.unwrap_or_default();
+        let body = format!(
+            "---\nname: {}\ndescription: {}\n---\n\n{}",
+            skill.name, description, description
+        );
+        let name = format!("skills/{slug}/SKILL.md");
+        writer
+            .start_file(name, options)
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+        writer
+            .write_all(body.as_bytes())
             .map_err(|error| ApiError::internal(error.to_string()))?;
     }
     let cursor = writer
@@ -239,10 +285,37 @@ pub async fn preview_company_archive(
                         "tables": tables,
                     })
                 });
-        } else if name.starts_with(ATTACHMENTS_PREFIX) {
+        } else {
             let size = file.size();
-            files.push(serde_json::json!({ "name": name, "size": size }));
-            attachment_entries.push((name.clone(), size));
+            let mut content = Vec::new();
+            if size <= 256 * 1024 {
+                let mut reader = file;
+                std::io::Read::read_to_end(&mut reader, &mut content)
+                    .map_err(|error| ApiError::internal(error.to_string()))?;
+            }
+            let content_value = if content.is_empty() {
+                serde_json::Value::Null
+            } else if let Ok(text) = std::str::from_utf8(&content) {
+                serde_json::json!({
+                    "encoding": "text",
+                    "data": text.to_owned(),
+                    "truncated": false,
+                    "byteSize": size,
+                })
+            } else {
+                serde_json::json!({
+                    "encoding": "base64",
+                    "data": base64_encode(&content),
+                    "truncated": false,
+                    "byteSize": size,
+                })
+            };
+            files.push(serde_json::json!({
+                "name": name.clone(),
+                "size": size,
+                "content": content_value,
+            }));
+            attachment_entries.push((name, size));
         }
     }
     let Some(manifest) = manifest_value else {
