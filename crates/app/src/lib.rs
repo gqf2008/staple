@@ -17,6 +17,7 @@ pub mod routes;
 pub mod scheduler;
 pub mod state;
 pub mod storage;
+pub mod team_catalog;
 pub mod ui;
 
 use topcoat::router::{Router, RouterBuilderDiscoverExt};

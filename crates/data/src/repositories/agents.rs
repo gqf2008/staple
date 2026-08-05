@@ -77,6 +77,8 @@ pub struct AgentRecord {
     pub error_reason: Option<String>,
     /// ISO 8601 last heartbeat.
     pub last_heartbeat_at: Option<String>,
+    /// Metadata JSON (e.g. catalog provenance).
+    pub metadata: serde_json::Value,
     /// ISO 8601 creation.
     pub created_at: String,
 }
@@ -248,7 +250,8 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        default_environment_id, error_reason, last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, metadata,
+                        created_at
                  FROM agents WHERE company_id = ?1 ORDER BY name",
                 libsql::params![company_id],
             )
@@ -299,7 +302,8 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        default_environment_id, error_reason, last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, metadata,
+                        created_at
                  FROM agents WHERE id = ?1",
                 libsql::params![id],
             )
@@ -318,7 +322,8 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        default_environment_id, error_reason, last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, metadata,
+                        created_at
                  FROM agents WHERE company_id = ?1 AND id = ?2",
                 libsql::params![company_id, agent_id],
             )
@@ -366,7 +371,8 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        default_environment_id, error_reason, last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, metadata,
+                        created_at
                  FROM agents WHERE company_id = ?1 AND id = ?2",
                 libsql::params![company_id, agent_id],
             )
@@ -427,7 +433,10 @@ fn row_to_agent(row: &libsql::Row) -> Result<AgentRecord, libsql::Error> {
         default_environment_id: helpers::row_text(row, 12)?,
         error_reason: helpers::row_text(row, 13)?,
         last_heartbeat_at: helpers::row_text(row, 14)?,
-        created_at: helpers::row_text(row, 15)?.expect("created_at"),
+        metadata: helpers::row_text(row, 15)?
+            .and_then(|raw| serde_json::from_str(&raw).ok())
+            .unwrap_or_else(|| serde_json::json!({})),
+        created_at: helpers::row_text(row, 16)?.expect("created_at"),
     })
 }
 

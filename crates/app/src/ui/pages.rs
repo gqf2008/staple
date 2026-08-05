@@ -52,6 +52,10 @@ pub(crate) struct ClaimToken(String);
 #[path_param(error = bad_request("Invalid user slug"))]
 pub(crate) struct UserSlug(String);
 
+/// Typed `{catalog_ref}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid catalog ref"))]
+pub(crate) struct CatalogRef(String);
+
 /// Typed `{token}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid token"))]
 pub(crate) struct InviteToken(String);
@@ -4578,6 +4582,97 @@ pub async fn onboarding(cx: &Cx) -> Result {
             <button type="submit">(t(lang, "onboarding.create"))</button>
         </form>
         <a class="button" href=(with_lang("/", lang))>(t(lang, "onboarding.openBoard"))</a>
+    }
+}
+
+/// Teams catalog browse page.
+#[page("/companies/{company_id}/teams/catalog")]
+pub async fn team_catalog(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let teams = crate::team_catalog::list();
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let installed_rows = crate::team_catalog::installed(&agent_rows);
+    view! {
+        <h1 class="page-title">(t(lang, "teamCatalog.title"))</h1>
+        if teams.is_empty() {
+            <p class="empty">(t(lang, "teamCatalog.empty"))</p>
+        } else {
+            <ul class="list">
+                for team in &teams {
+                    <li>
+                        <strong>(team.name.clone())</strong>
+                        " " <span class="badge badge-default">(team.kind.clone())</span>
+                        <p class="meta-row">(team.description.clone())</p>
+                        <p class="meta-row">
+                            (team.counts.get("agents").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.agents"))
+                            " · " (team.counts.get("projects").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.projects"))
+                            " · " (team.counts.get("routines").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.routines"))
+                            " · " (team.counts.get("localSkills").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.skills"))
+                        </p>
+                        <a class="button" href=(with_lang(&format!("/companies/{company_id}/teams/catalog/{}", team.id), lang))>
+                            (t(lang, "teamCatalog.open"))
+                        </a>
+                    </li>
+                }
+            </ul>
+        }
+        <section>
+            <h2>(t(lang, "teamCatalog.installed"))</h2>
+            if installed_rows.is_empty() {
+                <p class="empty">(t(lang, "teamCatalog.noInstalled"))</p>
+            } else {
+                <ul class="list">
+                    for installed_row in &installed_rows {
+                        <li>
+                            <span class="mono">(installed_row.catalog_id.clone())</span>
+                            " " <span class="meta-row">(installed_row.agent_count) " agents"</span>
+                            " " <span class=(status_badge_class(if installed_row.out_of_date { "blocked" } else { "done" }))>
+                                (if installed_row.out_of_date { t(lang, "teamCatalog.outOfDate") } else { t(lang, "teamCatalog.present") })
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Team catalog detail page with entrypoint file preview.
+#[page("/companies/{company_id}/teams/catalog/{catalog_ref}")]
+pub async fn team_catalog_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let catalog_ref = path_param::<CatalogRef>(cx)?.to_string();
+    let Some(team) = crate::team_catalog::detail(&catalog_ref) else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let file = crate::team_catalog::files(&catalog_ref, "TEAM.md");
+    let list_url = with_lang(&format!("/companies/{company_id}/teams/catalog"), lang);
+    view! {
+        <h1 class="page-title">(t(lang, "teamCatalog.detail")) ": " (team.name.clone())</h1>
+        <p class="meta-row">(team.id.clone())</p>
+        <p class="meta-row">(team.description.clone())</p>
+        <p class="meta-row">
+            (team.counts.get("agents").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.agents"))
+            " · " (team.counts.get("projects").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.projects"))
+            " · " (team.counts.get("tasks").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.tasks"))
+            " · " (team.counts.get("routines").and_then(serde_json::Value::as_i64).unwrap_or(0)) " " (t(lang, "teamCatalog.routines"))
+        </p>
+        <section>
+            <h2>(t(lang, "teamCatalog.file")) ": TEAM.md"</h2>
+            if let Some(file) = &file {
+                <pre class="preview">(file.data.clone())</pre>
+            } else {
+                <p class="empty">(t(lang, "teamCatalog.empty"))</p>
+            }
+        </section>
+        <a class="button" href=(list_url)>(t(lang, "teamCatalog.back"))</a>
     }
 }
 

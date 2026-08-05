@@ -5851,6 +5851,96 @@ async fn user_profile_endpoint() {
 }
 
 #[tokio::test]
+async fn team_catalog_browse_api() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type, metadata)
+         VALUES ('a1', 'c1', 'one', 'engineer', 'cli',
+                 '{\"paperclip\":{\"catalogTeam\":{\"catalogId\":\"test:bundled:acme:core-team\",\"originHash\":\"sha256:old\"}}}')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Seed a temporary catalog package.
+    let dir = tempfile::TempDir::new().unwrap();
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("generated")).unwrap();
+    let team_dir = root.join("catalog/bundled/acme/core-team");
+    std::fs::create_dir_all(&team_dir).unwrap();
+    std::fs::write(team_dir.join("TEAM.md"), "# Core Team").unwrap();
+    let manifest = serde_json::json!({
+        "teams": [{
+            "id": "test:bundled:acme:core-team",
+            "key": "test/bundled/acme/core-team",
+            "kind": "bundled",
+            "category": "acme",
+            "slug": "core-team",
+            "name": "Core Team",
+            "description": "A test team",
+            "path": "catalog/bundled/acme/core-team",
+            "entrypoint": "TEAM.md",
+            "contentHash": "sha256:abc",
+            "counts": { "agents": 2 },
+            "tags": ["default"],
+            "files": ["TEAM.md"]
+        }]
+    });
+    std::fs::write(
+        root.join("generated/catalog.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    unsafe {
+        std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", root);
+    }
+
+    let (status, body) = send_json(&app, Method::GET, "/api/teams/catalog", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+    assert_eq!(body[0]["name"], "Core Team");
+
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/teams/catalog/test%3Abundled%3Aacme%3Acore-team/files?path=TEAM.md",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["encoding"], "text");
+    assert!(body["data"].as_str().unwrap().contains("Core Team"));
+
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/teams/catalog/installed",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let installed = body.as_array().unwrap();
+    assert_eq!(installed.len(), 1);
+    assert_eq!(installed[0]["catalogId"], "test:bundled:acme:core-team");
+    assert_eq!(installed[0]["agentCount"], 1);
+    assert_eq!(installed[0]["present"], true);
+    assert_eq!(installed[0]["outOfDate"], true);
+
+    unsafe {
+        std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
+    }
+}
+
+#[tokio::test]
 async fn board_claim_challenge_flow() {
     let (state, db) = test_state_with_db().await;
     let app = router(state.clone());
