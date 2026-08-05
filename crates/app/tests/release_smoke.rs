@@ -495,7 +495,153 @@ async fn core_business_flow_smoke() {
     assert_eq!(status, StatusCode::CREATED);
     let card_id = card["id"].as_str().unwrap().to_owned();
 
-    // 3.11. Pipeline + work product for the management page UI checks.
+    // 3.11. Plugin ecosystem data for the plugin management UI check.
+    let (status, plugin) = send_json(
+        &app,
+        Method::POST,
+        "/api/plugins",
+        json!({
+            "pluginKey": "acme.github",
+            "packageName": "@acme/github",
+            "version": "1.2.0",
+            "categories": ["integrations"],
+            "manifest": { "id": "acme.github", "name": "GitHub Sync" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {plugin}");
+    let plugin_id = plugin["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/configs"),
+        json!({ "companyId": company_id, "config": { "token": "x" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, _) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/plugins/{plugin_id}/company-settings"),
+        json!({ "companyId": company_id, "enabled": false, "settings": { "policy": "strict" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/managed-resources"),
+        json!({
+            "companyId": company_id,
+            "resourceKind": "agent",
+            "resourceKey": "defaults",
+            "resourceId": "a1",
+            "defaults": { "mode": "strict" }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, _) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/plugins/{plugin_id}/state"),
+        json!({ "scopeKind": "company", "scopeId": company_id, "key": "cursor", "value": { "page": 2 } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/entities"),
+        json!({
+            "companyId": company_id,
+            "entityType": "issue",
+            "scopeKind": "issue",
+            "scopeId": "i1",
+            "externalId": "GH-1",
+            "title": "Sync"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs"),
+        json!({ "jobKey": "nightly", "schedule": "0 0 * * *" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs/nightly/runs"),
+        json!({ "companyId": company_id, "trigger": "manual" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {run}");
+    let run_id = run["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/jobs/nightly/runs/{run_id}/complete"),
+        json!({ "status": "succeeded", "logs": ["done"] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/logs"),
+        json!({ "companyId": company_id, "level": "info", "message": "started" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, webhook) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/webhooks"),
+        json!({
+            "companyId": company_id,
+            "webhookKey": "issue.created",
+            "externalId": "evt-1",
+            "payload": { "id": 1 }
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {webhook}");
+    let webhook_id = webhook["id"].as_str().unwrap().to_owned();
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/webhooks/{webhook_id}/complete"),
+        json!({ "status": "succeeded", "durationMs": 10 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/database/namespaces"),
+        json!({ "namespaceName": "acme_github", "namespaceMode": "schema" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/plugins/{plugin_id}/database/migrations"),
+        json!({
+            "namespaceName": "acme_github",
+            "migrationKey": "0001_init",
+            "checksum": "abc123",
+            "pluginVersion": "1.2.0",
+            "status": "applied"
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    // 3.12. Pipeline + work product for the management page UI checks.
     let (status, pipeline) = send_json(
         &app,
         Method::POST,
@@ -524,7 +670,7 @@ async fn core_business_flow_smoke() {
     );
     let work_product_id = work_product["id"].as_str().unwrap().to_owned();
 
-    // 3.12. UI form handlers: create company, create agent, pipeline settings.
+    // 3.13. UI form handlers: create company, create agent, pipeline settings.
     let (status, _) = send_form(
         &app,
         "/companies/ui",
@@ -652,6 +798,11 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/skills/{skill_id}"),
             "Reviewer",
         ),
+        (format!("/companies/{company_id}/plugins"), "Plugins"),
+        (format!("/companies/{company_id}/plugins"), "acme.github"),
+        (format!("/plugins/{plugin_id}"), "acme.github"),
+        (format!("/plugins/{plugin_id}"), "Configurations"),
+        (format!("/plugins/{plugin_id}"), "Webhook deliveries"),
         (
             format!("/companies/{company_id}/secret-bindings"),
             "Secret bindings",

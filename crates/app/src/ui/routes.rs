@@ -739,6 +739,305 @@ pub async fn skill_ui(
 }
 
 // ---------------------------------------------------------------------------
+// Plugin UI actions
+// ---------------------------------------------------------------------------
+
+/// `POST /companies/{company_id}/plugins/register/ui` — registers (or
+/// re-registers) a plugin in the instance registry.
+#[route(POST "/companies/{company_id}/plugins/register/ui")]
+pub async fn plugin_register_ui(
+    cx: &Cx,
+    Form(form): Form<PluginRegisterForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let plugin_key = form.plugin_key.trim().to_owned();
+    let package_name = form.package_name.trim().to_owned();
+    let version = form.version.trim().to_owned();
+    if !plugin_key.is_empty() && !package_name.is_empty() && !version.is_empty() {
+        let categories = form
+            .categories
+            .as_deref()
+            .unwrap_or("")
+            .split(',')
+            .map(|entry| entry.trim().to_owned())
+            .filter(|entry| !entry.is_empty())
+            .collect();
+        let manifest = serde_json::from_str::<serde_json::Value>(
+            form.manifest_json.as_deref().unwrap_or("{}"),
+        )
+        .unwrap_or_else(|_| serde_json::json!({ "id": plugin_key.clone() }));
+        let _ = state
+            .plugins
+            .register(staple_data::NewPlugin {
+                plugin_key,
+                package_name,
+                version,
+                api_version: form.api_version.unwrap_or(1),
+                categories,
+                manifest_json: manifest,
+                install_order: form.install_order,
+                package_path: form.package_path.filter(|path| !path.trim().is_empty()),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/plugins")))
+}
+
+/// `POST /companies/{company_id}/plugins/{plugin_id}/settings/ui` — enables
+/// or disables a plugin for a company.
+#[route(POST "/companies/{company_id}/plugins/{plugin_id}/settings/ui")]
+pub async fn plugin_company_settings_ui(
+    cx: &Cx,
+    Form(form): Form<PluginCompanySettingsForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let plugin_id = path_param::<PluginUiId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let enabled = form
+        .enabled
+        .as_deref()
+        .map(|value| value == "1")
+        .unwrap_or(true);
+    let _ = state
+        .plugins
+        .upsert_company_settings(staple_data::UpsertCompanySettings {
+            company_id: company_id.clone(),
+            plugin_id,
+            enabled,
+            settings_json: serde_json::json!({}),
+        })
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/plugins")))
+}
+
+/// `POST /plugins/{id}/status/ui` — updates plugin status/error.
+#[route(POST "/plugins/{id}/status/ui")]
+pub async fn plugin_status_ui(
+    cx: &Cx,
+    Form(form): Form<PluginStatusForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let plugin_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let last_error = form.last_error.filter(|error| !error.trim().is_empty());
+    let _ = state
+        .plugins
+        .update_status(&plugin_id, &form.status, Some(last_error))
+        .await;
+    Ok(see_other(&format!("/plugins/{plugin_id}")))
+}
+
+/// `POST /plugins/{id}/configs/ui` — upserts a per-company plugin config.
+#[route(POST "/plugins/{id}/configs/ui")]
+pub async fn plugin_config_ui(
+    cx: &Cx,
+    Form(form): Form<PluginConfigForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let plugin_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company_id = form.company_id.trim().to_owned();
+    if !company_id.is_empty() {
+        let config = serde_json::from_str::<serde_json::Value>(&form.config_json)
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let _ = state
+            .plugins
+            .upsert_config(staple_data::UpsertPluginConfig {
+                plugin_id: plugin_id.clone(),
+                company_id,
+                config_json: config,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/plugins/{plugin_id}")))
+}
+
+/// `POST /plugins/{id}/state/ui` — sets scoped plugin state.
+#[route(POST "/plugins/{id}/state/ui")]
+pub async fn plugin_state_ui(
+    cx: &Cx,
+    Form(form): Form<PluginStateForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let plugin_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let key = form.key.trim().to_owned();
+    if !key.is_empty() {
+        let value = serde_json::from_str::<serde_json::Value>(&form.value)
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let scope_id = form.scope_id.filter(|value| !value.trim().is_empty());
+        let _ = state
+            .plugin_runtime
+            .state_set(
+                &plugin_id,
+                &form.scope_kind,
+                scope_id.as_deref(),
+                &form.namespace,
+                &key,
+                value,
+            )
+            .await;
+    }
+    Ok(see_other(&format!(
+        "/plugins/{plugin_id}?scopeKind={}&namespace={}",
+        form.scope_kind, form.namespace
+    )))
+}
+
+/// `POST /plugins/{id}/entities/ui` — upserts a plugin entity.
+#[route(POST "/plugins/{id}/entities/ui")]
+pub async fn plugin_entity_ui(
+    cx: &Cx,
+    Form(form): Form<PluginEntityForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let plugin_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let entity_type = form.entity_type.trim().to_owned();
+    if !entity_type.is_empty() {
+        let data = serde_json::from_str::<serde_json::Value>(&form.data)
+            .unwrap_or_else(|_| serde_json::json!({}));
+        let _ = state
+            .plugin_runtime
+            .entity_upsert(staple_data::NewPluginEntity {
+                plugin_id: plugin_id.clone(),
+                company_id: form.company_id.filter(|value| !value.trim().is_empty()),
+                entity_type,
+                scope_kind: form.scope_kind,
+                scope_id: form.scope_id.filter(|value| !value.trim().is_empty()),
+                external_id: form.external_id.filter(|value| !value.trim().is_empty()),
+                title: form.title.filter(|value| !value.trim().is_empty()),
+                status: form.status.filter(|value| !value.trim().is_empty()),
+                data,
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/plugins/{plugin_id}")))
+}
+
+/// `POST /plugins/{id}/jobs/{job_key}/runs/ui` — manually runs a plugin job.
+#[route(POST "/plugins/{id}/jobs/{job_key}/runs/ui")]
+pub async fn plugin_job_run_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let plugin_id = path_param::<Id>(cx)?.to_string();
+    let job_key = path_param::<JobKeyUi>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    if let Ok(jobs) = state.plugin_runtime.job_list(&plugin_id).await
+        && let Some(job) = jobs.into_iter().find(|job| job.job_key == job_key)
+    {
+        let _ = state
+            .plugin_runtime
+            .job_run_create(staple_data::NewPluginJobRun {
+                job_id: job.id,
+                plugin_id: plugin_id.clone(),
+                company_id: None,
+                trigger: "manual".to_owned(),
+            })
+            .await;
+    }
+    Ok(see_other(&format!("/plugins/{plugin_id}")))
+}
+
+/// Plugin register form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginRegisterForm {
+    /// Unique plugin key.
+    pub plugin_key: String,
+    /// Package name.
+    pub package_name: String,
+    /// Version.
+    pub version: String,
+    /// Plugin API version.
+    #[serde(default)]
+    pub api_version: Option<i64>,
+    /// Comma-separated categories.
+    #[serde(default)]
+    pub categories: Option<String>,
+    /// Manifest JSON.
+    #[serde(default)]
+    pub manifest_json: Option<String>,
+    /// Install order.
+    #[serde(default)]
+    pub install_order: Option<i64>,
+    /// Package path.
+    #[serde(default)]
+    pub package_path: Option<String>,
+}
+
+/// Plugin company enable/disable form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginCompanySettingsForm {
+    /// Whether the plugin is enabled for the company (`1`/`0`).
+    #[serde(default)]
+    pub enabled: Option<String>,
+}
+
+/// Plugin status update form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginStatusForm {
+    /// New status.
+    pub status: String,
+    /// Optional last error.
+    #[serde(default)]
+    pub last_error: Option<String>,
+}
+
+/// Plugin config upsert form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginConfigForm {
+    /// Company id.
+    pub company_id: String,
+    /// Config JSON.
+    pub config_json: String,
+}
+
+/// Plugin state set form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginStateForm {
+    /// Scope kind.
+    pub scope_kind: String,
+    /// Scope id.
+    #[serde(default)]
+    pub scope_id: Option<String>,
+    /// Namespace.
+    pub namespace: String,
+    /// State key.
+    pub key: String,
+    /// JSON value.
+    pub value: String,
+}
+
+/// Plugin entity upsert form.
+#[derive(Debug, serde::Deserialize)]
+pub struct PluginEntityForm {
+    /// Company id.
+    #[serde(default)]
+    pub company_id: Option<String>,
+    /// Entity type.
+    pub entity_type: String,
+    /// Scope kind.
+    pub scope_kind: String,
+    /// Scope id.
+    #[serde(default)]
+    pub scope_id: Option<String>,
+    /// External id.
+    #[serde(default)]
+    pub external_id: Option<String>,
+    /// Title.
+    #[serde(default)]
+    pub title: Option<String>,
+    /// Status.
+    #[serde(default)]
+    pub status: Option<String>,
+    /// Data JSON.
+    pub data: String,
+}
+
+/// `{plugin_id}` path parameter for UI routes.
+#[path_param(error = bad_request("Invalid plugin id"))]
+pub(crate) struct PluginUiId(String);
+
+/// `{job_key}` path parameter for UI routes.
+#[path_param(error = bad_request("Invalid job key"))]
+pub(crate) struct JobKeyUi(String);
+
+// ---------------------------------------------------------------------------
 // Instance settings UI actions
 // ---------------------------------------------------------------------------
 
