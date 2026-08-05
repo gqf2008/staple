@@ -380,6 +380,18 @@ impl PortabilityRepository for TursoPortabilityRepository {
                 counts.insert(table.to_owned(), helpers::row_i64(&row, 0)? as u64);
             }
         }
+        // Package-level tables (docs/skills) used by the conflict preview.
+        for table in ["documents", "company_skills"] {
+            let mut rows = conn
+                .query(
+                    &format!("SELECT COUNT(*) FROM {table} WHERE company_id = ?1"),
+                    libsql::params![company_id],
+                )
+                .await?;
+            if let Some(row) = rows.next().await? {
+                counts.insert(table.to_owned(), helpers::row_i64(&row, 0)? as u64);
+            }
+        }
         Ok(counts)
     }
 
