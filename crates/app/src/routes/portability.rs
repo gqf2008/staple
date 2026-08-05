@@ -124,6 +124,30 @@ fn build_file_tree(entries: &[(String, u64)]) -> Vec<serde_json::Value> {
 const MANIFEST_ENTRY: &str = "manifest.json";
 const ATTACHMENTS_PREFIX: &str = "attachments/";
 
+/// Parses simple `---`-delimited frontmatter into a key/value map plus the
+/// remaining body text.
+fn parse_frontmatter(text: &str) -> (std::collections::HashMap<String, String>, String) {
+    let mut frontmatter = std::collections::HashMap::new();
+    let trimmed = text.trim_start_matches('\u{feff}');
+    let rest = if let Some(rest) = trimmed.strip_prefix("---") {
+        if let Some(end) = rest.find("\n---") {
+            let header = &rest[..end];
+            let body = rest[end + 4..].trim_start_matches('\n').to_owned();
+            for line in header.lines() {
+                if let Some((key, value)) = line.split_once(':') {
+                    frontmatter.insert(key.trim().to_owned(), value.trim().to_owned());
+                }
+            }
+            body
+        } else {
+            trimmed.to_owned()
+        }
+    } else {
+        trimmed.to_owned()
+    };
+    (frontmatter, rest)
+}
+
 fn base64_encode(bytes: &[u8]) -> String {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD.encode(bytes)
@@ -405,7 +429,68 @@ pub async fn import_company_archive(
             }
         }
     }
-    Ok(Json(
-        json!({ "summary": summary, "attachmentsRestored": restored }),
-    ))
+    // Import package documents (docs/*.md) and skills (skills/*/SKILL.md).
+    let mut docs_imported = 0u64;
+    let mut skills_imported = 0u64;
+    let mut skills_skipped = 0u64;
+    for index in 0..archive.len() {
+        // Read the entry inside a block so the non-Send ZipFile is dropped
+        // before any await below.
+        let (name, bytes) = {
+            let mut file = archive
+                .by_index(index)
+                .map_err(|error| ApiError::internal(error.to_string()))?;
+            let name = file.name().to_owned();
+            let mut bytes = Vec::new();
+            std::io::Read::read_to_end(&mut file, &mut bytes)
+                .map_err(|error| ApiError::internal(error.to_string()))?;
+            (name, bytes)
+        };
+        if name.starts_with("docs/") && name.ends_with(".md") {
+            let Ok(text) = String::from_utf8(bytes) else {
+                continue;
+            };
+            let (frontmatter, body) = parse_frontmatter(&text);
+            let title = frontmatter.get("title").cloned();
+            if state
+                .documents
+                .create_company_document(&company_id, title, body)
+                .await
+                .is_ok()
+            {
+                docs_imported += 1;
+            }
+        } else if name.ends_with("/SKILL.md") {
+            let Ok(text) = String::from_utf8(bytes) else {
+                continue;
+            };
+            let (frontmatter, _body) = parse_frontmatter(&text);
+            let skill_name = frontmatter
+                .get("name")
+                .cloned()
+                .unwrap_or_else(|| "Imported Skill".to_owned());
+            let description = frontmatter.get("description").cloned();
+            match state
+                .skills
+                .create(staple_data::NewSkill {
+                    company_id: company_id.clone(),
+                    name: skill_name,
+                    description,
+                    restriction_policy: staple_data::SkillRestrictionPolicy::default(),
+                })
+                .await
+            {
+                Ok(_) => skills_imported += 1,
+                Err(staple_data::SkillError::AlreadyExists) => skills_skipped += 1,
+                Err(_) => {}
+            }
+        }
+    }
+    Ok(Json(json!({
+        "summary": summary,
+        "attachmentsRestored": restored,
+        "docsImported": docs_imported,
+        "skillsImported": skills_imported,
+        "skillsSkipped": skills_skipped,
+    })))
 }

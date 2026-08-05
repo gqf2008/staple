@@ -560,6 +560,30 @@ async fn company_zip_archive_preview_and_import() {
     let parsed: serde_json::Value = serde_json::from_str(&result).unwrap();
     assert_eq!(parsed["summary"]["imported"], 1, "{result}");
     assert_eq!(parsed["attachmentsRestored"], 1, "{result}");
+    assert_eq!(parsed["docsImported"], 1, "{result}");
+    assert_eq!(parsed["skillsImported"], 1, "{result}");
+
+    // Preview now reports existing docs/skills counts.
+    let (status, preview) = send_bytes(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{target_id}/import/archive/preview"),
+        zip_bytes.clone(),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "preview: {preview}");
+    let preview_json: serde_json::Value = serde_json::from_str(&preview).unwrap();
+    assert!(
+        preview_json["existing"]["documents"].as_u64().unwrap_or(0) >= 1,
+        "{preview}"
+    );
+    assert!(
+        preview_json["existing"]["company_skills"]
+            .as_u64()
+            .unwrap_or(0)
+            >= 1,
+        "{preview}"
+    );
 
     // Second skip import conflicts (target not empty).
     let (status, _) = send_bytes(

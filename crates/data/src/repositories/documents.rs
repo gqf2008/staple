@@ -78,6 +78,9 @@ pub enum DocumentError {
     /// The database connection could not be established.
     #[error("connection error: {0}")]
     Data(#[from] crate::connection::DataError),
+    /// The company does not exist.
+    #[error("company not found")]
+    CompanyNotFound,
     /// The issue does not exist or belongs to another company.
     #[error("issue not found")]
     IssueNotFound,
@@ -112,6 +115,18 @@ pub trait DocumentRepository: Send + Sync {
         &self,
         company_id: &str,
     ) -> Result<Vec<DocumentRecord>, DocumentError>;
+
+    /// Creates a company-level document (revision 1, no issue link).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] when the company does not exist.
+    async fn create_company_document(
+        &self,
+        company_id: &str,
+        title: Option<String>,
+        body: String,
+    ) -> Result<DocumentRecord, DocumentError>;
 
     /// Appends a revision to an issue document.
     ///
@@ -395,6 +410,53 @@ impl DocumentRepository for TursoDocumentRepository {
             documents.push(row_to_document(&row)?);
         }
         Ok(documents)
+    }
+
+    async fn create_company_document(
+        &self,
+        company_id: &str,
+        title: Option<String>,
+        body: String,
+    ) -> Result<DocumentRecord, DocumentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::company_exists(&conn, company_id).await? {
+            return Err(DocumentError::CompanyNotFound);
+        }
+        let document_id = Uuid::new_v4().to_string();
+        let revision_id = Uuid::new_v4().to_string();
+        conn.execute(
+            "INSERT INTO documents (id, company_id, title, format, latest_body,
+                                    latest_revision_id, latest_revision_number,
+                                    created_at, updated_at)
+             VALUES (?1, ?2, ?3, 'markdown', ?4, ?5, 1,
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            libsql::params![
+                document_id.clone(),
+                company_id,
+                title,
+                body.clone(),
+                revision_id.clone()
+            ],
+        )
+        .await?;
+        conn.execute(
+            "INSERT INTO document_revisions (id, company_id, document_id, revision_number,
+                                             body, change_summary, created_at, updated_at)
+             VALUES (?1, ?2, ?3, 1, ?4, NULL,
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
+            libsql::params![revision_id, company_id, document_id.clone(), body],
+        )
+        .await?;
+        let mut rows = conn
+            .query(
+                &format!("SELECT {DOCUMENT_COLUMNS} FROM documents WHERE id = ?1"),
+                libsql::params![document_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("document was just inserted");
+        Ok(row_to_document(&row)?)
     }
 
     async fn get_issue_document_by_key(
