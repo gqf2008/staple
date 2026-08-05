@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 1/2 批 + Pipelines Review Queue/Learnings）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐）。
 
 ## 使用方式
 
@@ -97,6 +97,8 @@
 | 收尾 | 其余散表（status_cards(+updates)/summary_slots/smoke_runs(+steps)/feedback_*/finance_events/document_annotations 等 11 张） | ✅ 完成（issue #106/PR #109） |
 | 列级对齐 第 1 批 | 表级对齐后列级审计补缺：pipeline_cases/activity_log/决策桌/基础小表（17 表，迁移 0028） | ✅ 完成（issue #153/PR #154） |
 | 列级对齐 第 2 批 | agent_api_keys/cost_events/document_revisions/issue_comments/issue_thread_interactions/routines/routine_revisions/routine_runs/routine_triggers（9 表，迁移 0029） | ✅ 完成（issue #155/PR #157） |
+| 列级对齐 审计 | 重跑审计脚本：167 表 0 缺列（extra 列为兼容/演进超集） | ✅ 完成（2026-08-05） |
+| repository 读回补齐 | decision_desk 6 record + routines trigger/revision 读回（迁移 0028/0029 列全部进 record） | ✅ 完成（issue #164/PR #165） |
 
 ## 参考镜像同步登记
 
@@ -114,5 +116,8 @@
 | **完整公司包导出/导入**（COMPANY.md/PROJECT.md/TASK.md/SKILL.md + documents/skills 全量打包 + zip 文件内容/frontmatter 预览） | 现为 JSON manifest（7 核心表）+ 附件 zip baseline | ⏳ 明确延后（单独立项） |
 | **InstanceAccess 按用户公司访问管理**（setUserCompanyAccess） | 现有 instance/settings 覆盖 roles/board keys/challenges；缺按用户批量授权界面 | ⏳ 明确延后 |
 | **InstanceExperimentalSettings** | 上游实验设置页，无产品行为 | ⏳ 明确不迁移 |
-| **decision_desk repository 字段补齐**（迁移 0028 已加列） | 跟随「决策桌功能增强」批实施，非延后 | 📋 已排期 |
-| **routine_revisions/routine_triggers 读回 record**（迁移 0029 已加列） | 跟随「routines 功能增强」批实施，非延后 | 📋 已排期 |
+| ~~decision_desk repository 字段补齐~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
+| ~~routine_revisions/routine_triggers 读回 record~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
+| **UserProfile 公开页（u/:userSlug）** | 依赖认证用户资料系统 | ⏳ 明确延后 |
+| **Onboarding 向导**（onboarding 路由） | 依赖认证栈 + 引导流程 | ⏳ 明确延后 |
+| **cloud-upstream 设置**（company/settings/cloud-upstream） | 依赖上游云服务集成 | ⏳ 明确延后 |
