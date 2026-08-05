@@ -71,6 +71,10 @@ pub struct AgentRecord {
     pub spent_monthly_cents: i64,
     /// Pause reason.
     pub pause_reason: Option<String>,
+    /// Default environment id.
+    pub default_environment_id: Option<String>,
+    /// Last error reason.
+    pub error_reason: Option<String>,
     /// ISO 8601 last heartbeat.
     pub last_heartbeat_at: Option<String>,
     /// ISO 8601 creation.
@@ -244,7 +248,7 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, created_at
                  FROM agents WHERE company_id = ?1 ORDER BY name",
                 libsql::params![company_id],
             )
@@ -295,7 +299,7 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, created_at
                  FROM agents WHERE id = ?1",
                 libsql::params![id],
             )
@@ -314,7 +318,7 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, created_at
                  FROM agents WHERE company_id = ?1 AND id = ?2",
                 libsql::params![company_id, agent_id],
             )
@@ -362,7 +366,7 @@ impl AgentRepository for TursoAgentRepository {
             .query(
                 "SELECT id, company_id, name, role, title, icon, status, reports_to,
                         adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
-                        last_heartbeat_at, created_at
+                        default_environment_id, error_reason, last_heartbeat_at, created_at
                  FROM agents WHERE company_id = ?1 AND id = ?2",
                 libsql::params![company_id, agent_id],
             )
@@ -420,8 +424,10 @@ fn row_to_agent(row: &libsql::Row) -> Result<AgentRecord, libsql::Error> {
         budget_monthly_cents: helpers::row_i64(row, 9)?,
         spent_monthly_cents: helpers::row_i64(row, 10)?,
         pause_reason: helpers::row_text(row, 11)?,
-        last_heartbeat_at: helpers::row_text(row, 12)?,
-        created_at: helpers::row_text(row, 13)?.expect("created_at"),
+        default_environment_id: helpers::row_text(row, 12)?,
+        error_reason: helpers::row_text(row, 13)?,
+        last_heartbeat_at: helpers::row_text(row, 14)?,
+        created_at: helpers::row_text(row, 15)?.expect("created_at"),
     })
 }
 

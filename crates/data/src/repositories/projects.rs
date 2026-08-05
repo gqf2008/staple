@@ -31,6 +31,18 @@ pub struct ProjectRecord {
     pub target_date: Option<String>,
     /// Secret-aware environment bindings (JSON).
     pub env: Option<String>,
+    /// Brand color.
+    pub color: Option<String>,
+    /// Icon.
+    pub icon: Option<String>,
+    /// Pause reason.
+    pub pause_reason: Option<String>,
+    /// ISO 8601 pause time.
+    pub paused_at: Option<String>,
+    /// Execution workspace policy JSON.
+    pub execution_workspace_policy: Option<serde_json::Value>,
+    /// ISO 8601 archive time.
+    pub archived_at: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
     /// ISO 8601 last update time.
@@ -163,7 +175,8 @@ impl TursoProjectRepository {
 }
 
 const PROJECT_COLUMNS: &str = "id, company_id, goal_id, name, description, status,
-    lead_agent_id, target_date, env, created_at, updated_at";
+    lead_agent_id, target_date, env, color, icon, pause_reason, paused_at,
+    execution_workspace_policy, archived_at, created_at, updated_at";
 
 fn row_to_project(row: &libsql::Row) -> Result<ProjectRecord, libsql::Error> {
     Ok(ProjectRecord {
@@ -176,8 +189,15 @@ fn row_to_project(row: &libsql::Row) -> Result<ProjectRecord, libsql::Error> {
         lead_agent_id: helpers::row_text(row, 6)?,
         target_date: helpers::row_text(row, 7)?,
         env: helpers::row_text(row, 8)?,
-        created_at: helpers::row_text(row, 9)?.expect("created_at is NOT NULL"),
-        updated_at: helpers::row_text(row, 10)?.expect("updated_at is NOT NULL"),
+        color: helpers::row_text(row, 9)?,
+        icon: helpers::row_text(row, 10)?,
+        pause_reason: helpers::row_text(row, 11)?,
+        paused_at: helpers::row_text(row, 12)?,
+        execution_workspace_policy: helpers::row_text(row, 13)?
+            .and_then(|raw| serde_json::from_str(&raw).ok()),
+        archived_at: helpers::row_text(row, 14)?,
+        created_at: helpers::row_text(row, 15)?.expect("created_at is NOT NULL"),
+        updated_at: helpers::row_text(row, 16)?.expect("updated_at is NOT NULL"),
     })
 }
 

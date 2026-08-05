@@ -31,6 +31,8 @@ pub struct DocumentRecord {
     pub created_by_user_id: Option<String>,
     /// Updated-by attribution.
     pub updated_by_user_id: Option<String>,
+    /// Source trust metadata JSON.
+    pub source_trust: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
     /// ISO 8601 last update time.
@@ -150,7 +152,7 @@ impl TursoDocumentRepository {
 const DOCUMENT_COLUMNS: &str = "id, company_id, title, format, latest_body,
     latest_revision_id, latest_revision_number, created_by_agent_id, created_by_user_id,
     updated_by_agent_id, updated_by_user_id, locked_at, locked_by_agent_id,
-    locked_by_user_id, created_at, updated_at";
+    locked_by_user_id, source_trust, created_at, updated_at";
 
 fn row_to_document(row: &libsql::Row) -> Result<DocumentRecord, libsql::Error> {
     Ok(DocumentRecord {
@@ -163,8 +165,9 @@ fn row_to_document(row: &libsql::Row) -> Result<DocumentRecord, libsql::Error> {
         latest_revision_number: helpers::row_i64(row, 6)?,
         created_by_user_id: helpers::row_text(row, 8)?,
         updated_by_user_id: helpers::row_text(row, 10)?,
-        created_at: helpers::row_text(row, 14)?.expect("created_at is NOT NULL"),
-        updated_at: helpers::row_text(row, 15)?.expect("updated_at is NOT NULL"),
+        source_trust: helpers::row_text(row, 14)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        created_at: helpers::row_text(row, 15)?.expect("created_at is NOT NULL"),
+        updated_at: helpers::row_text(row, 16)?.expect("updated_at is NOT NULL"),
     })
 }
 
@@ -349,8 +352,8 @@ impl DocumentRepository for TursoDocumentRepository {
         let sql = "SELECT d.id, d.company_id, d.title, d.format, d.latest_body,
                     d.latest_revision_id, d.latest_revision_number, d.created_by_agent_id,
                     d.created_by_user_id, d.updated_by_agent_id, d.updated_by_user_id,
-                    d.locked_at, d.locked_by_agent_id, d.locked_by_user_id, d.created_at,
-                    d.updated_at
+                    d.locked_at, d.locked_by_agent_id, d.locked_by_user_id, d.source_trust,
+                    d.created_at, d.updated_at
              FROM issue_documents idoc
              JOIN documents d ON d.id = idoc.document_id
              WHERE idoc.issue_id = ?1
@@ -372,8 +375,8 @@ impl DocumentRepository for TursoDocumentRepository {
         let sql = "SELECT d.id, d.company_id, d.title, d.format, d.latest_body,
                     d.latest_revision_id, d.latest_revision_number, d.created_by_agent_id,
                     d.created_by_user_id, d.updated_by_agent_id, d.updated_by_user_id,
-                    d.locked_at, d.locked_by_agent_id, d.locked_by_user_id, d.created_at,
-                    d.updated_at
+                    d.locked_at, d.locked_by_agent_id, d.locked_by_user_id, d.source_trust,
+                    d.created_at, d.updated_at
              FROM issue_documents idoc
              JOIN documents d ON d.id = idoc.document_id
              WHERE idoc.issue_id = ?1 AND idoc.key = ?2";
