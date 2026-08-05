@@ -529,6 +529,8 @@ async fn company_zip_archive_preview_and_import() {
     assert_eq!(status, StatusCode::OK, "preview: {preview}");
     assert!(preview.contains("attachments/k.txt"), "{preview}");
     assert!(preview.contains("agents"), "{preview}");
+    assert!(preview.contains("filesTree"), "{preview}");
+    assert!(preview.contains("existing"), "{preview}");
 
     // Import the archive (skip).
     let (status, result) = send_bytes(

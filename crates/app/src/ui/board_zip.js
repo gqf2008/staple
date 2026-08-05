@@ -26,11 +26,42 @@ document.addEventListener("DOMContentLoaded", function () {
       return;
     }
     var data = await response.json();
-    var files = (data.files || []).map(function (f) { return f.name; });
     var tables = (data.manifest && data.manifest.tables || []).map(function (t) {
       return t.name + " (" + t.rows + ")";
     });
-    preview.textContent = "Files: " + files.join(", ") + " | Tables: " + tables.join(", ");
+    var existing = data.existing || {};
+    var conflictLines = Object.keys(existing)
+      .filter(function (key) { return (existing[key] || 0) > 0; })
+      .map(function (key) { return key + ": " + existing[key]; });
+    var summary = document.createElement("p");
+    summary.textContent = "Tables: " + tables.join(", ") +
+      (conflictLines.length ? " | Existing rows: " + conflictLines.join(", ") : " | target empty");
+
+    var tree = document.createElement("ul");
+    function renderTree(nodes, parent) {
+      (nodes || []).forEach(function (node) {
+        var li = document.createElement("li");
+        if (node.type === "dir") {
+          li.textContent = "📁 " + node.name + "/";
+          var childList = document.createElement("ul");
+          renderTree(node.children || [], childList);
+          li.appendChild(childList);
+        } else {
+          li.textContent = "📄 " + node.name + " (" + (node.size || 0) + " bytes)";
+        }
+        parent.appendChild(li);
+      });
+    }
+    renderTree(data.filesTree || [], tree);
+
+    preview.innerHTML = "";
+    preview.appendChild(summary);
+    preview.appendChild(tree);
+    if (conflictLines.length > 0) {
+      var warn = document.createElement("p");
+      warn.textContent = "Target company has existing data; choose overwrite to replace.";
+      preview.appendChild(warn);
+    }
 
     var applyButton = document.createElement("button");
     applyButton.textContent = "Apply import (" + strategy + ")";

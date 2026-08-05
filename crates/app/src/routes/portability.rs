@@ -74,6 +74,53 @@ fn portability_error_to_api(error: staple_data::PortabilityError) -> ApiError {
 
 // --- Zip archive routes ---------------------------------------------------
 
+/// A node in the archive file tree (directories nested, files leaf).
+#[derive(Default)]
+struct FileNode {
+    dirs: std::collections::BTreeMap<String, FileNode>,
+    files: Vec<(String, u64)>,
+}
+
+impl FileNode {
+    fn insert(&mut self, parts: &[&str], size: u64) {
+        if parts.is_empty() {
+            return;
+        }
+        if parts.len() == 1 {
+            self.files.push((parts[0].to_owned(), size));
+        } else {
+            self.dirs
+                .entry(parts[0].to_owned())
+                .or_default()
+                .insert(&parts[1..], size);
+        }
+    }
+
+    fn to_json(&self) -> Vec<serde_json::Value> {
+        let mut nodes = Vec::new();
+        for (name, child) in &self.dirs {
+            nodes.push(serde_json::json!({
+                "name": name,
+                "type": "dir",
+                "children": child.to_json(),
+            }));
+        }
+        for (name, size) in &self.files {
+            nodes.push(serde_json::json!({ "name": name, "type": "file", "size": size }));
+        }
+        nodes
+    }
+}
+
+fn build_file_tree(entries: &[(String, u64)]) -> Vec<serde_json::Value> {
+    let mut root = FileNode::default();
+    for (name, size) in entries {
+        let parts: Vec<&str> = name.split('/').collect();
+        root.insert(&parts, *size);
+    }
+    root.to_json()
+}
+
 const MANIFEST_ENTRY: &str = "manifest.json";
 const ATTACHMENTS_PREFIX: &str = "attachments/";
 
@@ -143,6 +190,7 @@ pub async fn preview_company_archive(
 ) -> Result<Json<serde_json::Value>, ApiError> {
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     crate::auth::enforce_company_scope(cx, &company_id)?;
+    let state = app_context::<AppState>(cx);
     let mut archive =
         zip::ZipArchive::new(std::io::Cursor::new(bytes.to_vec())).map_err(|error| {
             ApiError::unprocessable(
@@ -151,6 +199,7 @@ pub async fn preview_company_archive(
             )
         })?;
     let mut files = Vec::new();
+    let mut attachment_entries: Vec<(String, u64)> = Vec::new();
     let mut manifest_value = None;
     for index in 0..archive.len() {
         let file = archive
@@ -191,7 +240,9 @@ pub async fn preview_company_archive(
                     })
                 });
         } else if name.starts_with(ATTACHMENTS_PREFIX) {
-            files.push(serde_json::json!({ "name": name, "size": file.size() }));
+            let size = file.size();
+            files.push(serde_json::json!({ "name": name, "size": size }));
+            attachment_entries.push((name.clone(), size));
         }
     }
     let Some(manifest) = manifest_value else {
@@ -200,7 +251,17 @@ pub async fn preview_company_archive(
             json!([{ "path": ["archive"], "message": "missing manifest.json" }]),
         ));
     };
-    Ok(Json(json!({ "files": files, "manifest": manifest })))
+    let existing = state
+        .portability
+        .company_row_counts(&company_id)
+        .await
+        .map_err(portability_error_to_api)?;
+    Ok(Json(json!({
+        "files": files,
+        "filesTree": build_file_tree(&attachment_entries),
+        "manifest": manifest,
+        "existing": existing,
+    })))
 }
 
 /// `POST /api/companies/{companyId}/import/archive?strategy=` — applies a zip
