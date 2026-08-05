@@ -17,10 +17,28 @@ pub struct DecisionQueueRecord {
     pub company_id: String,
     /// Queue name.
     pub name: String,
+    /// Queue key.
+    pub key: Option<String>,
+    /// Queue title.
+    pub title: Option<String>,
+    /// Creator actor type.
+    pub created_by_type: Option<String>,
+    /// Creator agent id.
+    pub created_by_agent_id: Option<String>,
+    /// Creator user id.
+    pub created_by_user_id: Option<String>,
+    /// Creator run id.
+    pub created_by_run_id: Option<String>,
+    /// Creator agent api key id.
+    pub created_by_agent_api_key_id: Option<String>,
     /// Description.
     pub description: Option<String>,
     /// Retention override in days.
     pub retention_days: Option<i64>,
+    /// Seed rules JSON.
+    pub seed_rules: serde_json::Value,
+    /// Whether seed rules are enabled.
+    pub seed_rules_enabled: bool,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -39,6 +57,18 @@ pub struct DecisionQueueItemRecord {
     pub source_kind: String,
     /// Source id.
     pub source_id: String,
+    /// Added-by actor type.
+    pub added_by_type: Option<String>,
+    /// Added-by agent id.
+    pub added_by_agent_id: Option<String>,
+    /// Added-by user id.
+    pub added_by_user_id: Option<String>,
+    /// Added-by run id.
+    pub added_by_run_id: Option<String>,
+    /// Added-by agent api key id.
+    pub added_by_agent_api_key_id: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
     /// Payload JSON.
     pub payload: Option<String>,
     /// ISO 8601 creation time.
@@ -72,12 +102,30 @@ pub struct DecisionTriageRecord {
     pub source_id: String,
     /// Decide-by time.
     pub decide_by: Option<String>,
+    /// Decide-by date (calendar).
+    pub decide_by_date: Option<String>,
     /// Snoozed until time.
     pub snoozed_until: Option<String>,
+    /// Set-by actor type.
+    pub set_by_type: Option<String>,
+    /// Set-by agent id.
+    pub set_by_agent_id: Option<String>,
+    /// Set-by user id.
+    pub set_by_user_id: Option<String>,
+    /// Set-by run id.
+    pub set_by_run_id: Option<String>,
+    /// Set-by agent api key id.
+    pub set_by_agent_api_key_id: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
     /// Decision.
     pub decision: Option<String>,
     /// Deciding user.
     pub decided_by_user_id: Option<String>,
+    /// Triage version.
+    pub version: i64,
+    /// ISO 8601 creation time.
+    pub created_at: String,
 }
 
 /// An immutable triage event.
@@ -96,6 +144,28 @@ pub struct DecisionTriageEventRecord {
     pub decision: Option<String>,
     /// Deciding user.
     pub decided_by_user_id: Option<String>,
+    /// Queue id.
+    pub queue_id: Option<String>,
+    /// Source kind.
+    pub source_kind: Option<String>,
+    /// Source id.
+    pub source_id: Option<String>,
+    /// Action.
+    pub action: Option<String>,
+    /// Actor type.
+    pub actor_type: Option<String>,
+    /// Actor agent id.
+    pub actor_agent_id: Option<String>,
+    /// Actor user id.
+    pub actor_user_id: Option<String>,
+    /// Actor run id.
+    pub actor_run_id: Option<String>,
+    /// Agent api key id.
+    pub agent_api_key_id: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
+    /// Details JSON.
+    pub details: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -124,6 +194,20 @@ pub struct DecisionRetentionRecord {
     pub archived_reason: Option<String>,
     /// ISO 8601 restore time.
     pub restored_at: Option<String>,
+    /// Source activity timestamp.
+    pub source_activity_at: Option<String>,
+    /// Archiver actor type.
+    pub archived_by_type: Option<String>,
+    /// Archiver agent id.
+    pub archived_by_agent_id: Option<String>,
+    /// Archiver user id.
+    pub archived_by_user_id: Option<String>,
+    /// Archiver run id.
+    pub archived_by_run_id: Option<String>,
+    /// Retention version.
+    pub version: i64,
+    /// Archive version.
+    pub archive_version: i64,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -150,10 +234,26 @@ pub struct DecisionOutboxRecord {
     pub last_error: Option<String>,
     /// Dedupe key.
     pub dedupe_key: String,
+    /// Archive version.
+    pub archive_version: i64,
+    /// ISO 8601 delivery time.
+    pub delivered_at: Option<String>,
+    /// ISO 8601 last attempt time.
+    pub last_attempt_at: Option<String>,
+    /// Origin agent id.
+    pub origin_agent_id: Option<String>,
+    /// Origin issue id.
+    pub origin_issue_id: Option<String>,
+    /// Source id.
+    pub source_id: Option<String>,
+    /// Source kind.
+    pub source_kind: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
     /// ISO 8601 sent time.
     pub sent_at: Option<String>,
+    /// ISO 8601 last update time.
+    pub updated_at: Option<String>,
 }
 
 /// Result of a retention sweep.
@@ -422,7 +522,9 @@ impl DecisionRepository for TursoDecisionRepository {
             Ok(_) => {
                 let mut rows = conn
                     .query(
-                        "SELECT id, company_id, name, description, retention_days, created_at
+                        "SELECT id, company_id, name, key, title, created_by_type, created_by_agent_id,
+                        created_by_user_id, created_by_run_id, created_by_agent_api_key_id,
+                        description, retention_days, seed_rules, seed_rules_enabled, created_at
                          FROM decision_queues WHERE id = ?1",
                         libsql::params![id],
                     )
@@ -432,9 +534,20 @@ impl DecisionRepository for TursoDecisionRepository {
                     id: helpers::row_text(&row, 0)?.expect("id"),
                     company_id: helpers::row_text(&row, 1)?.expect("company_id"),
                     name: helpers::row_text(&row, 2)?.expect("name"),
-                    description: helpers::row_text(&row, 3)?,
-                    retention_days: row_opt_i64(&row, 4)?,
-                    created_at: helpers::row_text(&row, 5)?.expect("created_at"),
+                    key: helpers::row_text(&row, 3)?,
+                    title: helpers::row_text(&row, 4)?,
+                    created_by_type: helpers::row_text(&row, 5)?,
+                    created_by_agent_id: helpers::row_text(&row, 6)?,
+                    created_by_user_id: helpers::row_text(&row, 7)?,
+                    created_by_run_id: helpers::row_text(&row, 8)?,
+                    created_by_agent_api_key_id: helpers::row_text(&row, 9)?,
+                    description: helpers::row_text(&row, 10)?,
+                    retention_days: row_opt_i64(&row, 11)?,
+                    seed_rules: helpers::row_text(&row, 12)?
+                        .and_then(|raw| serde_json::from_str(&raw).ok())
+                        .unwrap_or_else(|| serde_json::json!([])),
+                    seed_rules_enabled: helpers::row_i64(&row, 13)? != 0,
+                    created_at: helpers::row_text(&row, 14)?.expect("created_at"),
                 })
             }
             Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
@@ -451,7 +564,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, name, description, retention_days, created_at
+                "SELECT id, company_id, name, key, title, created_by_type, created_by_agent_id,
+                        created_by_user_id, created_by_run_id, created_by_agent_api_key_id,
+                        description, retention_days, seed_rules, seed_rules_enabled, created_at
                  FROM decision_queues WHERE company_id = ?1 ORDER BY name",
                 libsql::params![company_id],
             )
@@ -462,9 +577,20 @@ impl DecisionRepository for TursoDecisionRepository {
                 id: helpers::row_text(&row, 0)?.expect("id"),
                 company_id: helpers::row_text(&row, 1)?.expect("company_id"),
                 name: helpers::row_text(&row, 2)?.expect("name"),
-                description: helpers::row_text(&row, 3)?,
-                retention_days: row_opt_i64(&row, 4)?,
-                created_at: helpers::row_text(&row, 5)?.expect("created_at"),
+                key: helpers::row_text(&row, 3)?,
+                title: helpers::row_text(&row, 4)?,
+                created_by_type: helpers::row_text(&row, 5)?,
+                created_by_agent_id: helpers::row_text(&row, 6)?,
+                created_by_user_id: helpers::row_text(&row, 7)?,
+                created_by_run_id: helpers::row_text(&row, 8)?,
+                created_by_agent_api_key_id: helpers::row_text(&row, 9)?,
+                description: helpers::row_text(&row, 10)?,
+                retention_days: row_opt_i64(&row, 11)?,
+                seed_rules: helpers::row_text(&row, 12)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok())
+                    .unwrap_or_else(|| serde_json::json!([])),
+                seed_rules_enabled: helpers::row_i64(&row, 13)? != 0,
+                created_at: helpers::row_text(&row, 14)?.expect("created_at"),
             });
         }
         Ok(queues)
@@ -503,7 +629,9 @@ impl DecisionRepository for TursoDecisionRepository {
             Ok(_) => {
                 let mut rows = conn
                     .query(
-                        "SELECT id, company_id, queue_id, source_kind, source_id, payload, created_at
+                        "SELECT id, company_id, queue_id, source_kind, source_id, added_by_type,
+                        added_by_agent_id, added_by_user_id, added_by_run_id,
+                        added_by_agent_api_key_id, responsible_user_id, payload, created_at
                          FROM decision_queue_items WHERE id = ?1",
                         libsql::params![id],
                     )
@@ -515,8 +643,14 @@ impl DecisionRepository for TursoDecisionRepository {
                     queue_id: helpers::row_text(&row, 2)?.expect("queue_id"),
                     source_kind: helpers::row_text(&row, 3)?.expect("source_kind"),
                     source_id: helpers::row_text(&row, 4)?.expect("source_id"),
-                    payload: helpers::row_text(&row, 5)?,
-                    created_at: helpers::row_text(&row, 6)?.expect("created_at"),
+                    added_by_type: helpers::row_text(&row, 5)?,
+                    added_by_agent_id: helpers::row_text(&row, 6)?,
+                    added_by_user_id: helpers::row_text(&row, 7)?,
+                    added_by_run_id: helpers::row_text(&row, 8)?,
+                    added_by_agent_api_key_id: helpers::row_text(&row, 9)?,
+                    responsible_user_id: helpers::row_text(&row, 10)?,
+                    payload: helpers::row_text(&row, 11)?,
+                    created_at: helpers::row_text(&row, 12)?.expect("created_at"),
                 })
             }
             Err(error) if error.to_string().contains("UNIQUE constraint failed") => {
@@ -534,7 +668,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, queue_id, source_kind, source_id, payload, created_at
+                "SELECT id, company_id, queue_id, source_kind, source_id, added_by_type,
+                        added_by_agent_id, added_by_user_id, added_by_run_id,
+                        added_by_agent_api_key_id, responsible_user_id, payload, created_at
                  FROM decision_queue_items WHERE company_id = ?1 AND queue_id = ?2 ORDER BY created_at",
                 libsql::params![company_id, queue_id],
             )
@@ -547,8 +683,14 @@ impl DecisionRepository for TursoDecisionRepository {
                 queue_id: helpers::row_text(&row, 2)?.expect("queue_id"),
                 source_kind: helpers::row_text(&row, 3)?.expect("source_kind"),
                 source_id: helpers::row_text(&row, 4)?.expect("source_id"),
-                payload: helpers::row_text(&row, 5)?,
-                created_at: helpers::row_text(&row, 6)?.expect("created_at"),
+                added_by_type: helpers::row_text(&row, 5)?,
+                added_by_agent_id: helpers::row_text(&row, 6)?,
+                added_by_user_id: helpers::row_text(&row, 7)?,
+                added_by_run_id: helpers::row_text(&row, 8)?,
+                added_by_agent_api_key_id: helpers::row_text(&row, 9)?,
+                responsible_user_id: helpers::row_text(&row, 10)?,
+                payload: helpers::row_text(&row, 11)?,
+                created_at: helpers::row_text(&row, 12)?.expect("created_at"),
             });
         }
         Ok(items)
@@ -587,8 +729,10 @@ impl DecisionRepository for TursoDecisionRepository {
         .await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, source_kind, source_id, decide_by, snoozed_until,
-                        decision, decided_by_user_id
+                "SELECT id, company_id, source_kind, source_id, decide_by, decide_by_date,
+                        snoozed_until, set_by_type, set_by_agent_id, set_by_user_id,
+                        set_by_run_id, set_by_agent_api_key_id, responsible_user_id, decision,
+                        decided_by_user_id, version, created_at
                  FROM decision_triage WHERE company_id = ?1 AND source_kind = ?2 AND source_id = ?3",
                 libsql::params![company_id, source_kind, source_id],
             )
@@ -600,9 +744,18 @@ impl DecisionRepository for TursoDecisionRepository {
             source_kind: helpers::row_text(&row, 2)?.expect("source_kind"),
             source_id: helpers::row_text(&row, 3)?.expect("source_id"),
             decide_by: helpers::row_text(&row, 4)?,
-            snoozed_until: helpers::row_text(&row, 5)?,
-            decision: helpers::row_text(&row, 6)?,
-            decided_by_user_id: helpers::row_text(&row, 7)?,
+            decide_by_date: helpers::row_text(&row, 5)?,
+            snoozed_until: helpers::row_text(&row, 6)?,
+            set_by_type: helpers::row_text(&row, 7)?,
+            set_by_agent_id: helpers::row_text(&row, 8)?,
+            set_by_user_id: helpers::row_text(&row, 9)?,
+            set_by_run_id: helpers::row_text(&row, 10)?,
+            set_by_agent_api_key_id: helpers::row_text(&row, 11)?,
+            responsible_user_id: helpers::row_text(&row, 12)?,
+            decision: helpers::row_text(&row, 13)?,
+            decided_by_user_id: helpers::row_text(&row, 14)?,
+            version: helpers::row_i64(&row, 15)?,
+            created_at: helpers::row_text(&row, 16)?.expect("created_at"),
         })
     }
 
@@ -613,8 +766,10 @@ impl DecisionRepository for TursoDecisionRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, source_kind, source_id, decide_by, snoozed_until,
-                        decision, decided_by_user_id
+                "SELECT id, company_id, source_kind, source_id, decide_by, decide_by_date,
+                        snoozed_until, set_by_type, set_by_agent_id, set_by_user_id,
+                        set_by_run_id, set_by_agent_api_key_id, responsible_user_id, decision,
+                        decided_by_user_id, version, created_at
                  FROM decision_triage WHERE company_id = ?1 ORDER BY updated_at DESC",
                 libsql::params![company_id],
             )
@@ -627,9 +782,18 @@ impl DecisionRepository for TursoDecisionRepository {
                 source_kind: helpers::row_text(&row, 2)?.expect("source_kind"),
                 source_id: helpers::row_text(&row, 3)?.expect("source_id"),
                 decide_by: helpers::row_text(&row, 4)?,
-                snoozed_until: helpers::row_text(&row, 5)?,
-                decision: helpers::row_text(&row, 6)?,
-                decided_by_user_id: helpers::row_text(&row, 7)?,
+                decide_by_date: helpers::row_text(&row, 5)?,
+                snoozed_until: helpers::row_text(&row, 6)?,
+                set_by_type: helpers::row_text(&row, 7)?,
+                set_by_agent_id: helpers::row_text(&row, 8)?,
+                set_by_user_id: helpers::row_text(&row, 9)?,
+                set_by_run_id: helpers::row_text(&row, 10)?,
+                set_by_agent_api_key_id: helpers::row_text(&row, 11)?,
+                responsible_user_id: helpers::row_text(&row, 12)?,
+                decision: helpers::row_text(&row, 13)?,
+                decided_by_user_id: helpers::row_text(&row, 14)?,
+                version: helpers::row_i64(&row, 15)?,
+                created_at: helpers::row_text(&row, 16)?.expect("created_at"),
             });
         }
         Ok(triage)
@@ -665,7 +829,10 @@ impl DecisionRepository for TursoDecisionRepository {
         .await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+                "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id,
+                        queue_id, source_kind, source_id, action, actor_type, actor_agent_id,
+                        actor_user_id, actor_run_id, agent_api_key_id, responsible_user_id,
+                        details, created_at
                  FROM decision_triage_events WHERE id = ?1",
                 libsql::params![id],
             )
@@ -681,21 +848,29 @@ impl DecisionRepository for TursoDecisionRepository {
     ) -> Result<Vec<DecisionTriageEventRecord>, DecisionError> {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = match triage_id {
-            Some(triage_id) => conn
-                .query(
-                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+            Some(triage_id) => {
+                conn.query(
+                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id,
+                        queue_id, source_kind, source_id, action, actor_type, actor_agent_id,
+                        actor_user_id, actor_run_id, agent_api_key_id, responsible_user_id,
+                        details, created_at
                      FROM decision_triage_events WHERE company_id = ?1 AND triage_id = ?2
                      ORDER BY created_at",
                     libsql::params![company_id, triage_id],
                 )
-                .await?,
-            None => conn
-                .query(
-                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id, created_at
+                .await?
+            }
+            None => {
+                conn.query(
+                    "SELECT id, company_id, triage_id, event_type, decision, decided_by_user_id,
+                        queue_id, source_kind, source_id, action, actor_type, actor_agent_id,
+                        actor_user_id, actor_run_id, agent_api_key_id, responsible_user_id,
+                        details, created_at
                      FROM decision_triage_events WHERE company_id = ?1 ORDER BY created_at",
                     libsql::params![company_id],
                 )
-                .await?,
+                .await?
+            }
         };
         let mut events = Vec::new();
         while let Some(row) = rows.next().await? {
@@ -735,7 +910,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
-                        archived_at, archived_reason, restored_at, created_at
+                        archived_at, archived_reason, restored_at, source_activity_at,
+                        archived_by_type, archived_by_agent_id, archived_by_user_id,
+                        archived_by_run_id, version, archive_version, created_at
                  FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
                 libsql::params![company_id, triage_id],
             )
@@ -802,7 +979,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
-                        archived_at, archived_reason, restored_at, created_at
+                        archived_at, archived_reason, restored_at, source_activity_at,
+                        archived_by_type, archived_by_agent_id, archived_by_user_id,
+                        archived_by_run_id, version, archive_version, created_at
                  FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
                 libsql::params![company_id, triage_id],
             )
@@ -833,7 +1012,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
-                        archived_at, archived_reason, restored_at, created_at
+                        archived_at, archived_reason, restored_at, source_activity_at,
+                        archived_by_type, archived_by_agent_id, archived_by_user_id,
+                        archived_by_run_id, version, archive_version, created_at
                  FROM decision_retention WHERE company_id = ?1 AND triage_id = ?2",
                 libsql::params![company_id, triage_id],
             )
@@ -850,7 +1031,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, source_kind, source_id, keep, archived,
-                        archived_at, archived_reason, restored_at, created_at
+                        archived_at, archived_reason, restored_at, source_activity_at,
+                        archived_by_type, archived_by_agent_id, archived_by_user_id,
+                        archived_by_run_id, version, archive_version, created_at
                  FROM decision_retention WHERE company_id = ?1 ORDER BY updated_at DESC",
                 libsql::params![company_id],
             )
@@ -870,7 +1053,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, notification_kind, recipient_user_id, status,
-                        attempt_count, last_error, dedupe_key, created_at, sent_at
+                        attempt_count, last_error, dedupe_key, archive_version, delivered_at,
+                        last_attempt_at, origin_agent_id, origin_issue_id, source_id,
+                        source_kind, created_at, sent_at, updated_at
                  FROM decision_archive_notification_outbox
                  WHERE company_id = ?1 ORDER BY created_at DESC",
                 libsql::params![company_id],
@@ -903,7 +1088,9 @@ impl DecisionRepository for TursoDecisionRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, triage_id, notification_kind, recipient_user_id, status,
-                        attempt_count, last_error, dedupe_key, created_at, sent_at
+                        attempt_count, last_error, dedupe_key, archive_version, delivered_at,
+                        last_attempt_at, origin_agent_id, origin_issue_id, source_id,
+                        source_kind, created_at, sent_at, updated_at
                  FROM decision_archive_notification_outbox WHERE id = ?1",
                 libsql::params![id],
             )
@@ -992,7 +1179,18 @@ fn row_to_event(row: &libsql::Row) -> Result<DecisionTriageEventRecord, libsql::
         event_type: helpers::row_text(row, 3)?.expect("event_type"),
         decision: helpers::row_text(row, 4)?,
         decided_by_user_id: helpers::row_text(row, 5)?,
-        created_at: helpers::row_text(row, 6)?.expect("created_at"),
+        queue_id: helpers::row_text(row, 6)?,
+        source_kind: helpers::row_text(row, 7)?,
+        source_id: helpers::row_text(row, 8)?,
+        action: helpers::row_text(row, 9)?,
+        actor_type: helpers::row_text(row, 10)?,
+        actor_agent_id: helpers::row_text(row, 11)?,
+        actor_user_id: helpers::row_text(row, 12)?,
+        actor_run_id: helpers::row_text(row, 13)?,
+        agent_api_key_id: helpers::row_text(row, 14)?,
+        responsible_user_id: helpers::row_text(row, 15)?,
+        details: helpers::row_text(row, 16)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        created_at: helpers::row_text(row, 17)?.expect("created_at"),
     })
 }
 
@@ -1008,7 +1206,14 @@ fn row_to_retention(row: &libsql::Row) -> Result<DecisionRetentionRecord, libsql
         archived_at: helpers::row_text(row, 7)?,
         archived_reason: helpers::row_text(row, 8)?,
         restored_at: helpers::row_text(row, 9)?,
-        created_at: helpers::row_text(row, 10)?.expect("created_at"),
+        source_activity_at: helpers::row_text(row, 10)?,
+        archived_by_type: helpers::row_text(row, 11)?,
+        archived_by_agent_id: helpers::row_text(row, 12)?,
+        archived_by_user_id: helpers::row_text(row, 13)?,
+        archived_by_run_id: helpers::row_text(row, 14)?,
+        version: helpers::row_i64(row, 15)?,
+        archive_version: helpers::row_i64(row, 16)?,
+        created_at: helpers::row_text(row, 17)?.expect("created_at"),
     })
 }
 
@@ -1023,8 +1228,16 @@ fn row_to_outbox(row: &libsql::Row) -> Result<DecisionOutboxRecord, libsql::Erro
         attempt_count: helpers::row_i64(row, 6)?,
         last_error: helpers::row_text(row, 7)?,
         dedupe_key: helpers::row_text(row, 8)?.expect("dedupe_key"),
-        created_at: helpers::row_text(row, 9)?.expect("created_at"),
-        sent_at: helpers::row_text(row, 10)?,
+        archive_version: helpers::row_i64(row, 9)?,
+        delivered_at: helpers::row_text(row, 10)?,
+        last_attempt_at: helpers::row_text(row, 11)?,
+        origin_agent_id: helpers::row_text(row, 12)?,
+        origin_issue_id: helpers::row_text(row, 13)?,
+        source_id: helpers::row_text(row, 14)?,
+        source_kind: helpers::row_text(row, 15)?,
+        created_at: helpers::row_text(row, 16)?.expect("created_at"),
+        sent_at: helpers::row_text(row, 17)?,
+        updated_at: helpers::row_text(row, 18)?,
     })
 }
 
@@ -1290,5 +1503,130 @@ mod tests {
         let again = repo.sweep("c1", 90).await.unwrap();
         assert_eq!(again.archived, 0);
         assert_eq!(again.notifications_enqueued, 0);
+    }
+
+    #[tokio::test]
+    async fn column_alignment_readback() {
+        let (_dir, repo) = repo().await;
+        let conn = crate::connect(&repo.db).await.unwrap();
+
+        // Queue: new columns are read back after a SQL update.
+        let queue = repo
+            .create_queue("c1", "approvals", Some("desc".to_owned()), Some(30))
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE decision_queues SET key = 'approvals', title = 'Pending approvals',
+                    created_by_type = 'user', created_by_user_id = 'u1',
+                    seed_rules = '[]', seed_rules_enabled = 1
+             WHERE id = ?1",
+            libsql::params![queue.id.clone()],
+        )
+        .await
+        .unwrap();
+        let queues = repo.list_queues("c1").await.unwrap();
+        assert_eq!(queues.len(), 1);
+        assert_eq!(queues[0].key.as_deref(), Some("approvals"));
+        assert_eq!(queues[0].title.as_deref(), Some("Pending approvals"));
+        assert_eq!(queues[0].created_by_type.as_deref(), Some("user"));
+        assert_eq!(queues[0].created_by_user_id.as_deref(), Some("u1"));
+        assert!(queues[0].seed_rules_enabled);
+
+        // Item: added-by / responsible columns.
+        let item = repo
+            .add_item("c1", &queue.id, "approval", "a1", Some("{}".to_owned()))
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE decision_queue_items SET added_by_type = 'agent',
+                    added_by_agent_id = '11111111-1111-1111-1111-111111111111',
+                    responsible_user_id = 'u2'
+             WHERE id = ?1",
+            libsql::params![item.id.clone()],
+        )
+        .await
+        .unwrap();
+        let items = repo.list_items("c1", &queue.id).await.unwrap();
+        assert_eq!(items[0].added_by_type.as_deref(), Some("agent"));
+        assert_eq!(items[0].responsible_user_id.as_deref(), Some("u2"));
+
+        // Triage: decide-by-date / set-by / version.
+        let triage = repo
+            .set_triage(
+                "c1",
+                "approval",
+                "a1",
+                TriageInput {
+                    decide_by: Some("2026-08-10T00:00:00Z".to_owned()),
+                    snoozed_until: None,
+                    decision: None,
+                    decided_by_user_id: None,
+                },
+            )
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE decision_triage SET decide_by_date = '2026-08-10',
+                    set_by_type = 'user', set_by_user_id = 'u1', version = 3
+             WHERE id = ?1",
+            libsql::params![triage.id.clone()],
+        )
+        .await
+        .unwrap();
+        let triage_rows = repo.list_triage("c1").await.unwrap();
+        assert_eq!(triage_rows[0].decide_by_date.as_deref(), Some("2026-08-10"));
+        assert_eq!(triage_rows[0].set_by_type.as_deref(), Some("user"));
+        assert_eq!(triage_rows[0].set_by_user_id.as_deref(), Some("u1"));
+        assert_eq!(triage_rows[0].version, 3);
+        assert!(!triage_rows[0].created_at.is_empty());
+
+        // Triage event: actor / action / details.
+        let event = repo
+            .append_triage_event(
+                "c1",
+                &triage.id,
+                "decided",
+                Some("approve".to_owned()),
+                Some("u1".to_owned()),
+            )
+            .await
+            .unwrap();
+        conn.execute(
+            "UPDATE decision_triage_events SET action = 'decided',
+                    actor_type = 'user', actor_user_id = 'u1', responsible_user_id = 'u2',
+                    details = '{\"note\":\"ok\"}'
+             WHERE id = ?1",
+            libsql::params![event.id.clone()],
+        )
+        .await
+        .unwrap();
+        let events = repo
+            .list_triage_events("c1", Some(&triage.id))
+            .await
+            .unwrap();
+        assert_eq!(events[0].action.as_deref(), Some("decided"));
+        assert_eq!(events[0].actor_user_id.as_deref(), Some("u1"));
+        assert_eq!(events[0].responsible_user_id.as_deref(), Some("u2"));
+        assert!(events[0].details.is_some());
+
+        // Retention + outbox read back new columns after archive.
+        let archived = repo
+            .retention_archive("c1", "approval", "a1", Some("90d".to_owned()), None)
+            .await
+            .unwrap();
+        assert_eq!(archived.archive_version, 0);
+        let outbox = repo.list_outbox("c1").await.unwrap();
+        assert!(!outbox.is_empty());
+        conn.execute(
+            "UPDATE decision_archive_notification_outbox SET delivered_at = '2026-08-05T00:00:00Z',
+                    source_kind = 'approval', source_id = 'a1'
+             WHERE id = ?1",
+            libsql::params![outbox[0].id.clone()],
+        )
+        .await
+        .unwrap();
+        let outbox_rows = repo.list_outbox("c1").await.unwrap();
+        assert_eq!(outbox_rows[0].source_kind.as_deref(), Some("approval"));
+        assert!(outbox_rows[0].delivered_at.is_some());
     }
 }

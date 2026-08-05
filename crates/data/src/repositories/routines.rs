@@ -240,6 +240,17 @@ pub trait RoutineRepository: Send + Sync {
         company_id: &str,
         routine_id: &str,
     ) -> Result<Vec<serde_json::Value>, RoutineError>;
+
+    /// Lists revisions for a routine, newest first.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`RoutineError`] on database failure.
+    async fn list_revisions(
+        &self,
+        company_id: &str,
+        routine_id: &str,
+    ) -> Result<Vec<serde_json::Value>, RoutineError>;
 }
 
 /// Turso/libSQL implementation of [`RoutineRepository`].
@@ -506,7 +517,11 @@ impl RoutineRepository for TursoRoutineRepository {
         .await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, routine_id, schedule_kind, schedule_expr, enabled, created_at
+                "SELECT id, company_id, routine_id, schedule_kind, schedule_expr, enabled,
+                        kind, label, cron_expression, timezone, next_run_at, last_fired_at,
+                        public_id, secret_id, signing_mode, replay_window_sec, last_rotated_at,
+                        last_result, created_by_agent_id, created_by_user_id, updated_by_agent_id,
+                        updated_by_user_id, created_at, updated_at
                  FROM routine_triggers WHERE id = ?1",
                 libsql::params![id],
             )
@@ -519,6 +534,24 @@ impl RoutineRepository for TursoRoutineRepository {
             "scheduleKind": helpers::row_text(&row, 3)?.expect("schedule_kind"),
             "scheduleExpr": helpers::row_text(&row, 4)?,
             "enabled": helpers::row_i64(&row, 5)? != 0,
+            "kind": helpers::row_text(&row, 6)?,
+            "label": helpers::row_text(&row, 7)?,
+            "cronExpression": helpers::row_text(&row, 8)?,
+            "timezone": helpers::row_text(&row, 9)?,
+            "nextRunAt": helpers::row_text(&row, 10)?,
+            "lastFiredAt": helpers::row_text(&row, 11)?,
+            "publicId": helpers::row_text(&row, 12)?,
+            "secretId": helpers::row_text(&row, 13)?,
+            "signingMode": helpers::row_text(&row, 14)?,
+            "replayWindowSec": helpers::row_i64_opt(&row, 15)?,
+            "lastRotatedAt": helpers::row_text(&row, 16)?,
+            "lastResult": helpers::row_text(&row, 17)?,
+            "createdByAgentId": helpers::row_text(&row, 18)?,
+            "createdByUserId": helpers::row_text(&row, 19)?,
+            "updatedByAgentId": helpers::row_text(&row, 20)?,
+            "updatedByUserId": helpers::row_text(&row, 21)?,
+            "createdAt": helpers::row_text(&row, 22)?,
+            "updatedAt": helpers::row_text(&row, 23)?,
         }))
     }
 
@@ -530,7 +563,11 @@ impl RoutineRepository for TursoRoutineRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, routine_id, schedule_kind, schedule_expr, enabled, created_at
+                "SELECT id, company_id, routine_id, schedule_kind, schedule_expr, enabled,
+                        kind, label, cron_expression, timezone, next_run_at, last_fired_at,
+                        public_id, secret_id, signing_mode, replay_window_sec, last_rotated_at,
+                        last_result, created_by_agent_id, created_by_user_id, updated_by_agent_id,
+                        updated_by_user_id, created_at, updated_at
                  FROM routine_triggers WHERE company_id = ?1 AND routine_id = ?2 ORDER BY created_at",
                 libsql::params![company_id, routine_id],
             )
@@ -544,9 +581,71 @@ impl RoutineRepository for TursoRoutineRepository {
                 "scheduleKind": helpers::row_text(&row, 3)?.expect("schedule_kind"),
                 "scheduleExpr": helpers::row_text(&row, 4)?,
                 "enabled": helpers::row_i64(&row, 5)? != 0,
+                "kind": helpers::row_text(&row, 6)?,
+                "label": helpers::row_text(&row, 7)?,
+                "cronExpression": helpers::row_text(&row, 8)?,
+                "timezone": helpers::row_text(&row, 9)?,
+                "nextRunAt": helpers::row_text(&row, 10)?,
+                "lastFiredAt": helpers::row_text(&row, 11)?,
+                "publicId": helpers::row_text(&row, 12)?,
+                "secretId": helpers::row_text(&row, 13)?,
+                "signingMode": helpers::row_text(&row, 14)?,
+                "replayWindowSec": helpers::row_i64_opt(&row, 15)?,
+                "lastRotatedAt": helpers::row_text(&row, 16)?,
+                "lastResult": helpers::row_text(&row, 17)?,
+                "createdByAgentId": helpers::row_text(&row, 18)?,
+                "createdByUserId": helpers::row_text(&row, 19)?,
+                "updatedByAgentId": helpers::row_text(&row, 20)?,
+                "updatedByUserId": helpers::row_text(&row, 21)?,
+                "createdAt": helpers::row_text(&row, 22)?,
+                "updatedAt": helpers::row_text(&row, 23)?,
             }));
         }
         Ok(triggers)
+    }
+
+    async fn list_revisions(
+        &self,
+        company_id: &str,
+        routine_id: &str,
+    ) -> Result<Vec<serde_json::Value>, RoutineError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, routine_id, revision_number, title, description,
+                        priority, variables, change_summary, snapshot,
+                        restored_from_revision_id, responsible_user_id, created_by_run_id,
+                        created_at
+                 FROM routine_revisions
+                 WHERE company_id = ?1 AND routine_id = ?2
+                 ORDER BY revision_number DESC",
+                libsql::params![company_id, routine_id],
+            )
+            .await?;
+        let mut revisions = Vec::new();
+        while let Some(row) = rows.next().await? {
+            revisions.push(serde_json::json!({
+                "id": helpers::row_text(&row, 0)?.expect("id"),
+                "companyId": helpers::row_text(&row, 1)?.expect("company_id"),
+                "routineId": helpers::row_text(&row, 2)?.expect("routine_id"),
+                "revisionNumber": helpers::row_i64(&row, 3)?,
+                "title": helpers::row_text(&row, 4)?,
+                "description": helpers::row_text(&row, 5)?,
+                "priority": helpers::row_text(&row, 6)?,
+                "variables": helpers::row_text(&row, 7)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok())
+                    .unwrap_or_else(|| serde_json::json!([])),
+                "changeSummary": helpers::row_text(&row, 8)?,
+                "snapshot": helpers::row_text(&row, 9)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok())
+                    .unwrap_or(serde_json::Value::Null),
+                "restoredFromRevisionId": helpers::row_text(&row, 10)?,
+                "responsibleUserId": helpers::row_text(&row, 11)?,
+                "createdByRunId": helpers::row_text(&row, 12)?,
+                "createdAt": helpers::row_text(&row, 13)?,
+            }));
+        }
+        Ok(revisions)
     }
 }
 
@@ -697,5 +796,65 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(error, RoutineError::RoutineNotFound));
+    }
+
+    #[tokio::test]
+    async fn trigger_and_revision_column_readback() {
+        let (_dir, repo) = repo().await;
+        let routine = repo.create(new_routine()).await.unwrap();
+        let trigger = repo
+            .create_trigger(NewTrigger {
+                company_id: "c1".to_owned(),
+                routine_id: routine.id.clone(),
+                schedule_kind: "cron".to_owned(),
+                schedule_expr: Some("0 9 * * *".to_owned()),
+            })
+            .await
+            .unwrap();
+        assert_eq!(trigger["scheduleKind"], "cron");
+
+        // New trigger columns are read back after a SQL update.
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE routine_triggers SET kind = 'cron', label = 'daily',
+                        cron_expression = '0 9 * * *', timezone = 'Asia/Shanghai',
+                        public_id = 'pub-1', signing_mode = 'hmac', replay_window_sec = 3600
+                 WHERE id = ?1",
+                libsql::params![trigger["id"].as_str().unwrap()],
+            )
+            .await
+            .unwrap();
+        }
+        let triggers = repo.list_triggers("c1", &routine.id).await.unwrap();
+        assert_eq!(triggers.len(), 1);
+        assert_eq!(triggers[0]["kind"], "cron");
+        assert_eq!(triggers[0]["label"], "daily");
+        assert_eq!(triggers[0]["cronExpression"], "0 9 * * *");
+        assert_eq!(triggers[0]["timezone"], "Asia/Shanghai");
+        assert_eq!(triggers[0]["publicId"], "pub-1");
+        assert_eq!(triggers[0]["signingMode"], "hmac");
+        assert_eq!(triggers[0]["replayWindowSec"], 3600);
+
+        // Revision read-back includes the new columns.
+        {
+            let conn = crate::connect(&repo.db).await.unwrap();
+            conn.execute(
+                "UPDATE routine_revisions SET change_summary = 'initial',
+                        snapshot = '{\"v\":1}', responsible_user_id = 'u1',
+                        created_by_run_id = 'r1'
+                 WHERE routine_id = ?1",
+                libsql::params![routine.id.clone()],
+            )
+            .await
+            .unwrap();
+        }
+        let revisions = repo.list_revisions("c1", &routine.id).await.unwrap();
+        assert_eq!(revisions.len(), 1);
+        assert_eq!(revisions[0]["revisionNumber"], 1);
+        assert_eq!(revisions[0]["changeSummary"], "initial");
+        assert_eq!(revisions[0]["snapshot"]["v"], 1);
+        assert_eq!(revisions[0]["responsibleUserId"], "u1");
+        assert_eq!(revisions[0]["createdByRunId"], "r1");
     }
 }
