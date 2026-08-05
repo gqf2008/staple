@@ -3,7 +3,8 @@
 use serde::Deserialize;
 use serde_json::json;
 use staple_data::{
-    CompanyMembershipRecord, InstanceUserRoleRecord, NewCompanyMembership, NewInstanceUserRole,
+    CompanyAccessRow, CompanyMembershipRecord, InstanceUserRoleRecord, NewCompanyMembership,
+    NewInstanceUserRole, UserAccessSummary,
 };
 use topcoat::{
     Result,
@@ -259,4 +260,82 @@ fn membership_error_to_api(error: staple_data::MembershipError) -> ApiError {
         ),
         other => ApiError::internal(other.to_string()),
     }
+}
+
+/// `{user_id}` path parameter for instance user access routes.
+#[path_param(error = bad_request("Invalid user id"))]
+pub(crate) struct UserId(String);
+
+/// Body for `PUT /api/instance/users/{userId}/company-access`.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct SetUserCompanyAccessRequest {
+    /// Company ids the user may access.
+    pub company_ids: Vec<String>,
+}
+
+/// `GET /api/instance/users` — lists instance users with access summaries.
+#[route(GET "/api/instance/users")]
+pub async fn list_instance_users(cx: &Cx) -> Result<Json<Vec<UserAccessSummary>>, ApiError> {
+    require_board(cx)?;
+    let state = app_context::<AppState>(cx);
+    let search = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts.uri.query().and_then(|query| {
+                query.split('&').find_map(|pair| {
+                    let (key, value) = pair.split_once('=')?;
+                    (key == "search").then_some(value.to_owned())
+                })
+            })
+        })
+        .unwrap_or_default();
+    let mut users = state
+        .memberships
+        .list_users()
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    if !search.is_empty() {
+        users.retain(|user| user.user_id.starts_with(&search));
+    }
+    Ok(Json(users))
+}
+
+/// `GET /api/instance/users/{userId}/company-access` — one user's access.
+#[route(GET "/api/instance/users/{user_id}/company-access")]
+pub async fn user_company_access(cx: &Cx) -> Result<Json<Vec<CompanyAccessRow>>, ApiError> {
+    require_board(cx)?;
+    let user_id = path_param::<UserId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let access = state
+        .memberships
+        .user_company_access(&user_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(access))
+}
+
+/// `PUT /api/instance/users/{userId}/company-access` — sets a user's companies.
+#[route(PUT "/api/instance/users/{user_id}/company-access")]
+pub async fn set_user_company_access(
+    cx: &Cx,
+    Json(body): Json<SetUserCompanyAccessRequest>,
+) -> Result<Json<serde_json::Value>, ApiError> {
+    require_board(cx)?;
+    let user_id = path_param::<UserId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let active = state
+        .memberships
+        .set_user_company_access(&user_id, &body.company_ids)
+        .await
+        .map_err(|error| match error {
+            staple_data::MembershipError::CompanyNotFound => {
+                ApiError::not_found("Company not found")
+            }
+            other => ApiError::internal(other.to_string()),
+        })?;
+    // Instance-level user access management has no single owning company, so
+    // it is intentionally not written to the company-scoped activity log.
+    Ok(Json(
+        json!({ "userId": user_id, "activeCompanyCount": active }),
+    ))
 }

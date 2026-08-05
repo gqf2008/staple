@@ -2138,6 +2138,12 @@ pub async fn instance_settings(cx: &Cx) -> Result {
         .list_roles()
         .await
         .map_err(to_topcoat_error)?;
+    let user_access_rows = state
+        .memberships
+        .list_users()
+        .await
+        .map_err(to_topcoat_error)?;
+    let company_rows = state.companies.list().await.map_err(to_topcoat_error)?;
     let keys = state
         .board_keys
         .list_keys()
@@ -2245,6 +2251,35 @@ pub async fn instance_settings(cx: &Cx) -> Result {
                         <li>
                             <span class="mono">(role.user_id)</span>
                             " " <span class="badge badge-default">(role.role)</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "instance.userAccess"))</h2>
+            if user_access_rows.is_empty() {
+                <p class="empty">(t(lang, "users.none"))</p>
+            } else {
+                <ul class="list">
+                    for user_row in &user_access_rows {
+                        <li>
+                            <span class="mono">(user_row.user_id.clone())</span>
+                            " " <span class="meta-row">(user_row.company_count) " companies"</span>
+                            if user_row.instance_admin {
+                                " " <span class="badge badge-done">(t(lang, "instance.admin"))</span>
+                            }
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/instance/users/{}/company-access/ui", user_row.user_id), lang))>
+                                for company in &company_rows {
+                                    <label class="inline-label">
+                                        <input type="checkbox" name="companyIds" value=(company.id.clone())
+                                               checked=(user_row.active_company_ids.contains(&company.id))>
+                                        " " (company.name.clone())
+                                    </label>
+                                }
+                                <button type="submit">(t(lang, "instance.saveAccess"))</button>
+                            </form>
                         </li>
                     }
                 </ul>

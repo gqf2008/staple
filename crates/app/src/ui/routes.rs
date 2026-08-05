@@ -4182,3 +4182,32 @@ pub async fn board_zip_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiErro
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
 }
+
+/// `{user_id}` path parameter for UI routes.
+#[path_param(error = bad_request("Invalid user id"))]
+pub(crate) struct UserId(String);
+
+/// Form for setting a user's company access.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyAccessForm {
+    /// Selected company ids.
+    #[serde(default)]
+    pub company_ids: Vec<String>,
+}
+
+/// `POST /instance/users/{user_id}/company-access/ui` — sets a user's
+/// companies and redirects back to instance settings.
+#[route(POST "/instance/users/{user_id}/company-access/ui")]
+pub async fn user_company_access_ui(
+    cx: &Cx,
+    Form(form): Form<CompanyAccessForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let user_id = path_param::<UserId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .memberships
+        .set_user_company_access(&user_id, &form.company_ids)
+        .await;
+    Ok(see_other("/instance/settings"))
+}

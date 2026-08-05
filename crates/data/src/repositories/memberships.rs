@@ -43,6 +43,36 @@ pub struct InstanceUserRoleRecord {
     pub created_at: String,
 }
 
+/// User-level access summary for the instance access page.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct UserAccessSummary {
+    /// User id.
+    pub user_id: String,
+    /// Number of companies the user is a member of (any status).
+    pub company_count: i64,
+    /// Whether the user holds an instance admin role.
+    pub instance_admin: bool,
+    /// Ids of companies where the user is an active member.
+    pub active_company_ids: Vec<String>,
+}
+
+/// Company access row for one user.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyAccessRow {
+    /// Membership id.
+    pub membership_id: String,
+    /// Company id.
+    pub company_id: String,
+    /// Company name.
+    pub company_name: String,
+    /// Membership status.
+    pub status: String,
+    /// Membership role.
+    pub membership_role: Option<String>,
+}
+
 /// Input for creating a company membership.
 #[derive(Debug, Clone)]
 pub struct NewCompanyMembership {
@@ -163,6 +193,36 @@ pub trait MembershipRepository: Send + Sync {
         &self,
         id: &str,
     ) -> Result<Option<InstanceUserRoleRecord>, MembershipError>;
+
+    /// Lists all users known to the instance (user principals + role rows).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MembershipError`] on database failure.
+    async fn list_users(&self) -> Result<Vec<UserAccessSummary>, MembershipError>;
+
+    /// Lists a user's access across companies.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MembershipError`] on database failure.
+    async fn user_company_access(
+        &self,
+        user_id: &str,
+    ) -> Result<Vec<CompanyAccessRow>, MembershipError>;
+
+    /// Sets the set of companies a user can access: activates (or creates)
+    /// memberships for `company_ids` and marks all other user memberships
+    /// inactive. Returns the number of active memberships after the change.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`MembershipError`] when a target company does not exist.
+    async fn set_user_company_access(
+        &self,
+        user_id: &str,
+        company_ids: &[String],
+    ) -> Result<usize, MembershipError>;
 }
 
 /// Turso/libSQL implementation of [`MembershipRepository`].
@@ -434,6 +494,175 @@ impl MembershipRepository for TursoMembershipRepository {
         .await?;
         Ok(Some(record))
     }
+
+    async fn list_users(&self) -> Result<Vec<UserAccessSummary>, MembershipError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut user_ids = Vec::new();
+        let mut seen = std::collections::HashSet::new();
+        for table in ["company_memberships", "instance_user_roles"] {
+            let column = if table == "company_memberships" {
+                "principal_id"
+            } else {
+                "user_id"
+            };
+            let filter = if table == "company_memberships" {
+                " AND principal_type = 'user'"
+            } else {
+                ""
+            };
+            let mut rows = conn
+                .query(
+                    &format!("SELECT DISTINCT {column} FROM {table} WHERE 1=1{filter}"),
+                    libsql::params![],
+                )
+                .await?;
+            while let Some(row) = rows.next().await? {
+                if let Some(id) = helpers::row_text(&row, 0)?
+                    && seen.insert(id.clone())
+                {
+                    user_ids.push(id);
+                }
+            }
+        }
+        let mut users = Vec::new();
+        for user_id in user_ids {
+            let mut memberships = conn
+                .query(
+                    "SELECT m.company_id, m.status
+                     FROM company_memberships m
+                     WHERE m.principal_type = 'user' AND m.principal_id = ?1",
+                    libsql::params![user_id.clone()],
+                )
+                .await?;
+            let mut active_company_ids = Vec::new();
+            let mut company_count = 0i64;
+            while let Some(row) = memberships.next().await? {
+                company_count += 1;
+                if helpers::row_text(&row, 1)?.as_deref() == Some("active") {
+                    active_company_ids.push(helpers::row_text(&row, 0)?.expect("company_id"));
+                }
+            }
+            let mut roles = conn
+            .query(
+                "SELECT 1 FROM instance_user_roles WHERE user_id = ?1 AND role = 'instance_admin'",
+                libsql::params![user_id.clone()],
+            )
+            .await?;
+            let instance_admin = roles.next().await?.is_some();
+            users.push(UserAccessSummary {
+                user_id,
+                company_count,
+                instance_admin,
+                active_company_ids,
+            });
+        }
+        users.sort_by(|left, right| left.user_id.cmp(&right.user_id));
+        Ok(users)
+    }
+
+    async fn user_company_access(
+        &self,
+        user_id: &str,
+    ) -> Result<Vec<CompanyAccessRow>, MembershipError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT m.id, m.company_id, c.name, m.status, m.membership_role
+                 FROM company_memberships m
+                 JOIN companies c ON c.id = m.company_id
+                 WHERE m.principal_type = 'user' AND m.principal_id = ?1
+                 ORDER BY c.name",
+                libsql::params![user_id],
+            )
+            .await?;
+        let mut access = Vec::new();
+        while let Some(row) = rows.next().await? {
+            access.push(CompanyAccessRow {
+                membership_id: helpers::row_text(&row, 0)?.expect("membership id"),
+                company_id: helpers::row_text(&row, 1)?.expect("company id"),
+                company_name: helpers::row_text(&row, 2)?.expect("company name"),
+                status: helpers::row_text(&row, 3)?.expect("status"),
+                membership_role: helpers::row_text(&row, 4)?,
+            });
+        }
+        Ok(access)
+    }
+
+    async fn set_user_company_access(
+        &self,
+        user_id: &str,
+        company_ids: &[String],
+    ) -> Result<usize, MembershipError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        for company_id in company_ids {
+            if !helpers::company_exists(&conn, company_id).await? {
+                return Err(MembershipError::CompanyNotFound);
+            }
+        }
+        for company_id in company_ids {
+            let mut rows = conn
+                .query(
+                    "SELECT membership_role FROM company_memberships
+                     WHERE company_id = ?1 AND principal_type = 'user' AND principal_id = ?2",
+                    libsql::params![company_id.as_str(), user_id],
+                )
+                .await?;
+            let role = match rows.next().await? {
+                Some(row) => helpers::row_text(&row, 0)?,
+                None => None,
+            };
+            let id = Uuid::new_v4().to_string();
+            conn.execute(
+                "INSERT INTO company_memberships
+                   (id, company_id, principal_type, principal_id, status, membership_role,
+                    created_at, updated_at)
+                 VALUES (?1, ?2, 'user', ?3, 'active', ?4,
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                         strftime('%Y-%m-%dT%H:%M:%fZ','now'))
+                 ON CONFLICT (company_id, principal_type, principal_id)
+                 DO UPDATE SET status = 'active', updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')",
+                libsql::params![id, company_id.as_str(), user_id, role],
+            )
+            .await?;
+        }
+        if company_ids.is_empty() {
+            conn.execute(
+                "UPDATE company_memberships SET status = 'inactive',
+                        updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE principal_type = 'user' AND principal_id = ?1",
+                libsql::params![user_id],
+            )
+            .await?;
+        } else {
+            let placeholders = company_ids
+                .iter()
+                .enumerate()
+                .map(|(idx, _)| format!("?{}", idx + 2))
+                .collect::<Vec<_>>()
+                .join(", ");
+            let mut params: Vec<libsql::Value> = vec![libsql::Value::Text(user_id.to_owned())];
+            params.extend(company_ids.iter().cloned().map(libsql::Value::Text));
+            conn.execute(
+                &format!(
+                    "UPDATE company_memberships SET status = 'inactive',
+                            updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                     WHERE principal_type = 'user' AND principal_id = ?1
+                       AND company_id NOT IN ({placeholders})"
+                ),
+                libsql::params_from_iter(params),
+            )
+            .await?;
+        }
+        let mut rows = conn
+            .query(
+                "SELECT COUNT(*) FROM company_memberships
+                 WHERE principal_type = 'user' AND principal_id = ?1 AND status = 'active'",
+                libsql::params![user_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("count");
+        Ok(helpers::row_i64(&row, 0)? as usize)
+    }
 }
 
 #[cfg(test)]
@@ -555,5 +784,101 @@ mod tests {
         assert_eq!(repo.list_roles().await.unwrap().len(), 1);
         assert!(repo.delete_role(&role.id).await.unwrap().is_some());
         assert!(repo.list_roles().await.unwrap().is_empty());
+    }
+
+    #[tokio::test]
+    async fn user_company_access_management() {
+        let (_dir, repo) = repo().await;
+        let conn = crate::connect(&repo.db).await.unwrap();
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c2', 'Beta', 'BETA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+
+        // Seed user memberships: u1 active in c1, inactive in c2; u2 active in c1.
+        repo.upsert(NewCompanyMembership {
+            company_id: "c1".to_owned(),
+            principal_type: "user".to_owned(),
+            principal_id: "u1".to_owned(),
+            membership_role: Some("operator".to_owned()),
+        })
+        .await
+        .unwrap();
+        repo.upsert(NewCompanyMembership {
+            company_id: "c2".to_owned(),
+            principal_type: "user".to_owned(),
+            principal_id: "u1".to_owned(),
+            membership_role: None,
+        })
+        .await
+        .unwrap();
+        repo.upsert(NewCompanyMembership {
+            company_id: "c1".to_owned(),
+            principal_type: "user".to_owned(),
+            principal_id: "u2".to_owned(),
+            membership_role: Some("viewer".to_owned()),
+        })
+        .await
+        .unwrap();
+        repo.upsert_role(NewInstanceUserRole {
+            user_id: "u2".to_owned(),
+            role: "instance_admin".to_owned(),
+        })
+        .await
+        .unwrap();
+
+        // list_users aggregates both users with role/company counts.
+        let users = repo.list_users().await.unwrap();
+        assert_eq!(users.len(), 2);
+        let u1 = users.iter().find(|user| user.user_id == "u1").unwrap();
+        assert_eq!(u1.company_count, 2);
+        assert_eq!(
+            u1.active_company_ids,
+            vec!["c1".to_owned(), "c2".to_owned()]
+        );
+        assert!(!u1.instance_admin);
+        let u2 = users.iter().find(|user| user.user_id == "u2").unwrap();
+        assert!(u2.instance_admin);
+        assert_eq!(u2.active_company_ids, vec!["c1".to_owned()]);
+
+        // user_company_access includes company names and statuses.
+        let access = repo.user_company_access("u1").await.unwrap();
+        assert_eq!(access.len(), 2);
+        let c1 = access.iter().find(|row| row.company_id == "c1").unwrap();
+        assert_eq!(c1.company_name, "Alpha");
+        assert_eq!(c1.status, "active");
+        assert_eq!(c1.membership_role.as_deref(), Some("operator"));
+
+        // set_user_company_access activates c2, deactivates c1.
+        let active = repo
+            .set_user_company_access("u1", &["c2".to_owned()])
+            .await
+            .unwrap();
+        assert_eq!(active, 1);
+        let access = repo.user_company_access("u1").await.unwrap();
+        let c1 = access.iter().find(|row| row.company_id == "c1").unwrap();
+        let c2 = access.iter().find(|row| row.company_id == "c2").unwrap();
+        assert_eq!(c1.status, "inactive");
+        assert_eq!(c2.status, "active");
+        // Role preserved on re-activation.
+        let active = repo
+            .set_user_company_access("u1", &["c1".to_owned(), "c2".to_owned()])
+            .await
+            .unwrap();
+        assert_eq!(active, 2);
+        let access = repo.user_company_access("u1").await.unwrap();
+        let c1 = access.iter().find(|row| row.company_id == "c1").unwrap();
+        assert_eq!(c1.status, "active");
+        assert_eq!(c1.membership_role.as_deref(), Some("operator"));
+
+        // Unknown company is rejected.
+        let error = repo
+            .set_user_company_access("u1", &["c9".to_owned()])
+            .await
+            .unwrap_err();
+        assert!(matches!(error, MembershipError::CompanyNotFound));
     }
 }

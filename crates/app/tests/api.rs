@@ -4210,6 +4210,75 @@ async fn access_and_operations_full_flow() {
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT);
 
+    // Instance user access management ----------------------------------------
+    let instance_user_id = "22222222-2222-2222-2222-222222222222";
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/memberships",
+        json!({ "principalType": "user", "principalId": instance_user_id, "membershipRole": "operator" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let (status, users) = send_json(&app, Method::GET, "/api/instance/users", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {users}");
+    assert!(
+        users
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|user| user["userId"] == instance_user_id)
+    );
+    let (status, users) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/instance/users?search={instance_user_id}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(users.as_array().unwrap().len(), 1);
+    let (status, access) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/instance/users/{instance_user_id}/company-access"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(access.as_array().unwrap().len(), 1);
+    assert_eq!(access[0]["companyName"], "Alpha");
+    assert_eq!(access[0]["status"], "active");
+    // Deactivate all access.
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/instance/users/{instance_user_id}/company-access"),
+        json!({ "companyIds": [] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["activeCompanyCount"], 0);
+    let (status, access) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/instance/users/{instance_user_id}/company-access"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(access[0]["status"], "inactive");
+    // Restore.
+    let (status, body) = send_json(
+        &app,
+        Method::PUT,
+        &format!("/api/instance/users/{instance_user_id}/company-access"),
+        json!({ "companyIds": ["c1"] }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["activeCompanyCount"], 1);
+
     // Invites + join requests ------------------------------------------------
     let (status, body) = send_json(
         &app,
