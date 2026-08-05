@@ -9,6 +9,7 @@ document.addEventListener("DOMContentLoaded", function () {
     event.preventDefault();
     var input = form.querySelector('textarea[name="message"]');
     var companyInput = form.querySelector('input[name="company_id"]');
+    var adapterInput = form.querySelector('select[name="adapter_type"]');
     var message = (input && input.value ? input.value : "").trim();
     if (!message) return;
     var companyId = companyInput && companyInput.value ? companyInput.value : "";
@@ -27,7 +28,11 @@ document.addEventListener("DOMContentLoaded", function () {
       var response = await fetch("/api/board/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ companyId: companyId, message: message })
+        body: JSON.stringify({
+          companyId: companyId,
+          message: message,
+          adapterType: adapterInput ? adapterInput.value : undefined
+        })
       });
       if (!response.ok) {
         assistantDiv.textContent = "Error " + response.status;

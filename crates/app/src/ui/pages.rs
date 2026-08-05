@@ -941,6 +941,26 @@ pub async fn agent_detail(cx: &Cx) -> Result {
         .into_iter()
         .filter(|w| w.agent_id == agent_id)
         .collect::<Vec<_>>();
+    let tool_profile_rows = state
+        .tool_catalog
+        .list_profiles(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let tool_connection_rows = state
+        .tool_connections
+        .list_connections(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let tool_catalog_rows = state
+        .tool_catalog
+        .list_catalog_entries(&company_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let tool_invocation_rows = state
+        .tool_gateway
+        .list_invocations(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
     let status_url = with_lang(&format!("/agents/{agent_id}/status/ui"), lang);
     view! {
         <h1 class="page-title">(agent.name)</h1>
@@ -973,6 +993,36 @@ pub async fn agent_detail(cx: &Cx) -> Result {
                 </ul>
             } else {
                 <p class="empty">(t(lang, "agent.noRuntime"))</p>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "agent.tools"))</h2>
+            <p class="meta-row">(t(lang, "agent.toolsHint"))</p>
+            <ul class="list">
+                <li>(t(lang, "agentTools.profiles")) ": " (tool_profile_rows.len())</li>
+                <li>(t(lang, "agentTools.connections")) ": " (tool_connection_rows.len())</li>
+                <li>(t(lang, "agentTools.catalog")) ": " (tool_catalog_rows.len())</li>
+                <li>(t(lang, "agentTools.invocations")) ": " (tool_invocation_rows.len())</li>
+            </ul>
+            if tool_profile_rows.is_empty() && tool_connection_rows.is_empty() {
+                <p class="empty">(t(lang, "agentTools.none"))</p>
+            } else {
+                <ul class="list">
+                    for profile in tool_profile_rows {
+                        <li>
+                            <span class="badge badge-default">(t(lang, "agentTools.profile"))</span>
+                            " " <strong>(profile.name.clone())</strong>
+                            " " <span class=(status_badge_class(&profile.status))>(profile.status)</span>
+                        </li>
+                    }
+                    for connection in tool_connection_rows {
+                        <li>
+                            <span class="badge badge-default">(t(lang, "agentTools.connection"))</span>
+                            " " <strong>(connection.name.clone())</strong>
+                            " " <span class=(status_badge_class(&connection.status))>(connection.status)</span>
+                        </li>
+                    }
+                </ul>
             }
         </section>
         <section>
@@ -4126,11 +4176,19 @@ pub async fn feedback_exports(cx: &Cx) -> Result {
 pub async fn board_chat(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let adapter_names = state.adapters.names();
     view! {
         <h1 class="page-title">(t(lang, "boardChat.title"))</h1>
         <p class="meta-row">(t(lang, "boardChat.hint"))</p>
         <div id="chat-log" class="chat-log"></div>
         <form class="stack-form" id="chat-form">
+            <label>(t(lang, "boardChat.adapterLabel"))</label>
+            <select name="adapter_type">
+                for name in adapter_names {
+                    <option value=(name.clone())>(name.clone())</option>
+                }
+            </select>
             <label>(t(lang, "boardChat.messageLabel"))</label>
             <textarea name="message" rows="4" required="required"></textarea>
             <input type="hidden" name="company_id" value=(company_id)>

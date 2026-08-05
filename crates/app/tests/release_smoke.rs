@@ -833,7 +833,7 @@ async fn core_business_flow_smoke() {
             "Tool invocations",
         ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
-        (format!("/companies/{company_id}/board/chat"), "Board chat"),
+        (format!("/companies/{company_id}/board/chat"), "cli_local"),
         (format!("/issues/{issue_id}"), "Claim"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
