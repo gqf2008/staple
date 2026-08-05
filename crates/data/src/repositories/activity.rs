@@ -24,6 +24,12 @@ pub struct ActivityEntry {
     pub entity_type: String,
     /// Entity id.
     pub entity_id: String,
+    /// Agent id (agent actors).
+    pub agent_id: Option<String>,
+    /// Heartbeat run id.
+    pub run_id: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
     /// Details JSON.
     pub details: Option<String>,
     /// ISO 8601 creation time.
@@ -94,7 +100,7 @@ impl TursoActivityRepository {
 }
 
 const COLUMNS: &str = "id, company_id, actor_type, actor_id, action, entity_type, entity_id,
-    details, created_at";
+    agent_id, run_id, responsible_user_id, details, created_at";
 
 fn row_to_entry(row: &libsql::Row) -> Result<ActivityEntry, libsql::Error> {
     Ok(ActivityEntry {
@@ -105,8 +111,11 @@ fn row_to_entry(row: &libsql::Row) -> Result<ActivityEntry, libsql::Error> {
         action: helpers::row_text(row, 4)?.expect("action is NOT NULL"),
         entity_type: helpers::row_text(row, 5)?.expect("entity_type is NOT NULL"),
         entity_id: helpers::row_text(row, 6)?.expect("entity_id is NOT NULL"),
-        details: helpers::row_text(row, 7)?,
-        created_at: helpers::row_text(row, 8)?.expect("created_at is NOT NULL"),
+        agent_id: helpers::row_text(row, 7)?,
+        run_id: helpers::row_text(row, 8)?,
+        responsible_user_id: helpers::row_text(row, 9)?,
+        details: helpers::row_text(row, 10)?,
+        created_at: helpers::row_text(row, 11)?.expect("created_at is NOT NULL"),
     })
 }
 

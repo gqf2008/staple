@@ -101,6 +101,14 @@ pub struct PipelineCaseRecord {
     pub workspace_ref: Option<serde_json::Value>,
     /// Parent case id.
     pub parent_case_id: Option<String>,
+    /// Parent case version captured when this case was created.
+    pub parent_case_version: Option<i64>,
+    /// Request key (idempotent creation).
+    pub request_key: Option<String>,
+    /// Automation attempt id that created/owns this case.
+    pub automation_attempt_id: Option<String>,
+    /// Pending transition suggestion JSON (id/toStageKey/rationale/...).
+    pub pending_suggestion: Option<serde_json::Value>,
     /// Version.
     pub version: i64,
     /// Lease owner type.
@@ -119,6 +127,10 @@ pub struct PipelineCaseRecord {
     pub terminal_at: Option<String>,
     /// ISO 8601 retire time.
     pub retired_at: Option<String>,
+    /// Automation attempt that retired this case.
+    pub retired_by_attempt_id: Option<String>,
+    /// ISO 8601 when the case was hidden from the board.
+    pub hidden_from_board_at: Option<String>,
     /// Retire reason.
     pub retired_reason: Option<String>,
     /// Child count.
@@ -127,6 +139,8 @@ pub struct PipelineCaseRecord {
     pub terminal_child_count: i64,
     /// Creating user id.
     pub created_by_user_id: Option<String>,
+    /// Origin heartbeat run id.
+    pub origin_run_id: Option<String>,
     /// ISO 8601 creation.
     pub created_at: String,
 }
@@ -620,20 +634,28 @@ fn row_to_case(row: &libsql::Row) -> Result<PipelineCaseRecord, libsql::Error> {
             .unwrap_or(serde_json::Value::Null),
         workspace_ref: helpers::row_text(row, 8)?.and_then(|raw| serde_json::from_str(&raw).ok()),
         parent_case_id: helpers::row_text(row, 9)?,
-        version: helpers::row_i64(row, 10)?,
-        lease_owner_type: helpers::row_text(row, 11)?,
-        lease_agent_id: helpers::row_text(row, 12)?,
-        lease_user_id: helpers::row_text(row, 13)?,
-        lease_token: helpers::row_text(row, 14)?,
-        lease_expires_at: helpers::row_text(row, 15)?,
-        terminal_kind: helpers::row_text(row, 16)?,
-        terminal_at: helpers::row_text(row, 17)?,
-        retired_at: helpers::row_text(row, 18)?,
-        retired_reason: helpers::row_text(row, 19)?,
-        child_count: helpers::row_i64(row, 20)?,
-        terminal_child_count: helpers::row_i64(row, 21)?,
-        created_by_user_id: helpers::row_text(row, 22)?,
-        created_at: helpers::row_text(row, 23)?.expect("created_at"),
+        parent_case_version: helpers::row_i64_opt(row, 10)?,
+        request_key: helpers::row_text(row, 11)?,
+        automation_attempt_id: helpers::row_text(row, 12)?,
+        pending_suggestion: helpers::row_text(row, 13)?
+            .and_then(|raw| serde_json::from_str(&raw).ok()),
+        version: helpers::row_i64(row, 14)?,
+        lease_owner_type: helpers::row_text(row, 15)?,
+        lease_agent_id: helpers::row_text(row, 16)?,
+        lease_user_id: helpers::row_text(row, 17)?,
+        lease_token: helpers::row_text(row, 18)?,
+        lease_expires_at: helpers::row_text(row, 19)?,
+        terminal_kind: helpers::row_text(row, 20)?,
+        terminal_at: helpers::row_text(row, 21)?,
+        retired_at: helpers::row_text(row, 22)?,
+        retired_by_attempt_id: helpers::row_text(row, 23)?,
+        hidden_from_board_at: helpers::row_text(row, 24)?,
+        retired_reason: helpers::row_text(row, 25)?,
+        child_count: helpers::row_i64(row, 26)?,
+        terminal_child_count: helpers::row_i64(row, 27)?,
+        created_by_user_id: helpers::row_text(row, 28)?,
+        origin_run_id: helpers::row_text(row, 29)?,
+        created_at: helpers::row_text(row, 30)?.expect("created_at"),
     })
 }
 
@@ -663,9 +685,11 @@ const STAGE_COLUMNS: &str = "id, company_id, pipeline_id, key, name, kind, posit
 const TRANSITION_COLUMNS: &str = "id, company_id, pipeline_id, from_stage_id, to_stage_id, label,
     created_at";
 const CASE_COLUMNS: &str = "id, company_id, pipeline_id, stage_id, case_key, title, summary,
-    fields, workspace_ref, parent_case_id, version, lease_owner_type, lease_agent_id,
-    lease_user_id, lease_token, lease_expires_at, terminal_kind, terminal_at, retired_at,
-    retired_reason, child_count, terminal_child_count, created_by_user_id, created_at";
+    fields, workspace_ref, parent_case_id, parent_case_version, request_key, automation_attempt_id,
+    pending_suggestion, version, lease_owner_type, lease_agent_id, lease_user_id, lease_token,
+    lease_expires_at, terminal_kind, terminal_at, retired_at, retired_by_attempt_id,
+    hidden_from_board_at, retired_reason, child_count, terminal_child_count, created_by_user_id,
+    origin_run_id, created_at";
 const EVENT_COLUMNS: &str = "id, company_id, case_id, type, actor_type, actor_user_id,
     actor_agent_id, run_id, from_stage_id, to_stage_id, payload, created_at";
 

@@ -74,6 +74,12 @@ pub struct ExecutionWorkspaceRecord {
     pub materialize_error: Option<String>,
     /// Company secret name used for credential injection.
     pub credential_secret_name: Option<String>,
+    /// ISO 8601 cleanup eligibility.
+    pub cleanup_eligible_at: Option<String>,
+    /// Cleanup reason.
+    pub cleanup_reason: Option<String>,
+    /// Metadata JSON.
+    pub metadata: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -110,6 +116,16 @@ pub struct RuntimeServiceRecord {
     pub url: Option<String>,
     /// Provider.
     pub provider: String,
+    /// ISO 8601 last used time.
+    pub last_used_at: Option<String>,
+    /// ISO 8601 started time.
+    pub started_at: Option<String>,
+    /// ISO 8601 stopped time.
+    pub stopped_at: Option<String>,
+    /// Stop policy JSON.
+    pub stop_policy: Option<serde_json::Value>,
+    /// Health status.
+    pub health_status: String,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -138,6 +154,22 @@ pub struct WorkspaceOperationRecord {
     pub exit_code: Option<i64>,
     /// Log ref.
     pub log_ref: Option<String>,
+    /// Log bytes.
+    pub log_bytes: Option<i64>,
+    /// Log sha256.
+    pub log_sha256: Option<String>,
+    /// Whether logs are compressed.
+    pub log_compressed: bool,
+    /// Stdout excerpt.
+    pub stdout_excerpt: Option<String>,
+    /// Stderr excerpt.
+    pub stderr_excerpt: Option<String>,
+    /// Metadata JSON.
+    pub metadata: Option<serde_json::Value>,
+    /// ISO 8601 started time.
+    pub started_at: Option<String>,
+    /// ISO 8601 finished time.
+    pub finished_at: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -379,7 +411,8 @@ fn row_opt_i64(row: &libsql::Row, idx: i32) -> Result<Option<i64>, libsql::Error
 
 const EXEC_COLUMNS: &str = "id, company_id, project_id, project_workspace_id, source_issue_id,
     mode, strategy_type, name, status, cwd, repo_url, provider_type, materialized,
-    materialized_at, materialize_error, credential_secret_name, created_at";
+    materialized_at, materialize_error, credential_secret_name, cleanup_eligible_at,
+    cleanup_reason, metadata, created_at";
 
 fn row_to_execution(row: &libsql::Row) -> Result<ExecutionWorkspaceRecord, libsql::Error> {
     Ok(ExecutionWorkspaceRecord {
@@ -399,7 +432,10 @@ fn row_to_execution(row: &libsql::Row) -> Result<ExecutionWorkspaceRecord, libsq
         materialized_at: helpers::row_text(row, 13)?,
         materialize_error: helpers::row_text(row, 14)?,
         credential_secret_name: helpers::row_text(row, 15)?,
-        created_at: helpers::row_text(row, 16)?.expect("created_at"),
+        cleanup_eligible_at: helpers::row_text(row, 16)?,
+        cleanup_reason: helpers::row_text(row, 17)?,
+        metadata: helpers::row_text(row, 18)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        created_at: helpers::row_text(row, 19)?.expect("created_at"),
     })
 }
 
@@ -699,6 +735,7 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
             .query(
                 "SELECT id, company_id, project_id, execution_workspace_id, issue_id, scope_type,
                         scope_id, service_name, status, lifecycle, command, port, url, provider,
+                        last_used_at, started_at, stopped_at, stop_policy, health_status,
                         created_at
                  FROM workspace_runtime_services WHERE id = ?1",
                 libsql::params![id],
@@ -720,7 +757,13 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
             port: row_opt_i64(&row, 11)?,
             url: helpers::row_text(&row, 12)?,
             provider: helpers::row_text(&row, 13)?.expect("provider"),
-            created_at: helpers::row_text(&row, 14)?.expect("created_at"),
+            last_used_at: helpers::row_text(&row, 14)?,
+            started_at: helpers::row_text(&row, 15)?,
+            stopped_at: helpers::row_text(&row, 16)?,
+            stop_policy: helpers::row_text(&row, 17)?
+                .and_then(|raw| serde_json::from_str(&raw).ok()),
+            health_status: helpers::row_text(&row, 18)?.unwrap_or_else(|| "unknown".to_owned()),
+            created_at: helpers::row_text(&row, 19)?.expect("created_at"),
         })
     }
 
@@ -733,6 +776,7 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
             .query(
                 "SELECT id, company_id, project_id, execution_workspace_id, issue_id, scope_type,
                         scope_id, service_name, status, lifecycle, command, port, url, provider,
+                        last_used_at, started_at, stopped_at, stop_policy, health_status,
                         created_at
                  FROM workspace_runtime_services WHERE company_id = ?1 ORDER BY created_at",
                 libsql::params![company_id],
@@ -755,7 +799,13 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
                 port: row_opt_i64(&row, 11)?,
                 url: helpers::row_text(&row, 12)?,
                 provider: helpers::row_text(&row, 13)?.expect("provider"),
-                created_at: helpers::row_text(&row, 14)?.expect("created_at"),
+                last_used_at: helpers::row_text(&row, 14)?,
+                started_at: helpers::row_text(&row, 15)?,
+                stopped_at: helpers::row_text(&row, 16)?,
+                stop_policy: helpers::row_text(&row, 17)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok()),
+                health_status: helpers::row_text(&row, 18)?.unwrap_or_else(|| "unknown".to_owned()),
+                created_at: helpers::row_text(&row, 19)?.expect("created_at"),
             });
         }
         Ok(services)
@@ -800,7 +850,9 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, execution_workspace_id, heartbeat_run_id, issue_id, phase,
-                        command, status, exit_code, log_ref, created_at
+                        command, status, exit_code, log_ref, log_bytes, log_sha256,
+                        log_compressed, stdout_excerpt, stderr_excerpt, metadata, started_at,
+                        finished_at, created_at
                  FROM workspace_operations WHERE id = ?1",
                 libsql::params![id],
             )
@@ -817,7 +869,15 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
             status: helpers::row_text(&row, 7)?.expect("status"),
             exit_code: row_opt_i64(&row, 8)?,
             log_ref: helpers::row_text(&row, 9)?,
-            created_at: helpers::row_text(&row, 10)?.expect("created_at"),
+            log_bytes: row_opt_i64(&row, 10)?,
+            log_sha256: helpers::row_text(&row, 11)?,
+            log_compressed: helpers::row_i64(&row, 12)? != 0,
+            stdout_excerpt: helpers::row_text(&row, 13)?,
+            stderr_excerpt: helpers::row_text(&row, 14)?,
+            metadata: helpers::row_text(&row, 15)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+            started_at: helpers::row_text(&row, 16)?,
+            finished_at: helpers::row_text(&row, 17)?,
+            created_at: helpers::row_text(&row, 18)?.expect("created_at"),
         })
     }
 
@@ -829,7 +889,9 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, execution_workspace_id, heartbeat_run_id, issue_id, phase,
-                        command, status, exit_code, log_ref, created_at
+                        command, status, exit_code, log_ref, log_bytes, log_sha256,
+                        log_compressed, stdout_excerpt, stderr_excerpt, metadata, started_at,
+                        finished_at, created_at
                  FROM workspace_operations WHERE company_id = ?1 ORDER BY created_at DESC",
                 libsql::params![company_id],
             )
@@ -847,7 +909,16 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
                 status: helpers::row_text(&row, 7)?.expect("status"),
                 exit_code: row_opt_i64(&row, 8)?,
                 log_ref: helpers::row_text(&row, 9)?,
-                created_at: helpers::row_text(&row, 10)?.expect("created_at"),
+                log_bytes: row_opt_i64(&row, 10)?,
+                log_sha256: helpers::row_text(&row, 11)?,
+                log_compressed: helpers::row_i64(&row, 12)? != 0,
+                stdout_excerpt: helpers::row_text(&row, 13)?,
+                stderr_excerpt: helpers::row_text(&row, 14)?,
+                metadata: helpers::row_text(&row, 15)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok()),
+                started_at: helpers::row_text(&row, 16)?,
+                finished_at: helpers::row_text(&row, 17)?,
+                created_at: helpers::row_text(&row, 18)?.expect("created_at"),
             });
         }
         Ok(operations)
