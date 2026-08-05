@@ -70,6 +70,10 @@
 | UI-6 | 工具链域页面（tool profiles/connections/gateways/catalog/invocations） | ✅ 完成（issue #120/PR #124） |
 | UI-7 | 行为层补漏（routine/approval/workspace detail + profile + 404 + instance settings 拆分） | ✅ 完成（issue #121/PR #125） |
 | UI-8 | 看板行为（my-issues/what-needs-me/timeline/status updates/smoke/feedback exports） | ✅ 完成（issue #122/PR #123） |
+| Board-A | 操作者身份与当前用户上下文（X-Board-User / ?user=，回退 board） | ✅ 完成（issue #126/PR #131） |
+| Board-B | 内建 board-member skill（system prompt + 公司作用域边界 + 输出格式） | ✅ 完成（issue #127/PR #130） |
+| Board-C | 看板管家流式端点（SSE POST /api/board/chat/stream，120s 超时保护） | ✅ 完成（issue #128/PR #132） |
+| Board-D | Board Chat 页面（board_chat.js 流式客户端）+ issue Claim | ✅ 完成（issue #129/PR #133） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
