@@ -30,10 +30,18 @@ pub struct CostEventRecord {
     pub model: String,
     /// Input tokens.
     pub input_tokens: i64,
+    /// Cached input tokens.
+    pub cached_input_tokens: i64,
     /// Output tokens.
     pub output_tokens: i64,
     /// Cost in cents.
     pub cost_cents: i64,
+    /// Biller.
+    pub biller: String,
+    /// Billing type.
+    pub billing_type: String,
+    /// Heartbeat run id.
+    pub heartbeat_run_id: Option<String>,
     /// ISO 8601 occurrence time.
     pub occurred_at: String,
     /// ISO 8601 creation time.
@@ -186,7 +194,8 @@ impl TursoCostRepository {
 }
 
 const EVENT_COLUMNS: &str = "id, company_id, agent_id, issue_id, billing_code, provider,
-    model, input_tokens, output_tokens, cost_cents, occurred_at, created_at";
+    model, input_tokens, cached_input_tokens, output_tokens, cost_cents, biller, billing_type,
+    heartbeat_run_id, occurred_at, created_at";
 
 fn row_to_event(row: &libsql::Row) -> Result<CostEventRecord, libsql::Error> {
     Ok(CostEventRecord {
@@ -198,10 +207,14 @@ fn row_to_event(row: &libsql::Row) -> Result<CostEventRecord, libsql::Error> {
         provider: helpers::row_text(row, 5)?.expect("provider is NOT NULL"),
         model: helpers::row_text(row, 6)?.expect("model is NOT NULL"),
         input_tokens: helpers::row_i64(row, 7)?,
-        output_tokens: helpers::row_i64(row, 8)?,
-        cost_cents: helpers::row_i64(row, 9)?,
-        occurred_at: helpers::row_text(row, 10)?.expect("occurred_at is NOT NULL"),
-        created_at: helpers::row_text(row, 11)?.expect("created_at is NOT NULL"),
+        cached_input_tokens: helpers::row_i64(row, 8)?,
+        output_tokens: helpers::row_i64(row, 9)?,
+        cost_cents: helpers::row_i64(row, 10)?,
+        biller: helpers::row_text(row, 11)?.expect("biller is NOT NULL"),
+        billing_type: helpers::row_text(row, 12)?.expect("billing_type is NOT NULL"),
+        heartbeat_run_id: helpers::row_text(row, 13)?,
+        occurred_at: helpers::row_text(row, 14)?.expect("occurred_at is NOT NULL"),
+        created_at: helpers::row_text(row, 15)?.expect("created_at is NOT NULL"),
     })
 }
 

@@ -24,6 +24,30 @@ pub struct ThreadInteractionRecord {
     pub status: String,
     /// Payload JSON.
     pub payload: String,
+    /// Continuation policy.
+    pub continuation_policy: String,
+    /// Idempotency key.
+    pub idempotency_key: Option<String>,
+    /// Source comment id.
+    pub source_comment_id: Option<String>,
+    /// Source run id.
+    pub source_run_id: Option<String>,
+    /// Title.
+    pub title: Option<String>,
+    /// Summary.
+    pub summary: Option<String>,
+    /// Creating agent id.
+    pub created_by_agent_id: Option<String>,
+    /// Creating user id.
+    pub created_by_user_id: Option<String>,
+    /// Resolving agent id.
+    pub resolved_by_agent_id: Option<String>,
+    /// Resolving user id.
+    pub resolved_by_user_id: Option<String>,
+    /// Result JSON.
+    pub result: Option<serde_json::Value>,
+    /// ISO 8601 resolution time.
+    pub resolved_at: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -270,7 +294,10 @@ impl IssueStructureRepository for TursoIssueStructureRepository {
         .await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, issue_id, kind, status, payload, created_at
+                "SELECT id, company_id, issue_id, kind, status, continuation_policy, idempotency_key,
+                        source_comment_id, source_run_id, title, summary, created_by_agent_id,
+                        created_by_user_id, resolved_by_agent_id, resolved_by_user_id, payload,
+                        result, resolved_at, created_at
                  FROM issue_thread_interactions WHERE id = ?1",
                 libsql::params![id],
             )
@@ -282,8 +309,21 @@ impl IssueStructureRepository for TursoIssueStructureRepository {
             issue_id: helpers::row_text(&row, 2)?.expect("issue_id"),
             kind: helpers::row_text(&row, 3)?.expect("kind"),
             status: helpers::row_text(&row, 4)?.expect("status"),
-            payload: helpers::row_text(&row, 5)?.expect("payload"),
-            created_at: helpers::row_text(&row, 6)?.expect("created_at"),
+            continuation_policy: helpers::row_text(&row, 5)?
+                .unwrap_or_else(|| "wake_assignee".to_owned()),
+            idempotency_key: helpers::row_text(&row, 6)?,
+            source_comment_id: helpers::row_text(&row, 7)?,
+            source_run_id: helpers::row_text(&row, 8)?,
+            title: helpers::row_text(&row, 9)?,
+            summary: helpers::row_text(&row, 10)?,
+            created_by_agent_id: helpers::row_text(&row, 11)?,
+            created_by_user_id: helpers::row_text(&row, 12)?,
+            resolved_by_agent_id: helpers::row_text(&row, 13)?,
+            resolved_by_user_id: helpers::row_text(&row, 14)?,
+            payload: helpers::row_text(&row, 15)?.expect("payload"),
+            result: helpers::row_text(&row, 16)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+            resolved_at: helpers::row_text(&row, 17)?,
+            created_at: helpers::row_text(&row, 18)?.expect("created_at"),
         })
     }
 
@@ -294,7 +334,10 @@ impl IssueStructureRepository for TursoIssueStructureRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let mut rows = conn
             .query(
-                "SELECT id, company_id, issue_id, kind, status, payload, created_at
+                "SELECT id, company_id, issue_id, kind, status, continuation_policy, idempotency_key,
+                        source_comment_id, source_run_id, title, summary, created_by_agent_id,
+                        created_by_user_id, resolved_by_agent_id, resolved_by_user_id, payload,
+                        result, resolved_at, created_at
                  FROM issue_thread_interactions WHERE issue_id = ?1 ORDER BY created_at",
                 libsql::params![issue_id],
             )
@@ -307,8 +350,22 @@ impl IssueStructureRepository for TursoIssueStructureRepository {
                 issue_id: helpers::row_text(&row, 2)?.expect("issue_id"),
                 kind: helpers::row_text(&row, 3)?.expect("kind"),
                 status: helpers::row_text(&row, 4)?.expect("status"),
-                payload: helpers::row_text(&row, 5)?.expect("payload"),
-                created_at: helpers::row_text(&row, 6)?.expect("created_at"),
+                continuation_policy: helpers::row_text(&row, 5)?
+                    .unwrap_or_else(|| "wake_assignee".to_owned()),
+                idempotency_key: helpers::row_text(&row, 6)?,
+                source_comment_id: helpers::row_text(&row, 7)?,
+                source_run_id: helpers::row_text(&row, 8)?,
+                title: helpers::row_text(&row, 9)?,
+                summary: helpers::row_text(&row, 10)?,
+                created_by_agent_id: helpers::row_text(&row, 11)?,
+                created_by_user_id: helpers::row_text(&row, 12)?,
+                resolved_by_agent_id: helpers::row_text(&row, 13)?,
+                resolved_by_user_id: helpers::row_text(&row, 14)?,
+                payload: helpers::row_text(&row, 15)?.expect("payload"),
+                result: helpers::row_text(&row, 16)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok()),
+                resolved_at: helpers::row_text(&row, 17)?,
+                created_at: helpers::row_text(&row, 18)?.expect("created_at"),
             });
         }
         Ok(interactions)

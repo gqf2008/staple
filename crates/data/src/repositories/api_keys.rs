@@ -25,6 +25,10 @@ pub struct AgentApiKeyRecord {
     pub last_used_at: Option<String>,
     /// ISO 8601 revocation time.
     pub revoked_at: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
+    /// Scope config JSON.
+    pub scope_config: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -122,7 +126,7 @@ impl TursoApiKeyRepository {
 }
 
 const KEY_COLUMNS: &str = "id, agent_id, company_id, name, key_hash, last_used_at,
-    revoked_at, created_at";
+    revoked_at, responsible_user_id, scope_config, created_at";
 
 fn row_to_key(row: &libsql::Row) -> Result<AgentApiKeyRecord, libsql::Error> {
     Ok(AgentApiKeyRecord {
@@ -133,7 +137,9 @@ fn row_to_key(row: &libsql::Row) -> Result<AgentApiKeyRecord, libsql::Error> {
         key_hash: helpers::row_text(row, 4)?.expect("key_hash is NOT NULL"),
         last_used_at: helpers::row_text(row, 5)?,
         revoked_at: helpers::row_text(row, 6)?,
-        created_at: helpers::row_text(row, 7)?.expect("created_at is NOT NULL"),
+        responsible_user_id: helpers::row_text(row, 7)?,
+        scope_config: helpers::row_text(row, 8)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        created_at: helpers::row_text(row, 9)?.expect("created_at is NOT NULL"),
     })
 }
 

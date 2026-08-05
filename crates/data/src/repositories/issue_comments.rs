@@ -20,8 +20,34 @@ pub struct IssueCommentRecord {
     pub author_agent_id: Option<String>,
     /// Author user id.
     pub author_user_id: Option<String>,
+    /// Author type (`agent` | `user`).
+    pub author_type: Option<String>,
+    /// Creating heartbeat run id.
+    pub created_by_run_id: Option<String>,
+    /// Derived author agent id.
+    pub derived_author_agent_id: Option<String>,
+    /// Derived creating run id.
+    pub derived_created_by_run_id: Option<String>,
+    /// Derived author source.
+    pub derived_author_source: Option<String>,
     /// Comment body.
     pub body: String,
+    /// Presentation JSON.
+    pub presentation: Option<serde_json::Value>,
+    /// Metadata JSON.
+    pub metadata: Option<serde_json::Value>,
+    /// ISO 8601 deletion time.
+    pub deleted_at: Option<String>,
+    /// Deletion actor type.
+    pub deleted_by_type: Option<String>,
+    /// Deletion agent id.
+    pub deleted_by_agent_id: Option<String>,
+    /// Deletion user id.
+    pub deleted_by_user_id: Option<String>,
+    /// Deletion run id.
+    pub deleted_by_run_id: Option<String>,
+    /// Source trust JSON.
+    pub source_trust: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
     /// ISO 8601 last update time.
@@ -106,7 +132,10 @@ impl TursoIssueCommentRepository {
 }
 
 const COMMENT_COLUMNS: &str = "id, company_id, issue_id, author_agent_id, author_user_id,
-    body, created_at, updated_at";
+    author_type, created_by_run_id, derived_author_agent_id, derived_created_by_run_id,
+    derived_author_source, body, presentation, metadata, deleted_at, deleted_by_type,
+    deleted_by_agent_id, deleted_by_user_id, deleted_by_run_id, source_trust, created_at,
+    updated_at";
 
 fn row_to_comment(row: &libsql::Row) -> Result<IssueCommentRecord, libsql::Error> {
     Ok(IssueCommentRecord {
@@ -115,9 +144,22 @@ fn row_to_comment(row: &libsql::Row) -> Result<IssueCommentRecord, libsql::Error
         issue_id: helpers::row_text(row, 2)?.expect("issue_id is NOT NULL"),
         author_agent_id: helpers::row_text(row, 3)?,
         author_user_id: helpers::row_text(row, 4)?,
-        body: helpers::row_text(row, 5)?.expect("body is NOT NULL"),
-        created_at: helpers::row_text(row, 6)?.expect("created_at is NOT NULL"),
-        updated_at: helpers::row_text(row, 7)?.expect("updated_at is NOT NULL"),
+        author_type: helpers::row_text(row, 5)?,
+        created_by_run_id: helpers::row_text(row, 6)?,
+        derived_author_agent_id: helpers::row_text(row, 7)?,
+        derived_created_by_run_id: helpers::row_text(row, 8)?,
+        derived_author_source: helpers::row_text(row, 9)?,
+        body: helpers::row_text(row, 10)?.expect("body is NOT NULL"),
+        presentation: helpers::row_text(row, 11)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        metadata: helpers::row_text(row, 12)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        deleted_at: helpers::row_text(row, 13)?,
+        deleted_by_type: helpers::row_text(row, 14)?,
+        deleted_by_agent_id: helpers::row_text(row, 15)?,
+        deleted_by_user_id: helpers::row_text(row, 16)?,
+        deleted_by_run_id: helpers::row_text(row, 17)?,
+        source_trust: helpers::row_text(row, 18)?.and_then(|raw| serde_json::from_str(&raw).ok()),
+        created_at: helpers::row_text(row, 19)?.expect("created_at is NOT NULL"),
+        updated_at: helpers::row_text(row, 20)?.expect("updated_at is NOT NULL"),
     })
 }
 
