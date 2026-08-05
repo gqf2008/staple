@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-04（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150）。
 
 ## 使用方式
 
@@ -79,6 +79,7 @@
 | UI-10 | 插件生态管理页（PluginManager/PluginPage/PluginSettings） | ✅ 完成（issue #135/PR #140） |
 | UI-11 | 认证与邀请流程页（Auth/CliAuth/InviteLanding） | ✅ 完成（issue #136/PR #138） |
 | UI-12 | 行为增强（Agent Tools 页签 + Board Chat adapter 选择） | ✅ 完成（issue #137/PR #141） |
+| UI-13 | InviteLanding 真实落地页（公开 GET /api/invites/{token} 摘要 + 公司信息/状态/加入入口） | ✅ 完成（issue #150/PR #151） |
 | 实验/设计页 | 上游 UxLab/DesignGuide 实验页（BootstrapSetupUxLab、InviteUxLab、IssueChatUxLab、IssueChatLongThreadPerf、RunTranscriptUxLab、SystemNoticeUxLab、ResponsibleUserDenialUxLab、TaskChatLab、DesignGuide） | ⏳ 明确不迁移（登记为实验性页面，无产品行为） |
 | 公司可移植性 | CompanyExport/CompanyImport：JSON manifest + zip 归档（附件导出/导入、preview 文件树 + 冲突统计） | ✅ 完成（issue #142/PR #143 + #146/PR #147 + #148/PR #149） |
 
