@@ -5715,6 +5715,214 @@ async fn pipelines_full_flow() {
 }
 
 #[tokio::test]
+async fn pipeline_attention_review_api() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state);
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('a1', 'c1', 'one', 'engineer', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Pipeline with todo -> review -> done.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/pipelines",
+        json!({ "key": "intake", "name": "Intake", "enforceTransitions": false }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let pipeline_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({ "key": "todo", "name": "To do", "kind": "working", "position": 1 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let todo_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({
+            "key": "review", "name": "Review", "kind": "review", "position": 2,
+            "config": { "approveToStageKey": "done", "requestChangesToStageKey": "todo" },
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let review_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/stages"),
+        json!({ "key": "done", "name": "Done", "kind": "done", "position": 3 }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let done_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({ "stageId": todo_id, "caseKey": "case-1", "title": "First" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let case_id = body["id"].as_str().unwrap().to_owned();
+
+    // Move into review.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipeline-cases/{case_id}/move"),
+        json!({ "toStageId": review_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+
+    // Review-cases lists the case; attention shows the review.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/review-cases",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+    assert_eq!(body[0]["case"]["caseKey"], "case-1");
+    assert_eq!(body[0]["reviewConfig"]["approveToStageKey"], "done");
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/pipelines-attention?limit=10",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["reviews"].as_array().unwrap().len(), 1);
+    assert_eq!(body["reviews"][0]["review"]["expectedVersion"], 2);
+
+    // Set a pending suggestion via SQL and verify attention + resolve-suggestion.
+    conn.execute(
+        &format!(
+            "UPDATE pipeline_cases SET pending_suggestion = '{{\"id\":\"sug-1\",\"toStageKey\":\"done\",\"rationale\":\"looks good\",\"suggestedByAgentId\":\"a1\"}}' WHERE id = '{case_id}'"
+        ),
+        (),
+    )
+    .await
+    .unwrap();
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/pipelines-attention",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["suggestions"].as_array().unwrap().len(), 1);
+    assert_eq!(body["suggestions"][0]["suggestion"]["id"], "sug-1");
+    assert_eq!(
+        body["suggestions"][0]["suggestion"]["suggestedBy"]["agentId"],
+        "a1"
+    );
+
+    // Accept the suggestion -> moves to done.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cases/{case_id}/resolve-suggestion"),
+        json!({ "suggestionId": "sug-1", "decision": "accept" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["stageId"], done_id);
+    assert_eq!(body["terminalKind"], "done");
+
+    // Unknown suggestion -> 409.
+    let (status, _) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/cases/{case_id}/resolve-suggestion"),
+        json!({ "suggestionId": "sug-x", "decision": "accept" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CONFLICT);
+
+    // Company events include review/suggestion types.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/case-events",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let types: Vec<&str> = body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter_map(|item| item["type"].as_str())
+        .collect();
+    assert!(types.contains(&"transitioned"));
+    assert!(types.contains(&"suggestion_resolved"));
+    assert_eq!(body["pagination"]["hasMore"], false);
+
+    // Type filter.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/case-events?types=review_decided",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["items"].as_array().unwrap().len(), 0);
+
+    // Bulk review on a fresh case: request_changes moves back to todo.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/pipelines/{pipeline_id}/cases"),
+        json!({ "stageId": review_id, "caseKey": "case-2", "title": "Second" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let case2 = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/review-cases/bulk",
+        json!({
+            "items": [{
+                "caseId": case2,
+                "decision": "request_changes",
+                "reason": "needs more context",
+                "expectedVersion": 1,
+            }],
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["results"][0]["ok"], true);
+    assert_eq!(body["results"][0]["result"]["stageId"], todo_id);
+}
+
+#[tokio::test]
 async fn pipeline_extensions_api() {
     let (state, db) = test_state_with_db().await;
     let app = router(state);
