@@ -78,6 +78,8 @@
 | UI-10 | 插件生态管理页（PluginManager/PluginPage/PluginSettings） | ✅ 完成（issue #135/PR #140） |
 | UI-11 | 认证与邀请流程页（Auth/CliAuth/InviteLanding） | ✅ 完成（issue #136/PR #138） |
 | UI-12 | 行为增强（Agent Tools 页签 + Board Chat adapter 选择） | ✅ 完成（issue #137/PR #141） |
+| 实验/设计页 | 上游 UxLab/DesignGuide 实验页（BootstrapSetupUxLab、InviteUxLab、IssueChatUxLab、IssueChatLongThreadPerf、RunTranscriptUxLab、SystemNoticeUxLab、ResponsibleUserDenialUxLab、TaskChatLab、DesignGuide） | ⏳ 明确不迁移（登记为实验性页面，无产品行为） |
+| 公司可移植性 | CompanyExport/CompanyImport（上游 zip 可移植包：文件树/附件/frontmatter/冲突策略） | ⏳ 进行中（issue #142：先做 JSON manifest 基础版） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
