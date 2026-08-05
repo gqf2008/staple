@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问）。
 
 ## 使用方式
 
@@ -114,7 +114,7 @@
 | **BoardClaim（board-claim/:token）** | 依赖 email/password 认证 + board claim challenge 端点 | ⏳ 明确延后（无认证栈） |
 | **apps 生态页面**（connections/browse/connect/review/gateways/advanced/app detail） | 上游应用市场/连接管理大功能；数据表 tool_* 已对齐，UI 层缺失 | ⏳ 明确延后（单独立项） |
 | **完整公司包导出/导入**（COMPANY.md/PROJECT.md/TASK.md/SKILL.md + documents/skills 全量打包 + zip 文件内容/frontmatter 预览） | 现为 JSON manifest（7 核心表）+ 附件 zip baseline | ⏳ 明确延后（单独立项） |
-| **InstanceAccess 按用户公司访问管理**（setUserCompanyAccess） | 现有 instance/settings 覆盖 roles/board keys/challenges；缺按用户批量授权界面 | ⏳ 明确延后 |
+| ~~InstanceAccess 按用户公司访问管理~~（setUserCompanyAccess） | 已实现：list_users / user_company_access / set_user_company_access + instance settings 用户访问区块（issue #167/PR #168） | ✅ 完成 |
 | **InstanceExperimentalSettings** | 上游实验设置页，无产品行为 | ⏳ 明确不迁移 |
 | ~~decision_desk repository 字段补齐~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
 | ~~routine_revisions/routine_triggers 读回 record~~ | 已完成（issue #164/PR #165） | ✅ 完成 |
