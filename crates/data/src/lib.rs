@@ -3,12 +3,16 @@
 //! Owns the connection layer (`connection`), the versioned SQL migrations
 //! (`migrations`), and — in later milestones — the repositories.
 
+pub mod board_member;
 pub mod connection;
 pub mod migrations;
 pub mod repositories;
 pub mod secrets;
 pub mod skills;
 
+pub use board_member::{
+    BOARD_MEMBER_SKILL_NAME, BoardMemberSkill, board_member_skill, evaluate_board_member_skill,
+};
 pub use connection::{DataError, DbConfig, connect, open};
 pub use libsql::{Connection, Database};
 pub use migrations::{
