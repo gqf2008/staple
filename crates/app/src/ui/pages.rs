@@ -5141,6 +5141,188 @@ pub async fn case_detail(cx: &Cx) -> Result {
     }
 }
 
+/// Review queue page: pipeline attention feed (suggestions + reviews) with
+/// inline approve/request-changes/reject and accept/dismiss decisions.
+#[page("/companies/{company_id}/review-queue")]
+pub async fn review_queue(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let attention = state
+        .pipelines
+        .list_attention(&company_id, 100)
+        .await
+        .map_err(to_topcoat_error)?;
+    let suggestions = attention["suggestions"]
+        .as_array()
+        .cloned()
+        .unwrap_or_default();
+    let reviews = attention["reviews"].as_array().cloned().unwrap_or_default();
+    let decide_url = with_lang(
+        &format!("/companies/{company_id}/review-queue/decide/ui"),
+        lang,
+    );
+    let pipelines_url = with_lang(&format!("/companies/{company_id}/pipelines"), lang);
+    view! {
+        <h1 class="page-title">(t(lang, "reviewQueue.title"))</h1>
+        <nav class="nav-row">
+            <a href=(pipelines_url)>(t(lang, "pipelines.title"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "reviewQueue.suggestions"))</h2>
+            if suggestions.is_empty() {
+                <p class="empty">(t(lang, "reviewQueue.empty"))</p>
+            } else {
+                <ul class="list">
+                    for suggestion in &suggestions {
+                        <li>
+                            <a href=(with_lang(&format!("/pipelines/{}/items/{}",
+                                suggestion["case"]["pipeline"]["id"].as_str().unwrap_or_default(),
+                                suggestion["case"]["id"].as_str().unwrap_or_default()), lang))>
+                                <strong>(suggestion["case"]["title"].as_str().unwrap_or_default())</strong>
+                            </a>
+                            " " <span class="mono">(suggestion["case"]["caseKey"].as_str().unwrap_or_default())</span>
+                            " " <span class="badge badge-default">(suggestion["case"]["stage"]["name"].as_str().unwrap_or_default())</span>
+                            " → " <span class="badge badge-running">(suggestion["suggestion"]["toStageName"].as_str().unwrap_or_default())</span>
+                            <p class="meta-row">(suggestion["suggestion"]["rationale"].as_str().unwrap_or_default())</p>
+                            <form class="inline-form" method="post" action=(decide_url.clone())>
+                                <input type="hidden" name="caseId" value=(suggestion["case"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="suggestionId" value=(suggestion["suggestion"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="decision" value="accept">
+                                <input type="hidden" name="expectedVersion" value=(suggestion["case"]["version"].as_i64().unwrap_or(0))>
+                                <button type="submit">(t(lang, "reviewQueue.accept"))</button>
+                            </form>
+                            <form class="inline-form" method="post" action=(decide_url.clone())>
+                                <input type="hidden" name="caseId" value=(suggestion["case"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="suggestionId" value=(suggestion["suggestion"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="decision" value="dismiss">
+                                <button type="submit" class="destructive">(t(lang, "reviewQueue.dismiss"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+        <section>
+            <h2>(t(lang, "reviewQueue.reviews"))</h2>
+            if reviews.is_empty() {
+                <p class="empty">(t(lang, "reviewQueue.empty"))</p>
+            } else {
+                <ul class="list">
+                    for review in &reviews {
+                        <li>
+                            <a href=(with_lang(&format!("/pipelines/{}/items/{}",
+                                review["case"]["pipeline"]["id"].as_str().unwrap_or_default(),
+                                review["case"]["id"].as_str().unwrap_or_default()), lang))>
+                                <strong>(review["case"]["title"].as_str().unwrap_or_default())</strong>
+                            </a>
+                            " " <span class="mono">(review["case"]["caseKey"].as_str().unwrap_or_default())</span>
+                            " " <span class="badge badge-default">(review["case"]["stage"]["name"].as_str().unwrap_or_default())</span>
+                            <form class="inline-form" method="post" action=(decide_url.clone())>
+                                <input type="hidden" name="caseId" value=(review["case"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="decision" value="approve">
+                                <input type="hidden" name="expectedVersion" value=(review["review"]["expectedVersion"].as_i64().unwrap_or(0))>
+                                <button type="submit">(t(lang, "reviewQueue.approve"))</button>
+                            </form>
+                            <form class="inline-form" method="post" action=(decide_url.clone())>
+                                <input type="hidden" name="caseId" value=(review["case"]["id"].as_str().unwrap_or_default())>
+                                <input type="hidden" name="decision" value="request_changes">
+                                <input type="hidden" name="expectedVersion" value=(review["review"]["expectedVersion"].as_i64().unwrap_or(0))>
+                                <input type="text" name="reason" placeholder=(t(lang, "reviewQueue.reasonLabel"))>
+                                <button type="submit">(t(lang, "reviewQueue.requestChanges"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Learnings page: company-wide learning events grouped by day.
+#[page("/companies/{company_id}/learnings")]
+pub async fn learnings(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let learning_types = [
+        "transition_suggested".to_owned(),
+        "suggestion_resolved".to_owned(),
+        "review_decided".to_owned(),
+        "transition_forced".to_owned(),
+        "upstream_drift".to_owned(),
+        "drift_acknowledged".to_owned(),
+    ];
+    let offset = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts.uri.query().and_then(|query| {
+                query.split('&').find_map(|pair| {
+                    let (key, value) = pair.split_once('=')?;
+                    (key == "offset").then_some(value.to_owned())
+                })
+            })
+        })
+        .and_then(|value| value.parse::<i64>().ok())
+        .filter(|value| *value >= 0)
+        .unwrap_or(0);
+    let events = state
+        .pipelines
+        .list_company_case_events(&company_id, &learning_types, 50, offset)
+        .await
+        .map_err(to_topcoat_error)?;
+    let items = events["items"].as_array().cloned().unwrap_or_default();
+    let has_more = events["pagination"]["hasMore"].as_bool().unwrap_or(false);
+    let mut groups: Vec<(String, Vec<serde_json::Value>)> = Vec::new();
+    for item in &items {
+        let day = item["createdAt"]
+            .as_str()
+            .and_then(|value| value.get(..10))
+            .unwrap_or("")
+            .to_owned();
+        match groups.last_mut() {
+            Some((last_day, rows)) if *last_day == day => rows.push(item.clone()),
+            _ => groups.push((day, vec![item.clone()])),
+        }
+    }
+    let next_offset = offset + items.len() as i64;
+    let prev_offset = (offset - 50).max(0);
+    let page = offset / 50 + 1;
+    view! {
+        <h1 class="page-title">(t(lang, "learnings.title"))</h1>
+        if groups.is_empty() {
+            <p class="empty">(t(lang, "learnings.empty"))</p>
+        } else {
+            for (day, rows) in &groups {
+                <section>
+                    <h2 class="mono">(day.clone())</h2>
+                    <ul class="list">
+                        for row in rows {
+                            <li>
+                                <a href=(with_lang(&format!("/pipelines/{}/items/{}",
+                                    row["pipeline"]["id"].as_str().unwrap_or_default(),
+                                    row["case"]["id"].as_str().unwrap_or_default()), lang))>
+                                    <strong>(row["case"]["title"].as_str().unwrap_or_default())</strong>
+                                </a>
+                                " " <span class="mono">(row["type"].as_str().unwrap_or_default())</span>
+                                " " <span class="meta-row">(row["case"]["caseKey"].as_str().unwrap_or_default())</span>
+                            </li>
+                        }
+                    </ul>
+                </section>
+            }
+            <nav class="nav-row">
+                if offset > 0 {
+                    <a href=(with_lang(&format!("/companies/{company_id}/learnings?offset={prev_offset}"), lang))>(t(lang, "learnings.prev"))</a>
+                }
+                <span class="meta-row">(t(lang, "learnings.page")) " " (page)</span>
+                if has_more {
+                    <a href=(with_lang(&format!("/companies/{company_id}/learnings?offset={next_offset}"), lang))>(t(lang, "learnings.next"))</a>
+                }
+            </nav>
+        }
+    }
+}
+
 /// Pipelines list page: create form + list.
 #[page("/companies/{company_id}/pipelines")]
 pub async fn pipelines_list(cx: &Cx) -> Result {

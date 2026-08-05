@@ -878,6 +878,11 @@ async fn core_business_flow_smoke() {
         ("/adapters/cli_local".to_string(), "Invoke"),
         (format!("/companies/{company_id}/cases"), "Cases"),
         (format!("/companies/{company_id}/pipelines"), "Pipelines"),
+        (
+            format!("/companies/{company_id}/review-queue"),
+            "Review queue",
+        ),
+        (format!("/companies/{company_id}/learnings"), "Learnings"),
         (format!("/routines/{routine_id}"), "Run history"),
         (
             format!("/approvals/{approval_id}"),

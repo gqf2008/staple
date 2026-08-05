@@ -4099,6 +4099,78 @@ pub async fn import_company_ui(
     )))
 }
 
+/// Form for a review-queue decision.
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ReviewDecisionForm {
+    /// Case id.
+    pub case_id: String,
+    /// Decision (`accept` | `dismiss` | `approve` | `request_changes` | `reject`).
+    pub decision: String,
+    /// Expected case version (optimistic lock).
+    #[serde(default)]
+    pub expected_version: Option<i64>,
+    /// Reason (required for request_changes/reject).
+    #[serde(default)]
+    pub reason: Option<String>,
+    /// Pending suggestion id, when deciding a suggestion.
+    #[serde(default)]
+    pub suggestion_id: Option<String>,
+}
+
+/// `POST /companies/{company_id}/review-queue/decide/ui` — applies a review
+/// decision from the review-queue page and redirects back.
+#[route(POST "/companies/{company_id}/review-queue/decide/ui")]
+pub async fn review_queue_decide_ui(
+    cx: &Cx,
+    Form(form): Form<ReviewDecisionForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let result = if let Some(suggestion_id) = form.suggestion_id.filter(|value| !value.is_empty()) {
+        state
+            .pipelines
+            .resolve_suggestion(
+                &company_id,
+                &form.case_id,
+                &suggestion_id,
+                &form.decision,
+                form.expected_version,
+                form.reason.as_deref(),
+                "user",
+                Some("board"),
+                None,
+            )
+            .await
+    } else {
+        state
+            .pipelines
+            .review_case(
+                &company_id,
+                &form.case_id,
+                &form.decision,
+                form.expected_version.unwrap_or(0),
+                form.reason.as_deref(),
+                "user",
+                Some("board"),
+                None,
+            )
+            .await
+    };
+    if let Ok(case) = result {
+        let _ = log_activity(
+            &state.activity,
+            &company_id,
+            "pipeline.review_decided",
+            "pipeline_case",
+            &case.id,
+            Some(serde_json::json!({ "decision": form.decision })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/companies/{company_id}/review-queue")))
+}
+
 /// `GET /static/board_zip.js` — zip portability behavior for the
 /// export/import page.
 #[route(GET "/static/board_zip.js")]
