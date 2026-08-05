@@ -516,10 +516,20 @@ async fn company_zip_archive_preview_and_import() {
         .unwrap();
     writer.start_file("attachments/k.txt", options).unwrap();
     writer.write_all(b"hello attachment").unwrap();
+    writer.start_file("docs/d1.md", options).unwrap();
+    writer
+        .write_all(b"---\ntitle: Doc One\n---\n\nBody text")
+        .unwrap();
+    writer
+        .start_file("skills/zip-skill/SKILL.md", options)
+        .unwrap();
+    writer
+        .write_all(b"---\nname: zip-skill\ndescription: A skill\n---\n\nUsage")
+        .unwrap();
     let cursor = writer.finish().unwrap();
     let zip_bytes = cursor.into_inner();
 
-    // Preview returns the file list and manifest summary.
+    // Preview returns the file list, manifest summary, and file contents.
     let (status, preview) = send_bytes(
         &app,
         Method::POST,
@@ -529,9 +539,14 @@ async fn company_zip_archive_preview_and_import() {
     .await;
     assert_eq!(status, StatusCode::OK, "preview: {preview}");
     assert!(preview.contains("attachments/k.txt"), "{preview}");
+    assert!(preview.contains("docs/d1.md"), "{preview}");
+    assert!(preview.contains("skills/zip-skill/SKILL.md"), "{preview}");
     assert!(preview.contains("agents"), "{preview}");
     assert!(preview.contains("filesTree"), "{preview}");
     assert!(preview.contains("existing"), "{preview}");
+    assert!(preview.contains("\"encoding\":\"text\""), "{preview}");
+    assert!(preview.contains("Body text"), "{preview}");
+    assert!(preview.contains("Doc One"), "{preview}");
 
     // Import the archive (skip).
     let (status, result) = send_bytes(

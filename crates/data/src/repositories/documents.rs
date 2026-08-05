@@ -103,6 +103,16 @@ pub trait DocumentRepository: Send + Sync {
         input: NewIssueDocument,
     ) -> Result<DocumentRecord, DocumentError>;
 
+    /// Lists all documents for a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`DocumentError`] on database failure.
+    async fn list_company_documents(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DocumentRecord>, DocumentError>;
+
     /// Appends a revision to an issue document.
     ///
     /// # Errors
@@ -359,6 +369,27 @@ impl DocumentRepository for TursoDocumentRepository {
              WHERE idoc.issue_id = ?1
              ORDER BY idoc.created_at";
         let mut rows = conn.query(sql, libsql::params![issue_id]).await?;
+        let mut documents = Vec::new();
+        while let Some(row) = rows.next().await? {
+            documents.push(row_to_document(&row)?);
+        }
+        Ok(documents)
+    }
+
+    async fn list_company_documents(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<DocumentRecord>, DocumentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {DOCUMENT_COLUMNS} FROM documents
+                     WHERE company_id = ?1 ORDER BY created_at"
+                ),
+                libsql::params![company_id],
+            )
+            .await?;
         let mut documents = Vec::new();
         while let Some(row) = rows.next().await? {
             documents.push(row_to_document(&row)?);
