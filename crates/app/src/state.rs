@@ -17,7 +17,7 @@ use staple_data::{
     WorkspaceRepository,
 };
 
-use crate::storage::LocalStorage;
+use crate::{board_claim::BoardClaimManager, storage::LocalStorage};
 use staple_adapters::{AdapterRegistry, PluginReport};
 
 /// Application-wide dependencies for route handlers.
@@ -35,6 +35,8 @@ pub struct AppState {
     pub memberships: Arc<dyn MembershipRepository>,
     /// Invites / join requests repository.
     pub invites: Arc<dyn InviteRepository>,
+    /// Board ownership claim challenge.
+    pub board_claim: Arc<BoardClaimManager>,
     /// Infrastructure repository (auth/settings/folders/watchdogs/events).
     pub infrastructure: Arc<dyn InfrastructureRepository>,
     /// Board API keys / CLI auth challenges repository.

@@ -130,6 +130,7 @@ async fn core_business_flow_smoke() {
                 .await
                 .unwrap(),
         )),
+        board_claim: Arc::new(staple_app::board_claim::BoardClaimManager::new()),
         invites: Arc::new(TursoInviteRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
@@ -880,6 +881,10 @@ async fn core_business_flow_smoke() {
         ("/auth".to_string(), "Auth"),
         ("/cli-auth".to_string(), "CLI auth"),
         ("/invite/demo-token".to_string(), "Invitation"),
+        (
+            "/board-claim/demo-token?code=demo".to_string(),
+            "Claim board ownership",
+        ),
         (format!("/companies/{company_id}/my-issues"), "My issues"),
         (
             format!("/companies/{company_id}/what-needs-me"),

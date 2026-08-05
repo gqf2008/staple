@@ -254,6 +254,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        board_claim: Arc::new(staple_app::board_claim::BoardClaimManager::new()),
         infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
@@ -5783,6 +5784,102 @@ async fn pipelines_full_flow() {
     assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
+#[tokio::test]
+async fn board_claim_challenge_flow() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Seed a challenge directly (startup initialization mirrors this).
+    let token = "board-claim-test";
+    let code = "code123";
+    state.board_claim.seed(token, code);
+
+    // Status is available with the correct code.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/board-claim/{token}?code={code}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "available");
+    assert_eq!(body["requiresSignIn"], true);
+    assert!(body["expiresAt"].is_string());
+
+    // Wrong code / unknown token -> 404.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/board-claim/{token}?code=wrong"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+    let (status, _) = send_json(&app, Method::GET, "/api/board-claim/nope?code=x", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Claim promotes the board actor to instance admin.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/board-claim/{token}/claim"),
+        json!({ "code": code }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "claimed");
+    assert!(body["claimedByUserId"].is_string());
+    let (status, roles) = send_json(&app, Method::GET, "/api/instance/user-roles", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        roles
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|role| role["role"] == "instance_admin")
+    );
+
+    // Claiming again is idempotent (OK, still claimed).
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/board-claim/{token}/claim"),
+        json!({ "code": code }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["status"], "claimed");
+
+    // Status now reflects claimed.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/board-claim/{token}?code={code}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["status"], "claimed");
+
+    // UI page renders for an available challenge.
+    state.board_claim.seed("board-claim-ui", "ui-code");
+    let request = topcoat::router::Request::builder()
+        .method(Method::GET)
+        .uri("/board-claim/board-claim-ui?code=ui-code")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+}
 #[tokio::test]
 async fn pipeline_attention_review_api() {
     let (state, db) = test_state_with_db().await;

@@ -5,6 +5,7 @@
 
 pub mod audit;
 pub mod auth;
+pub mod board_claim;
 pub mod config;
 pub mod dto;
 pub mod error;
