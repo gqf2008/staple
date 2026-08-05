@@ -3490,3 +3490,100 @@ pub async fn board_chat_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiErr
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
 }
+
+// --- CLI auth UI forms ---------------------------------------------------
+
+/// Board API key create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BoardKeyUiForm {
+    /// Owning user id.
+    pub user_id: String,
+    /// Key name.
+    pub name: String,
+}
+
+/// CLI auth challenge create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliChallengeUiForm {
+    /// Command text.
+    pub command: String,
+    /// Pending key name.
+    pub pending_key_name: String,
+    /// Requested access.
+    pub requested_access: Option<String>,
+    /// Requested company id.
+    pub requested_company_id: Option<String>,
+}
+
+/// `POST /cli-auth/keys/ui` — creates a board API key.
+#[route(POST "/cli-auth/keys/ui")]
+pub async fn create_board_key_ui(
+    cx: &Cx,
+    Form(form): Form<BoardKeyUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    if !form.user_id.trim().is_empty() && !form.name.trim().is_empty() {
+        let _ = state
+            .board_keys
+            .create_key(staple_data::NewBoardApiKey {
+                user_id: form.user_id,
+                name: form.name,
+                expires_at: None,
+            })
+            .await;
+    }
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/ui` — creates a CLI auth challenge.
+#[route(POST "/cli-auth/challenges/ui")]
+pub async fn create_cli_challenge_ui(
+    cx: &Cx,
+    Form(form): Form<CliChallengeUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let expires_at = chrono::Utc::now()
+        .checked_add_signed(chrono::Duration::hours(1))
+        .map(|time| time.to_rfc3339_opts(chrono::SecondsFormat::Millis, true))
+        .unwrap_or_else(|| "2026-12-31T00:00:00.000Z".to_owned());
+    if !form.command.trim().is_empty() && !form.pending_key_name.trim().is_empty() {
+        let _ = state
+            .board_keys
+            .create_challenge(staple_data::NewCliAuthChallenge {
+                command: form.command,
+                client_name: Some("board-ui".to_owned()),
+                requested_access: form
+                    .requested_access
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "board".to_owned()),
+                requested_company_id: form.requested_company_id.filter(|value| !value.is_empty()),
+                pending_key_name: form.pending_key_name,
+                expires_at,
+            })
+            .await;
+    }
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/{id}/approve/ui` — approves a challenge.
+#[route(POST "/cli-auth/challenges/{id}/approve/ui")]
+pub async fn approve_cli_challenge_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let challenge_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .board_keys
+        .approve_challenge(&challenge_id, Some(crate::auth::current_actor(cx)))
+        .await;
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/{id}/cancel/ui` — cancels a challenge.
+#[route(POST "/cli-auth/challenges/{id}/cancel/ui")]
+pub async fn cancel_cli_challenge_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let challenge_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state.board_keys.cancel_challenge(&challenge_id).await;
+    Ok(see_other("/cli-auth"))
+}
