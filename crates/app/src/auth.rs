@@ -79,3 +79,41 @@ pub fn require_board(cx: &topcoat::context::Cx) -> Result<(), ApiError> {
         Err(ApiError::forbidden("Board access required"))
     }
 }
+
+/// Resolves the current board operator identity for UI form actions.
+///
+/// UI-initiated operations record this actor instead of a hardcoded
+/// `"board"` string. Resolution order for board principals:
+/// 1. `X-Board-User` request header;
+/// 2. `?user=` query parameter;
+/// 3. `"board"` fallback, preserving the previous behavior.
+///
+/// Agent principals always resolve to `"board"`: agent operations are
+/// recorded through their own `*_agent_id` fields on API routes, and an
+/// agent key must not be able to claim a user identity (the header/query
+/// are ignored for agents).
+#[must_use]
+pub fn current_actor(cx: &topcoat::context::Cx) -> String {
+    let Some(parts) = topcoat::context::try_request_context::<http::request::Parts>(cx) else {
+        return "board".to_owned();
+    };
+    match current_principal(cx) {
+        Principal::Agent(_) => "board".to_owned(),
+        Principal::Board | Principal::BoardKey(_) => parts
+            .headers
+            .get("x-board-user")
+            .and_then(|value| value.to_str().ok())
+            .map(str::trim)
+            .filter(|value| !value.is_empty())
+            .or_else(|| {
+                parts.uri.query().and_then(|query| {
+                    query.split('&').find_map(|pair| {
+                        let (key, value) = pair.split_once('=')?;
+                        (key == "user").then_some(value)
+                    })
+                })
+            })
+            .unwrap_or("board")
+            .to_owned(),
+    }
+}

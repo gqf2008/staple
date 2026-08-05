@@ -2511,6 +2511,34 @@ async fn send_form(
     (status, String::from_utf8(bytes.to_vec()).unwrap())
 }
 
+/// Form POST with extra headers and/or a bearer token (for actor identity
+/// and agent-principal tests).
+async fn send_form_with(
+    router: &Router,
+    method: Method,
+    path: &str,
+    body: &str,
+    extra_headers: &[(&str, &str)],
+    bearer: Option<&str>,
+) -> (StatusCode, String) {
+    let mut builder = Request::builder()
+        .method(method)
+        .uri(path)
+        .header(CONTENT_TYPE, "application/x-www-form-urlencoded");
+    for (name, value) in extra_headers {
+        builder = builder.header(*name, *value);
+    }
+    if let Some(token) = bearer {
+        builder = builder.header("Authorization", format!("Bearer {token}"));
+    }
+    let request = builder.body(Body::from(body.to_owned())).unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, response_body) = response.into_parts();
+    let bytes = to_bytes(response_body, usize::MAX).await.unwrap();
+    (status, String::from_utf8(bytes.to_vec()).unwrap())
+}
+
 #[tokio::test]
 async fn issue_detail_approvals_and_activity_pages() {
     let app = router(test_state().await);
@@ -2799,6 +2827,141 @@ async fn behavior_detail_pages_and_forms() {
     assert_eq!(status, StatusCode::OK);
     assert!(html.contains("Page not found"));
     assert!(html.contains("/no/such/page"));
+}
+
+#[tokio::test]
+async fn ui_actions_record_current_operator_identity() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Acme', 'ACM', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    // Board operators (users) for actor resolution.
+    for (id, name, email) in [
+        ("actor-query", "Query Actor", "query@example.com"),
+        ("actor-header", "Header Actor", "header@example.com"),
+    ] {
+        let (status, _) = send_json(
+            &app,
+            Method::POST,
+            "/api/users",
+            json!({ "id": id, "name": name, "email": email }),
+        )
+        .await;
+        assert_eq!(status, StatusCode::CREATED);
+    }
+
+    let (status, issue) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/issues",
+        json!({ "title": "Actor task" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let issue_id = issue["id"].as_str().unwrap().to_owned();
+
+    // 1. Query param identity: `?user=<id>`.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/issues/{issue_id}/comments/ui?user=actor-query"),
+        "body=from+query+actor",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    // 2. Header identity: `X-Board-User: <id>`.
+    let (status, _) = send_form_with(
+        &app,
+        Method::POST,
+        &format!("/issues/{issue_id}/comments/ui"),
+        "body=from+header+actor",
+        &[("X-Board-User", "actor-header")],
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    // 3. Fallback: no identity -> board.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        &format!("/issues/{issue_id}/comments/ui"),
+        "body=from+anonymous+board",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    // 4. Agent principal cannot claim a user identity via query/header.
+    let (status, key_body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/agent-api-keys",
+        json!({ "agentId": "11111111-1111-1111-1111-111111111111", "name": "actor-key" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED);
+    let plaintext = key_body["plaintext"].as_str().unwrap().to_owned();
+    let (status, _) = send_form_with(
+        &app,
+        Method::POST,
+        &format!("/issues/{issue_id}/comments/ui?user=actor-query"),
+        "body=from+agent",
+        &[("X-Board-User", "actor-header")],
+        Some(&plaintext),
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    // Persisted actors match the resolved identity (order-independent).
+    let comments = state.comments.list(&issue_id).await.unwrap();
+    assert_eq!(comments.len(), 4);
+    let by_body: std::collections::HashMap<&str, Option<&str>> = comments
+        .iter()
+        .map(|comment| (comment.body.as_str(), comment.author_user_id.as_deref()))
+        .collect();
+    assert_eq!(
+        by_body.get("from query actor").copied(),
+        Some(Some("actor-query"))
+    );
+    assert_eq!(
+        by_body.get("from header actor").copied(),
+        Some(Some("actor-header"))
+    );
+    assert_eq!(
+        by_body.get("from anonymous board").copied(),
+        Some(Some("board"))
+    );
+    assert_eq!(by_body.get("from agent").copied(), Some(Some("board")));
+
+    // Profile settings shows the current operator and a switch form.
+    let (_, html) = send(
+        &app,
+        Method::GET,
+        "/profile/settings?user=actor-query",
+        None,
+    )
+    .await;
+    assert!(html.contains("Current operator"), "operator label missing");
+    assert!(html.contains("actor-query"), "operator id missing: {html}");
+    assert!(html.contains("Query Actor"), "operator user missing");
+    assert!(html.contains("Switch operator"), "switch form missing");
+    let (_, html) = send(&app, Method::GET, "/profile/settings", None).await;
+    assert!(html.contains("board"), "board fallback operator missing");
 }
 
 #[tokio::test]

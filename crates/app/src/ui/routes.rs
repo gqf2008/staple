@@ -28,7 +28,7 @@ pub async fn add_comment_ui(
             .create(staple_data::NewIssueComment {
                 issue_id: issue_id.clone(),
                 author_agent_id: None,
-                author_user_id: Some("board".to_owned()),
+                author_user_id: Some(crate::auth::current_actor(cx)),
                 body,
             })
             .await
@@ -63,7 +63,7 @@ pub async fn create_approval_ui(
                 company_id: company_id.clone(),
                 r#type,
                 requested_by_agent_id: None,
-                requested_by_user_id: Some("board".to_owned()),
+                requested_by_user_id: Some(crate::auth::current_actor(cx)),
                 payload: form.payload.unwrap_or_else(|| "{}".to_owned()),
             })
             .await
@@ -106,7 +106,7 @@ pub async fn decide_approval_ui(
             staple_data::ApprovalDecision {
                 decision: form.decision,
                 decision_note: form.note.filter(|note| !note.trim().is_empty()),
-                decided_by_user_id: Some("board".to_owned()),
+                decided_by_user_id: Some(crate::auth::current_actor(cx)),
             },
         )
         .await
@@ -144,7 +144,7 @@ pub async fn add_approval_comment_ui(
                 company_id: approval.company_id,
                 approval_id: approval_id.clone(),
                 author_agent_id: None,
-                author_user_id: Some("board".to_owned()),
+                author_user_id: Some(crate::auth::current_actor(cx)),
                 body,
             })
             .await;
@@ -1122,7 +1122,7 @@ pub async fn case_create_ui(
                 fields: None,
                 parent_case_id: None,
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -1184,7 +1184,7 @@ pub async fn pipeline_create_ui(
                 name,
                 description: None,
                 enforce_transitions: form.enforce == Some("1".to_owned()),
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await
     {
@@ -1296,7 +1296,7 @@ pub async fn pipeline_case_ui(
                 fields: None,
                 workspace_ref: None,
                 parent_case_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -1328,7 +1328,7 @@ pub async fn pipeline_case_move_ui(
                 &case_id,
                 to_stage_id,
                 "user",
-                Some("board".to_owned()),
+                Some(crate::auth::current_actor(cx)),
                 None,
                 false,
             )
@@ -2014,7 +2014,7 @@ pub async fn create_status_card_ui(
             .scattered
             .create_status_card(staple_data::NewStatusCard {
                 company_id: company_id.clone(),
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
                 created_by_agent_id: None,
                 title: form.title.filter(|value| !value.is_empty()),
                 title_pinned: false,
@@ -2308,7 +2308,7 @@ pub async fn publish_skill_version_ui(
             released_at: None,
             file_inventory: serde_json::json!([]),
             author_agent_id: None,
-            author_user_id: Some("board".to_owned()),
+            author_user_id: Some(crate::auth::current_actor(cx)),
         })
         .await;
     Ok(see_other(&format!(
@@ -2357,7 +2357,7 @@ pub async fn add_skill_comment_ui(
                 company_skill_id: skill_id.clone(),
                 parent_comment_id: None,
                 author_agent_id: None,
-                author_user_id: Some("board".to_owned()),
+                author_user_id: Some(crate::auth::current_actor(cx)),
                 body: form.body,
             })
             .await;
@@ -2408,7 +2408,7 @@ pub async fn add_skill_test_input_ui(
                 skill_id: skill_id.clone(),
                 name: form.name,
                 content: form.content,
-                created_by: Some("board".to_owned()),
+                created_by: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -2439,7 +2439,7 @@ pub async fn create_secret_provider_ui(
                 is_default: false,
                 config,
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -2513,7 +2513,7 @@ pub async fn create_user_secret_definition_ui(
                 provider_metadata: None,
                 usage_guidance: None,
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -2669,7 +2669,7 @@ pub async fn create_watchdog_ui(
                 status: form.status.unwrap_or_else(|| "active".to_owned()),
                 watchdog_issue_id: None,
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
                 created_by_run_id: None,
             })
             .await;
@@ -3156,7 +3156,7 @@ pub async fn create_tool_connection_ui(
                 credential_refs: serde_json::json!([]),
                 credential_secret_refs: serde_json::json!([]),
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -3186,7 +3186,7 @@ pub async fn create_tool_install_ui(
                 target_type: form.target_type,
                 target_id: form.target_id,
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
@@ -3242,7 +3242,7 @@ pub async fn create_tool_gateway_ui(
                 on_demand_tools_config: serde_json::json!({}),
                 metadata: serde_json::json!({}),
                 created_by_agent_id: None,
-                created_by_user_id: Some("board".to_owned()),
+                created_by_user_id: Some(crate::auth::current_actor(cx)),
             })
             .await;
     }
