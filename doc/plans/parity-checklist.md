@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-05（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 1/2 批）。
 
 ## 使用方式
 
@@ -94,8 +94,24 @@
 | 第 5 批 | 工具链域（tool_* + connection_*，23 张） | ✅ 完成（issue #103/PR #108） |
 | 第 6 批 | 基础设施（auth 四表/instance_settings/folders/agent_config_revisions/watchdogs/holds/heartbeat 事件/environment images/用户偏好等 27 张） | ✅ 完成（issue #102/PR #105） |
 | 收尾 | 其余散表（status_cards(+updates)/summary_slots/smoke_runs(+steps)/feedback_*/finance_events/document_annotations 等 11 张） | ✅ 完成（issue #106/PR #109） |
+| 列级对齐 第 1 批 | 表级对齐后列级审计补缺：pipeline_cases/activity_log/决策桌/基础小表（17 表，迁移 0028） | ✅ 完成（issue #153/PR #154） |
+| 列级对齐 第 2 批 | agent_api_keys/cost_events/document_revisions/issue_comments/issue_thread_interactions/routines/routine_revisions/routine_runs/routine_triggers（9 表，迁移 0029） | ✅ 完成（issue #155/PR #157） |
 
 ## 参考镜像同步登记
 
 - 每次 `gqf2008/paperclip` 同步上游后，diff 中新增的 API/表/测试按上述模块追加登记，状态默认 `未开始`。
 - 2026-08-03：登记上游 **UI 国际化（i18n）sweep**（zh-CN/zh-TW 全量翻译 + 多语言 locale，来自参考分支 `sync/reference-i18n`，仅改动 Node 参考快照 `ui/`，不影响 `crates/`）。同日完成 Rust 侧 en + zh-CN 实现（#50）。
+
+
+## 明确延后 / 待办登记（上游能力，审计后给出最终处置）
+
+| 上游能力 | 说明 | 状态 |
+|---|---|---|
+| **TeamCatalog（Phase E teams-catalog）** | 全新数据模型 + 列表/详情/文件/preview/install 端点 + TeamCatalog/NewAgentDialog/OnboardingWizard UI | ⏳ 明确延后（需先建表再实现，单独立项） |
+| **BoardClaim（board-claim/:token）** | 依赖 email/password 认证 + board claim challenge 端点 | ⏳ 明确延后（无认证栈） |
+| **apps 生态页面**（connections/browse/connect/review/gateways/advanced/app detail） | 上游应用市场/连接管理大功能；数据表 tool_* 已对齐，UI 层缺失 | ⏳ 明确延后（单独立项） |
+| **完整公司包导出/导入**（COMPANY.md/PROJECT.md/TASK.md/SKILL.md + documents/skills 全量打包 + zip 文件内容/frontmatter 预览） | 现为 JSON manifest（7 核心表）+ 附件 zip baseline | ⏳ 明确延后（单独立项） |
+| **InstanceAccess 按用户公司访问管理**（setUserCompanyAccess） | 现有 instance/settings 覆盖 roles/board keys/challenges；缺按用户批量授权界面 | ⏳ 明确延后 |
+| **InstanceExperimentalSettings** | 上游实验设置页，无产品行为 | ⏳ 明确不迁移 |
+| **decision_desk repository 字段补齐**（迁移 0028 已加列） | 跟随「决策桌功能增强」批实施，非延后 | 📋 已排期 |
+| **routine_revisions/routine_triggers 读回 record**（迁移 0029 已加列） | 跟随「routines 功能增强」批实施，非延后 | 📋 已排期 |
