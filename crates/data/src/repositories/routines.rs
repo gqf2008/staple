@@ -32,6 +32,12 @@ pub struct RoutineRecord {
     pub priority: String,
     /// Status.
     pub status: String,
+    /// Folder id.
+    pub folder_id: Option<String>,
+    /// Last updating agent id.
+    pub updated_by_agent_id: Option<String>,
+    /// Last updating user id.
+    pub updated_by_user_id: Option<String>,
     /// Concurrency policy.
     pub concurrency_policy: String,
     /// Catch-up policy.
@@ -68,6 +74,30 @@ pub struct RoutineRunRecord {
     pub issue_id: Option<String>,
     /// Error.
     pub error: Option<String>,
+    /// Trigger source.
+    pub source: Option<String>,
+    /// Trigger id.
+    pub trigger_id: Option<String>,
+    /// ISO 8601 triggered time.
+    pub triggered_at: Option<String>,
+    /// Routine revision id.
+    pub routine_revision_id: Option<String>,
+    /// Responsible user id.
+    pub responsible_user_id: Option<String>,
+    /// Idempotency key.
+    pub idempotency_key: Option<String>,
+    /// Trigger payload JSON.
+    pub trigger_payload: Option<serde_json::Value>,
+    /// Dispatch fingerprint.
+    pub dispatch_fingerprint: Option<String>,
+    /// Linked issue id.
+    pub linked_issue_id: Option<String>,
+    /// Coalesced-into run id.
+    pub coalesced_into_run_id: Option<String>,
+    /// Failure reason.
+    pub failure_reason: Option<String>,
+    /// ISO 8601 completion time.
+    pub completed_at: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -299,8 +329,9 @@ impl RoutineRepository for TursoRoutineRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, project_id, goal_id, parent_issue_id, title, description,
-                        assignee_agent_id, priority, status, concurrency_policy, catch_up_policy,
-                        variables, latest_revision_number, latest_revision_id, last_triggered_at,
+                        assignee_agent_id, priority, status, folder_id, updated_by_agent_id,
+                        updated_by_user_id, concurrency_policy, catch_up_policy, variables,
+                        latest_revision_number, latest_revision_id, last_triggered_at,
                         created_at
                  FROM routines WHERE company_id = ?1 ORDER BY created_at",
                 libsql::params![company_id],
@@ -318,8 +349,9 @@ impl RoutineRepository for TursoRoutineRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, project_id, goal_id, parent_issue_id, title, description,
-                        assignee_agent_id, priority, status, concurrency_policy, catch_up_policy,
-                        variables, latest_revision_number, latest_revision_id, last_triggered_at,
+                        assignee_agent_id, priority, status, folder_id, updated_by_agent_id,
+                        updated_by_user_id, concurrency_policy, catch_up_policy, variables,
+                        latest_revision_number, latest_revision_id, last_triggered_at,
                         created_at
                  FROM routines WHERE id = ?1",
                 libsql::params![id],
@@ -414,7 +446,10 @@ impl RoutineRepository for TursoRoutineRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, routine_id, revision_id, status, triggered_by, issue_id,
-                        error, created_at FROM routine_runs WHERE id = ?1",
+                        error, source, trigger_id, triggered_at, routine_revision_id,
+                        responsible_user_id, idempotency_key, trigger_payload,
+                        dispatch_fingerprint, linked_issue_id, coalesced_into_run_id,
+                        failure_reason, completed_at, created_at FROM routine_runs WHERE id = ?1",
                 libsql::params![run_id],
             )
             .await?;
@@ -431,7 +466,10 @@ impl RoutineRepository for TursoRoutineRepository {
         let mut rows = conn
             .query(
                 "SELECT id, company_id, routine_id, revision_id, status, triggered_by, issue_id,
-                        error, created_at FROM routine_runs
+                        error, source, trigger_id, triggered_at, routine_revision_id,
+                        responsible_user_id, idempotency_key, trigger_payload,
+                        dispatch_fingerprint, linked_issue_id, coalesced_into_run_id,
+                        failure_reason, completed_at, created_at FROM routine_runs
                  WHERE company_id = ?1 AND routine_id = ?2 ORDER BY created_at DESC",
                 libsql::params![company_id, routine_id],
             )
@@ -524,13 +562,16 @@ fn row_to_routine(row: &libsql::Row) -> Result<RoutineRecord, libsql::Error> {
         assignee_agent_id: helpers::row_text(row, 7)?,
         priority: helpers::row_text(row, 8)?.expect("priority"),
         status: helpers::row_text(row, 9)?.expect("status"),
-        concurrency_policy: helpers::row_text(row, 10)?.expect("concurrency_policy"),
-        catch_up_policy: helpers::row_text(row, 11)?.expect("catch_up_policy"),
-        variables: helpers::row_text(row, 12)?.expect("variables"),
-        latest_revision_number: helpers::row_i64(row, 13)?,
-        latest_revision_id: helpers::row_text(row, 14)?,
-        last_triggered_at: helpers::row_text(row, 15)?,
-        created_at: helpers::row_text(row, 16)?.expect("created_at"),
+        folder_id: helpers::row_text(row, 10)?,
+        updated_by_agent_id: helpers::row_text(row, 11)?,
+        updated_by_user_id: helpers::row_text(row, 12)?,
+        concurrency_policy: helpers::row_text(row, 13)?.expect("concurrency_policy"),
+        catch_up_policy: helpers::row_text(row, 14)?.expect("catch_up_policy"),
+        variables: helpers::row_text(row, 15)?.expect("variables"),
+        latest_revision_number: helpers::row_i64(row, 16)?,
+        latest_revision_id: helpers::row_text(row, 17)?,
+        last_triggered_at: helpers::row_text(row, 18)?,
+        created_at: helpers::row_text(row, 19)?.expect("created_at"),
     })
 }
 
@@ -544,7 +585,20 @@ fn row_to_run(row: &libsql::Row) -> Result<RoutineRunRecord, libsql::Error> {
         triggered_by: helpers::row_text(row, 5)?,
         issue_id: helpers::row_text(row, 6)?,
         error: helpers::row_text(row, 7)?,
-        created_at: helpers::row_text(row, 8)?.expect("created_at"),
+        source: helpers::row_text(row, 8)?,
+        trigger_id: helpers::row_text(row, 9)?,
+        triggered_at: helpers::row_text(row, 10)?,
+        routine_revision_id: helpers::row_text(row, 11)?,
+        responsible_user_id: helpers::row_text(row, 12)?,
+        idempotency_key: helpers::row_text(row, 13)?,
+        trigger_payload: helpers::row_text(row, 14)?
+            .and_then(|raw| serde_json::from_str(&raw).ok()),
+        dispatch_fingerprint: helpers::row_text(row, 15)?,
+        linked_issue_id: helpers::row_text(row, 16)?,
+        coalesced_into_run_id: helpers::row_text(row, 17)?,
+        failure_reason: helpers::row_text(row, 18)?,
+        completed_at: helpers::row_text(row, 19)?,
+        created_at: helpers::row_text(row, 20)?.expect("created_at"),
     })
 }
 
