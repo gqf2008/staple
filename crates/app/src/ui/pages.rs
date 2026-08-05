@@ -36,6 +36,10 @@ pub(crate) struct SkillId(String);
 #[path_param(error = bad_request("Invalid workspace id"))]
 pub(crate) struct WorkspaceId(String);
 
+/// Typed `{plugin_id}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid plugin id"))]
+pub(crate) struct PluginId(String);
+
 /// Home: the company list (company selection context).
 #[page("/")]
 pub async fn home(cx: &Cx) -> Result {
@@ -136,6 +140,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang))>(t(lang, "nav.projects"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/secrets"), lang))>(t(lang, "settings.secrets"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>(t(lang, "settings.skills"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/plugins"), lang))>(t(lang, "plugins.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang))>(t(lang, "workspaces.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "nav.settings"))</a>
         </nav>
@@ -229,6 +234,28 @@ fn status_badge_class(status: &str) -> &'static str {
         "done" | "completed" => "badge badge-done",
         _ => "badge badge-default",
     }
+}
+
+fn plugin_status_badge_class(status: &str) -> &'static str {
+    match status {
+        "enabled" | "installed" => "badge badge-done",
+        "disabled" | "uninstalled" => "badge badge-paused",
+        "error" => "badge badge-blocked",
+        _ => "badge badge-default",
+    }
+}
+
+/// Resolves a plugin display name from the manifest, falling back to the
+/// plugin key when the manifest has no display name/name.
+fn plugin_display_name(plugin: &staple_data::PluginRecord) -> String {
+    plugin
+        .manifest_json
+        .get("displayName")
+        .or_else(|| plugin.manifest_json.get("name"))
+        .and_then(serde_json::Value::as_str)
+        .filter(|value| !value.trim().is_empty())
+        .unwrap_or(&plugin.plugin_key)
+        .to_owned()
 }
 
 /// Issue detail: attributes, comments (with add form), documents,
@@ -1467,6 +1494,520 @@ pub async fn skills_page(cx: &Cx) -> Result {
                 }
             </ul>
         }
+    }
+}
+
+/// Company plugins: instance registry list, register form, and per-company
+/// enable/disable controls.
+#[page("/companies/{company_id}/plugins")]
+pub async fn company_plugins(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let company = state
+        .companies
+        .get(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let Some(company) = company else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let plugin_rows = state.plugins.list().await.map_err(to_topcoat_error)?;
+    let mut setting_by_plugin: std::collections::HashMap<
+        String,
+        staple_data::PluginCompanySettingRecord,
+    > = std::collections::HashMap::new();
+    for plugin in &plugin_rows {
+        if let Ok(setting_rows) = state.plugins.list_company_settings(&plugin.id).await
+            && let Some(setting) = setting_rows
+                .into_iter()
+                .find(|setting| setting.company_id == company_id)
+        {
+            setting_by_plugin.insert(plugin.id.clone(), setting);
+        }
+    }
+    view! {
+        <h1 class="page-title">(company.name) " " (t(lang, "plugins.title"))</h1>
+        <p class="meta-row">(t(lang, "plugins.registered"))</p>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}"), lang))>(t(lang, "common.back"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "plugins.register"))</h2>
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/plugins/register/ui"), lang))>
+                <label>(t(lang, "plugins.pluginKey"))</label>
+                <input type="text" name="plugin_key" required="required">
+                <label>(t(lang, "plugins.packageName"))</label>
+                <input type="text" name="package_name" required="required">
+                <label>(t(lang, "plugins.version"))</label>
+                <input type="text" name="version" required="required">
+                <label>(t(lang, "plugins.apiVersion"))</label>
+                <input type="number" name="api_version" value="1" min="1">
+                <label>(t(lang, "plugins.categories"))</label>
+                <input type="text" name="categories" placeholder="tools, integrations">
+                <label>(t(lang, "plugins.manifestJson"))</label>
+                <textarea name="manifest_json" rows="6" cols="60"></textarea>
+                <label>(t(lang, "plugins.installOrder"))</label>
+                <input type="number" name="install_order">
+                <label>(t(lang, "plugins.packagePath"))</label>
+                <input type="text" name="package_path">
+                <button type="submit">(t(lang, "plugins.register"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "plugins.registered"))</h2>
+            if plugin_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.none"))</p>
+            } else {
+                <ul class="list">
+                    for plugin in &plugin_rows {
+                        <li>
+                            <a href=(with_lang(&format!("/plugins/{}", plugin.id), lang))>
+                                <strong>(plugin_display_name(plugin))</strong>
+                            </a>
+                            " " <span class="mono">(plugin.plugin_key.clone())</span>
+                            " " <span class="badge badge-default">(plugin.version.clone())</span>
+                            " " <span class=(plugin_status_badge_class(&plugin.status))>(plugin.status.clone())</span>
+                            if let Some(error) = &plugin.last_error {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                            if setting_by_plugin
+                                .get(&plugin.id)
+                                .map(|setting| setting.enabled)
+                                .unwrap_or(true)
+                            {
+                                <span class="badge badge-done">(t(lang, "plugins.enabled"))</span>
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/companies/{company_id}/plugins/{}/settings/ui", plugin.id), lang))>
+                                    <input type="hidden" name="enabled" value="0">
+                                    <button type="submit" class="destructive">(t(lang, "plugins.disable"))</button>
+                                </form>
+                            } else {
+                                <span class="badge badge-default">(t(lang, "plugins.disabled"))</span>
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/companies/{company_id}/plugins/{}/settings/ui", plugin.id), lang))>
+                                    <input type="hidden" name="enabled" value="1">
+                                    <button type="submit">(t(lang, "plugins.enable"))</button>
+                                </form>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Query for the plugin detail page state section.
+#[topcoat::router::query_params]
+struct PluginStateQuery {
+    /// Scope kind filter.
+    #[serde(rename = "scopeKind")]
+    scope_kind: Option<String>,
+    /// Scope id filter.
+    #[serde(rename = "scopeId")]
+    scope_id: Option<String>,
+    /// Namespace filter.
+    namespace: Option<String>,
+}
+
+/// Plugin detail: configuration, company settings, runtime state, entities,
+/// jobs/runs, logs, webhook deliveries, database namespaces/migrations, and
+/// managed resources for one registered plugin.
+#[page("/plugins/{plugin_id}")]
+pub async fn plugin_detail(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let plugin_id = path_param::<PluginId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(plugin) = state
+        .plugins
+        .get(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let config_rows = state
+        .plugins
+        .list_configs(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let setting_rows = state
+        .plugins
+        .list_company_settings(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let state_query = topcoat::router::query_params::<PluginStateQuery>(cx).ok();
+    let scope_kind = state_query
+        .as_ref()
+        .and_then(|query| query.scope_kind.clone())
+        .unwrap_or_else(|| "instance".to_owned());
+    let scope_id = state_query
+        .as_ref()
+        .and_then(|query| query.scope_id.clone());
+    let namespace = state_query
+        .as_ref()
+        .and_then(|query| query.namespace.clone())
+        .unwrap_or_else(|| "default".to_owned());
+    let state_rows = state
+        .plugin_runtime
+        .state_list(&plugin_id, &scope_kind, scope_id.as_deref(), &namespace)
+        .await
+        .map_err(to_topcoat_error)?;
+    let entity_rows = state
+        .plugin_runtime
+        .entity_list(&plugin_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let job_rows = state
+        .plugin_runtime
+        .job_list(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let run_rows = state
+        .plugin_runtime
+        .job_run_list(&plugin_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let log_rows = state
+        .plugin_runtime
+        .log_list(&plugin_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let webhook_rows = state
+        .plugin_runtime
+        .webhook_list(&plugin_id, None)
+        .await
+        .map_err(to_topcoat_error)?;
+    let namespace_rows = state
+        .plugin_runtime
+        .namespace_list(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let migration_rows = state
+        .plugin_runtime
+        .migration_list(&plugin_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let company_rows = state.companies.list().await.map_err(to_topcoat_error)?;
+    let mut resource_rows: Vec<(String, staple_data::PluginManagedResourceRecord)> = Vec::new();
+    for company in &company_rows {
+        if let Ok(resources) = state
+            .plugins
+            .list_managed_resources(&plugin_id, &company.id)
+            .await
+        {
+            for resource in resources {
+                resource_rows.push((company.name.clone(), resource));
+            }
+        }
+    }
+    let manifest_json = serde_json::to_string_pretty(&plugin.manifest_json).unwrap_or_default();
+    view! {
+        <h1 class="page-title">(plugin_display_name(&plugin))</h1>
+        <p class="meta-row">
+            (t(lang, "plugins.pluginKey")) ": " <span class="mono">(plugin.plugin_key.clone())</span>
+            " | " (t(lang, "plugins.version")) ": " (plugin.version.clone())
+            " | " (t(lang, "plugins.status")) ": "
+            <span class=(plugin_status_badge_class(&plugin.status))>(plugin.status.clone())</span>
+        </p>
+        <p class="mono">(plugin.id.clone())</p>
+        <nav class="nav-row">
+            <a href=(with_lang("/", lang))>(t(lang, "common.back"))</a>
+            <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+        </nav>
+
+        <section>
+            <h2>(t(lang, "plugins.updateStatus"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/plugins/{plugin_id}/status/ui"), lang))>
+                <select name="status">
+                    <option value="installed" selected=(plugin.status == "installed")>"installed"</option>
+                    <option value="enabled" selected=(plugin.status == "enabled")>"enabled"</option>
+                    <option value="disabled" selected=(plugin.status == "disabled")>"disabled"</option>
+                    <option value="error" selected=(plugin.status == "error")>"error"</option>
+                    <option value="uninstalled" selected=(plugin.status == "uninstalled")>"uninstalled"</option>
+                </select>
+                <input type="text" name="last_error" value=(plugin.last_error.clone().unwrap_or_default())
+                       placeholder=(t(lang, "plugins.lastError"))>
+                <button type="submit">(t(lang, "plugins.save"))</button>
+            </form>
+            if let Some(error) = &plugin.last_error {
+                <p class="meta-row">(t(lang, "plugins.lastError")) ": " (error.clone())</p>
+            }
+            <p class="mono">(manifest_json)</p>
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.config"))</h2>
+            if config_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.configNone"))</p>
+            } else {
+                <ul class="list">
+                    for config in &config_rows {
+                        <li>
+                            <span class="mono">(config.company_id.clone())</span>
+                            " " <span class="meta-row">(serde_json::to_string(&config.config_json).unwrap_or_default())</span>
+                            " " <span class="meta-row">(config.created_at.clone())</span>
+                            if let Some(error) = &config.last_error {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/plugins/{plugin_id}/configs/ui"), lang))>
+                <label>(t(lang, "plugins.company"))</label>
+                <input type="text" name="company_id" required="required">
+                <label>(t(lang, "plugins.valueJson"))</label>
+                <textarea name="config_json" rows="4" cols="60"></textarea>
+                <button type="submit">(t(lang, "plugins.upsertConfig"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.companySettings"))</h2>
+            if setting_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.companySettingsNone"))</p>
+            } else {
+                <ul class="list">
+                    for setting in &setting_rows {
+                        <li>
+                            <span class="mono">(setting.company_id.clone())</span>
+                            " " <span class=(plugin_status_badge_class(if setting.enabled { "enabled" } else { "disabled" }))>
+                                (if setting.enabled { "enabled" } else { "disabled" })
+                            </span>
+                            " " <span class="meta-row">(serde_json::to_string(&setting.settings_json).unwrap_or_default())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.state"))</h2>
+            <form class="inline-form" method="get"
+                  action=(with_lang(&format!("/plugins/{plugin_id}"), lang))>
+                <input type="text" name="scopeKind" value=(scope_kind.clone()) placeholder=(t(lang, "plugins.scopeKind"))>
+                <input type="text" name="scopeId" value=(scope_id.clone().unwrap_or_default()) placeholder=(t(lang, "plugins.scopeId"))>
+                <input type="text" name="namespace" value=(namespace.clone()) placeholder=(t(lang, "plugins.namespace"))>
+                <button type="submit">(t(lang, "plugins.stateFilter"))</button>
+            </form>
+            if state_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.stateNone"))</p>
+            } else {
+                <ul class="list">
+                    for state_row in &state_rows {
+                        <li>
+                            <span class="mono">(state_row.scope_kind.clone())</span>
+                            " " <span class="meta-row">(state_row.scope_id.clone().unwrap_or_else(|| "-".to_owned()))</span>
+                            " " <span class="meta-row">(state_row.namespace.clone())</span>
+                            " " <span class="mono">(state_row.state_key.clone())</span>
+                            " " <span class="meta-row">(serde_json::to_string(&state_row.value_json).unwrap_or_default())</span>
+                        </li>
+                    }
+                </ul>
+            }
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/plugins/{plugin_id}/state/ui"), lang))>
+                <label>(t(lang, "plugins.scopeKind"))</label>
+                <input type="text" name="scope_kind" value=(scope_kind.clone())>
+                <label>(t(lang, "plugins.scopeId"))</label>
+                <input type="text" name="scope_id" value=(scope_id.clone().unwrap_or_default())>
+                <label>(t(lang, "plugins.namespace"))</label>
+                <input type="text" name="namespace" value=(namespace.clone())>
+                <label>(t(lang, "plugins.stateKey"))</label>
+                <input type="text" name="key" required="required">
+                <label>(t(lang, "plugins.valueJson"))</label>
+                <textarea name="value" rows="4" cols="60"></textarea>
+                <button type="submit">(t(lang, "plugins.setState"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.entities"))</h2>
+            if entity_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.entitiesNone"))</p>
+            } else {
+                <ul class="list">
+                    for entity in &entity_rows {
+                        <li>
+                            <span class="mono">(entity.entity_type.clone())</span>
+                            " " <strong>(entity.title.clone().unwrap_or_else(|| "-".to_owned()))</strong>
+                            " " <span class="meta-row">(entity.scope_kind.clone())</span>
+                            " " <span class="meta-row">(entity.scope_id.clone().unwrap_or_else(|| "-".to_owned()))</span>
+                            " " <span class="badge badge-default">(entity.status.clone().unwrap_or_else(|| "-".to_owned()))</span>
+                            if let Some(external_id) = &entity.external_id {
+                                " " <span class="mono">(external_id.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            <form class="stack-form" method="post"
+                  action=(with_lang(&format!("/plugins/{plugin_id}/entities/ui"), lang))>
+                <label>(t(lang, "plugins.company"))</label>
+                <input type="text" name="company_id">
+                <label>(t(lang, "plugins.entityType"))</label>
+                <input type="text" name="entity_type" required="required">
+                <label>(t(lang, "plugins.scopeKind"))</label>
+                <input type="text" name="scope_kind" value="issue">
+                <label>(t(lang, "plugins.scopeId"))</label>
+                <input type="text" name="scope_id">
+                <label>(t(lang, "plugins.externalId"))</label>
+                <input type="text" name="external_id">
+                <label>(t(lang, "plugins.titleLabel"))</label>
+                <input type="text" name="title">
+                <label>(t(lang, "plugins.status"))</label>
+                <input type="text" name="status">
+                <label>(t(lang, "plugins.valueJson"))</label>
+                <textarea name="data" rows="4" cols="60"></textarea>
+                <button type="submit">(t(lang, "plugins.upsertEntity"))</button>
+            </form>
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.jobs"))</h2>
+            if job_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.jobsNone"))</p>
+            } else {
+                <ul class="list">
+                    for job in &job_rows {
+                        <li>
+                            <span class="mono">(job.job_key.clone())</span>
+                            " " <span class="meta-row">(job.schedule.clone())</span>
+                            " " <span class=(status_badge_class(&job.status))>(job.status.clone())</span>
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/plugins/{plugin_id}/jobs/{}/runs/ui", job.job_key), lang))>
+                                <button type="submit">(t(lang, "plugins.runNow"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.jobRuns"))</h2>
+            if run_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.jobRunsNone"))</p>
+            } else {
+                <ul class="list">
+                    for run in &run_rows {
+                        <li>
+                            <span class="mono">(run.id.clone())</span>
+                            " " <span class="badge badge-default">(run.trigger.clone())</span>
+                            " " <span class=(status_badge_class(&run.status))>(run.status.clone())</span>
+                            " " <span class="meta-row">(run.started_at.clone().unwrap_or_else(|| "-".to_owned()))</span>
+                            if let Some(duration) = run.duration_ms {
+                                " " <span class="meta-row">(t(lang, "plugins.durationMs")) ": " (duration)</span>
+                            }
+                            if let Some(error) = &run.error {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.logs"))</h2>
+            if log_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.logsNone"))</p>
+            } else {
+                <ul class="list">
+                    for log in &log_rows {
+                        <li>
+                            <span class="badge badge-default">(log.level.clone())</span>
+                            " " <span class="meta-row">(log.created_at.clone())</span>
+                            " " <strong>(log.message.clone())</strong>
+                            if let Some(meta) = &log.meta {
+                                " " <span class="meta-row">(serde_json::to_string(meta).unwrap_or_default())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.webhooks"))</h2>
+            if webhook_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.webhooksNone"))</p>
+            } else {
+                <ul class="list">
+                    for webhook in &webhook_rows {
+                        <li>
+                            <span class="mono">(webhook.webhook_key.clone())</span>
+                            " " <span class=(status_badge_class(&webhook.status))>(webhook.status.clone())</span>
+                            " " <span class="meta-row">(webhook.created_at.clone())</span>
+                            if let Some(duration) = webhook.duration_ms {
+                                " " <span class="meta-row">(t(lang, "plugins.durationMs")) ": " (duration)</span>
+                            }
+                            if let Some(error) = &webhook.error {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.database"))</h2>
+            if namespace_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.databaseNone"))</p>
+            } else {
+                <ul class="list">
+                    for namespace in &namespace_rows {
+                        <li>
+                            <span class="mono">(namespace.namespace_name.clone())</span>
+                            " " <span class="badge badge-default">(namespace.namespace_mode.clone())</span>
+                            " " <span class=(status_badge_class(&namespace.status))>(namespace.status.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+            <h3>(t(lang, "plugins.migrations"))</h3>
+            if migration_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.migrationsNone"))</p>
+            } else {
+                <ul class="list">
+                    for migration in &migration_rows {
+                        <li>
+                            <span class="mono">(migration.namespace_name.clone())</span>
+                            " " <span class="mono">(migration.migration_key.clone())</span>
+                            " " <span class=(status_badge_class(&migration.status))>(migration.status.clone())</span>
+                            " " <span class="meta-row">(migration.checksum.clone())</span>
+                            if let Some(error) = &migration.error_message {
+                                " " <span class="meta-row">(error.clone())</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "plugins.managedResources"))</h2>
+            if resource_rows.is_empty() {
+                <p class="empty">(t(lang, "plugins.managedResourcesNone"))</p>
+            } else {
+                <ul class="list">
+                    for (company_name, resource) in &resource_rows {
+                        <li>
+                            <strong>(company_name.clone())</strong>
+                            " " <span class="mono">(resource.resource_kind.clone())</span>
+                            " " <span class="mono">(resource.resource_key.clone())</span>
+                            " " <span class="mono">(resource.resource_id.clone())</span>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
     }
 }
 
