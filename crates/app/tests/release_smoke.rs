@@ -746,6 +746,33 @@ async fn core_business_flow_smoke() {
     );
 
     // 5. New UI surfaces render: board, search, settings.
+    // Apps ecosystem: create an application + connection so the app
+    // detail page has data to render.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/tools/applications"),
+        json!({ "name": "Smoke App", "type": "custom" }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let application_id = body["id"].as_str().unwrap().to_owned();
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/connections"),
+        json!({
+            "applicationId": application_id,
+            "name": "Smoke Connection",
+            "uid": "smoke-conn",
+            "transport": "mcp_remote",
+            "authKind": "none",
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    let connection_id = body["id"].as_str().unwrap().to_owned();
+
     for (path, needle) in [
         (format!("/companies/{company_id}/board"), "board-card"),
         (
@@ -897,6 +924,17 @@ async fn core_business_flow_smoke() {
             "Smoke execution workspace",
         ),
         ("/profile/settings".to_string(), "Smoke User"),
+        (format!("/companies/{company_id}/apps"), "Apps"),
+        (format!("/companies/{company_id}/apps/browse"), "Browse"),
+        (format!("/companies/{company_id}/apps/gateways"), "Gateways"),
+        (
+            format!("/companies/{company_id}/apps/advanced"),
+            "Advanced tools",
+        ),
+        (
+            format!("/companies/{company_id}/apps/connections/{connection_id}"),
+            "Smoke Connection",
+        ),
         ("/no-such-page".to_string(), "Page not found"),
     ] {
         let request = Request::builder()
