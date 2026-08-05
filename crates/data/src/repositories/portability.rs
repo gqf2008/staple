@@ -225,6 +225,17 @@ pub trait PortabilityRepository: Send + Sync {
     /// database fails.
     async fn export_company(&self, company_id: &str) -> Result<CompanyManifest, PortabilityError>;
 
+    /// Counts existing core rows per table for a company (conflict preview).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`PortabilityError`] when the company is missing or the
+    /// database fails.
+    async fn company_row_counts(
+        &self,
+        company_id: &str,
+    ) -> Result<std::collections::HashMap<String, u64>, PortabilityError>;
+
     /// Imports a manifest into a company, minting fresh ids and rewriting
     /// references so the rows belong to the target company.
     ///
@@ -347,6 +358,29 @@ impl PortabilityRepository for TursoPortabilityRepository {
             company_id: company_id.to_owned(),
             tables,
         })
+    }
+
+    async fn company_row_counts(
+        &self,
+        company_id: &str,
+    ) -> Result<std::collections::HashMap<String, u64>, PortabilityError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        if !helpers::company_exists(&conn, company_id).await? {
+            return Err(PortabilityError::CompanyNotFound);
+        }
+        let mut counts = std::collections::HashMap::new();
+        for table in CORE_TABLES {
+            let mut rows = conn
+                .query(
+                    &format!("SELECT COUNT(*) FROM {table} WHERE company_id = ?1"),
+                    libsql::params![company_id],
+                )
+                .await?;
+            if let Some(row) = rows.next().await? {
+                counts.insert(table.to_owned(), helpers::row_i64(&row, 0)? as u64);
+            }
+        }
+        Ok(counts)
     }
 
     async fn import_company(
@@ -659,6 +693,22 @@ mod tests {
         assert_eq!(summary.failed, 0);
         let after = repo.export_company("c2").await.unwrap();
         assert_eq!(count(&after.tables, "issues"), before_issues);
+    }
+
+    #[tokio::test]
+    async fn company_row_counts_reflect_existing_rows() {
+        let (_dir, repo) = repo().await;
+        let counts = repo.company_row_counts("c1").await.unwrap();
+        assert_eq!(counts.get("agents"), Some(&1));
+        assert_eq!(counts.get("issues"), Some(&1));
+        assert_eq!(counts.get("issue_comments"), Some(&1));
+        assert!(counts.get("projects").copied().unwrap_or(0) >= 1);
+        let c2 = repo.company_row_counts("c2").await.unwrap();
+        assert_eq!(c2.get("agents"), Some(&0));
+        assert!(matches!(
+            repo.company_row_counts("nope").await.unwrap_err(),
+            PortabilityError::CompanyNotFound
+        ));
     }
 
     #[tokio::test]
