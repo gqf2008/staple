@@ -136,6 +136,24 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             .map_err(|error| ApiError::internal(error.to_string()))?;
         created_projects += 1;
     }
+    let mut created_skills = 0i64;
+    let mut skipped_skills = 0i64;
+    for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
+        match state
+            .skills
+            .create(staple_data::NewSkill {
+                company_id: company_id.clone(),
+                name: skill.name,
+                description: skill.description,
+                restriction_policy: staple_data::SkillRestrictionPolicy::default(),
+            })
+            .await
+        {
+            Ok(_) => created_skills += 1,
+            Err(staple_data::SkillError::AlreadyExists) => skipped_skills += 1,
+            Err(_) => {}
+        }
+    }
     crate::audit::log_activity(
         &state.activity,
         &company_id,
@@ -146,6 +164,8 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             "catalogId": team.id,
             "createdAgents": created_agents,
             "createdProjects": created_projects,
+            "createdSkills": created_skills,
+            "skippedSkills": skipped_skills,
         })),
     )
     .await?;
@@ -153,7 +173,8 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
         "catalogId": team.id,
         "createdAgents": created_agents,
         "createdProjects": created_projects,
-        "skillsDeferred": true,
+        "createdSkills": created_skills,
+        "skippedSkills": skipped_skills,
     })))
 }
 
@@ -201,6 +222,17 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                     lead_agent_id: None,
                     target_date: None,
                     env: None,
+                })
+                .await;
+        }
+        for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
+            let _ = state
+                .skills
+                .create(staple_data::NewSkill {
+                    company_id: company_id.clone(),
+                    name: skill.name,
+                    description: skill.description,
+                    restriction_policy: staple_data::SkillRestrictionPolicy::default(),
                 })
                 .await;
         }
