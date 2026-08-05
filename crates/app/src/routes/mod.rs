@@ -32,6 +32,7 @@ pub mod permission_grants;
 pub mod pipelines;
 pub mod plugin_runtime;
 pub mod plugins;
+pub mod portability;
 pub mod preferences;
 pub mod projects;
 pub mod relations;

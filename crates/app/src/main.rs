@@ -16,11 +16,11 @@ use staple_data::{
     TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
-    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
-    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, default_key_path, migrate, open,
+    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
+    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
+    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -44,6 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let preferences_db = open(&db_config).await?;
     let plugins_db = open(&db_config).await?;
     let pipelines_db = open(&db_config).await?;
+    let portability_db = open(&db_config).await?;
     let plugin_runtime_db = open(&db_config).await?;
     let goals_db = open(&db_config).await?;
     let projects_db = open(&db_config).await?;
@@ -91,6 +92,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         cases: Arc::new(TursoCaseRepository::new(cases_db)),
         preferences: Arc::new(TursoPreferenceRepository::new(preferences_db)),
         pipelines: Arc::new(TursoPipelineRepository::new(pipelines_db)),
+        portability: Arc::new(TursoPortabilityRepository::new(portability_db)),
         plugins: Arc::new(TursoPluginRepository::new(plugins_db)),
         plugin_runtime: Arc::new(TursoPluginRuntimeRepository::new(plugin_runtime_db)),
         goals: Arc::new(TursoGoalRepository::new(goals_db)),

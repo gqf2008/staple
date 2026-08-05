@@ -20,11 +20,11 @@ use staple_data::{
     TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
     TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
     TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPreferenceRepository, TursoProjectRepository, TursoRoutineRepository,
-    TursoScatteredRepository, TursoSecretBindingRepository, TursoSecretRepository,
-    TursoSkillCatalogRepository, TursoSkillRepository, TursoToolCatalogRepository,
-    TursoToolConnectionRepository, TursoToolGatewayRepository, TursoWorkProductRepository,
-    TursoWorkspaceRepository, migrate, open,
+    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
+    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
+    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
+    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
+    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -161,6 +161,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         pipelines: Arc::new(TursoPipelineRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        portability: Arc::new(TursoPortabilityRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
@@ -834,6 +839,10 @@ async fn core_business_flow_smoke() {
         ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
         (format!("/companies/{company_id}/board/chat"), "cli_local"),
+        (
+            format!("/companies/{company_id}/export-import"),
+            "Export / Import",
+        ),
         (format!("/issues/{issue_id}"), "Claim"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
