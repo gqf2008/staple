@@ -156,6 +156,56 @@ pub async fn add_approval_comment_ui(
 #[path_param(error = bad_request("Invalid company id"))]
 pub(crate) struct CompanyId(String);
 
+/// Company create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CompanyUiForm {
+    /// Company name.
+    pub name: String,
+    /// Optional description.
+    #[serde(default)]
+    pub description: Option<String>,
+    /// Monthly budget in cents.
+    #[serde(default)]
+    pub budget_monthly_cents: Option<i64>,
+    /// Largest attachment size in bytes.
+    #[serde(default)]
+    pub attachment_max_bytes: Option<i64>,
+}
+
+/// `POST /companies/ui` — creates a company, redirects to its overview.
+#[route(POST "/companies/ui")]
+pub async fn create_company_ui(
+    cx: &Cx,
+    Form(form): Form<CompanyUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let name = form.name.trim().to_owned();
+    if !name.is_empty()
+        && let Ok(company) = state
+            .companies
+            .create(staple_data::NewCompany {
+                name,
+                description: form.description.filter(|value| !value.trim().is_empty()),
+                budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
+                attachment_max_bytes: form.attachment_max_bytes.unwrap_or(0),
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &company.id,
+            "company.created",
+            "company",
+            &company.id,
+            Some(serde_json::json!({ "name": company.name })),
+        )
+        .await;
+        return Ok(see_other(&format!("/companies/{}", company.id)));
+    }
+    Ok(see_other("/"))
+}
+
 /// Comment form fields.
 #[derive(Debug, Deserialize)]
 pub struct CommentForm {
@@ -325,6 +375,71 @@ pub struct SettingsForm {
 // ---------------------------------------------------------------------------
 // Agent UI actions
 // ---------------------------------------------------------------------------
+
+/// Agent create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct NewAgentUiForm {
+    /// Agent name.
+    pub name: String,
+    /// Agent role.
+    #[serde(default)]
+    pub role: Option<String>,
+    /// Optional title.
+    #[serde(default)]
+    pub title: Option<String>,
+    /// Adapter type.
+    #[serde(default)]
+    pub adapter_type: Option<String>,
+    /// Monthly budget in cents.
+    #[serde(default)]
+    pub budget_monthly_cents: Option<i64>,
+    /// Manager agent id.
+    #[serde(default)]
+    pub reports_to: Option<String>,
+}
+
+/// `POST /companies/{company_id}/agents/ui` — creates an agent, redirects to
+/// the agents page.
+#[route(POST "/companies/{company_id}/agents/ui")]
+pub async fn create_agent_ui(
+    cx: &Cx,
+    Form(form): Form<NewAgentUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let name = form.name.trim().to_owned();
+    if !name.is_empty()
+        && let Ok(agent) = state
+            .agents
+            .create(staple_data::NewAgent {
+                company_id: company_id.clone(),
+                name,
+                role: form.role.unwrap_or_else(|| "general".to_owned()),
+                title: form.title.filter(|value| !value.trim().is_empty()),
+                icon: None,
+                reports_to: form.reports_to.filter(|value| !value.trim().is_empty()),
+                adapter_type: form
+                    .adapter_type
+                    .filter(|value| !value.trim().is_empty())
+                    .unwrap_or_else(|| "cli_local".to_owned()),
+                budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
+            })
+            .await
+    {
+        let _ = log_activity(
+            &state.activity,
+            &company_id,
+            "agent.created",
+            "agent",
+            &agent.id,
+            Some(serde_json::json!({ "name": agent.name })),
+        )
+        .await;
+        return Ok(see_other(&format!("/agents/{}", agent.id)));
+    }
+    Ok(see_other(&format!("/companies/{company_id}/agents")))
+}
 
 /// `POST /agents/{id}/status/ui` — pause/resume an agent.
 #[route(POST "/agents/{agent_id}/status/ui")]
@@ -1347,6 +1462,54 @@ pub struct PipelineForm {
     /// Enforce transitions (checkbox `1`).
     #[serde(default)]
     pub enforce: Option<String>,
+}
+
+/// Pipeline settings form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PipelineSettingsForm {
+    /// Pipeline name.
+    pub name: String,
+    /// Pipeline description.
+    #[serde(default)]
+    pub description: Option<String>,
+    /// Pipeline status (`active` | `archived`).
+    #[serde(default)]
+    pub status: Option<String>,
+}
+
+/// `POST /pipelines/{id}/settings/ui` — updates pipeline settings, redirects
+/// back to the pipeline detail page.
+#[route(POST "/pipelines/{id}/settings/ui")]
+pub async fn pipeline_settings_ui(
+    cx: &Cx,
+    Form(form): Form<PipelineSettingsForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let pipeline_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(company_id) = state
+        .pipelines
+        .company_of_pipeline(&pipeline_id)
+        .await
+        .ok()
+        .flatten()
+    else {
+        return Ok(see_other("/"));
+    };
+    let name = form.name.trim().to_owned();
+    if !name.is_empty() {
+        let _ = state
+            .pipelines
+            .update_pipeline(
+                &company_id,
+                &pipeline_id,
+                Some(name),
+                Some(Some(form.description.unwrap_or_default())),
+                Some(form.status.as_deref() == Some("archived")),
+            )
+            .await;
+    }
+    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
 }
 
 /// Stage form.
@@ -3489,4 +3652,101 @@ pub async fn board_chat_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiErr
         .body(body)
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
+}
+
+// --- CLI auth UI forms ---------------------------------------------------
+
+/// Board API key create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct BoardKeyUiForm {
+    /// Owning user id.
+    pub user_id: String,
+    /// Key name.
+    pub name: String,
+}
+
+/// CLI auth challenge create form.
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CliChallengeUiForm {
+    /// Command text.
+    pub command: String,
+    /// Pending key name.
+    pub pending_key_name: String,
+    /// Requested access.
+    pub requested_access: Option<String>,
+    /// Requested company id.
+    pub requested_company_id: Option<String>,
+}
+
+/// `POST /cli-auth/keys/ui` — creates a board API key.
+#[route(POST "/cli-auth/keys/ui")]
+pub async fn create_board_key_ui(
+    cx: &Cx,
+    Form(form): Form<BoardKeyUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    if !form.user_id.trim().is_empty() && !form.name.trim().is_empty() {
+        let _ = state
+            .board_keys
+            .create_key(staple_data::NewBoardApiKey {
+                user_id: form.user_id,
+                name: form.name,
+                expires_at: None,
+            })
+            .await;
+    }
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/ui` — creates a CLI auth challenge.
+#[route(POST "/cli-auth/challenges/ui")]
+pub async fn create_cli_challenge_ui(
+    cx: &Cx,
+    Form(form): Form<CliChallengeUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let state = app_context::<AppState>(cx);
+    let expires_at = chrono::Utc::now()
+        .checked_add_signed(chrono::Duration::hours(1))
+        .map(|time| time.to_rfc3339_opts(chrono::SecondsFormat::Millis, true))
+        .unwrap_or_else(|| "2026-12-31T00:00:00.000Z".to_owned());
+    if !form.command.trim().is_empty() && !form.pending_key_name.trim().is_empty() {
+        let _ = state
+            .board_keys
+            .create_challenge(staple_data::NewCliAuthChallenge {
+                command: form.command,
+                client_name: Some("board-ui".to_owned()),
+                requested_access: form
+                    .requested_access
+                    .filter(|value| !value.is_empty())
+                    .unwrap_or_else(|| "board".to_owned()),
+                requested_company_id: form.requested_company_id.filter(|value| !value.is_empty()),
+                pending_key_name: form.pending_key_name,
+                expires_at,
+            })
+            .await;
+    }
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/{id}/approve/ui` — approves a challenge.
+#[route(POST "/cli-auth/challenges/{id}/approve/ui")]
+pub async fn approve_cli_challenge_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let challenge_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state
+        .board_keys
+        .approve_challenge(&challenge_id, Some(crate::auth::current_actor(cx)))
+        .await;
+    Ok(see_other("/cli-auth"))
+}
+
+/// `POST /cli-auth/challenges/{id}/cancel/ui` — cancels a challenge.
+#[route(POST "/cli-auth/challenges/{id}/cancel/ui")]
+pub async fn cancel_cli_challenge_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let challenge_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let _ = state.board_keys.cancel_challenge(&challenge_id).await;
+    Ok(see_other("/cli-auth"))
 }
