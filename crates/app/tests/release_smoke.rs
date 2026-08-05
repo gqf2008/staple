@@ -886,6 +886,10 @@ async fn core_business_flow_smoke() {
             "Claim board ownership",
         ),
         ("/onboarding".to_string(), "Welcome to Paperclip"),
+        (
+            format!("/companies/{company_id}/teams/catalog"),
+            "Team catalog",
+        ),
         ("/u/u1".to_string(), "User profile"),
         (format!("/companies/{company_id}/my-issues"), "My issues"),
         (

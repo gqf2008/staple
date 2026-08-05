@@ -43,6 +43,7 @@ pub mod secret_bindings;
 pub mod secrets;
 pub mod skill_catalog;
 pub mod skills;
+pub mod team_catalog;
 pub mod toolchain;
 pub mod work_products;
 pub mod workspaces;
