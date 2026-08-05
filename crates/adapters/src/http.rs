@@ -10,7 +10,9 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 use tokio::sync::Mutex;
 
-use crate::contract::{AdapterError, AgentAdapter, InvocationInput, RunHandle, RunStatus};
+use crate::contract::{
+    AdapterError, AgentAdapter, InvocationInput, OutputStream, RunHandle, RunStatus,
+};
 
 /// HTTP adapter configuration.
 #[derive(Debug, Clone)]
@@ -92,6 +94,12 @@ impl AgentAdapter for HttpAdapter {
             run_id: body.run_id,
             started_at: iso_now(),
         })
+    }
+
+    async fn stream(&self, _run_id: &str) -> Result<OutputStream, AdapterError> {
+        Err(AdapterError::Observe(
+            "streaming not supported for http adapter".to_owned(),
+        ))
     }
 
     async fn observe(&self, run_id: &str) -> Result<RunStatus, AdapterError> {

@@ -35,6 +35,22 @@ use staple_data::{
 use tokio::sync::Mutex;
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
+/// A stream that yields at most one value (for the echo adapter).
+struct OnceStream {
+    value: Option<String>,
+}
+
+impl futures_core::Stream for OnceStream {
+    type Item = String;
+
+    fn poll_next(
+        mut self: std::pin::Pin<&mut Self>,
+        _cx: &mut std::task::Context<'_>,
+    ) -> std::task::Poll<Option<Self::Item>> {
+        std::task::Poll::Ready(self.value.take())
+    }
+}
+
 /// Test-only adapter that immediately succeeds with the task text as output,
 /// so SSE streaming tests are deterministic and do not spawn a shell.
 struct EchoAdapter {
@@ -64,6 +80,17 @@ impl AgentAdapter for EchoAdapter {
                 error: "unknown run".to_owned(),
             }),
         }
+    }
+
+    async fn stream(&self, run_id: &str) -> Result<staple_adapters::OutputStream, AdapterError> {
+        let runs = self.runs.lock().await;
+        let output = runs
+            .get(run_id)
+            .cloned()
+            .ok_or_else(|| AdapterError::Observe("unknown run".to_owned()))?;
+        Ok(Box::pin(OnceStream {
+            value: Some(output),
+        }))
     }
 
     async fn cancel(&self, _run_id: &str) -> Result<(), AdapterError> {

@@ -4,6 +4,7 @@
 use std::convert::Infallible;
 
 use bytes::Bytes;
+use futures_core::Stream;
 use http_body::Frame;
 use http_body_util::StreamBody;
 use serde::Deserialize;
@@ -125,17 +126,13 @@ pub async fn board_chat_stream(
         .map_err(|error| ApiError::internal(error.to_string()))?;
 
     let registry = state.adapters.clone();
+    let stream = adapter
+        .stream(&handle.run_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
     let (tx, rx) = tokio::sync::mpsc::channel::<Result<Frame<Bytes>, Infallible>>(16);
     tokio::spawn(async move {
-        let Some(adapter) = registry.get(&adapter_type) else {
-            let _ = tx
-                .send(Ok(Frame::data(Bytes::from(
-                    "event: error\ndata: {\"error\":\"adapter disappeared\"}\n\n",
-                ))))
-                .await;
-            return;
-        };
-        let run_id = handle.run_id;
+        let mut stream = Box::pin(stream);
         let started = std::time::Instant::now();
         loop {
             if started.elapsed().as_secs() > 120 {
@@ -146,49 +143,41 @@ pub async fn board_chat_stream(
                     .await;
                 return;
             }
-            let next: Result<Option<String>, Infallible> = match adapter.observe(&run_id).await {
-                Ok(RunStatus::Running) => {
-                    let frame = "event: status\ndata: {\"status\":\"running\"}\n\n".to_owned();
-                    Ok(Some(frame))
-                }
-                Ok(RunStatus::Succeeded { output }) => {
-                    let delta = format!(
-                        "data: {{\"type\":\"delta\",\"content\":{}}}\n\n",
-                        serde_json::to_string(&output).unwrap_or_else(|_| "\"\"".to_owned())
-                    );
-                    let done = "data: {\"type\":\"done\"}\n\n".to_owned();
-                    let _ = tx.send(Ok(Frame::data(Bytes::from(delta)))).await;
-                    let _ = tx.send(Ok(Frame::data(Bytes::from(done)))).await;
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            let Some(chunk) = chunk else {
+                // Stream ended: report the final status.
+                let Some(adapter) = registry.get(&adapter_type) else {
                     return;
-                }
-                Ok(RunStatus::Failed { error }) => {
-                    let frame = format!(
+                };
+                let event = match adapter.observe(&handle.run_id).await {
+                    Ok(RunStatus::Succeeded { .. }) => "data: {\"type\":\"done\"}\n\n".to_owned(),
+                    Ok(RunStatus::Failed { error }) => format!(
                         "event: error\ndata: {}\n\n",
                         serde_json::to_string(&error).unwrap_or_else(|_| "\"error\"".to_owned())
-                    );
-                    Ok(Some(frame))
-                }
-                Ok(RunStatus::Cancelled) => {
-                    let frame = "event: error\ndata: {\"error\":\"cancelled\"}\n\n".to_owned();
-                    Ok(Some(frame))
-                }
-                Err(error) => {
-                    let frame = format!(
+                    ),
+                    Ok(RunStatus::Cancelled) => {
+                        "event: error\ndata: {\"error\":\"cancelled\"}\n\n".to_owned()
+                    }
+                    Ok(RunStatus::Running) => {
+                        "event: error\ndata: {\"error\":\"stream ended while running\"}\n\n"
+                            .to_owned()
+                    }
+                    Err(error) => format!(
                         "event: error\ndata: {}\n\n",
                         serde_json::to_string(&error.to_string())
                             .unwrap_or_else(|_| "\"error\"".to_owned())
-                    );
-                    Ok(Some(frame))
-                }
+                    ),
+                };
+                let _ = tx.send(Ok(Frame::data(Bytes::from(event)))).await;
+                return;
             };
-            match next {
-                Ok(Some(frame)) => {
-                    let _ = tx.send(Ok(Frame::data(Bytes::from(frame)))).await;
-                }
-                Ok(None) => {}
-                Err(_) => return,
+            let delta = format!(
+                "data: {{\"type\":\"delta\",\"content\":{}}}\n\n",
+                serde_json::to_string(&chunk).unwrap_or_else(|_| "\"\"".to_owned())
+            );
+            if tx.send(Ok(Frame::data(Bytes::from(delta)))).await.is_err() {
+                return;
             }
-            tokio::time::sleep(std::time::Duration::from_millis(300)).await;
         }
     });
 

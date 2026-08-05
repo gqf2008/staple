@@ -5,16 +5,25 @@
 //! shell task can run; override with a specific binary for Claude Code,
 //! Codex, etc.
 
-use std::{collections::HashMap, sync::Arc};
+use std::{
+    collections::HashMap,
+    pin::Pin,
+    sync::Arc,
+    task::{Context, Poll},
+};
 
+use futures_core::Stream;
 use tokio::{
-    process::Command,
-    sync::{Mutex, Notify},
+    io::AsyncReadExt,
+    process::{Child, Command},
+    sync::{Mutex, Notify, mpsc},
     task::JoinHandle,
 };
 use uuid::Uuid;
 
-use crate::contract::{AdapterError, AgentAdapter, InvocationInput, RunHandle, RunStatus};
+use crate::contract::{
+    AdapterError, AgentAdapter, InvocationInput, OutputStream, RunHandle, RunStatus,
+};
 
 /// Shared state for one managed child process.
 struct ManagedProcess {
@@ -22,6 +31,28 @@ struct ManagedProcess {
     marker: (),
     status: Mutex<RunStatus>,
     notify: Arc<Notify>,
+    /// Accumulated stdout (for observe / error messages).
+    output: Mutex<String>,
+    /// Incremental stdout sender (for stream subscribers); taken by the
+    /// child task so the channel closes when the run finishes.
+    tx: Mutex<Option<mpsc::UnboundedSender<String>>>,
+    /// The single subscriber receiver (consumed by the first `stream` call).
+    rx: Mutex<Option<mpsc::UnboundedReceiver<String>>>,
+}
+
+/// A stream over a run's mpsc receiver.
+struct ReceiverStream {
+    rx: mpsc::UnboundedReceiver<String>,
+}
+
+impl Stream for ReceiverStream {
+    type Item = String;
+
+    fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
+        // The channel closes when the run task drops the sender, ending the
+        // stream for subscribers.
+        self.rx.poll_recv(cx)
+    }
 }
 
 /// Local CLI adapter configuration.
@@ -74,10 +105,14 @@ impl AgentAdapter for CliAdapter {
     async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError> {
         let run_id = Uuid::new_v4().to_string();
         let started_at = iso_now();
+        let (tx, rx) = mpsc::unbounded_channel::<String>();
         let state = Arc::new(ManagedProcess {
             marker: (),
             status: Mutex::new(RunStatus::Running),
             notify: Arc::new(Notify::new()),
+            output: Mutex::new(String::new()),
+            tx: Mutex::new(Some(tx)),
+            rx: Mutex::new(Some(rx)),
         });
 
         let mut command = Command::new(&self.config.program);
@@ -90,28 +125,14 @@ impl AgentAdapter for CliAdapter {
         command.stderr(std::process::Stdio::piped());
         command.kill_on_drop(true);
 
+        let mut child = command
+            .spawn()
+            .map_err(|error| AdapterError::Invoke(error.to_string()))?;
+        let stdout = child.stdout.take();
+        let stderr = child.stderr.take();
         let state_clone = state.clone();
         let handle = tokio::spawn(async move {
-            let output = command.output().await;
-            let mut guard = state_clone.status.lock().await;
-            *guard = match output {
-                Ok(output) if output.status.success() => RunStatus::Succeeded {
-                    output: String::from_utf8_lossy(&output.stdout).trim().to_owned(),
-                },
-                Ok(output) => {
-                    let stderr = String::from_utf8_lossy(&output.stderr);
-                    let stdout = String::from_utf8_lossy(&output.stdout);
-                    RunStatus::Failed {
-                        error: format!("exit {:?}: {}{}", output.status.code(), stdout, stderr)
-                            .trim()
-                            .to_owned(),
-                    }
-                }
-                Err(error) => RunStatus::Failed {
-                    error: error.to_string(),
-                },
-            };
-            state_clone.notify.notify_waiters();
+            run_child(child, stdout, stderr, state_clone).await;
         });
 
         self.runs
@@ -129,6 +150,20 @@ impl AgentAdapter for CliAdapter {
         Ok(state.status.lock().await.clone())
     }
 
+    async fn stream(&self, run_id: &str) -> Result<OutputStream, AdapterError> {
+        let runs = self.runs.lock().await;
+        let (_, state) = runs
+            .get(run_id)
+            .ok_or_else(|| AdapterError::Observe("unknown run".to_owned()))?;
+        let rx = state
+            .rx
+            .lock()
+            .await
+            .take()
+            .ok_or_else(|| AdapterError::Observe("stream already consumed".to_owned()))?;
+        Ok(Box::pin(ReceiverStream { rx }))
+    }
+
     async fn cancel(&self, run_id: &str) -> Result<(), AdapterError> {
         let runs = self.runs.lock().await;
         let (handle, state) = runs
@@ -139,6 +174,80 @@ impl AgentAdapter for CliAdapter {
         state.notify.notify_waiters();
         Ok(())
     }
+}
+
+/// Reads a child's stdout/stderr incrementally, broadcasts stdout chunks,
+/// and stores the final status when the child exits.
+async fn run_child(
+    mut child: Child,
+    stdout: Option<tokio::process::ChildStdout>,
+    stderr: Option<tokio::process::ChildStderr>,
+    state: Arc<ManagedProcess>,
+) {
+    let mut output_buf = String::new();
+    let mut error_buf = String::new();
+    // Taking the sender means it is dropped when this task finishes, which
+    // closes the stream for subscribers.
+    let sender = state.tx.lock().await.take();
+
+    if let Some(mut stdout) = stdout {
+        let mut chunk = [0u8; 4096];
+        loop {
+            let read = tokio::select! {
+                _ = tokio::time::sleep(std::time::Duration::from_secs(3600)) => {
+                    // No-op timeout keeps the select well-formed; reads return
+                    // immediately when data is available.
+                    0
+                }
+                result = stdout.read(&mut chunk) => match result {
+                    Ok(0) => break,
+                    Ok(n) => n,
+                    Err(_) => break,
+                },
+            };
+            if read == 0 {
+                break;
+            }
+            let text = String::from_utf8_lossy(&chunk[..read]).to_string();
+            output_buf.push_str(&text);
+            if let Some(sender) = &sender {
+                let _ = sender.send(text);
+            }
+        }
+    }
+    if let Some(mut stderr) = stderr {
+        let mut chunk = [0u8; 4096];
+        loop {
+            match stderr.read(&mut chunk).await {
+                Ok(0) => break,
+                Ok(n) => error_buf.push_str(&String::from_utf8_lossy(&chunk[..n])),
+                Err(_) => break,
+            }
+        }
+    }
+
+    let exit = child.wait().await;
+    let mut guard = state.status.lock().await;
+    *guard = match exit {
+        Ok(status) if status.success() => RunStatus::Succeeded {
+            output: output_buf.trim().to_owned(),
+        },
+        Ok(status) => RunStatus::Failed {
+            error: format!(
+                "exit {:?}: {}{}",
+                status.code(),
+                output_buf.trim(),
+                error_buf.trim()
+            )
+            .trim()
+            .to_owned(),
+        },
+        Err(error) => RunStatus::Failed {
+            error: error.to_string(),
+        },
+    };
+    *state.output.lock().await = output_buf;
+    state.notify.notify_waiters();
 }
 
 fn iso_now() -> String {
@@ -190,6 +299,38 @@ mod tests {
             tokio::time::sleep(std::time::Duration::from_millis(10)).await;
         }
         panic!("run did not finish in time");
+    }
+
+    #[tokio::test]
+    async fn stream_yields_incremental_output() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: "printf 'one\ntwo\nthree\n'".to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut collected = String::new();
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(chunk) => collected.push_str(&chunk),
+                None => break,
+            }
+        }
+        assert!(collected.contains("one"), "got: {collected:?}");
+        assert!(collected.contains("three"), "got: {collected:?}");
+        // observe still reports the final captured output.
+        let status = wait_terminal(&adapter, &handle.run_id).await;
+        match status {
+            RunStatus::Succeeded { output } => {
+                assert!(output.contains("one"), "output: {output:?}");
+            }
+            other => panic!("expected success, got {other:?}"),
+        }
     }
 
     #[tokio::test]
