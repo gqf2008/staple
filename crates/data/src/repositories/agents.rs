@@ -189,6 +189,18 @@ pub trait AgentRepository: Send + Sync {
         agent_id: &str,
         budget_monthly_cents: i64,
     ) -> Result<Option<AgentBudgetRecord>, AgentError>;
+
+    /// Replaces an agent's metadata JSON (company-scoped).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AgentError`] when the agent does not exist.
+    async fn set_agent_metadata(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+        metadata: serde_json::Value,
+    ) -> Result<Option<AgentRecord>, AgentError>;
 }
 
 /// Turso/libSQL implementation of [`AgentRepository`].
@@ -413,6 +425,39 @@ impl AgentRepository for TursoAgentRepository {
             .await?;
         let row = rows.next().await?.expect("agent was just updated");
         Ok(Some(row_to_budget(&row)?))
+    }
+
+    async fn set_agent_metadata(
+        &self,
+        company_id: &str,
+        agent_id: &str,
+        metadata: serde_json::Value,
+    ) -> Result<Option<AgentRecord>, AgentError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let updated = conn
+            .execute(
+                "UPDATE agents
+                 SET metadata = ?1,
+                     updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
+                 WHERE id = ?2 AND company_id = ?3",
+                libsql::params![metadata.to_string(), agent_id, company_id],
+            )
+            .await?;
+        if updated == 0 {
+            return Ok(None);
+        }
+        let mut rows = conn
+            .query(
+                "SELECT id, company_id, name, role, title, icon, status, reports_to,
+                        adapter_type, budget_monthly_cents, spent_monthly_cents, pause_reason,
+                        default_environment_id, error_reason, last_heartbeat_at, metadata,
+                        created_at
+                 FROM agents WHERE id = ?1",
+                libsql::params![agent_id],
+            )
+            .await?;
+        let row = rows.next().await?.expect("agent was just updated");
+        Ok(Some(row_to_agent(&row)?))
     }
 }
 

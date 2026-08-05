@@ -4672,6 +4672,15 @@ pub async fn team_catalog_detail(cx: &Cx) -> Result {
                 <p class="empty">(t(lang, "teamCatalog.empty"))</p>
             }
         </section>
+        <form class="stack-form" method="post"
+              action=(with_lang(&format!("/companies/{company_id}/teams/catalog/{catalog_ref}/install/ui"), lang))>
+            <p class="meta-row">
+                (team.agent_slugs.len()) " " (t(lang, "teamCatalog.agents"))
+                " · " (team.project_slugs.len()) " " (t(lang, "teamCatalog.projects"))
+                " · " (team.required_skills.len()) " " (t(lang, "teamCatalog.skills"))
+            </p>
+            <button type="submit">(t(lang, "teamCatalog.install"))</button>
+        </form>
         <a class="button" href=(list_url)>(t(lang, "teamCatalog.back"))</a>
     }
 }

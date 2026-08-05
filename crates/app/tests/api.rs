@@ -5941,6 +5941,125 @@ async fn team_catalog_browse_api() {
 }
 
 #[tokio::test]
+async fn team_catalog_install_api() {
+    let (state, db) = test_state_with_db().await;
+    let app = router(state.clone());
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    // Pre-existing agent "CEO" (conflict with team agent slug "ceo").
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('a1', 'c1', 'CEO', 'worker', 'cli')",
+        (),
+    )
+    .await
+    .unwrap();
+
+    let dir = tempfile::TempDir::new().unwrap();
+    let root = dir.path();
+    std::fs::create_dir_all(root.join("generated")).unwrap();
+    let team_dir = root.join("catalog/bundled/acme/core-team");
+    std::fs::create_dir_all(&team_dir).unwrap();
+    std::fs::write(team_dir.join("TEAM.md"), "# Core Team").unwrap();
+    let manifest = serde_json::json!({
+        "teams": [{
+            "id": "test:bundled:acme:core-team",
+            "key": "test/bundled/acme/core-team",
+            "kind": "bundled",
+            "category": "acme",
+            "slug": "core-team",
+            "name": "Core Team",
+            "description": "A test team",
+            "path": "catalog/bundled/acme/core-team",
+            "entrypoint": "TEAM.md",
+            "contentHash": "sha256:abc",
+            "counts": { "agents": 2, "projects": 1 },
+            "agentSlugs": ["ceo", "cto"],
+            "projectSlugs": ["starter"],
+            "requiredSkills": ["skill-a"],
+            "files": ["TEAM.md"]
+        }]
+    });
+    std::fs::write(
+        root.join("generated/catalog.json"),
+        serde_json::to_vec(&manifest).unwrap(),
+    )
+    .unwrap();
+    unsafe {
+        std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", root);
+    }
+
+    // Preview: ceo conflicts with the pre-existing agent.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/teams/catalog/test%3Abundled%3Aacme%3Acore-team/preview",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["agents"].as_array().unwrap().len(), 2);
+    assert_eq!(body["agents"][0]["slug"], "ceo");
+    assert_eq!(body["agents"][0]["conflict"], true);
+    assert_eq!(body["projects"][0]["slug"], "starter");
+
+    // Install creates agents + projects and writes provenance.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/companies/c1/teams/catalog/test%3Abundled%3Aacme%3Acore-team/install",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["createdAgents"], 2);
+    assert_eq!(body["createdProjects"], 1);
+
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        "/api/companies/c1/teams/catalog/installed",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let installed = body.as_array().unwrap();
+    assert_eq!(installed.len(), 1);
+    assert_eq!(installed[0]["agentCount"], 2);
+    // Installed from the current catalog hash -> not out of date.
+    assert_eq!(installed[0]["outOfDate"], false);
+    assert_eq!(
+        installed[0]["installedOriginHashes"].as_array().unwrap()[0],
+        "sha256:abc"
+    );
+
+    // New agent carries the provenance metadata.
+    let (status, agents) =
+        send_json(&app, Method::GET, "/api/companies/c1/agents", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    let cto = agents
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|agent| agent["name"] == "cto")
+        .expect("cto agent");
+    assert_eq!(
+        cto["metadata"]["paperclip"]["catalogTeam"]["catalogId"],
+        "test:bundled:acme:core-team"
+    );
+
+    unsafe {
+        std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
+    }
+}
+
+#[tokio::test]
 async fn board_claim_challenge_flow() {
     let (state, db) = test_state_with_db().await;
     let app = router(state.clone());
