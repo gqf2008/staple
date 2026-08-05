@@ -44,6 +44,10 @@ pub(crate) struct PluginId(String);
 #[path_param(error = bad_request("Invalid connection id"))]
 pub(crate) struct ConnectionId(String);
 
+/// Typed `{claim_token}` path segment for UI pages.
+#[path_param(error = bad_request("Invalid claim token"))]
+pub(crate) struct ClaimToken(String);
+
 /// Typed `{token}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid token"))]
 pub(crate) struct InviteToken(String);
@@ -4497,6 +4501,45 @@ pub async fn invite_landing(cx: &Cx) -> Result {
         } else if status == "active" && company_name.is_some() {
             <a class="button" href=(access_url)>(t(lang, "inviteLanding.joinCta"))</a>
             <p class="empty">(t(lang, "inviteLanding.joinHint"))</p>
+        }
+    }
+}
+
+/// Board claim page: inspect the in-memory challenge and claim ownership.
+#[page("/board-claim/{claim_token}")]
+pub async fn board_claim(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let token = path_param::<ClaimToken>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let code = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts.uri.query().and_then(|query| {
+                query.split('&').find_map(|pair| {
+                    let (key, value) = pair.split_once('=')?;
+                    (key == "code").then(|| value.to_owned())
+                })
+            })
+        })
+        .unwrap_or_default();
+    let status = state.board_claim.inspect(&token, Some(&code));
+    let claim_url = with_lang(&format!("/board-claim/{token}/claim/ui?code={code}"), lang);
+    view! {
+        <h1 class="page-title">(t(lang, "boardClaim.title"))</h1>
+        if status.status == "available" {
+            <p class="meta-row">(t(lang, "boardClaim.available"))</p>
+            <form class="stack-form" method="post" action=(claim_url)>
+                <button type="submit">(t(lang, "boardClaim.claimButton"))</button>
+            </form>
+        } else if status.status == "claimed" {
+            <p class="empty">(t(lang, "boardClaim.claimed"))</p>
+            if let Some(user_id) = &status.claimed_by_user_id {
+                <p class="meta-row">(t(lang, "boardClaim.claimedBy")) ": " (user_id.clone())</p>
+            }
+            <a class="button" href=(with_lang("/", lang))>(t(lang, "boardClaim.openBoard"))</a>
+        } else if status.status == "expired" {
+            <p class="empty">(t(lang, "boardClaim.expired"))</p>
+        } else {
+            <p class="empty">(t(lang, "boardClaim.invalid"))</p>
         }
     }
 }

@@ -4,7 +4,12 @@ use staple_adapters::{
     AdapterRegistry, CliAdapter, CliAdapterConfig, PluginError, PluginManifest, PluginReport,
 };
 use staple_app::storage::LocalStorage;
-use staple_app::{config::AppConfig, router, state::AppState};
+use staple_app::{
+    board_claim::{BoardClaimManager, LOCAL_BOARD_USER_ID},
+    config::AppConfig,
+    router,
+    state::AppState,
+};
 use staple_data::{
     SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoAgentRuntimeRepository,
     TursoApiKeyRepository, TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
@@ -86,6 +91,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
+        board_claim: Arc::new(BoardClaimManager::new()),
         infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
@@ -140,6 +146,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let listener = TcpListener::bind((config.host.as_str(), config.port)).await?;
     tracing::info!(host = %config.host, port = config.port, "staple listening");
+
+    // Board claim challenge: active only while the local board user is the
+    // sole instance admin (upstream initializeBoardClaimChallenge).
+    {
+        let roles = state.memberships.list_roles().await.unwrap_or_default();
+        let only_local_board_admin = roles.len() == 1
+            && roles[0].role == "instance_admin"
+            && roles[0].user_id == LOCAL_BOARD_USER_ID;
+        state.board_claim.initialize(only_local_board_admin);
+    }
 
     topcoat::serve(listener, router(state)).await?;
     Ok(())
