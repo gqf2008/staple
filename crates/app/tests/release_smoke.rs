@@ -843,6 +843,10 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/export-import"),
             "Export / Import",
         ),
+        (
+            format!("/companies/{company_id}/export-import"),
+            "Zip archive",
+        ),
         (format!("/issues/{issue_id}"), "Claim"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
@@ -915,6 +919,19 @@ async fn core_business_flow_smoke() {
     let bytes = to_bytes(body, usize::MAX).await.unwrap();
     let js = String::from_utf8(bytes.to_vec()).unwrap();
     assert!(js.contains("chat-form"), "board_chat.js missing chat-form");
+
+    // Board zip portability script is served.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri("/static/board_zip.js")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let js = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(js.contains("zip-form"), "board_zip.js missing zip-form");
 
     // Board drag & drop script is served.
     let request = Request::builder()
