@@ -80,7 +80,7 @@
 | UI-11 | 认证与邀请流程页（Auth/CliAuth/InviteLanding） | ✅ 完成（issue #136/PR #138） |
 | UI-12 | 行为增强（Agent Tools 页签 + Board Chat adapter 选择） | ✅ 完成（issue #137/PR #141） |
 | 实验/设计页 | 上游 UxLab/DesignGuide 实验页（BootstrapSetupUxLab、InviteUxLab、IssueChatUxLab、IssueChatLongThreadPerf、RunTranscriptUxLab、SystemNoticeUxLab、ResponsibleUserDenialUxLab、TaskChatLab、DesignGuide） | ⏳ 明确不迁移（登记为实验性页面，无产品行为） |
-| 公司可移植性 | CompanyExport/CompanyImport：JSON manifest + zip 归档（附件导出/导入、preview 文件清单） | ✅ 完成（issue #142/PR #143 + issue #146/PR #147）；上游文件树 UI/冲突预览交互后续增强 |
+| 公司可移植性 | CompanyExport/CompanyImport：JSON manifest + zip 归档（附件导出/导入、preview 文件树 + 冲突统计） | ✅ 完成（issue #142/PR #143 + #146/PR #147 + #148/PR #149） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
