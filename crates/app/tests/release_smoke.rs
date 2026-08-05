@@ -546,6 +546,8 @@ async fn core_business_flow_smoke() {
             "Tool invocations",
         ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
+        (format!("/companies/{company_id}/board/chat"), "Board chat"),
+        (format!("/issues/{issue_id}"), "Claim"),
         ("/users".to_string(), "Users"),
         ("/environments".to_string(), "Environments"),
         (format!("/companies/{company_id}/my-issues"), "My issues"),
@@ -601,6 +603,19 @@ async fn core_business_flow_smoke() {
         let html = String::from_utf8(bytes.to_vec()).unwrap();
         assert!(html.contains(needle), "page missing {needle}");
     }
+
+    // Board concierge chat script is served.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri("/static/board_chat.js")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let js = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(js.contains("chat-form"), "board_chat.js missing chat-form");
 
     // Board drag & drop script is served.
     let request = Request::builder()

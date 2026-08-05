@@ -3427,3 +3427,66 @@ pub async fn create_tool_invocation_ui(
         "/companies/{company_id}/tools/invocations"
     )))
 }
+
+// --- Board claim & chat UI forms -----------------------------------------
+
+/// Issue claim form (assign to an agent).
+#[derive(Debug, serde::Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ClaimUiForm {
+    /// Agent id to assign.
+    pub agent_id: String,
+}
+
+/// `POST /issues/{id}/claim/ui` — claims an issue by assigning it to an
+/// agent, then redirects back to the issue.
+#[route(POST "/issues/{id}/claim/ui")]
+pub async fn claim_issue_ui(
+    cx: &Cx,
+    Form(form): Form<ClaimUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let issue_id = path_param::<Id>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(issue) = state.issues.get(&issue_id).await.ok().flatten() else {
+        return Ok(see_other("/"));
+    };
+    if !form.agent_id.trim().is_empty() {
+        let agent_id = form.agent_id.clone();
+        let _ = state
+            .issues
+            .update(
+                &issue_id,
+                staple_data::IssuePatch {
+                    title: None,
+                    description: None,
+                    status: None,
+                    priority: None,
+                    assignee_agent_id: Some(Some(agent_id)),
+                    billing_code: None,
+                },
+            )
+            .await;
+        let _ = log_activity(
+            &state.activity,
+            &issue.company_id,
+            "issue.claimed",
+            "issue",
+            &issue_id,
+            Some(serde_json::json!({ "assigneeAgentId": form.agent_id })),
+        )
+        .await;
+    }
+    Ok(see_other(&format!("/issues/{issue_id}")))
+}
+
+/// `GET /static/board_chat.js` — streaming chat behavior for the board chat
+/// page.
+#[route(GET "/static/board_chat.js")]
+pub async fn board_chat_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("board_chat.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}

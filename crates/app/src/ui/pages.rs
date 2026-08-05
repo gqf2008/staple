@@ -114,6 +114,7 @@ pub async fn company_overview(cx: &Cx) -> Result {
             <a href=(with_lang(&format!("/companies/{company_id}/secret-bindings"), lang))>(t(lang, "secretBindings.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/user-secrets"), lang))>(t(lang, "userSecrets.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/folders"), lang))>(t(lang, "folders.title"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/board/chat"), lang))>(t(lang, "boardChat.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/profiles"), lang))>(t(lang, "toolProfiles.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/connections"), lang))>(t(lang, "toolConnections.title"))</a>
             <a href=(with_lang(&format!("/companies/{company_id}/tools/gateways"), lang))>(t(lang, "toolGateways.title"))</a>
@@ -265,6 +266,11 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         .list_for_issue(&issue_id)
         .await
         .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&issue.company_id)
+        .await
+        .map_err(to_topcoat_error)?;
 
     view! {
         <h1 class="page-title">(issue.identifier) " " (issue.title)</h1>
@@ -280,6 +286,23 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         if let Some(description) = &issue.description {
             <p>(description)</p>
         }
+
+        <section>
+            <h2>(t(lang, "issue.claim"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/issues/{issue_id}/claim/ui"), lang))>
+                <select name="agent_id">
+                    for agent in agent_rows {
+                        if Some(agent.id.as_str()) == issue.assignee_agent_id.as_deref() {
+                            <option value=(agent.id.clone()) selected="selected">(agent.name.clone())</option>
+                        } else {
+                            <option value=(agent.id.clone())>(agent.name.clone())</option>
+                        }
+                    }
+                </select>
+                <button type="submit">(t(lang, "issue.claim"))</button>
+            </form>
+        </section>
 
         <section>
             <h2>(t(lang, "issue.comments"))</h2>
@@ -3486,6 +3509,24 @@ pub async fn feedback_exports(cx: &Cx) -> Result {
                 </ul>
             }
         </section>
+    }
+}
+
+/// Board concierge chat page (streams replies via /api/board/chat/stream).
+#[page("/companies/{company_id}/board/chat")]
+pub async fn board_chat(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    view! {
+        <h1 class="page-title">(t(lang, "boardChat.title"))</h1>
+        <p class="meta-row">(t(lang, "boardChat.hint"))</p>
+        <div id="chat-log" class="chat-log"></div>
+        <form class="stack-form" id="chat-form">
+            <label>(t(lang, "boardChat.messageLabel"))</label>
+            <textarea name="message" rows="4" required="required"></textarea>
+            <input type="hidden" name="company_id" value=(company_id)>
+            <button type="submit">(t(lang, "boardChat.send"))</button>
+        </form>
     }
 }
 

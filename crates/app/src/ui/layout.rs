@@ -48,6 +48,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
                 </nav>
                 <main class="app-main">(slot?)</main>
+                <script src="/static/board_chat.js"></script>
             </body>
         </html>
     }
