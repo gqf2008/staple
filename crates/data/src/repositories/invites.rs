@@ -173,6 +173,27 @@ pub trait InviteRepository: Send + Sync {
     /// Returns [`InviteError`] on database failure.
     async fn list_invites(&self, company_id: &str) -> Result<Vec<InviteRecord>, InviteError>;
 
+    /// Looks up an invite by its plaintext token (hashed before querying).
+    ///
+    /// The repository does not filter by state (revoked/expired/accepted);
+    /// callers decide visibility so the token lookup stays a pure index probe.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`InviteError`] on database failure.
+    async fn find_by_token(&self, token: &str) -> Result<Option<InviteRecord>, InviteError>;
+
+    /// Returns the join request for an invite, if any (at most one per invite).
+    ///
+    /// # Errors
+    ///
+    /// Returns [`InviteError`] on database failure.
+    async fn find_join_request_by_invite(
+        &self,
+        company_id: &str,
+        invite_id: &str,
+    ) -> Result<Option<JoinRequestRecord>, InviteError>;
+
     /// Revokes an invite (company-scoped).
     ///
     /// # Errors
@@ -351,6 +372,41 @@ impl InviteRepository for TursoInviteRepository {
             invites.push(row_to_invite(&row)?);
         }
         Ok(invites)
+    }
+
+    async fn find_by_token(&self, token: &str) -> Result<Option<InviteRecord>, InviteError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!("SELECT {INVITE_COLUMNS} FROM invites WHERE token_hash = ?1"),
+                libsql::params![helpers::sha256_hex(token)],
+            )
+            .await?;
+        let Some(row) = rows.next().await? else {
+            return Ok(None);
+        };
+        Ok(Some(row_to_invite(&row)?))
+    }
+
+    async fn find_join_request_by_invite(
+        &self,
+        company_id: &str,
+        invite_id: &str,
+    ) -> Result<Option<JoinRequestRecord>, InviteError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                &format!(
+                    "SELECT {JOIN_REQUEST_COLUMNS} FROM join_requests
+                     WHERE company_id = ?1 AND invite_id = ?2"
+                ),
+                libsql::params![company_id, invite_id],
+            )
+            .await?;
+        let Some(row) = rows.next().await? else {
+            return Ok(None);
+        };
+        Ok(Some(row_to_join_request(&row)?))
     }
 
     async fn revoke_invite(
@@ -805,6 +861,92 @@ mod tests {
         assert_eq!(
             helpers::row_text(&row, 2).unwrap().as_deref(),
             Some("operator")
+        );
+    }
+
+    #[tokio::test]
+    async fn find_by_token_matches_plaintext_and_unknown_returns_none() {
+        let (_dir, repo) = repo().await;
+        let (invite, token) = repo
+            .create_invite(NewInvite {
+                company_id: "c1".to_owned(),
+                invite_type: "company_join".to_owned(),
+                allowed_join_types: "both".to_owned(),
+                defaults_payload: None,
+                expires_at: future(),
+                invited_by_user_id: None,
+            })
+            .await
+            .unwrap();
+        let found = repo.find_by_token(&token).await.unwrap().unwrap();
+        assert_eq!(found.id, invite.id);
+        assert_eq!(found.company_id, "c1");
+        assert_eq!(found.allowed_join_types, "both");
+        // Unknown token -> None (repository never reveals whether the invite
+        // exists; state filtering is the app layer's job).
+        assert!(
+            repo.find_by_token("inv-does-not-exist")
+                .await
+                .unwrap()
+                .is_none()
+        );
+        // A revoked invite is still found by token; the public API decides
+        // whether it is visible.
+        repo.revoke_invite("c1", &invite.id).await.unwrap().unwrap();
+        assert!(repo.find_by_token(&token).await.unwrap().is_some());
+    }
+
+    #[tokio::test]
+    async fn find_join_request_by_invite_returns_the_requests_request() {
+        let (_dir, repo) = repo().await;
+        let (invite, _) = repo
+            .create_invite(NewInvite {
+                company_id: "c1".to_owned(),
+                invite_type: "company_join".to_owned(),
+                allowed_join_types: "human".to_owned(),
+                defaults_payload: None,
+                expires_at: future(),
+                invited_by_user_id: None,
+            })
+            .await
+            .unwrap();
+        assert!(
+            repo.find_join_request_by_invite("c1", &invite.id)
+                .await
+                .unwrap()
+                .is_none()
+        );
+        let request = repo
+            .create_join_request(NewJoinRequest {
+                company_id: "c1".to_owned(),
+                invite_id: invite.id.clone(),
+                request_type: "human".to_owned(),
+                request_ip: "10.0.0.1".to_owned(),
+                requesting_user_id: Some("u-human".to_owned()),
+                request_email_snapshot: None,
+                agent_name: None,
+                adapter_type: None,
+                capabilities: None,
+                agent_defaults_payload: None,
+                claim_secret_hash: None,
+                claim_secret_expires_at: None,
+            })
+            .await
+            .unwrap();
+        let found = repo
+            .find_join_request_by_invite("c1", &invite.id)
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(found.id, request.id);
+        assert_eq!(found.status, "pending_approval");
+        assert_eq!(found.request_type, "human");
+        // Cross-company probe stays company-scoped.
+        assert!(
+            repo.find_join_request_by_invite("c2", &invite.id)
+                .await
+                .unwrap()
+                .is_none()
         );
     }
 }

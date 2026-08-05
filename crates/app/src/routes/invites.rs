@@ -165,6 +165,135 @@ pub async fn list_invites(cx: &Cx) -> Result<Json<Vec<InviteRecord>>, ApiError> 
     Ok(Json(invites))
 }
 
+/// `{token}` path parameter for the public invite lookup route.
+#[path_param(error = bad_request("Invalid invite token"))]
+struct Token(String);
+
+/// Public summary returned by `GET /api/invites/{token}`.
+///
+/// Mirrors upstream `toInviteSummaryResponse` (minus onboarding/skills paths
+/// which have no Rust equivalent yet) and never exposes the token hash.
+#[derive(Debug, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct InviteSummary {
+    /// Invite id.
+    pub id: String,
+    /// Owning company id.
+    pub company_id: String,
+    /// Company display name, when the company still exists.
+    pub company_name: Option<String>,
+    /// Company logo URL, when configured.
+    pub company_logo_url: Option<String>,
+    /// Company brand color, when configured.
+    pub company_brand_color: Option<String>,
+    /// Invite type (`company_join` | `bootstrap_ceo`).
+    pub invite_type: String,
+    /// Allowed join types (`human` | `agent` | `both`).
+    pub allowed_join_types: String,
+    /// Human membership role offered by this invite (agent-only invites have
+    /// no human role).
+    pub human_role: Option<String>,
+    /// ISO 8601 expiry.
+    pub expires_at: String,
+    /// Board path for this invite.
+    pub invite_path: String,
+    /// Absolute invite URL when a base URL is available, otherwise the path.
+    pub invite_url: String,
+    /// Inviter display name (null until user profiles exist).
+    pub invited_by_user_name: Option<String>,
+    /// Existing join request status, if any.
+    pub join_request_status: Option<String>,
+    /// Existing join request type, if any.
+    pub join_request_type: Option<String>,
+    /// Optional invite message from `defaults_payload.agentMessage`.
+    pub invite_message: Option<String>,
+}
+
+/// Extracts the human role offered by an invite from `defaults_payload`.
+fn extract_human_role(invite: &InviteRecord) -> Option<String> {
+    if invite.allowed_join_types == "agent" {
+        return None;
+    }
+    let role = invite
+        .defaults_payload
+        .as_ref()
+        .and_then(|payload| payload.get("human"))
+        .and_then(|human| human.get("role"))
+        .and_then(|value| value.as_str())
+        .unwrap_or("operator");
+    Some(role.to_owned())
+}
+
+/// Extracts the optional invite message from `defaults_payload.agentMessage`.
+fn extract_invite_message(invite: &InviteRecord) -> Option<String> {
+    let message = invite
+        .defaults_payload
+        .as_ref()?
+        .get("agentMessage")
+        .and_then(|value| value.as_str())?
+        .trim();
+    (!message.is_empty()).then(|| message.to_owned())
+}
+
+/// `GET /api/invites/{token}` — public invite lookup by plaintext token.
+///
+/// Matches upstream `router.get("/invites/:token")`: revoked, expired, or
+/// accepted-without-join-request invites are hidden behind a 404.
+#[route(GET "/api/invites/{token}")]
+pub async fn get_invite_by_token(cx: &Cx) -> Result<Json<InviteSummary>, ApiError> {
+    let token = path_param::<Token>(cx)?.to_string();
+    if token.trim().is_empty() {
+        return Err(ApiError::not_found("Invite not found"));
+    }
+    let state = app_context::<AppState>(cx);
+    let invite = state
+        .invites
+        .find_by_token(token.trim())
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+        .ok_or_else(|| ApiError::not_found("Invite not found"))?;
+    let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+    if invite.revoked_at.is_some() || invite.expires_at.as_str() <= now.as_str() {
+        return Err(ApiError::not_found("Invite not found"));
+    }
+    let join_request = state
+        .invites
+        .find_join_request_by_invite(&invite.company_id, &invite.id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    if invite.accepted_at.is_some() && join_request.is_none() {
+        return Err(ApiError::not_found("Invite not found"));
+    }
+    let company = state
+        .companies
+        .get(&invite.company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    let invite_path = format!("/invite/{}", token.trim());
+    let summary = InviteSummary {
+        id: invite.id.clone(),
+        company_id: invite.company_id.clone(),
+        company_name: company.as_ref().map(|record| record.name.clone()),
+        company_logo_url: company.as_ref().and_then(|record| record.logo_url.clone()),
+        company_brand_color: company
+            .as_ref()
+            .and_then(|record| record.brand_color.clone()),
+        invite_type: invite.invite_type.clone(),
+        allowed_join_types: invite.allowed_join_types.clone(),
+        human_role: extract_human_role(&invite),
+        expires_at: invite.expires_at.clone(),
+        invite_path: invite_path.clone(),
+        invite_url: invite_path,
+        invited_by_user_name: None,
+        join_request_status: join_request.as_ref().map(|request| request.status.clone()),
+        join_request_type: join_request
+            .as_ref()
+            .map(|request| request.request_type.clone()),
+        invite_message: extract_invite_message(&invite),
+    };
+    Ok(Json(summary))
+}
+
 /// `POST /api/companies/{companyId}/invites/{id}/revoke` — revokes an invite.
 #[route(POST "/api/companies/{company_id}/invites/{id}/revoke")]
 pub async fn revoke_invite(cx: &Cx) -> Result<Json<InviteRecord>, ApiError> {

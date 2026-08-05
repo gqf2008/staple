@@ -4336,16 +4336,129 @@ pub async fn cli_auth(cx: &Cx) -> Result {
     }
 }
 
-/// Invite landing page: shows the token and guides the operator to join via
-/// the company access page (no public token lookup endpoint yet).
+/// Invite landing page: resolves the plaintext token to an invite and renders
+/// company branding, invite metadata, join-request state, and a join entry
+/// point (server-rendered mirror of upstream `InviteLanding.tsx`).
 #[page("/invite/{invite_token}")]
 pub async fn invite_landing(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
     let token = path_param::<InviteToken>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(invite) = state
+        .invites
+        .find_by_token(&token)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return view! {
+            <h1 class="page-title">(t(lang, "inviteLanding.title"))</h1>
+            <p class="empty">(t(lang, "inviteLanding.notFound"))</p>
+        };
+    };
+    let now = chrono::Utc::now().to_rfc3339_opts(chrono::SecondsFormat::Millis, true);
+    let revoked = invite.revoked_at.is_some();
+    let expired = invite.expires_at.as_str() <= now.as_str();
+    let join_request = state
+        .invites
+        .find_join_request_by_invite(&invite.company_id, &invite.id)
+        .await
+        .map_err(to_topcoat_error)?;
+    if revoked || expired || (invite.accepted_at.is_some() && join_request.is_none()) {
+        return view! {
+            <h1 class="page-title">(t(lang, "inviteLanding.title"))</h1>
+            <p class="empty">(t(lang, "inviteLanding.notFound"))</p>
+        };
+    }
+    let company = state
+        .companies
+        .get(&invite.company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let invite_type = invite.invite_type.clone();
+    let allowed_join_types = invite.allowed_join_types.clone();
+    let join_type_label = match allowed_join_types.as_str() {
+        "human" => t(lang, "inviteLanding.joinTypeHuman"),
+        "agent" => t(lang, "inviteLanding.joinTypeAgent"),
+        _ => t(lang, "inviteLanding.joinTypeBoth"),
+    };
+    let human_role = if invite.allowed_join_types == "agent" {
+        None
+    } else {
+        Some(
+            invite
+                .defaults_payload
+                .as_ref()
+                .and_then(|payload| payload.get("human"))
+                .and_then(|human| human.get("role"))
+                .and_then(|value| value.as_str())
+                .unwrap_or("operator")
+                .to_owned(),
+        )
+    };
+    let invite_message = invite
+        .defaults_payload
+        .as_ref()
+        .and_then(|payload| payload.get("agentMessage"))
+        .and_then(|value| value.as_str())
+        .map(str::trim)
+        .filter(|message| !message.is_empty())
+        .map(str::to_owned);
+    let expires_at = invite.expires_at.clone();
+    let status = if revoked {
+        "revoked"
+    } else if invite.accepted_at.is_some() {
+        "accepted"
+    } else if expired {
+        "expired"
+    } else {
+        "active"
+    };
+    let status_label = match status {
+        "accepted" => t(lang, "inviteLanding.statusAccepted"),
+        "expired" => t(lang, "inviteLanding.statusExpired"),
+        "revoked" => t(lang, "inviteLanding.statusRevoked"),
+        _ => t(lang, "inviteLanding.statusActive"),
+    };
+    let status_badge = match status {
+        "accepted" => "badge badge-done",
+        "expired" => "badge badge-paused",
+        "revoked" => "badge badge-blocked",
+        _ => "badge badge-default",
+    };
+    let join_status = join_request.as_ref().map(|request| request.status.as_str());
+    let join_status_label = match join_status {
+        Some("approved") => Some(t(lang, "inviteLanding.requestApproved")),
+        Some("rejected") => Some(t(lang, "inviteLanding.requestRejected")),
+        Some(_) => Some(t(lang, "inviteLanding.requestPending")),
+        None => None,
+    };
+    let company_id = invite.company_id.clone();
+    let company_name = company.as_ref().map(|record| record.name.clone());
+    let access_url = with_lang(&format!("/companies/{company_id}/access"), lang);
     view! {
         <h1 class="page-title">(t(lang, "inviteLanding.title"))</h1>
         <p class="meta-row">(t(lang, "inviteLanding.token")) ": " (token)</p>
-        <p class="empty">(t(lang, "inviteLanding.hint"))</p>
+        if let Some(name) = &company_name {
+            <p class="meta-row">(t(lang, "inviteLanding.company")) ": " (name)</p>
+        }
+        <p class="meta-row">(t(lang, "inviteLanding.inviteType")) ": " (invite_type)</p>
+        <p class="meta-row">(t(lang, "inviteLanding.allowedJoinTypes")) ": " (join_type_label)</p>
+        if let Some(role) = &human_role {
+            <p class="meta-row">(t(lang, "inviteLanding.humanRole")) ": " (role.clone())</p>
+        }
+        <p class="meta-row">(t(lang, "inviteLanding.expiresAt")) ": " (expires_at)</p>
+        <p class="meta-row">
+            (t(lang, "inviteLanding.status")) ": " <span class=(status_badge)>(status_label)</span>
+        </p>
+        if let Some(message) = &invite_message {
+            <p class="meta-row">(t(lang, "inviteLanding.message")) ": " (message.clone())</p>
+        }
+        if let Some(label) = &join_status_label {
+            <p class="empty">(label.clone())</p>
+        } else if status == "active" && company_name.is_some() {
+            <a class="button" href=(access_url)>(t(lang, "inviteLanding.joinCta"))</a>
+            <p class="empty">(t(lang, "inviteLanding.joinHint"))</p>
+        }
     }
 }
 
