@@ -4223,6 +4223,29 @@ async fn access_and_operations_full_flow() {
     let token = body["token"].as_str().unwrap().to_owned();
     assert!(token.starts_with("inv-"));
 
+    // Public invite lookup by token (landing page data) ----------------------
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/invites/{token}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["id"], invite_id);
+    assert_eq!(body["companyId"], "c1");
+    assert_eq!(body["companyName"], "Alpha");
+    assert_eq!(body["inviteType"], "company_join");
+    assert_eq!(body["allowedJoinTypes"], "both");
+    assert_eq!(body["humanRole"], "operator");
+    assert_eq!(body["invitePath"], format!("/invite/{token}"));
+    assert_eq!(body["inviteUrl"], format!("/invite/{token}"));
+    assert!(body["expiresAt"].is_string());
+    assert_eq!(body["joinRequestStatus"], serde_json::Value::Null);
+    // Unknown token -> 404 (invite existence is not leaked).
+    let (status, _) = send_json(&app, Method::GET, "/api/invites/does-not-exist", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
+
     // Board API key (authenticates as board) --------------------------------
     let (status, body) = send_json(
         &app,
@@ -4319,6 +4342,17 @@ async fn access_and_operations_full_flow() {
     assert_eq!(status, StatusCode::CREATED, "body: {body}");
     let join_request_id = body["joinRequest"]["id"].as_str().unwrap().to_owned();
     assert!(body["claimSecret"].is_string());
+    // Public lookup reflects the pending join request.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/invites/{token}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["joinRequestStatus"], "pending_approval");
+    assert_eq!(body["joinRequestType"], "agent");
     let (status, body) = send_json(
         &app,
         Method::POST,
@@ -4435,6 +4469,15 @@ async fn access_and_operations_full_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
+    // Revoked invites are hidden from public lookup.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/invites/{token}"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
     let (status, _) = send_json(
         &app,
         Method::DELETE,
