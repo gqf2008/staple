@@ -92,21 +92,13 @@ pub fn catalog_root() -> PathBuf {
     }
 }
 
-fn manifest_path() -> Option<PathBuf> {
-    let root = catalog_root();
-    if root.as_os_str().is_empty() {
-        return None;
-    }
+/// Lists all catalog teams from an explicit root.
+#[must_use]
+pub fn list_at(root: &Path) -> Vec<CatalogTeam> {
     let manifest = root.join("generated/catalog.json");
-    manifest.exists().then_some(manifest)
-}
-
-/// Lists all catalog teams. Returns an empty list when no catalog package
-/// is present.
-pub fn list() -> Vec<CatalogTeam> {
-    let Some(manifest) = manifest_path() else {
+    if !manifest.exists() {
         return Vec::new();
-    };
+    }
     let Ok(text) = std::fs::read_to_string(&manifest) else {
         return Vec::new();
     };
@@ -210,19 +202,22 @@ pub fn list() -> Vec<CatalogTeam> {
         .collect()
 }
 
-/// Finds a team by id or key.
+/// Finds a team by id or key from an explicit root.
 #[must_use]
-pub fn detail(catalog_ref: &str) -> Option<CatalogTeam> {
-    list()
+pub fn detail_at(root: &Path, catalog_ref: &str) -> Option<CatalogTeam> {
+    list_at(root)
         .into_iter()
         .find(|team| team.id == catalog_ref || team.key == catalog_ref)
 }
 
-/// Reads a file from a team package.
+/// Reads a file from a team package at an explicit root.
 #[must_use]
-pub fn files(catalog_ref: &str, relative_path: &str) -> Option<CatalogTeamFileDetail> {
-    let team = detail(catalog_ref)?;
-    let root = catalog_root();
+pub fn files_at(
+    root: &Path,
+    catalog_ref: &str,
+    relative_path: &str,
+) -> Option<CatalogTeamFileDetail> {
+    let team = detail_at(root, catalog_ref)?;
     let path = root.join(&team.path).join(relative_path);
     if !path.exists() || !path.is_file() {
         return None;
@@ -258,6 +253,25 @@ pub fn files(catalog_ref: &str, relative_path: &str) -> Option<CatalogTeamFileDe
 fn base64_encode(bytes: &[u8]) -> String {
     use base64::Engine;
     base64::engine::general_purpose::STANDARD.encode(bytes)
+}
+
+/// Lists all catalog teams. Returns an empty list when no catalog package
+/// is present.
+#[must_use]
+pub fn list() -> Vec<CatalogTeam> {
+    list_at(&catalog_root())
+}
+
+/// Finds a team by id or key in the configured catalog.
+#[must_use]
+pub fn detail(catalog_ref: &str) -> Option<CatalogTeam> {
+    detail_at(&catalog_root(), catalog_ref)
+}
+
+/// Reads a file from a team package in the configured catalog.
+#[must_use]
+pub fn files(catalog_ref: &str, relative_path: &str) -> Option<CatalogTeamFileDetail> {
+    files_at(&catalog_root(), catalog_ref, relative_path)
 }
 
 /// Reads the catalog provenance from an agent's metadata.
@@ -399,9 +413,6 @@ mod tests {
             serde_json::to_vec_pretty(&manifest).unwrap(),
         )
         .unwrap();
-        unsafe {
-            std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", root);
-        }
         dir
     }
 
@@ -429,30 +440,31 @@ mod tests {
 
     #[test]
     fn list_detail_and_files_from_seeded_catalog() {
-        let _dir = seed_catalog();
-        let teams = list();
+        let dir = seed_catalog();
+        let root = dir.path();
+        let teams = list_at(root);
         assert_eq!(teams.len(), 1);
         assert_eq!(teams[0].name, "Core Team");
         assert_eq!(teams[0].content_hash, "sha256:abc");
-        let team = detail("test:bundled:acme:core-team").expect("team");
+        let team = detail_at(root, "test:bundled:acme:core-team").expect("team");
         assert_eq!(team.slug, "core-team");
-        let by_key = detail("test/bundled/acme/core-team").expect("team by key");
+        let by_key = detail_at(root, "test/bundled/acme/core-team").expect("team by key");
         assert_eq!(by_key.id, team.id);
-        let file = files("test:bundled:acme:core-team", "TEAM.md").expect("file");
+        let file = files_at(root, "test:bundled:acme:core-team", "TEAM.md").expect("file");
         assert_eq!(file.encoding, "text");
         assert!(file.data.contains("Core Team"));
-        let agents = files("test:bundled:acme:core-team", "AGENTS.md").expect("agents");
+        let agents = files_at(root, "test:bundled:acme:core-team", "AGENTS.md").expect("agents");
         assert_eq!(agents.encoding, "text");
-        assert!(detail("missing").is_none());
-        assert!(files("test:bundled:acme:core-team", "missing.md").is_none());
-        unsafe {
-            std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
-        }
+        assert!(detail_at(root, "missing").is_none());
+        assert!(files_at(root, "test:bundled:acme:core-team", "missing.md").is_none());
     }
 
     #[test]
     fn installed_aggregates_provenance() {
-        let _dir = seed_catalog();
+        let dir = seed_catalog();
+        unsafe {
+            std::env::set_var("PAPERCLIP_TEAMS_CATALOG_DIR", dir.path());
+        }
         let agents = vec![
             agent_with_metadata(serde_json::json!({
                 "paperclip": { "catalogTeam": {
