@@ -74,6 +74,7 @@
 | Board-B | 内建 board-member skill（system prompt + 公司作用域边界 + 输出格式） | ✅ 完成（issue #127/PR #130） |
 | Board-C | 看板管家流式端点（SSE POST /api/board/chat/stream，120s 超时保护） | ✅ 完成（issue #128/PR #132） |
 | Board-D | Board Chat 页面（board_chat.js 流式客户端）+ issue Claim | ✅ 完成（issue #129/PR #133） |
+| Board-E | adapter 增量流式（AgentAdapter::stream）+ Board Chat 真流式 SSE（delta 实时推送） | ✅ 完成（issue #144/PR #145） |
 | UI-9 | 管理类补漏（公司创建/NewAgent/Artifacts 全局产物/PipelineSettings） | ✅ 完成（issue #134/PR #139） |
 | UI-10 | 插件生态管理页（PluginManager/PluginPage/PluginSettings） | ✅ 完成（issue #135/PR #140） |
 | UI-11 | 认证与邀请流程页（Auth/CliAuth/InviteLanding） | ✅ 完成（issue #136/PR #138） |
