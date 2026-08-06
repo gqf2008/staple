@@ -22,15 +22,16 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
-    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
-    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
-    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
-    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoInfrastructureRepository, TursoInstructionRepository, TursoInviteRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
+    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPortabilityRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
+    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository, migrate,
+    open,
 };
 use tokio::sync::Mutex;
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
@@ -126,6 +127,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         .await
         .unwrap();
     let infrastructure_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
+    let instructions_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
     let board_keys_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -256,6 +260,7 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
         board_claim: Arc::new(staple_app::board_claim::BoardClaimManager::new()),
         infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
+        instructions: Arc::new(TursoInstructionRepository::new(instructions_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),

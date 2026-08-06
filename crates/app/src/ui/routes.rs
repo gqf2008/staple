@@ -417,13 +417,14 @@ pub async fn create_agent_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let name = form.name.trim().to_owned();
+    let role = form.role.clone().unwrap_or_else(|| "general".to_owned());
     if !name.is_empty()
         && let Ok(agent) = state
             .agents
             .create(staple_data::NewAgent {
                 company_id: company_id.clone(),
                 name,
-                role: form.role.unwrap_or_else(|| "general".to_owned()),
+                role: role.clone(),
                 title: form.title.filter(|value| !value.trim().is_empty()),
                 icon: None,
                 reports_to: form.reports_to.filter(|value| !value.trim().is_empty()),
@@ -444,6 +445,21 @@ pub async fn create_agent_ui(
             Some(serde_json::json!({ "name": agent.name })),
         )
         .await;
+        if let Err(error) = crate::instructions::materialize_default_instructions(
+            state,
+            &company_id,
+            &agent.id,
+            &role,
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                company_id = %company_id,
+                agent_id = %agent.id,
+                "failed to materialize default agent instructions"
+            );
+        }
         return Ok(see_other(&format!("/agents/{}", agent.id)));
     }
     Ok(see_other(&format!("/companies/{company_id}/agents")))
@@ -4289,6 +4305,13 @@ pub async fn onboarding_ui(
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
+        let _ = crate::instructions::materialize_default_instructions(
+            state,
+            &company.id,
+            &lead.id,
+            "default",
+        )
+        .await;
 
         // Default team (when the teams-catalog package is present).
         if let Some(team) = team_catalog::detail(team_catalog::default_catalog_ref()) {
@@ -4310,6 +4333,13 @@ pub async fn onboarding_ui(
                     .await
                 {
                     agent_ids.insert(slug.clone(), agent.id.clone());
+                    let _ = crate::instructions::materialize_default_instructions(
+                        state,
+                        &company.id,
+                        &agent.id,
+                        slug,
+                    )
+                    .await;
                 }
             }
             let mut project_ids: std::collections::HashMap<String, String> =

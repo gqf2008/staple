@@ -17,15 +17,16 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
-    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
-    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
-    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
-    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, default_key_path, migrate, open,
+    TursoInfrastructureRepository, TursoInstructionRepository, TursoInviteRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
+    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPortabilityRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
+    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository,
+    default_key_path, migrate, open,
 };
 use tokio::net::TcpListener;
 use tracing_subscriber::EnvFilter;
@@ -43,6 +44,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let memberships_db = open(&db_config).await?;
     let invites_db = open(&db_config).await?;
     let infrastructure_db = open(&db_config).await?;
+    let instructions_db = open(&db_config).await?;
     let board_keys_db = open(&db_config).await?;
     let budget_policies_db = open(&db_config).await?;
     let cases_db = open(&db_config).await?;
@@ -93,6 +95,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         invites: Arc::new(TursoInviteRepository::new(invites_db)),
         board_claim: Arc::new(BoardClaimManager::new()),
         infrastructure: Arc::new(TursoInfrastructureRepository::new(infrastructure_db)),
+        instructions: Arc::new(TursoInstructionRepository::new(instructions_db)),
         board_keys: Arc::new(TursoBoardKeyRepository::new(board_keys_db)),
         budget_policies: Arc::new(TursoBudgetPolicyRepository::new(budget_policies_db)),
         cases: Arc::new(TursoCaseRepository::new(cases_db)),

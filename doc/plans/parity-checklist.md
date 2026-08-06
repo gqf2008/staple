@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200）。
 
 ## 使用方式
 
@@ -86,7 +86,7 @@
 | Onboarding 向导 + 自动初始化 | 5 步向导（公司名/使命/负责人/连接模型/审查，含适配器真实环境探测 + 内置默认团队 core-exec-team 安装）+ 完成时创建公司/主智能体/ceo-cto-qa/首个任务/心跳 + 无公司首页进向导（E2E 对比差异 #1/#2/#4） | ✅ 完成（issue #186/PR #187 + #192/PR #192 + #194/PR #195） |
 | 适配器环境探测 | AgentAdapter::probe + CliAdapter hello 检测（PATH 解析 + 5s 超时运行 echo hello）+ POST /api/adapters/{type}/probe + 向导真实结果 | ✅ 完成（issue #194/PR #195） |
 | routine 安装（内置团队 counts.routines） | 团队包 recurring TASK.md → routines 创建（assignee/project slug 映射 + 默认/指定 cron trigger），install API/UI + preview 接入，createdRoutines 计数/审计 | ✅ 完成（issue #199） |
-| 指令文件体系（AGENTS.md/SOUL.md/HEARTBEAT.md 挂载） | 上游 onboarding-assets 属指令系统（agent instructions 路由 + 文档挂载），独立功能面 | ⏳ 明确延后（登记） |
+| 指令文件体系（AGENTS.md/SOUL.md/HEARTBEAT.md 挂载） | 上游 onboarding-assets 属指令系统（agent instructions 路由 + 文档挂载），独立功能面 | ✅ 完成（issue #200） |
 | 信息架构 | 全局侧边栏导航（Dashboard/Inbox/Work/Company 分组 + 全局项），公司路由自动显示公司分组（E2E 对比差异 #3） | ✅ 完成（issue #188/PR #189 + #190） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）

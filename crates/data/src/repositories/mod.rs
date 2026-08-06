@@ -24,6 +24,7 @@ pub mod goals;
 pub mod heartbeat_runs;
 pub mod helpers;
 pub mod infrastructure;
+pub mod instructions;
 pub mod invites;
 pub mod issue_comments;
 pub mod issue_relations;
@@ -136,6 +137,11 @@ pub use infrastructure::{
     NewIssueTreeHoldMember, NewIssueWatchdog, NewRoutineDocument, NewSession, NewUser,
     ReleaseTreeHold, RoutineDocumentRecord, SessionRecord, TursoInfrastructureRepository,
     UserRecord, UserSidebarPreferenceRecord,
+};
+pub use instructions::{
+    AgentInstructionFileRecord, InstructionDocumentRecord, InstructionError, InstructionRepository,
+    NewAgentInstructionFile, NewInstructionDocument, TursoInstructionRepository,
+    UpdateInstructionDocument,
 };
 pub use invites::{
     InviteError, InviteRecord, InviteRepository, JoinRequestRecord, NewInvite, NewJoinRequest,

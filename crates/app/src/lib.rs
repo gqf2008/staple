@@ -11,6 +11,7 @@ pub mod dto;
 pub mod error;
 pub mod git;
 pub mod i18n;
+pub mod instructions;
 pub mod logging;
 pub mod permissions;
 pub mod routes;
