@@ -17,8 +17,8 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
-    TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoAssetRepository, TursoAttentionDismissalRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
@@ -247,6 +247,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let secret_bindings_db = open(&DbConfig::local(dir.path().join("test.db")))
         .await
         .unwrap();
+    let attention_dismissals_db = open(&DbConfig::local(dir.path().join("test.db")))
+        .await
+        .unwrap();
     migrate(&companies_db).await.unwrap();
     let uploads = dir.path().join("uploads");
     // Keep the temp dir alive for the lifetime of the test process.
@@ -254,6 +257,9 @@ async fn test_state_with_db() -> (AppState, staple_data::Database) {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(agents_db)),
+        attention_dismissals: Arc::new(TursoAttentionDismissalRepository::new(
+            attention_dismissals_db,
+        )),
         agent_runtime: Arc::new(TursoAgentRuntimeRepository::new(agent_runtime_db)),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),

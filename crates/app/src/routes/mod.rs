@@ -10,6 +10,7 @@ pub mod agents;
 pub mod approvals;
 pub mod assets;
 pub mod attention;
+pub mod attention_dismissals;
 pub mod auth;
 pub mod board_chat;
 pub mod board_claim;
