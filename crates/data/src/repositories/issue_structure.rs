@@ -211,6 +211,17 @@ pub trait IssueStructureRepository: Send + Sync {
         issue_id: &str,
     ) -> Result<Vec<ThreadInteractionRecord>, IssueStructureError>;
 
+    /// Lists thread interactions for a company, optionally filtered by status.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IssueStructureError`] on database failure.
+    async fn list_company_thread_interactions(
+        &self,
+        company_id: &str,
+        status: Option<&str>,
+    ) -> Result<Vec<ThreadInteractionRecord>, IssueStructureError>;
+
     /// Upserts the read state for a user on an issue.
     ///
     /// # Errors
@@ -255,6 +266,16 @@ pub trait IssueStructureRepository: Send + Sync {
     async fn list_issue_approvals(
         &self,
         issue_id: &str,
+    ) -> Result<Vec<IssueApprovalRecord>, IssueStructureError>;
+
+    /// Lists all issue-approval links for a company.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`IssueStructureError`] on database failure.
+    async fn list_company_issue_approvals(
+        &self,
+        company_id: &str,
     ) -> Result<Vec<IssueApprovalRecord>, IssueStructureError>;
 
     /// Records an execution decision.
@@ -679,6 +700,87 @@ impl IssueStructureRepository for TursoIssueStructureRepository {
         Ok(approvals)
     }
 
+    async fn list_company_issue_approvals(
+        &self,
+        company_id: &str,
+    ) -> Result<Vec<IssueApprovalRecord>, IssueStructureError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT issue_id, approval_id, company_id FROM issue_approvals
+                 WHERE company_id = ?1 ORDER BY created_at",
+                libsql::params![company_id],
+            )
+            .await?;
+        let mut approvals = Vec::new();
+        while let Some(row) = rows.next().await? {
+            approvals.push(IssueApprovalRecord {
+                issue_id: helpers::row_text(&row, 0)?.expect("issue_id"),
+                approval_id: helpers::row_text(&row, 1)?.expect("approval_id"),
+                company_id: helpers::row_text(&row, 2)?.expect("company_id"),
+            });
+        }
+        Ok(approvals)
+    }
+
+    async fn list_company_thread_interactions(
+        &self,
+        company_id: &str,
+        status: Option<&str>,
+    ) -> Result<Vec<ThreadInteractionRecord>, IssueStructureError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = if let Some(status) = status {
+            conn.query(
+                "SELECT id, company_id, issue_id, kind, status, continuation_policy, idempotency_key,
+                        source_comment_id, source_run_id, title, summary, created_by_agent_id,
+                        created_by_user_id, resolved_by_agent_id, resolved_by_user_id, payload,
+                        result, resolved_at, created_at
+                 FROM issue_thread_interactions WHERE company_id = ?1 AND status = ?2
+                 ORDER BY updated_at DESC, id DESC",
+                libsql::params![company_id, status],
+            )
+            .await?
+        } else {
+            conn.query(
+                "SELECT id, company_id, issue_id, kind, status, continuation_policy, idempotency_key,
+                        source_comment_id, source_run_id, title, summary, created_by_agent_id,
+                        created_by_user_id, resolved_by_agent_id, resolved_by_user_id, payload,
+                        result, resolved_at, created_at
+                 FROM issue_thread_interactions WHERE company_id = ?1
+                 ORDER BY updated_at DESC, id DESC",
+                libsql::params![company_id],
+            )
+            .await?
+        };
+        let mut interactions = Vec::new();
+        while let Some(row) = rows.next().await? {
+            interactions.push(ThreadInteractionRecord {
+                id: helpers::row_text(&row, 0)?.expect("id"),
+                company_id: helpers::row_text(&row, 1)?.expect("company_id"),
+                issue_id: helpers::row_text(&row, 2)?.expect("issue_id"),
+                kind: helpers::row_text(&row, 3)?.expect("kind"),
+                status: helpers::row_text(&row, 4)?.expect("status"),
+                continuation_policy: helpers::row_text(&row, 5)?
+                    .unwrap_or_else(|| "wake_assignee".to_owned()),
+                idempotency_key: helpers::row_text(&row, 6)?,
+                source_comment_id: helpers::row_text(&row, 7)?,
+                source_run_id: helpers::row_text(&row, 8)?,
+                title: helpers::row_text(&row, 9)?,
+                summary: helpers::row_text(&row, 10)?,
+                created_by_agent_id: helpers::row_text(&row, 11)?,
+                created_by_user_id: helpers::row_text(&row, 12)?,
+                resolved_by_agent_id: helpers::row_text(&row, 13)?,
+                resolved_by_user_id: helpers::row_text(&row, 14)?,
+                payload: helpers::row_text(&row, 15)?.expect("payload"),
+                result: helpers::row_text(&row, 16)?
+                    .and_then(|raw| serde_json::from_str(&raw).ok()),
+                resolved_at: helpers::row_text(&row, 17)?,
+                created_at: helpers::row_text(&row, 18)?.expect("created_at"),
+            });
+        }
+        Ok(interactions)
+    }
+
     async fn create_execution_decision(
         &self,
         input: NewExecutionDecision,
@@ -1092,5 +1194,54 @@ mod tests {
         assert_eq!(by_id("new-1").status, "pending");
         assert_eq!(by_id("a2-new").status, "pending");
         assert_eq!(by_id("user-1").status, "pending");
+    }
+    #[tokio::test]
+    async fn company_wide_issue_approvals_and_interactions() {
+        let (_dir, _db, repo) = repo().await;
+        // Link the seeded approval to the seeded issue.
+        repo.link_approval("c1", "i1", "ap1").await.unwrap();
+        let links = repo.list_company_issue_approvals("c1").await.unwrap();
+        assert_eq!(links.len(), 1);
+        assert_eq!(links[0].issue_id, "i1");
+        assert_eq!(links[0].approval_id, "ap1");
+
+        // Create two pending interactions (one confirmation, one question).
+        repo.create_thread_interaction(NewThreadInteraction {
+            company_id: "c1".to_owned(),
+            issue_id: "i1".to_owned(),
+            kind: "request_confirmation".to_owned(),
+            payload: "{}".to_owned(),
+            created_by_agent_id: Some("a1".to_owned()),
+            created_by_user_id: None,
+        })
+        .await
+        .unwrap();
+        repo.create_thread_interaction(NewThreadInteraction {
+            company_id: "c1".to_owned(),
+            issue_id: "i1".to_owned(),
+            kind: "ask_user_questions".to_owned(),
+            payload: "{}".to_owned(),
+            created_by_agent_id: Some("a1".to_owned()),
+            created_by_user_id: None,
+        })
+        .await
+        .unwrap();
+        let pending = repo
+            .list_company_thread_interactions("c1", Some("pending"))
+            .await
+            .unwrap();
+        assert_eq!(pending.len(), 2);
+        assert!(pending.iter().all(|row| row.status == "pending"));
+        let all = repo
+            .list_company_thread_interactions("c1", None)
+            .await
+            .unwrap();
+        assert_eq!(all.len(), 2);
+        // Company scoping: a different company sees nothing.
+        let other = repo
+            .list_company_thread_interactions("c2", None)
+            .await
+            .unwrap();
+        assert!(other.is_empty());
     }
 }

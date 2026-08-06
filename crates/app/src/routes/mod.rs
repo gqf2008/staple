@@ -9,6 +9,7 @@ pub mod agent_runtime;
 pub mod agents;
 pub mod approvals;
 pub mod assets;
+pub mod attention;
 pub mod auth;
 pub mod board_chat;
 pub mod board_claim;

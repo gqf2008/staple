@@ -109,7 +109,7 @@
 
 - 每次 `gqf2008/paperclip` 同步上游后，diff 中新增的 API/表/测试按上述模块追加登记，状态默认 `未开始`。
 - 2026-08-06：登记上游 8-03→8-04 增量（`sync/upstream` 落后于 `upstream/master`，手动触发镜像同步）：
-  - **attention/决策桌 triage**（#10785）：`deskBadgeCount`（今天新增/到期，分页前计算）、`blockedTaskCount`、blocker 树 `blockingTreeLive`/`terminalBlockerIssueId`、按阻塞权重排序、pending request_confirmation 折叠 → issue #204
+  - **attention/决策桌 triage**（#10785）：`deskBadgeCount`（今天新增/到期，分页前计算）、`blockedTaskCount`、blocker 树 `blockingTreeLive`/`terminalBlockerIssueId`、按阻塞权重排序、pending request_confirmation 折叠 → issue #204（阶段 A1 核心 feed 完成：approval/interaction/blocker/budget + deskBadgeCount + cursor/sort；A2 扩展参数/其余 kinds/B 权重排序/C UI 待续）
   - **共享工作区并发**：`sharedWorkspaceConcurrency`（auto/serialize/allow，project policy + issue settings + 执行目标/心跳序列化）→ issue #206 · 阶段 A ✅（数据结构 + 策略解析）
   - **request confirmation supersede**：`superseded_by_newer_request` outcome + `supersededByInteractionId`，创建时过期旧 pending + sweep → ✅ 完成（issue #205）
   - **task-chat UI polish**（#10707）：rich-text composer / attachment chips / live-turn interstitials / mobile layout（React 组件级 UI 打磨）→ ⏳ 评估后明确不迁移（Topcoat 版 Board Chat 已有等价聊天交互；后续按 UX 差异单独登记）

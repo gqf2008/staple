@@ -3,6 +3,7 @@
 //! This crate wires the HTTP surface: configuration, routes, the request
 //! logging layer, and unified JSON error handling.
 
+pub mod attention;
 pub mod audit;
 pub mod auth;
 pub mod board_claim;
