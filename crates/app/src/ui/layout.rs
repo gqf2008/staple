@@ -53,6 +53,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                             <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
                             <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
                             <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>(t(lang, "inbox.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>(t(lang, "whatNeedsMe.title"))</a>
                             <h3>(t(lang, "nav.work"))</h3>
                             <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
                             <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>

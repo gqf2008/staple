@@ -531,6 +531,35 @@ pub async fn unarchive_issue_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOt
     Ok(see_other("/"))
 }
 
+/// `{item_key}` path parameter (attention dismissal UI).
+#[path_param(error = bad_request("Invalid item key"))]
+pub(crate) struct ItemKey(String);
+
+/// `POST /companies/{company_id}/attention/{item_key}/dismiss/ui` — dismisses
+/// an attention item for the current board user and returns to What needs me.
+#[route(POST "/companies/{company_id}/attention/{item_key}/dismiss/ui")]
+pub async fn dismiss_attention_item_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let item_key = path_param::<ItemKey>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let user_id = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| parts.headers.get("x-board-user"))
+        .and_then(|value| value.to_str().ok())
+        .unwrap_or("board")
+        .to_owned();
+    let _ = state
+        .attention_dismissals
+        .upsert(staple_data::NewDismissal {
+            company_id: company_id.clone(),
+            user_id,
+            item_key,
+            kind: "dismiss".to_owned(),
+            snoozed_until: None,
+        })
+        .await;
+    Ok(see_other(&format!("/companies/{company_id}/what-needs-me")))
+}
+
 // ---------------------------------------------------------------------------
 // Decision desk UI actions
 // ---------------------------------------------------------------------------
