@@ -10,7 +10,7 @@ use topcoat::{
 use crate::{
     audit::log_activity,
     error::ApiError,
-    i18n::{lang_from_request, with_lang},
+    i18n::{lang_from_request, t, with_lang},
     state::AppState,
     team_catalog,
     ui::pages::onboarding_view,
@@ -4237,6 +4237,9 @@ pub struct OnboardingForm {
     /// Lead agent name.
     #[serde(default)]
     pub lead_name: String,
+    /// Selected adapter type (connection-model step).
+    #[serde(default)]
+    pub adapter_type: String,
 }
 
 /// `POST /onboarding/ui` — advances the onboarding wizard; the final step
@@ -4248,12 +4251,17 @@ pub async fn onboarding_ui(
 ) -> Result<topcoat::router::Response, ApiError> {
     let lang = lang_from_request(cx);
     let mission = form.mission_preset.unwrap_or(form.mission);
-    if form.step == 4 {
+    if form.step >= 5 {
         let state = app_context::<AppState>(cx);
         let lead_name = if form.lead_name.trim().is_empty() {
             "Chief of Staff".to_owned()
         } else {
             form.lead_name.clone()
+        };
+        let adapter_type = if form.adapter_type.trim().is_empty() {
+            "cli_local".to_owned()
+        } else {
+            form.adapter_type.clone()
         };
         let company = state
             .companies
@@ -4276,7 +4284,7 @@ pub async fn onboarding_ui(
                 title: Some("Chief of Staff".to_owned()),
                 icon: None,
                 reports_to: None,
-                adapter_type: "cli".to_owned(),
+                adapter_type: adapter_type.clone(),
                 budget_monthly_cents: 0,
             })
             .await
@@ -4365,7 +4373,9 @@ pub async fn onboarding_ui(
         return Ok(response);
     }
 
-    let next_step = form.step.saturating_add(1).clamp(1, 4);
+    let next_step = form.step.saturating_add(1).clamp(1, 5);
+    let state = app_context::<AppState>(cx);
+    let adapter_names = state.adapters.names();
     let view = onboarding_view(
         cx,
         lang,
@@ -4373,6 +4383,41 @@ pub async fn onboarding_ui(
         form.company_name,
         mission,
         form.lead_name,
+        form.adapter_type,
+        String::new(),
+        adapter_names,
+    )
+    .await
+    .map_err(|error| ApiError::internal(error.to_string()))?;
+    view.into_response(cx)
+        .map_err(|error| ApiError::internal(error.to_string()))
+}
+
+/// `POST /onboarding/adapter-test/ui` — checks the selected adapter and
+/// re-renders the connection-model step with the result.
+#[route(POST "/onboarding/adapter-test/ui")]
+pub async fn onboarding_adapter_test_ui(
+    cx: &Cx,
+    Form(form): Form<OnboardingForm>,
+) -> Result<topcoat::router::Response, ApiError> {
+    let lang = lang_from_request(cx);
+    let state = app_context::<AppState>(cx);
+    let adapter_names = state.adapters.names();
+    let test_result = if state.adapters.get(&form.adapter_type).is_some() {
+        t(lang, "onboarding.adapterOk")
+    } else {
+        t(lang, "onboarding.adapterFail")
+    };
+    let view = onboarding_view(
+        cx,
+        lang,
+        4,
+        form.company_name,
+        form.mission_preset.unwrap_or(form.mission),
+        form.lead_name,
+        form.adapter_type,
+        test_result,
+        adapter_names,
     )
     .await
     .map_err(|error| ApiError::internal(error.to_string()))?;

@@ -90,6 +90,12 @@ pub fn catalog_root() -> PathBuf {
             return path;
         }
     }
+    // Built-in default team package shipped with this crate.
+    let bundled = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("teams-catalog");
+    if bundled.join("generated/catalog.json").exists() {
+        return bundled;
+    }
+    // Upstream package layout (reference mirror / monorepo).
     let default = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../../packages/teams-catalog");
     if default.join("generated/catalog.json").exists() {
         default

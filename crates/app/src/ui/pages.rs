@@ -67,7 +67,19 @@ pub async fn home(cx: &Cx) -> Result {
     let state = app_context::<AppState>(cx);
     let companies = state.companies.list().await.map_err(to_topcoat_error)?;
     if companies.is_empty() {
-        return onboarding_view(cx, lang, 1, String::new(), String::new(), String::new()).await;
+        let adapter_names = state.adapters.names();
+        return onboarding_view(
+            cx,
+            lang,
+            1,
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            String::new(),
+            adapter_names,
+        )
+        .await;
     }
     view! {
         <h1 class="page-title">(t(lang, "page.title.companies"))</h1>
@@ -4581,10 +4593,24 @@ pub async fn onboarding(cx: &Cx) -> Result {
         })
         .and_then(|value| value.parse::<usize>().ok())
         .unwrap_or(1);
-    onboarding_view(cx, lang, step, String::new(), String::new(), String::new()).await
+    let state = app_context::<AppState>(cx);
+    let adapter_names = state.adapters.names();
+    onboarding_view(
+        cx,
+        lang,
+        step,
+        String::new(),
+        String::new(),
+        String::new(),
+        String::new(),
+        String::new(),
+        adapter_names,
+    )
+    .await
 }
 
 /// Renders one onboarding wizard step (shared by the page and form handler).
+#[allow(clippy::too_many_arguments)]
 pub(crate) async fn onboarding_view(
     cx: &Cx,
     lang: Lang,
@@ -4592,15 +4618,24 @@ pub(crate) async fn onboarding_view(
     company_name: String,
     mission: String,
     lead_name: String,
+    adapter_type: String,
+    test_result: String,
+    adapter_names: Vec<String>,
 ) -> Result {
-    let step = step.clamp(1, 4);
+    let step = step.clamp(1, 5);
     let form_action = with_lang("/onboarding/ui", lang);
+    let test_action = with_lang("/onboarding/adapter-test/ui", lang);
     let back_url = with_lang("/onboarding", lang);
     let lead_default = t(lang, "onboarding.leadDefault");
+    let default_adapter = if adapter_type.is_empty() {
+        "cli_local".to_owned()
+    } else {
+        adapter_type.clone()
+    };
     view! { cx =>
         <h1 class="page-title">(t(lang, "onboarding.title"))</h1>
         <p class="meta-row">
-            (t(lang, "onboarding.step")) " " (step) " " (t(lang, "onboarding.of")) " 4"
+            (t(lang, "onboarding.step")) " " (step) " " (t(lang, "onboarding.of")) " 5"
         </p>
         if step == 1 {
             <h2>(t(lang, "onboarding.companyStep"))</h2>
@@ -4637,17 +4672,46 @@ pub(crate) async fn onboarding_view(
                 <input type="text" name="lead_name" value=(if lead_name.is_empty() { lead_default.clone() } else { lead_name.clone() })>
                 <button type="submit">(t(lang, "onboarding.next"))</button>
             </form>
+        } else if step == 4 {
+            <h2>(t(lang, "onboarding.connectStep"))</h2>
+            <p class="meta-row">(t(lang, "onboarding.connectHint"))</p>
+            <form class="stack-form" method="post" action=(test_action.clone())>
+                <input type="hidden" name="step" value="4">
+                <input type="hidden" name="company_name" value=(company_name.clone())>
+                <input type="hidden" name="mission" value=(mission.clone())>
+                <input type="hidden" name="lead_name" value=(lead_name.clone())>
+                <label>(t(lang, "onboarding.adapterLabel"))</label>
+                <select name="adapter_type">
+                    for adapter in &adapter_names {
+                        <option value=(adapter.clone()) selected=(default_adapter == *adapter)>(adapter.clone())</option>
+                    }
+                </select>
+                <button type="submit">(t(lang, "onboarding.testAdapter"))</button>
+            </form>
+            if !test_result.is_empty() {
+                <p class="meta-row">(test_result.clone())</p>
+            }
+            <form class="stack-form" method="post" action=(form_action.clone())>
+                <input type="hidden" name="step" value="4">
+                <input type="hidden" name="company_name" value=(company_name.clone())>
+                <input type="hidden" name="mission" value=(mission.clone())>
+                <input type="hidden" name="lead_name" value=(lead_name.clone())>
+                <input type="hidden" name="adapter_type" value=(default_adapter.clone())>
+                <button type="submit">(t(lang, "onboarding.giveHeartbeat"))</button>
+            </form>
         } else {
             <h2>(t(lang, "onboarding.reviewStep"))</h2>
             <p class="meta-row">(t(lang, "onboarding.reviewHint"))</p>
             <p class="meta-row">(t(lang, "onboarding.reviewCompany")) ": " (company_name.clone())</p>
             <p class="meta-row">(t(lang, "onboarding.reviewMission")) ": " (mission.clone())</p>
             <p class="meta-row">(t(lang, "onboarding.reviewLead")) ": " (lead_name.clone())</p>
+            <p class="meta-row">(t(lang, "onboarding.reviewAdapter")) ": " (default_adapter.clone())</p>
             <form class="stack-form" method="post" action=(form_action)>
-                <input type="hidden" name="step" value="4">
+                <input type="hidden" name="step" value="5">
                 <input type="hidden" name="company_name" value=(company_name.clone())>
                 <input type="hidden" name="mission" value=(mission.clone())>
                 <input type="hidden" name="lead_name" value=(lead_name.clone())>
+                <input type="hidden" name="adapter_type" value=(default_adapter.clone())>
                 <button type="submit">(t(lang, "onboarding.start"))</button>
             </form>
         }

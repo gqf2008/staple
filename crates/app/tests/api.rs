@@ -6046,7 +6046,7 @@ async fn onboarding_wizard_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::OK, "{body}");
-    assert!(body.contains("Step 2 of 4"), "{body}");
+    assert!(body.contains("Step 2 of 5"), "{body}");
 
     // Step 2: mission preset -> step 3.
     let (status, body) = send_form(
@@ -6057,9 +6057,9 @@ async fn onboarding_wizard_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::OK, "{body}");
-    assert!(body.contains("Step 3 of 4"), "{body}");
+    assert!(body.contains("Step 3 of 5"), "{body}");
 
-    // Step 3: lead name -> step 4 review with values.
+    // Step 3: lead name -> step 4 (connect model) with values.
     let (status, body) = send_form(
         &app,
         Method::POST,
@@ -6068,15 +6068,38 @@ async fn onboarding_wizard_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::OK, "{body}");
-    assert!(body.contains("Step 4 of 4"), "{body}");
+    assert!(body.contains("Step 4 of 5"), "{body}");
     assert!(body.contains("Onboard Co"), "{body}");
+    assert!(body.contains("Connect your model"), "{body}");
 
-    // Step 4: complete -> redirect to dashboard.
+    // Adapter test renders the result.
+    let (status, body) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/adapter-test/ui",
+        "step=4&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff&adapter_type=cli_local",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert!(body.contains("Adapter is available"), "{body}");
+
+    // Step 4: give heartbeat -> step 5 review.
+    let (status, body) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/ui",
+        "step=4&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff&adapter_type=cli_local",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert!(body.contains("Step 5 of 5"), "{body}");
+
+    // Step 5: complete -> redirect to dashboard.
     let (status, _) = send_form(
         &app,
         Method::POST,
         "/onboarding/ui",
-        "step=4&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff",
+        "step=5&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff&adapter_type=cli_local",
     )
     .await;
     assert_eq!(status, StatusCode::SEE_OTHER, "expected redirect");
@@ -6094,13 +6117,19 @@ async fn onboarding_wizard_flow() {
     )
     .await;
     assert_eq!(status, StatusCode::OK);
+    let agent_rows = agents.as_array().unwrap();
     assert!(
-        agents
-            .as_array()
-            .unwrap()
+        agent_rows
             .iter()
             .any(|agent| agent["name"] == "Chief of Staff" && agent["status"] == "active")
     );
+    // The built-in default team (core-exec-team) installs ceo/cto/qa.
+    for slug in ["ceo", "cto", "qa"] {
+        assert!(
+            agent_rows.iter().any(|agent| agent["name"] == slug),
+            "missing default team agent {slug}"
+        );
+    }
     let (status, issues) = send_json(
         &app,
         Method::GET,
