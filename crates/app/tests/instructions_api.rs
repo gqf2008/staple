@@ -782,3 +782,129 @@ async fn create_agent_ui_materializes_default_instructions() {
     assert_eq!(files[0]["path"], "AGENTS.md");
     assert_eq!(files[0]["isEntry"], true);
 }
+
+#[tokio::test]
+async fn onboarding_materializes_default_instructions() {
+    let (state, _db) = test_state().await;
+    let app = router(state);
+
+    // Walk the onboarding wizard to completion (bundled default team).
+    let (status, _) = send_form(
+        &app,
+        "/onboarding/ui",
+        &[("step", "1"), ("company_name", "Onboard Co")],
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_form(
+        &app,
+        "/onboarding/ui",
+        &[
+            ("step", "2"),
+            ("company_name", "Onboard Co"),
+            ("mission_preset", "Build a SaaS product"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_form(
+        &app,
+        "/onboarding/ui",
+        &[
+            ("step", "3"),
+            ("company_name", "Onboard Co"),
+            ("mission", "Build a SaaS product"),
+            ("lead_name", "Chief of Staff"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_form(
+        &app,
+        "/onboarding/ui",
+        &[
+            ("step", "4"),
+            ("company_name", "Onboard Co"),
+            ("mission", "Build a SaaS product"),
+            ("lead_name", "Chief of Staff"),
+            ("adapter_type", "cli_local"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let (status, _) = send_form(
+        &app,
+        "/onboarding/ui",
+        &[
+            ("step", "5"),
+            ("company_name", "Onboard Co"),
+            ("mission", "Build a SaaS product"),
+            ("lead_name", "Chief of Staff"),
+            ("adapter_type", "cli_local"),
+        ],
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+
+    let (_, body) = send_json(&app, Method::GET, "/api/companies", json!({})).await;
+    let company_id = body.as_array().unwrap()[0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let (_, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents"),
+        json!({}),
+    )
+    .await;
+    let agents = body.as_array().unwrap();
+    let lead = agents
+        .iter()
+        .find(|agent| agent["name"] == "Chief of Staff")
+        .expect("lead agent");
+    let ceo = agents
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent");
+
+    // Lead gets the default single-file bundle.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/{company_id}/agents/{}/instructions",
+            lead["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(files.len(), 1, "lead should have AGENTS.md only");
+    assert_eq!(files[0]["path"], "AGENTS.md");
+    assert_eq!(files[0]["isEntry"], true);
+
+    // The bundled ceo agent gets the full ceo bundle.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/{company_id}/agents/{}/instructions",
+            ceo["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(files.len(), 4, "ceo bundle should have 4 files");
+    assert!(files.iter().any(|file| file["path"] == "HEARTBEAT.md"));
+    assert!(files.iter().any(|file| file["path"] == "SOUL.md"));
+    assert!(files.iter().any(|file| file["path"] == "TOOLS.md"));
+    let entry = files
+        .iter()
+        .find(|file| file["path"] == "AGENTS.md")
+        .unwrap();
+    assert_eq!(entry["isEntry"], true);
+}

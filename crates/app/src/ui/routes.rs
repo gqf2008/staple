@@ -4305,11 +4305,18 @@ pub async fn onboarding_ui(
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
+        let _ = crate::instructions::materialize_default_instructions(
+            state,
+            &company.id,
+            &lead.id,
+            "default",
+        )
+        .await;
 
         // Default team (when the teams-catalog package is present).
         if let Some(team) = team_catalog::detail(team_catalog::default_catalog_ref()) {
             for slug in &team.agent_slugs {
-                let _ = state
+                if let Ok(agent) = state
                     .agents
                     .create(staple_data::NewAgent {
                         company_id: company.id.clone(),
@@ -4321,7 +4328,16 @@ pub async fn onboarding_ui(
                         adapter_type: "cli".to_owned(),
                         budget_monthly_cents: 0,
                     })
+                    .await
+                {
+                    let _ = crate::instructions::materialize_default_instructions(
+                        state,
+                        &company.id,
+                        &agent.id,
+                        slug,
+                    )
                     .await;
+                }
             }
             for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
                 let _ = state
