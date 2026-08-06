@@ -4292,8 +4292,10 @@ pub async fn onboarding_ui(
 
         // Default team (when the teams-catalog package is present).
         if let Some(team) = team_catalog::detail(team_catalog::default_catalog_ref()) {
+            let mut agent_ids: std::collections::HashMap<String, String> =
+                std::collections::HashMap::new();
             for slug in &team.agent_slugs {
-                let _ = state
+                if let Ok(agent) = state
                     .agents
                     .create(staple_data::NewAgent {
                         company_id: company.id.clone(),
@@ -4305,7 +4307,30 @@ pub async fn onboarding_ui(
                         adapter_type: "cli".to_owned(),
                         budget_monthly_cents: 0,
                     })
-                    .await;
+                    .await
+                {
+                    agent_ids.insert(slug.clone(), agent.id.clone());
+                }
+            }
+            let mut project_ids: std::collections::HashMap<String, String> =
+                std::collections::HashMap::new();
+            for slug in &team.project_slugs {
+                if let Ok(project) = state
+                    .projects
+                    .create(staple_data::NewProject {
+                        company_id: company.id.clone(),
+                        goal_id: None,
+                        name: slug.clone(),
+                        description: None,
+                        status: "backlog".to_owned(),
+                        lead_agent_id: None,
+                        target_date: None,
+                        env: None,
+                    })
+                    .await
+                {
+                    project_ids.insert(slug.clone(), project.id);
+                }
             }
             for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
                 let _ = state
@@ -4317,6 +4342,48 @@ pub async fn onboarding_ui(
                         restriction_policy: staple_data::SkillRestrictionPolicy::default(),
                     })
                     .await;
+            }
+            for task in team_catalog::team_tasks(&team_catalog::catalog_root(), &team.id)
+                .iter()
+                .filter(|task| task.recurring)
+            {
+                if let Ok(routine) = state
+                    .routines
+                    .create(staple_data::NewRoutine {
+                        company_id: company.id.clone(),
+                        project_id: task
+                            .project
+                            .as_deref()
+                            .and_then(|slug| project_ids.get(slug))
+                            .cloned(),
+                        goal_id: None,
+                        parent_issue_id: None,
+                        title: task.title.clone(),
+                        description: Some(task.description.clone()),
+                        assignee_agent_id: task
+                            .assignee
+                            .as_deref()
+                            .and_then(|slug| agent_ids.get(slug))
+                            .cloned(),
+                        priority: "medium".to_owned(),
+                        variables: None,
+                    })
+                    .await
+                {
+                    let _ = state
+                        .routines
+                        .create_trigger(staple_data::NewTrigger {
+                            company_id: company.id.clone(),
+                            routine_id: routine.id,
+                            schedule_kind: "cron".to_owned(),
+                            schedule_expr: Some(
+                                task.schedule
+                                    .clone()
+                                    .unwrap_or_else(|| "0 9 * * *".to_owned()),
+                            ),
+                        })
+                        .await;
+                }
             }
         }
 
