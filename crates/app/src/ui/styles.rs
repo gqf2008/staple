@@ -82,7 +82,13 @@ body {
 
 .app-nav a:hover { text-decoration: underline; }
 
-.app-main { padding: var(--space-6); max-width: 960px; margin: 0 auto; }
+.app-shell { display: flex; gap: var(--space-6); align-items: flex-start; }
+.app-sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid var(--color-border); padding-right: var(--space-4); }
+.app-sidebar a { display: block; padding: var(--space-1) 0; color: var(--color-muted-foreground); text-decoration: none; }
+.app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
+.app-sidebar a.brand { font-weight: 600; color: var(--color-primary-foreground); margin-bottom: var(--space-3); }
+.app-sidebar h3 { font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted-foreground); margin: var(--space-3) 0 var(--space-1); }
+.app-main { flex: 1; min-width: 0; padding: var(--space-6); max-width: 960px; margin: 0 auto; }
 
 .card {
   background: var(--color-card);

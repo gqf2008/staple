@@ -29,6 +29,10 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
         _ => "English",
     };
     let html_lang = lang_code(lang);
+    let company_id = current_path
+        .strip_prefix("/companies/")
+        .and_then(|rest| rest.split('/').next())
+        .map(str::to_owned);
     view! {
         <!DOCTYPE html>
         <html lang=(html_lang)>
@@ -39,15 +43,40 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                 <style>(TOKENS_CSS)</style>
             </head>
             <body>
-                <nav class="app-nav">
-                    <a href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
-                    <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
-                    <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
-                    <a href=(with_lang("/profile/settings", lang))>(t(lang, "profile.title"))</a>
-                    <a href=(with_lang("/adapters", lang))>(t(lang, "adapters.title"))</a>
-                    <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
-                </nav>
-                <main class="app-main">(slot?)</main>
+                <div class="app-shell">
+                    <nav class="app-sidebar">
+                        <a class="brand" href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
+                        <h3>(t(lang, "nav.companies"))</h3>
+                        <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
+                        if let Some(company_id) = &company_id {
+                            <h3>(t(lang, "nav.board"))</h3>
+                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>(t(lang, "inbox.title"))</a>
+                            <h3>(t(lang, "nav.work"))</h3>
+                            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang))>(t(lang, "artifacts.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>(t(lang, "skills.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang))>(t(lang, "projects.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang))>(t(lang, "agents.title"))</a>
+                            <h3>(t(lang, "nav.company"))</h3>
+                            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang))>(t(lang, "orgChart.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang))>(t(lang, "timeline.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "activity.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "settings.title"))</a>
+                        }
+                        <h3>(t(lang, "instance.title"))</h3>
+                        <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
+                        <a href=(with_lang("/profile/settings", lang))>(t(lang, "profile.title"))</a>
+                        <a href=(with_lang("/adapters", lang))>(t(lang, "adapters.title"))</a>
+                        <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
+                    </nav>
+                    <main class="app-main">(slot?)</main>
+                </div>
                 <script src="/static/board_chat.js"></script>
                 <script src="/static/board_zip.js"></script>
             </body>

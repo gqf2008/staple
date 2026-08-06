@@ -961,6 +961,27 @@ async fn core_business_flow_smoke() {
         assert!(html.contains(needle), "page missing {needle}");
     }
 
+    // Sidebar information architecture renders on company pages.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}/dashboard"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(html.contains("app-sidebar"), "sidebar missing");
+    assert!(
+        html.contains(&format!("/companies/{company_id}/agents")),
+        "sidebar agents link missing"
+    );
+    assert!(
+        html.contains(&format!("/companies/{company_id}/timeline")),
+        "sidebar timeline link missing"
+    );
+
     // Board concierge chat script is served.
     let request = Request::builder()
         .method(Method::GET)
