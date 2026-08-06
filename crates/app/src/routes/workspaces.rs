@@ -233,6 +233,7 @@ pub async fn create_project_workspace(
             cwd: body.cwd,
             repo_url: body.repo_url,
             is_primary: body.is_primary.unwrap_or(false),
+            shared_workspace_key: None,
         })
         .await
         .map_err(workspace_error_to_api)?;

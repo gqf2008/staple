@@ -193,3 +193,135 @@ mod tests {
         );
     }
 }
+
+/// Result of a shared-workspace busy check.
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct WorkspaceBusyInfo {
+    /// Whether the shared workspace currently has an active operation.
+    pub busy: bool,
+    /// Effective concurrency (`auto` | `serialize` | `allow`).
+    pub concurrency: String,
+    /// The shared workspace key that is busy, when one was found.
+    pub shared_workspace_key: Option<String>,
+}
+
+/// Checks whether the shared workspace targeted by `issue_id` is busy.
+///
+/// Policy resolution follows the #206 A priority (issue settings > project
+/// policy > default `auto`). `allow` never defers; `auto` and `serialize`
+/// defer while an active operation (other than `exclude_run_id`) is running in
+/// a project workspace that carries a `shared_workspace_key`.
+///
+/// # Errors
+///
+/// Returns [`crate::error::ApiError`] on database failure.
+pub async fn check_shared_workspace_busy(
+    state: &crate::state::AppState,
+    company_id: &str,
+    issue_id: &str,
+    exclude_run_id: Option<&str>,
+) -> Result<WorkspaceBusyInfo, crate::error::ApiError> {
+    let Some(issue) = state
+        .issues
+        .get(issue_id)
+        .await
+        .map_err(|error| crate::error::ApiError::internal(error.to_string()))?
+    else {
+        return Ok(WorkspaceBusyInfo {
+            busy: false,
+            concurrency: "auto".to_owned(),
+            shared_workspace_key: None,
+        });
+    };
+    let project_policy = if let Some(project_id) = &issue.project_id {
+        state
+            .projects
+            .get(project_id)
+            .await
+            .map_err(|error| crate::error::ApiError::internal(error.to_string()))?
+            .and_then(|project| project.execution_workspace_policy)
+    } else {
+        None
+    };
+    let concurrency = resolve_shared_workspace_concurrency(
+        issue.execution_workspace_settings.as_deref(),
+        project_policy.as_ref(),
+    )
+    .unwrap_or(SharedWorkspaceConcurrency::Auto);
+    if concurrency == SharedWorkspaceConcurrency::Allow {
+        return Ok(WorkspaceBusyInfo {
+            busy: false,
+            concurrency: concurrency.as_str().to_owned(),
+            shared_workspace_key: None,
+        });
+    }
+    let mut shared_workspace_key = None;
+    let mut busy = false;
+    for workspace in state
+        .workspaces
+        .list_project_workspaces(company_id, issue.project_id.as_deref())
+        .await
+        .map_err(|error| crate::error::ApiError::internal(error.to_string()))?
+    {
+        if workspace.shared_workspace_key.is_none() {
+            continue;
+        }
+        if state
+            .workspaces
+            .shared_workspace_busy(company_id, &workspace.id, exclude_run_id)
+            .await
+            .map_err(|error| crate::error::ApiError::internal(error.to_string()))?
+        {
+            busy = true;
+            shared_workspace_key = workspace.shared_workspace_key.clone();
+            break;
+        }
+    }
+    Ok(WorkspaceBusyInfo {
+        busy,
+        concurrency: concurrency.as_str().to_owned(),
+        shared_workspace_key,
+    })
+}
+
+/// Maximum bounded retry attempts for a deferred workspace-busy run.
+pub const WORKSPACE_BUSY_MAX_RETRY: u64 = 3;
+
+/// Enqueues a bounded retry wakeup for a run deferred by a busy shared
+/// workspace. `attempt` is the next attempt number (1-based); the scheduler
+/// re-checks the workspace and either starts the run or retries again up to
+/// [`WORKSPACE_BUSY_MAX_RETRY`].
+///
+/// # Errors
+///
+/// Returns [`crate::error::ApiError`] when the wakeup cannot be enqueued.
+pub async fn enqueue_workspace_busy_retry(
+    state: &crate::state::AppState,
+    company_id: &str,
+    agent_id: &str,
+    issue_id: &str,
+    attempt: u64,
+) -> Result<(), crate::error::ApiError> {
+    state
+        .agent_runtime
+        .wakeup_enqueue(staple_data::NewWakeupRequest {
+            company_id: company_id.to_owned(),
+            agent_id: agent_id.to_owned(),
+            source: "workspace_busy".to_owned(),
+            trigger_detail: Some(format!("workspace busy retry #{attempt}: {issue_id}")),
+            reason: Some("Shared workspace is busy; retrying".to_owned()),
+            payload: Some(serde_json::json!({
+                "issueId": issue_id,
+                "attempt": attempt,
+            })),
+            requested_by_actor_type: Some("board".to_owned()),
+            requested_by_actor_id: None,
+            idempotency_key: Some(format!(
+                "workspace-busy:{company_id}:{issue_id}:{agent_id}:{attempt}"
+            )),
+        })
+        .await
+        .map_err(|error| crate::error::ApiError::internal(error.to_string()))?;
+    Ok(())
+}
