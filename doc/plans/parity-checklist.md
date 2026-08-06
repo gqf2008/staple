@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（功能/API/数据结构对齐完成；**UI/UX 非 1:1**——页面存在性 ✅，视觉与交互与原版差距大，见 issue #217 分批 B1–B7 进行中）：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
 
 ## 使用方式
 
