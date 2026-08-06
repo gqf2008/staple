@@ -39,6 +39,9 @@ pub struct CreateProjectRequest {
     /// Target date.
     #[serde(default)]
     pub target_date: Option<String>,
+    /// Execution workspace policy JSON.
+    #[serde(default)]
+    pub execution_workspace_policy: Option<serde_json::Value>,
 }
 
 /// Body for `PATCH /api/projects/{id}`. `null` clears nullable fields.
@@ -63,6 +66,9 @@ pub struct UpdateProjectRequest {
     /// New target date (`null` clears).
     #[serde(default)]
     pub target_date: Option<Option<String>>,
+    /// New execution workspace policy JSON (`null` clears).
+    #[serde(default, deserialize_with = "crate::routes::deserialize_optional_json")]
+    pub execution_workspace_policy: Option<Option<serde_json::Value>>,
 }
 
 /// A single validation issue, mirroring the upstream Zod error shape.
@@ -180,6 +186,7 @@ pub async fn create_project(
             lead_agent_id: body.lead_agent_id,
             target_date: body.target_date,
             env: None,
+            execution_workspace_policy: body.execution_workspace_policy,
         })
         .await
         .map_err(project_error_to_api)?;
@@ -227,6 +234,7 @@ pub async fn update_project(
         status: body.status,
         lead_agent_id: body.lead_agent_id,
         target_date: body.target_date,
+        execution_workspace_policy: body.execution_workspace_policy,
     };
     match state
         .projects

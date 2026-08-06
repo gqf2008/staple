@@ -1,5 +1,6 @@
 //! API route modules.
 
+use serde::Deserialize;
 use topcoat::router::path_param;
 
 pub mod activity;
@@ -69,4 +70,21 @@ pub(crate) struct AgentId(String);
 #[must_use]
 pub(crate) fn is_uuid(value: &str) -> bool {
     uuid::Uuid::parse_str(value).is_ok()
+}
+
+/// Deserializes an optional JSON value with explicit-`null` semantics for
+/// PATCH bodies: missing → `None` (leave unchanged), `null` → `Some(None)`
+/// (clear), any value → `Some(Some(value))` (set).
+///
+/// Plain `Option<Option<T>>` with `#[serde(default)]` cannot distinguish
+/// `null` from a missing field, so update requests use this via
+/// `#[serde(default, deserialize_with = "crate::routes::deserialize_optional_json")]`.
+pub(crate) fn deserialize_optional_json<'de, D>(
+    deserializer: D,
+) -> Result<Option<Option<serde_json::Value>>, D::Error>
+where
+    D: serde::Deserializer<'de>,
+{
+    let value = serde_json::Value::deserialize(deserializer)?;
+    Ok(Some(if value.is_null() { None } else { Some(value) }))
 }

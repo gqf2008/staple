@@ -148,6 +148,8 @@ pub struct ProjectDto {
     pub target_date: Option<String>,
     /// Environment bindings.
     pub env: Option<String>,
+    /// Execution workspace policy JSON.
+    pub execution_workspace_policy: Option<serde_json::Value>,
     /// ISO 8601 creation time.
     pub created_at: String,
     /// ISO 8601 last update time.
@@ -166,6 +168,7 @@ impl From<staple_data::ProjectRecord> for ProjectDto {
             lead_agent_id: record.lead_agent_id,
             target_date: record.target_date,
             env: record.env,
+            execution_workspace_policy: record.execution_workspace_policy,
             created_at: record.created_at,
             updated_at: record.updated_at,
         }
@@ -212,6 +215,8 @@ pub struct IssueDto {
     pub work_mode: String,
     /// Billing code.
     pub billing_code: Option<String>,
+    /// Execution workspace settings JSON.
+    pub execution_workspace_settings: Option<serde_json::Value>,
     /// ISO 8601 start time.
     pub started_at: Option<String>,
     /// ISO 8601 completion time.
@@ -247,6 +252,10 @@ impl From<staple_data::IssueRecord> for IssueDto {
             request_depth: record.request_depth,
             work_mode: record.work_mode,
             billing_code: record.billing_code,
+            execution_workspace_settings: record
+                .execution_workspace_settings
+                .as_deref()
+                .and_then(|raw| serde_json::from_str(raw).ok()),
             started_at: record.started_at,
             completed_at: record.completed_at,
             cancelled_at: record.cancelled_at,

@@ -159,6 +159,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
                 lead_agent_id: None,
                 target_date: None,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
@@ -320,6 +321,7 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                     lead_agent_id: None,
                     target_date: None,
                     env: None,
+                    execution_workspace_policy: None,
                 })
                 .await
             {

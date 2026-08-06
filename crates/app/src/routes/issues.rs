@@ -56,6 +56,9 @@ pub struct CreateIssueRequest {
     /// Billing code.
     #[serde(default)]
     pub billing_code: Option<String>,
+    /// Execution workspace settings JSON.
+    #[serde(default)]
+    pub execution_workspace_settings: Option<serde_json::Value>,
 }
 
 /// Body for `PATCH /api/issues/{id}`.
@@ -80,6 +83,9 @@ pub struct UpdateIssueRequest {
     /// New billing code (`null` clears).
     #[serde(default)]
     pub billing_code: Option<Option<String>>,
+    /// New execution workspace settings JSON (`null` clears).
+    #[serde(default, deserialize_with = "crate::routes::deserialize_optional_json")]
+    pub execution_workspace_settings: Option<Option<serde_json::Value>>,
 }
 
 /// A single validation issue, mirroring the upstream Zod error shape.
@@ -243,6 +249,9 @@ pub async fn create_issue(
             created_by_user_id: None,
             work_mode: body.work_mode,
             billing_code: body.billing_code,
+            execution_workspace_settings: body
+                .execution_workspace_settings
+                .map(|value| value.to_string()),
         })
         .await
         .map_err(issue_error_to_api)?;
@@ -309,6 +318,9 @@ pub async fn update_issue(
         priority: body.priority,
         assignee_agent_id: body.assignee_agent_id,
         billing_code: body.billing_code,
+        execution_workspace_settings: body
+            .execution_workspace_settings
+            .map(|value| value.map(|settings| settings.to_string())),
     };
     match state
         .issues

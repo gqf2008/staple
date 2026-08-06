@@ -20,6 +20,7 @@ pub mod state;
 pub mod storage;
 pub mod team_catalog;
 pub mod ui;
+pub mod workspace_policy;
 
 use topcoat::router::{Router, RouterBuilderDiscoverExt};
 
