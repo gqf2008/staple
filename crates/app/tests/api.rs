@@ -5943,6 +5943,13 @@ async fn team_catalog_install_api() {
         "---\nname: helper-skill\ndescription: A helper\n---\n\nUsage",
     )
     .unwrap();
+    let task_dir = team_dir.join("projects/starter/tasks/first-heartbeat");
+    std::fs::create_dir_all(&task_dir).unwrap();
+    std::fs::write(
+        task_dir.join("TASK.md"),
+        "---\nname: First Heartbeat Review\nslug: first-heartbeat\nassignee: ceo\nproject: starter\nrecurring: true\n---\n\nReview current priorities, confirm the next useful task, and report what changed.",
+    )
+    .unwrap();
     let manifest = serde_json::json!({
         "teams": [{
             "id": "test:bundled:acme:core-team",
@@ -5959,7 +5966,11 @@ async fn team_catalog_install_api() {
             "agentSlugs": ["ceo", "cto"],
             "projectSlugs": ["starter"],
             "requiredSkills": ["skill-a"],
-            "files": ["TEAM.md", "skills/helper/SKILL.md"]
+            "files": [
+                "TEAM.md",
+                "skills/helper/SKILL.md",
+                "projects/starter/tasks/first-heartbeat/TASK.md"
+            ]
         }]
     });
     std::fs::write(
@@ -6000,8 +6011,12 @@ async fn team_catalog_install_api() {
     assert_eq!(body["agents"][0]["slug"], "ceo");
     assert_eq!(body["agents"][0]["conflict"], true);
     assert_eq!(body["projects"][0]["slug"], "starter");
+    assert_eq!(body["routines"].as_array().unwrap().len(), 1);
+    assert_eq!(body["routines"][0]["slug"], "first-heartbeat");
+    assert_eq!(body["routines"][0]["title"], "First Heartbeat Review");
+    assert_eq!(body["routines"][0]["recurring"], true);
 
-    // Install creates agents + projects and writes provenance.
+    // Install creates agents + projects + routine and writes provenance.
     let (status, body) = send_json(
         &app,
         Method::POST,
@@ -6013,6 +6028,7 @@ async fn team_catalog_install_api() {
     assert_eq!(body["createdAgents"], 2);
     assert_eq!(body["createdProjects"], 1);
     assert_eq!(body["createdSkills"], 1);
+    assert_eq!(body["createdRoutines"], 1);
 
     let (status, body) = send_json(
         &app,
@@ -6046,6 +6062,47 @@ async fn team_catalog_install_api() {
         cto["metadata"]["paperclip"]["catalogTeam"]["catalogId"],
         "test:bundled:acme:core-team"
     );
+
+    // The recurring task became a routine linked to the created agent/project.
+    let (status, body) =
+        send_json(&app, Method::GET, "/api/companies/c1/routines", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let routines = body.as_array().unwrap();
+    assert_eq!(routines.len(), 1);
+    assert_eq!(routines[0]["title"], "First Heartbeat Review");
+    let (status, projects) =
+        send_json(&app, Method::GET, "/api/companies/c1/projects", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    let starter = projects
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|project| project["name"] == "starter")
+        .expect("starter project");
+    let (status, agents) =
+        send_json(&app, Method::GET, "/api/companies/c1/agents", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    let ceo = agents
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent");
+    assert_eq!(routines[0]["projectId"], starter["id"]);
+    assert_eq!(routines[0]["assigneeAgentId"], ceo["id"]);
+    let routine_id = routines[0]["id"].as_str().unwrap();
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let triggers = body.as_array().unwrap();
+    assert_eq!(triggers.len(), 1);
+    assert_eq!(triggers[0]["scheduleKind"], "cron");
+    assert_eq!(triggers[0]["scheduleExpr"], "0 9 * * *");
 
     unsafe {
         std::env::remove_var("PAPERCLIP_TEAMS_CATALOG_DIR");
@@ -6178,6 +6235,66 @@ async fn onboarding_wizard_flow() {
     assert_eq!(runs.len(), 1);
     assert_eq!(runs[0]["status"], "running");
     assert_eq!(runs[0]["triggerDetail"], "onboarding");
+
+    // The bundled default team creates first-project + the first-heartbeat
+    // routine (recurring TASK.md from core-exec-team).
+    let (status, projects) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        projects
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|project| project["name"] == "first-project"),
+        "missing first-project from bundled default team"
+    );
+    let (status, routines) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {routines}");
+    let routines = routines.as_array().unwrap();
+    assert_eq!(routines.len(), 1, "expected first-heartbeat routine");
+    assert_eq!(routines[0]["title"], "First Heartbeat Review");
+    let ceo_id = agent_rows
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent")
+        .get("id")
+        .and_then(serde_json::Value::as_str)
+        .expect("ceo id");
+    let starter_project_id = projects
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|project| project["name"] == "first-project")
+        .expect("first-project")
+        .get("id")
+        .and_then(serde_json::Value::as_str)
+        .expect("first-project id");
+    assert_eq!(routines[0]["assigneeAgentId"], ceo_id);
+    assert_eq!(routines[0]["projectId"], starter_project_id);
+    let routine_id = routines[0]["id"].as_str().unwrap();
+    let (status, triggers) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {triggers}");
+    assert_eq!(triggers.as_array().unwrap().len(), 1);
+    assert_eq!(triggers[0]["scheduleKind"], "cron");
+    assert_eq!(triggers[0]["scheduleExpr"], "0 9 * * *");
 }
 
 #[tokio::test]
