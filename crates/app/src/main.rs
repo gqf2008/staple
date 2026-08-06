@@ -12,8 +12,9 @@ use staple_app::{
 };
 use staple_data::{
     SecretCipher, TursoActivityRepository, TursoAgentRepository, TursoAgentRuntimeRepository,
-    TursoApiKeyRepository, TursoApprovalRepository, TursoAssetRepository, TursoBoardKeyRepository,
-    TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoApiKeyRepository, TursoApprovalRepository, TursoAssetRepository,
+    TursoAttentionDismissalRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
+    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
@@ -39,6 +40,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let db_config = staple_data::DbConfig::from_env();
     let companies_db = open(&db_config).await?;
     let agents_db = open(&db_config).await?;
+    let attention_dismissals_db = open(&db_config).await?;
     let agent_runtime_db = open(&db_config).await?;
     let permission_grants_db = open(&db_config).await?;
     let memberships_db = open(&db_config).await?;
@@ -89,6 +91,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(agents_db)),
+        attention_dismissals: Arc::new(TursoAttentionDismissalRepository::new(
+            attention_dismissals_db,
+        )),
         agent_runtime: Arc::new(TursoAgentRuntimeRepository::new(agent_runtime_db)),
         permission_grants: Arc::new(TursoPermissionGrantRepository::new(permission_grants_db)),
         memberships: Arc::new(TursoMembershipRepository::new(memberships_db)),

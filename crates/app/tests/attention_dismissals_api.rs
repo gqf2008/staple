@@ -1,4 +1,6 @@
-//! Issue-based attention feed API integration tests (A1 core).
+//! Attention inbox dismissal API integration tests (issue #204 A2):
+//! dismiss/snooze upserts, list, restore (DELETE), validation, company/user
+//! isolation, board-only auth, and audit logging.
 
 use std::sync::Arc;
 
@@ -29,18 +31,25 @@ use staple_data::{
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
-async fn send_json(
+async fn send(
     router: &Router,
     method: Method,
     path: &str,
     body: Value,
+    user: Option<&str>,
+    bearer: Option<&str>,
 ) -> (StatusCode, Value) {
-    let request = Request::builder()
-        .method(method)
-        .uri(path)
-        .header(CONTENT_TYPE, "application/json")
-        .body(Body::from(body.to_string()))
-        .unwrap();
+    let mut builder = Request::builder().method(method).uri(path);
+    if !body.is_null() {
+        builder = builder.header(CONTENT_TYPE, "application/json");
+    }
+    if let Some(user) = user {
+        builder = builder.header("X-Board-User", user);
+    }
+    if let Some(token) = bearer {
+        builder = builder.header("Authorization", format!("Bearer {token}"));
+    }
+    let request = builder.body(Body::from(body.to_string())).unwrap();
     let response = router.handle(request).await;
     let status = response.status();
     let (_, body) = response.into_parts();
@@ -304,293 +313,387 @@ async fn test_state() -> (AppState, staple_data::Database) {
     (state, seed_db)
 }
 
-async fn seed_attention_fixture(
-    state: &AppState,
-    db: &staple_data::Database,
-) -> (String, String, String, String) {
-    let company = state
-        .companies
-        .create(staple_data::NewCompany {
-            name: "Attention Co".to_owned(),
-            description: Some("attention".to_owned()),
-            budget_monthly_cents: 100,
-            attachment_max_bytes: 1024,
-        })
-        .await
-        .unwrap();
-    // Exhaust the monthly budget (100 cents -> 200 cents spent).
+async fn seed_companies_and_agent(db: &staple_data::Database) -> (String, String) {
     let conn = staple_data::connect(db).await.unwrap();
     conn.execute(
-        "UPDATE companies SET spent_monthly_cents = 200 WHERE id = ?1",
-        [company.id.clone()],
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
     )
     .await
     .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+    (
+        "c1".to_owned(),
+        "11111111-1111-1111-1111-111111111111".to_owned(),
+    )
+}
 
-    let agent = state
-        .agents
-        .create(staple_data::NewAgent {
-            company_id: company.id.clone(),
-            name: "worker".to_owned(),
-            role: "worker".to_owned(),
-            title: None,
-            icon: None,
-            reports_to: None,
-            adapter_type: "cli".to_owned(),
-            budget_monthly_cents: 0,
-        })
-        .await
-        .unwrap();
-
-    // Issues: one blocker (in progress) and one blocked issue.
-    let blocker = state
-        .issues
-        .create(staple_data::NewIssue {
-            company_id: company.id.clone(),
-            project_id: None,
-            goal_id: None,
-            parent_id: None,
-            title: "Blocker task".to_owned(),
-            description: None,
-            status: Some("in_progress".to_owned()),
-            priority: Some("high".to_owned()),
-            assignee_agent_id: Some(agent.id.clone()),
-            assignee_user_id: None,
-            created_by_user_id: None,
-            work_mode: None,
-            billing_code: None,
-            execution_workspace_settings: None,
-        })
-        .await
-        .unwrap();
-    let blocked = state
-        .issues
-        .create(staple_data::NewIssue {
-            company_id: company.id.clone(),
-            project_id: None,
-            goal_id: None,
-            parent_id: None,
-            title: "Blocked task".to_owned(),
-            description: None,
-            status: Some("blocked".to_owned()),
-            priority: Some("high".to_owned()),
-            assignee_agent_id: Some(agent.id.clone()),
-            assignee_user_id: None,
-            created_by_user_id: None,
-            work_mode: None,
-            billing_code: None,
-            execution_workspace_settings: None,
-        })
-        .await
-        .unwrap();
-    state
-        .relations
-        .add_blocker(staple_data::NewIssueRelation {
-            issue_id: blocker.id.clone(),
-            related_issue_id: blocked.id.clone(),
-        })
-        .await
-        .unwrap();
-
-    // Pending approval linked to the blocked issue.
-    let approval = state
-        .approvals
-        .create(staple_data::NewApproval {
-            company_id: company.id.clone(),
-            r#type: "request_board_approval".to_owned(),
-            requested_by_agent_id: Some(agent.id.clone()),
-            requested_by_user_id: None,
-            payload: "{\"kind\":\"test\"}".to_owned(),
-        })
-        .await
-        .unwrap();
-    state
-        .issue_structure
-        .link_approval(&company.id, &blocked.id, &approval.id)
-        .await
-        .unwrap();
-
-    // Two pending request confirmations on the same issue (feed collapses to
-    // the newest) plus one question interaction.
-    let _ = state
-        .issue_structure
-        .create_thread_interaction(staple_data::NewThreadInteraction {
-            company_id: company.id.clone(),
-            issue_id: blocked.id.clone(),
-            kind: "request_confirmation".to_owned(),
-            payload: "{\"prompt\":\"first\"}".to_owned(),
-            created_by_agent_id: Some(agent.id.clone()),
-            created_by_user_id: None,
-        })
-        .await
-        .unwrap();
-    let newest = state
-        .issue_structure
-        .create_thread_interaction(staple_data::NewThreadInteraction {
-            company_id: company.id.clone(),
-            issue_id: blocked.id.clone(),
-            kind: "request_confirmation".to_owned(),
-            payload: "{\"prompt\":\"second\"}".to_owned(),
-            created_by_agent_id: Some(agent.id.clone()),
-            created_by_user_id: None,
-        })
-        .await
-        .unwrap();
-    let _ = state
-        .issue_structure
-        .create_thread_interaction(staple_data::NewThreadInteraction {
-            company_id: company.id.clone(),
-            issue_id: blocker.id.clone(),
-            kind: "ask_user_questions".to_owned(),
-            payload: "{\"questions\":[]}".to_owned(),
-            created_by_agent_id: Some(agent.id.clone()),
-            created_by_user_id: None,
-        })
-        .await
-        .unwrap();
-
-    (company.id, agent.id, blocked.id, newest.interaction.id)
+async fn create_agent_key(app: &Router, company_id: &str, agent_id: &str) -> String {
+    let (status, body) = send(
+        app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/agent-api-keys"),
+        json!({ "agentId": agent_id, "name": "dev" }),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    body["plaintext"].as_str().unwrap().to_owned()
 }
 
 #[tokio::test]
-async fn attention_feed_returns_all_source_kinds() {
+async fn dismiss_snooze_list_restore_and_audit() {
     let (state, db) = test_state().await;
-    let app = router(state.clone());
-    let (company_id, _agent_id, blocked_id, newest_interaction_id) =
-        seed_attention_fixture(&state, &db).await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
 
-    let (status, body) = send_json(
+    // Dismiss one item as u-1.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["kind"], "dismiss");
+    assert_eq!(body["itemKey"], "attention:issue-1");
+    assert_eq!(body["userId"], "u-1");
+    assert!(body["snoozedUntil"].is_null());
+
+    // Snooze another item until 2099 (offset input is normalized to UTC).
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({
+            "itemKey": "attention:issue-2",
+            "kind": "snooze",
+            "snoozedUntil": "2099-01-01T08:00:00.000+08:00"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["kind"], "snooze");
+    assert_eq!(body["snoozedUntil"], "2099-01-01T00:00:00.000Z");
+
+    // List returns both rows for u-1.
+    let (status, body) = send(
         &app,
         Method::GET,
-        &format!("/api/companies/{company_id}/attention"),
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
     assert_eq!(status, StatusCode::OK, "body: {body}");
-    assert_eq!(body["companyId"], company_id);
-    assert!(body["generatedAt"].is_string());
-    assert_eq!(
-        body["totalCount"], 5,
-        "approval + 2 interactions + blocker + budget"
-    );
-    assert!(body["deskBadgeCount"].as_u64().unwrap() >= 1);
-    assert_eq!(body["countsBySourceKind"]["approval"], 1);
-    assert_eq!(body["countsBySourceKind"]["issue_thread_interaction"], 2);
-    assert_eq!(body["countsBySourceKind"]["blocker_attention"], 1);
-    assert_eq!(body["countsBySourceKind"]["budget_alert"], 1);
-    assert!(body["nextCursor"].is_null());
+    let rows = body.as_array().unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows.iter().any(|row| row["itemKey"] == "attention:issue-1"));
+    assert!(rows.iter().any(|row| row["itemKey"] == "attention:issue-2"));
 
-    let items = body["items"].as_array().unwrap();
-    assert_eq!(items.len(), 5);
-    // Budget alert present.
-    assert!(
-        items
-            .iter()
-            .any(|item| item["sourceKind"] == "budget_alert")
-    );
-    // Approval item.
-    let approval = items
-        .iter()
-        .find(|item| item["sourceKind"] == "approval")
-        .expect("approval item");
-    assert_eq!(approval["subject"]["metadata"]["issueId"], blocked_id);
-    assert_eq!(approval["decisionVerbs"].as_array().unwrap().len(), 3);
-    // Interactions: request_confirmation collapsed to the newest.
-    let interactions: Vec<&Value> = items
-        .iter()
-        .filter(|item| item["sourceKind"] == "issue_thread_interaction")
-        .collect();
-    assert_eq!(interactions.len(), 2);
-    let confirmations: Vec<&Value> = interactions
-        .iter()
-        .copied()
-        .filter(|item| item["subject"]["metadata"]["kind"] == "request_confirmation")
-        .collect();
-    assert_eq!(confirmations.len(), 1, "request confirmations collapsed");
-    assert_eq!(confirmations[0]["subject"]["id"], newest_interaction_id);
-    // Blocker item with #10785 triage fields.
-    let blocker = items
-        .iter()
-        .find(|item| item["sourceKind"] == "blocker_attention")
-        .expect("blocker item");
-    assert_eq!(blocker["subject"]["id"], blocked_id);
-    assert!(blocker["detail"]["blockingTreeLive"].as_bool().unwrap());
-    assert!(blocker["detail"]["terminalBlockerIssueId"].is_string());
-    assert_eq!(blocker["detail"]["blockedTaskCount"], 0);
-    assert_eq!(blocker["severity"], "high");
-}
-
-#[tokio::test]
-async fn attention_feed_cursor_pagination() {
-    let (state, db) = test_state().await;
-    let app = router(state.clone());
-    let (company_id, _agent_id, _blocked_id, _newest_id) =
-        seed_attention_fixture(&state, &db).await;
-
-    let (status, first) = send_json(
+    // Restore (DELETE) the dismissed item.
+    let (status, _) = send(
         &app,
-        Method::GET,
-        &format!("/api/companies/{company_id}/attention?limit=2"),
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/inbox-dismissals/attention:issue-1"),
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::OK, "body: {first}");
-    assert_eq!(first["items"].as_array().unwrap().len(), 2);
-    let cursor = first["nextCursor"].as_str().expect("next cursor");
-    assert!(!cursor.is_empty());
+    assert_eq!(status, StatusCode::NO_CONTENT);
 
-    let (status, second) = send_json(
+    let (status, body) = send(
         &app,
         Method::GET,
-        &format!("/api/companies/{company_id}/attention?limit=2&cursor={cursor}"),
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::OK, "body: {second}");
-    let second_items = second["items"].as_array().unwrap();
-    assert_eq!(second_items.len(), 2);
-    let first_ids: Vec<&str> = first["items"]
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+
+    // Audit entries exist for all three mutations.
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/activity"),
+        json!({}),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let actions: Vec<&str> = body
         .as_array()
         .unwrap()
         .iter()
-        .map(|item| item["id"].as_str().unwrap())
+        .map(|entry| entry["action"].as_str().unwrap())
         .collect();
-    for item in second_items {
-        assert!(!first_ids.contains(&item["id"].as_str().unwrap()));
-    }
-
-    // Invalid cursor -> 400.
-    let (status, _) = send_json(
-        &app,
-        Method::GET,
-        &format!("/api/companies/{company_id}/attention?cursor=not-a-cursor"),
-        json!({}),
-    )
-    .await;
-    assert_eq!(status, StatusCode::BAD_REQUEST);
+    assert!(actions.contains(&"inbox.dismissed"));
+    assert!(actions.contains(&"inbox.snoozed"));
+    assert!(actions.contains(&"inbox.restored"));
 }
 
 #[tokio::test]
-async fn attention_feed_decide_sort_is_oldest_first() {
+async fn validation_rejects_bad_bodies() {
     let (state, db) = test_state().await;
-    let app = router(state.clone());
-    let (company_id, _agent_id, _blocked_id, _newest_id) =
-        seed_attention_fixture(&state, &db).await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+    let path = format!("/api/companies/{company_id}/inbox-dismissals");
 
-    let (status, body) = send_json(
+    // Unknown kind.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "attention:issue-1", "kind": "archive" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "kind");
+
+    // Empty item key.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "  ", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "itemKey");
+
+    // Snooze without snoozedUntil.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "attention:issue-1", "kind": "snooze" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Snooze with a past timestamp.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "snooze",
+            "snoozedUntil": "2000-01-01T00:00:00.000Z"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Snooze with a non-ISO timestamp.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "snooze",
+            "snoozedUntil": "tomorrow"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Dismiss must not include snoozedUntil.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "dismiss",
+            "snoozedUntil": "2099-01-01T00:00:00.000Z"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Nothing was persisted.
+    let (status, body) = send(&app, Method::GET, &path, json!({}), Some("u-1"), None).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body.as_array().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn company_and_user_isolation_and_permissions() {
+    let (state, db) = test_state().await;
+    let (company_id, agent_id) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+
+    // Dismiss an item for c1/u-1.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+
+    // Another company's list is empty.
+    let (status, body) = send(
         &app,
         Method::GET,
-        &format!("/api/companies/{company_id}/attention?sort=decide"),
+        "/api/companies/c2/inbox-dismissals",
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
     assert_eq!(status, StatusCode::OK, "body: {body}");
-    let items = body["items"].as_array().unwrap();
-    let created: Vec<&str> = items
-        .iter()
-        .map(|item| item["createdAt"].as_str().unwrap())
-        .collect();
-    let mut sorted = created.clone();
-    sorted.sort();
-    assert_eq!(created, sorted, "decide sort must be oldest-first");
+    assert!(body.as_array().unwrap().is_empty());
+
+    // Another user's list is empty.
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        Some("u-2"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body.as_array().unwrap().is_empty());
+
+    // Restoring as another user does not clear u-1's row.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/inbox-dismissals/attention:issue-1"),
+        json!({}),
+        Some("u-2"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+
+    // Missing company -> 404.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        "/api/companies/missing/inbox-dismissals",
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "body: {body}");
+    assert_eq!(body["error"], "Company not found");
+
+    // Agent keys are rejected (board-only) and cannot cross companies.
+    let key = create_agent_key(&app, &company_id, &agent_id).await;
+    let (status, _) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        None,
+        Some(&key),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "board-only route rejects agents"
+    );
+    let (status, _) = send(
+        &app,
+        Method::GET,
+        "/api/companies/c2/inbox-dismissals",
+        json!({}),
+        None,
+        Some(&key),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "agent cannot cross companies"
+    );
+}
+
+#[tokio::test]
+async fn defaults_to_board_user_without_header() {
+    let (state, db) = test_state().await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["userId"], "board");
+
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+    assert_eq!(body[0]["userId"], "board");
 }

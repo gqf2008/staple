@@ -4,17 +4,17 @@ use std::sync::Arc;
 
 use staple_data::{
     ActivityRepository, AgentRepository, AgentRuntimeRepository, ApiKeyRepository,
-    ApprovalRepository, AssetRepository, BoardKeyRepository, BudgetPolicyRepository,
-    CaseRepository, CompanyRepository, CostRepository, DecisionActionRepository,
-    DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectCatalogRepository,
-    ExternalObjectRepository, GoalRepository, HeartbeatRepository, InfrastructureRepository,
-    InstructionRepository, InviteRepository, IssueCommentRepository, IssueRelationRepository,
-    IssueRepository, IssueStructureRepository, LabelRepository, MembershipRepository,
-    PermissionGrantRepository, PipelineRepository, PluginRepository, PluginRuntimeRepository,
-    PortabilityRepository, PreferenceRepository, ProjectRepository, RoutineRepository,
-    ScatteredRepository, SecretBindingRepository, SecretRepository, SkillCatalogRepository,
-    SkillRepository, ToolCatalogRepository, ToolConnectionRepository, ToolGatewayRepository,
-    WorkProductRepository, WorkspaceRepository,
+    ApprovalRepository, AssetRepository, AttentionDismissalRepository, BoardKeyRepository,
+    BudgetPolicyRepository, CaseRepository, CompanyRepository, CostRepository,
+    DecisionActionRepository, DecisionRepository, DocumentRepository, EnvironmentRepository,
+    ExternalObjectCatalogRepository, ExternalObjectRepository, GoalRepository, HeartbeatRepository,
+    InfrastructureRepository, InstructionRepository, InviteRepository, IssueCommentRepository,
+    IssueRelationRepository, IssueRepository, IssueStructureRepository, LabelRepository,
+    MembershipRepository, PermissionGrantRepository, PipelineRepository, PluginRepository,
+    PluginRuntimeRepository, PortabilityRepository, PreferenceRepository, ProjectRepository,
+    RoutineRepository, ScatteredRepository, SecretBindingRepository, SecretRepository,
+    SkillCatalogRepository, SkillRepository, ToolCatalogRepository, ToolConnectionRepository,
+    ToolGatewayRepository, WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::{board_claim::BoardClaimManager, storage::LocalStorage};
@@ -27,6 +27,8 @@ pub struct AppState {
     pub companies: Arc<dyn CompanyRepository>,
     /// Agents repository (org hierarchy, subordinate budgets).
     pub agents: Arc<dyn AgentRepository>,
+    /// Attention inbox dismissals/snoozes repository.
+    pub attention_dismissals: Arc<dyn AttentionDismissalRepository>,
     /// Agent runtime (sessions/state/wakeups/recovery) repository.
     pub agent_runtime: Arc<dyn AgentRuntimeRepository>,
     /// Principal permission grants repository.
