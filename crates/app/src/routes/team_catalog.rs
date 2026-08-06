@@ -118,6 +118,25 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
         agent_ids.insert(slug.clone(), agent.id.clone());
+        // Best-effort: materialize the default instruction bundle for the
+        // role (slug == role) so freshly installed agents start with the
+        // standard AGENTS.md (+ ceo bundle). Never break the install.
+        if let Err(error) = crate::instructions::materialize_default_instructions(
+            state,
+            &company_id,
+            &agent.id,
+            slug,
+        )
+        .await
+        {
+            tracing::warn!(
+                error = %error,
+                company_id = %company_id,
+                agent_id = %agent.id,
+                role = %slug,
+                "failed to materialize default agent instructions on team install"
+            );
+        }
         let metadata = team_catalog::provenance_metadata(&team.id, &team.key, &team.content_hash);
         let _ = state
             .agents
@@ -261,6 +280,24 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                 .await
             {
                 agent_ids.insert(slug.clone(), agent.id.clone());
+                // Best-effort: materialize the default instruction bundle for
+                // the role (slug == role); a failure only warns.
+                if let Err(error) = crate::instructions::materialize_default_instructions(
+                    state,
+                    &company_id,
+                    &agent.id,
+                    slug,
+                )
+                .await
+                {
+                    tracing::warn!(
+                        error = %error,
+                        company_id = %company_id,
+                        agent_id = %agent.id,
+                        role = %slug,
+                        "failed to materialize default agent instructions on team install"
+                    );
+                }
                 let metadata =
                     team_catalog::provenance_metadata(&team.id, &team.key, &team.content_hash);
                 let _ = state
