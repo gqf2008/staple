@@ -13,8 +13,8 @@ use staple_app::storage::LocalStorage;
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
-    TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoAssetRepository, TursoAttentionDismissalRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
@@ -140,6 +140,11 @@ async fn test_state() -> (AppState, staple_data::Database) {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(companies_db)),
         agents: Arc::new(TursoAgentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        attention_dismissals: Arc::new(TursoAttentionDismissalRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

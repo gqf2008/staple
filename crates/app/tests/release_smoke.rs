@@ -11,8 +11,8 @@ use staple_app::{router, state::AppState};
 use staple_data::{
     DbConfig, SecretCipher, TursoActivityRepository, TursoAgentRepository,
     TursoAgentRuntimeRepository, TursoApiKeyRepository, TursoApprovalRepository,
-    TursoAssetRepository, TursoBoardKeyRepository, TursoBudgetPolicyRepository,
-    TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
+    TursoAssetRepository, TursoAttentionDismissalRepository, TursoBoardKeyRepository,
+    TursoBudgetPolicyRepository, TursoCaseRepository, TursoCompanyRepository, TursoCostRepository,
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
@@ -112,6 +112,11 @@ async fn core_business_flow_smoke() {
     let state = AppState {
         companies: Arc::new(TursoCompanyRepository::new(seed_db)),
         agents: Arc::new(TursoAgentRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        attention_dismissals: Arc::new(TursoAttentionDismissalRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),

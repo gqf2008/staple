@@ -10,6 +10,7 @@ pub mod agents;
 pub mod api_keys;
 pub mod approvals;
 pub mod assets;
+pub mod attention_dismissals;
 pub mod board_keys;
 pub mod budget_policies;
 pub mod cases;
@@ -72,6 +73,10 @@ pub use approvals::{
 pub use assets::{
     AssetError, AssetRecord, AssetRepository, IssueAttachmentRecord, NewAsset, NewIssueAttachment,
     TursoAssetRepository,
+};
+pub use attention_dismissals::{
+    AttentionDismissalRepository, DismissalError, DismissalRecord, NewDismissal,
+    TursoAttentionDismissalRepository,
 };
 pub use board_keys::{
     BoardApiKeyRecord, BoardKeyError, BoardKeyRepository, CliAuthChallengeRecord, NewBoardApiKey,

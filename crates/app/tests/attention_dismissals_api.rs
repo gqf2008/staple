@@ -1,7 +1,6 @@
-//! Shared workspace concurrency (issue #206) phase A integration tests:
-//! `executionWorkspacePolicy` / `executionWorkspaceSettings` round-trip through
-//! the project and issue APIs (create → read back → patch → clear), plus
-//! resolution-priority unit coverage for `workspace_policy`.
+//! Attention inbox dismissal API integration tests (issue #204 A2):
+//! dismiss/snooze upserts, list, restore (DELETE), validation, company/user
+//! isolation, board-only auth, and audit logging.
 
 use std::sync::Arc;
 
@@ -32,18 +31,25 @@ use staple_data::{
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
-async fn send_json(
+async fn send(
     router: &Router,
     method: Method,
     path: &str,
     body: Value,
+    user: Option<&str>,
+    bearer: Option<&str>,
 ) -> (StatusCode, Value) {
-    let request = Request::builder()
-        .method(method)
-        .uri(path)
-        .header(CONTENT_TYPE, "application/json")
-        .body(Body::from(body.to_string()))
-        .unwrap();
+    let mut builder = Request::builder().method(method).uri(path);
+    if !body.is_null() {
+        builder = builder.header(CONTENT_TYPE, "application/json");
+    }
+    if let Some(user) = user {
+        builder = builder.header("X-Board-User", user);
+    }
+    if let Some(token) = bearer {
+        builder = builder.header("Authorization", format!("Bearer {token}"));
+    }
+    let request = builder.body(Body::from(body.to_string())).unwrap();
     let response = router.handle(request).await;
     let status = response.status();
     let (_, body) = response.into_parts();
@@ -307,187 +313,387 @@ async fn test_state() -> (AppState, staple_data::Database) {
     (state, seed_db)
 }
 
-#[tokio::test]
-async fn project_execution_workspace_policy_round_trip_and_clear() {
-    let (state, _db) = test_state().await;
-    let app = router(state);
-    let company_id = {
-        let (status, body) = send_json(
-            &app,
-            Method::POST,
-            "/api/companies",
-            json!({ "name": "Alpha" }),
-        )
-        .await;
-        assert_eq!(status, StatusCode::CREATED, "body: {body}");
-        body["id"].as_str().unwrap().to_owned()
-    };
+async fn seed_companies_and_agent(db: &staple_data::Database) -> (String, String) {
+    let conn = staple_data::connect(db).await.unwrap();
+    conn.execute(
+        "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+         VALUES ('c1', 'Alpha', 'ALPHA', 1024), ('c2', 'Beta', 'BETA', 1024)",
+        (),
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO agents (id, company_id, name, role, adapter_type)
+         VALUES ('11111111-1111-1111-1111-111111111111', 'c1', 'one', 'engineer', 'codex_local')",
+        (),
+    )
+    .await
+    .unwrap();
+    (
+        "c1".to_owned(),
+        "11111111-1111-1111-1111-111111111111".to_owned(),
+    )
+}
 
-    let policy = json!({ "enabled": true, "sharedWorkspaceConcurrency": "serialize" });
-    let (status, created) = send_json(
-        &app,
+async fn create_agent_key(app: &Router, company_id: &str, agent_id: &str) -> String {
+    let (status, body) = send(
+        app,
         Method::POST,
-        &format!("/api/companies/{company_id}/projects"),
-        json!({ "name": "Ship", "executionWorkspacePolicy": policy }),
+        &format!("/api/companies/{company_id}/agent-api-keys"),
+        json!({ "agentId": agent_id, "name": "dev" }),
+        None,
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::CREATED, "body: {created}");
-    assert_eq!(created["executionWorkspacePolicy"], policy);
-    let project_id = created["id"].as_str().unwrap().to_owned();
-
-    // GET read-back is consistent.
-    let (status, fetched) = send_json(
-        &app,
-        Method::GET,
-        &format!("/api/projects/{project_id}"),
-        json!({}),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {fetched}");
-    assert_eq!(fetched["executionWorkspacePolicy"], policy);
-
-    // PATCH updates the policy.
-    let next = json!({ "enabled": true, "sharedWorkspaceConcurrency": "allow" });
-    let (status, updated) = send_json(
-        &app,
-        Method::PATCH,
-        &format!("/api/projects/{project_id}"),
-        json!({ "executionWorkspacePolicy": next }),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {updated}");
-    assert_eq!(updated["executionWorkspacePolicy"], next);
-
-    // PATCH with null clears it.
-    let (status, cleared) = send_json(
-        &app,
-        Method::PATCH,
-        &format!("/api/projects/{project_id}"),
-        json!({ "executionWorkspacePolicy": null }),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {cleared}");
-    assert!(
-        cleared["executionWorkspacePolicy"].is_null(),
-        "body: {cleared}"
-    );
-
-    let (status, after_clear) = send_json(
-        &app,
-        Method::GET,
-        &format!("/api/projects/{project_id}"),
-        json!({}),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK);
-    assert!(after_clear["executionWorkspacePolicy"].is_null());
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    body["plaintext"].as_str().unwrap().to_owned()
 }
 
 #[tokio::test]
-async fn issue_execution_workspace_settings_round_trip() {
-    let (state, _db) = test_state().await;
+async fn dismiss_snooze_list_restore_and_audit() {
+    let (state, db) = test_state().await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
     let app = router(state);
-    let company_id = {
-        let (status, body) = send_json(
-            &app,
-            Method::POST,
-            "/api/companies",
-            json!({ "name": "Beta" }),
-        )
-        .await;
-        assert_eq!(status, StatusCode::CREATED, "body: {body}");
-        body["id"].as_str().unwrap().to_owned()
-    };
 
-    let settings = json!({ "sharedWorkspaceConcurrency": "allow" });
-    let (status, created) = send_json(
+    // Dismiss one item as u-1.
+    let (status, body) = send(
         &app,
         Method::POST,
-        &format!("/api/companies/{company_id}/issues"),
-        json!({ "title": "Concurrent task", "executionWorkspaceSettings": settings }),
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::CREATED, "body: {created}");
-    assert_eq!(created["executionWorkspaceSettings"], settings);
-    let issue_id = created["id"].as_str().unwrap().to_owned();
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["kind"], "dismiss");
+    assert_eq!(body["itemKey"], "attention:issue-1");
+    assert_eq!(body["userId"], "u-1");
+    assert!(body["snoozedUntil"].is_null());
 
-    // GET read-back is consistent.
-    let (status, fetched) = send_json(
+    // Snooze another item until 2099 (offset input is normalized to UTC).
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({
+            "itemKey": "attention:issue-2",
+            "kind": "snooze",
+            "snoozedUntil": "2099-01-01T08:00:00.000+08:00"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["kind"], "snooze");
+    assert_eq!(body["snoozedUntil"], "2099-01-01T00:00:00.000Z");
+
+    // List returns both rows for u-1.
+    let (status, body) = send(
         &app,
         Method::GET,
-        &format!("/api/issues/{issue_id}"),
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::OK, "body: {fetched}");
-    assert_eq!(fetched["executionWorkspaceSettings"], settings);
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let rows = body.as_array().unwrap();
+    assert_eq!(rows.len(), 2);
+    assert!(rows.iter().any(|row| row["itemKey"] == "attention:issue-1"));
+    assert!(rows.iter().any(|row| row["itemKey"] == "attention:issue-2"));
 
-    // PATCH updates the settings.
-    let next = json!({ "sharedWorkspaceConcurrency": "serialize" });
-    let (status, updated) = send_json(
+    // Restore (DELETE) the dismissed item.
+    let (status, _) = send(
         &app,
-        Method::PATCH,
-        &format!("/api/issues/{issue_id}"),
-        json!({ "executionWorkspaceSettings": next }),
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/inbox-dismissals/attention:issue-1"),
+        json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::OK, "body: {updated}");
-    assert_eq!(updated["executionWorkspaceSettings"], next);
+    assert_eq!(status, StatusCode::NO_CONTENT);
 
-    // PATCH with null clears it.
-    let (status, cleared) = send_json(
-        &app,
-        Method::PATCH,
-        &format!("/api/issues/{issue_id}"),
-        json!({ "executionWorkspaceSettings": null }),
-    )
-    .await;
-    assert_eq!(status, StatusCode::OK, "body: {cleared}");
-    assert!(
-        cleared["executionWorkspaceSettings"].is_null(),
-        "body: {cleared}"
-    );
-
-    let (status, after_clear) = send_json(
+    let (status, body) = send(
         &app,
         Method::GET,
-        &format!("/api/issues/{issue_id}"),
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
         json!({}),
+        Some("u-1"),
+        None,
     )
     .await;
-    assert_eq!(status, StatusCode::OK);
-    assert!(after_clear["executionWorkspaceSettings"].is_null());
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+
+    // Audit entries exist for all three mutations.
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/activity"),
+        json!({}),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let actions: Vec<&str> = body
+        .as_array()
+        .unwrap()
+        .iter()
+        .map(|entry| entry["action"].as_str().unwrap())
+        .collect();
+    assert!(actions.contains(&"inbox.dismissed"));
+    assert!(actions.contains(&"inbox.snoozed"));
+    assert!(actions.contains(&"inbox.restored"));
 }
 
-#[test]
-fn resolve_shared_workspace_concurrency_priority() {
-    use staple_app::workspace_policy::{
-        SharedWorkspaceConcurrency, resolve_shared_workspace_concurrency,
-    };
+#[tokio::test]
+async fn validation_rejects_bad_bodies() {
+    let (state, db) = test_state().await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+    let path = format!("/api/companies/{company_id}/inbox-dismissals");
 
-    // Issue settings win over project policy.
-    let issue = r#"{"sharedWorkspaceConcurrency":"allow"}"#;
-    let project = json!({ "enabled": true, "sharedWorkspaceConcurrency": "serialize" });
-    assert_eq!(
-        resolve_shared_workspace_concurrency(Some(issue), Some(&project)),
-        Some(SharedWorkspaceConcurrency::Allow)
-    );
+    // Unknown kind.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "attention:issue-1", "kind": "archive" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "kind");
 
-    // Project policy applies only when enabled.
-    assert_eq!(
-        resolve_shared_workspace_concurrency(None, Some(&project)),
-        Some(SharedWorkspaceConcurrency::Serialize)
-    );
-    let disabled = json!({ "enabled": false, "sharedWorkspaceConcurrency": "serialize" });
-    assert_eq!(
-        resolve_shared_workspace_concurrency(None, Some(&disabled)),
-        None
-    );
+    // Empty item key.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "  ", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "itemKey");
 
-    // Default (auto semantics is handled by the caller).
-    assert_eq!(resolve_shared_workspace_concurrency(None, None), None);
+    // Snooze without snoozedUntil.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({ "itemKey": "attention:issue-1", "kind": "snooze" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Snooze with a past timestamp.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "snooze",
+            "snoozedUntil": "2000-01-01T00:00:00.000Z"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Snooze with a non-ISO timestamp.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "snooze",
+            "snoozedUntil": "tomorrow"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Dismiss must not include snoozedUntil.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &path,
+        json!({
+            "itemKey": "attention:issue-1",
+            "kind": "dismiss",
+            "snoozedUntil": "2099-01-01T00:00:00.000Z"
+        }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::UNPROCESSABLE_ENTITY, "body: {body}");
+    assert_eq!(body["details"][0]["path"][0], "snoozedUntil");
+
+    // Nothing was persisted.
+    let (status, body) = send(&app, Method::GET, &path, json!({}), Some("u-1"), None).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body.as_array().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn company_and_user_isolation_and_permissions() {
+    let (state, db) = test_state().await;
+    let (company_id, agent_id) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+
+    // Dismiss an item for c1/u-1.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+
+    // Another company's list is empty.
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        "/api/companies/c2/inbox-dismissals",
+        json!({}),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body.as_array().unwrap().is_empty());
+
+    // Another user's list is empty.
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        Some("u-2"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert!(body.as_array().unwrap().is_empty());
+
+    // Restoring as another user does not clear u-1's row.
+    let (status, _) = send(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/inbox-dismissals/attention:issue-1"),
+        json!({}),
+        Some("u-2"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT);
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+
+    // Missing company -> 404.
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        "/api/companies/missing/inbox-dismissals",
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        Some("u-1"),
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::NOT_FOUND, "body: {body}");
+    assert_eq!(body["error"], "Company not found");
+
+    // Agent keys are rejected (board-only) and cannot cross companies.
+    let key = create_agent_key(&app, &company_id, &agent_id).await;
+    let (status, _) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        None,
+        Some(&key),
+    )
+    .await;
     assert_eq!(
-        resolve_shared_workspace_concurrency(Some("{}"), Some(&json!({ "enabled": true }))),
-        None
+        status,
+        StatusCode::FORBIDDEN,
+        "board-only route rejects agents"
     );
+    let (status, _) = send(
+        &app,
+        Method::GET,
+        "/api/companies/c2/inbox-dismissals",
+        json!({}),
+        None,
+        Some(&key),
+    )
+    .await;
+    assert_eq!(
+        status,
+        StatusCode::FORBIDDEN,
+        "agent cannot cross companies"
+    );
+}
+
+#[tokio::test]
+async fn defaults_to_board_user_without_header() {
+    let (state, db) = test_state().await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+
+    let (status, body) = send(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": "attention:issue-1", "kind": "dismiss" }),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {body}");
+    assert_eq!(body["userId"], "board");
+
+    let (status, body) = send(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({}),
+        None,
+        None,
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 1);
+    assert_eq!(body[0]["userId"], "board");
 }
