@@ -4403,10 +4403,18 @@ pub async fn onboarding_adapter_test_ui(
     let lang = lang_from_request(cx);
     let state = app_context::<AppState>(cx);
     let adapter_names = state.adapters.names();
-    let test_result = if state.adapters.get(&form.adapter_type).is_some() {
-        t(lang, "onboarding.adapterOk")
-    } else {
-        t(lang, "onboarding.adapterFail")
+    let test_result = match state.adapters.get(&form.adapter_type) {
+        Some(adapter) => match adapter.probe().await {
+            Ok(result) => {
+                if result.available {
+                    format!("{}: {}", t(lang, "onboarding.adapterOk"), result.detail)
+                } else {
+                    format!("{}: {}", t(lang, "onboarding.adapterFail"), result.detail)
+                }
+            }
+            Err(error) => format!("{}: {error}", t(lang, "onboarding.adapterFail")),
+        },
+        None => t(lang, "onboarding.adapterFail"),
     };
     let view = onboarding_view(
         cx,
