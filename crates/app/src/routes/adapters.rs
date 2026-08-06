@@ -52,6 +52,22 @@ pub async fn invoke_adapter(
     ))
 }
 
+/// `POST /api/adapters/{type}/probe` — probes the adapter environment.
+#[route(POST "/api/adapters/{type}/probe")]
+pub async fn probe_adapter(cx: &Cx) -> Result<Json<staple_adapters::ProbeResult>, ApiError> {
+    let adapter_type = path_param::<Type>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let adapter = state
+        .adapters
+        .get(&adapter_type)
+        .ok_or_else(|| ApiError::not_found("Adapter not found"))?;
+    let result = adapter
+        .probe()
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(Json(result))
+}
+
 /// `GET /api/adapters/{type}/runs/{runId}` — observes a run.
 #[route(GET "/api/adapters/{type}/runs/{id}")]
 pub async fn observe_adapter_run(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {

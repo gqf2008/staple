@@ -3375,6 +3375,21 @@ async fn adapter_registry_and_cli_lifecycle() {
     )
     .await;
     assert_eq!(status, StatusCode::NOT_FOUND);
+
+    // Environment probe: cli_local responds to hello.
+    let (status, body) = send_json(
+        &app,
+        Method::POST,
+        "/api/adapters/cli_local/probe",
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["available"], true);
+    assert!(body["detail"].as_str().unwrap().contains("hello"));
+    // Missing adapter -> 404.
+    let (status, _) = send_json(&app, Method::POST, "/api/adapters/nope/probe", json!({})).await;
+    assert_eq!(status, StatusCode::NOT_FOUND);
 }
 
 #[tokio::test]
@@ -6082,6 +6097,7 @@ async fn onboarding_wizard_flow() {
     .await;
     assert_eq!(status, StatusCode::OK, "{body}");
     assert!(body.contains("Adapter is available"), "{body}");
+    assert!(body.contains("responds to hello"), "{body}");
 
     // Step 4: give heartbeat -> step 5 review.
     let (status, body) = send_form(

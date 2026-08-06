@@ -9,6 +9,16 @@ use futures_core::Stream;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+/// Result of an adapter environment probe.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct ProbeResult {
+    /// Whether the adapter environment is usable.
+    pub available: bool,
+    /// Human-readable detail (e.g. which binary was found, or the error).
+    pub detail: String,
+}
+
 /// Adapter errors.
 #[derive(Debug, Error)]
 pub enum AdapterError {
@@ -102,6 +112,20 @@ pub trait AgentAdapter: Send + Sync {
     ///
     /// Returns [`AdapterError`] when the run cannot be cancelled.
     async fn cancel(&self, run_id: &str) -> Result<(), AdapterError>;
+
+    /// Probes whether the adapter's environment is usable (e.g. its CLI is
+    /// installed and responds). The default reports the adapter as
+    /// registered; adapters with real environments override this.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`AdapterError`] when the probe itself cannot run.
+    async fn probe(&self) -> Result<ProbeResult, AdapterError> {
+        Ok(ProbeResult {
+            available: true,
+            detail: "adapter registered".to_owned(),
+        })
+    }
 }
 
 /// Convenience: `?`-free status check.

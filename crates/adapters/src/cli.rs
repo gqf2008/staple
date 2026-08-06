@@ -13,6 +13,8 @@ use std::{
 };
 
 use futures_core::Stream;
+
+use crate::contract::ProbeResult;
 use tokio::{
     io::AsyncReadExt,
     process::{Child, Command},
@@ -174,6 +176,71 @@ impl AgentAdapter for CliAdapter {
         state.notify.notify_waiters();
         Ok(())
     }
+
+    async fn probe(&self) -> Result<ProbeResult, AdapterError> {
+        let Some(path) = find_program(&self.config.program) else {
+            return Ok(ProbeResult {
+                available: false,
+                detail: format!("{} not found in PATH", self.config.program),
+            });
+        };
+        let mut command = Command::new(&self.config.program);
+        command.args(&self.config.args).arg("echo hello");
+        let result =
+            tokio::time::timeout(std::time::Duration::from_secs(5), command.output()).await;
+        match result {
+            Ok(Ok(output)) => {
+                let stdout = String::from_utf8_lossy(&output.stdout);
+                if output.status.success() && stdout.contains("hello") {
+                    Ok(ProbeResult {
+                        available: true,
+                        detail: format!(
+                            "{} responds to hello ({})",
+                            self.config.program,
+                            path.display()
+                        ),
+                    })
+                } else {
+                    Ok(ProbeResult {
+                        available: false,
+                        detail: format!(
+                            "{} did not respond to hello (exit {:?})",
+                            self.config.program,
+                            output.status.code()
+                        ),
+                    })
+                }
+            }
+            Ok(Err(error)) => Ok(ProbeResult {
+                available: false,
+                detail: format!("failed to run {}: {error}", self.config.program),
+            }),
+            Err(_) => Ok(ProbeResult {
+                available: false,
+                detail: format!("{} probe timed out", self.config.program),
+            }),
+        }
+    }
+}
+
+/// Locates `program` in PATH and returns the resolved path.
+fn find_program(program: &str) -> Option<std::path::PathBuf> {
+    use std::os::unix::fs::PermissionsExt;
+    if program.contains('/') {
+        let path = std::path::PathBuf::from(program);
+        return path.is_file().then_some(path);
+    }
+    let path_var = std::env::var_os("PATH")?;
+    for dir in std::env::split_paths(&path_var) {
+        let candidate = dir.join(program);
+        if candidate.is_file() {
+            let metadata = std::fs::metadata(&candidate).ok()?;
+            if metadata.permissions().mode() & 0o111 != 0 {
+                return Some(candidate);
+            }
+        }
+    }
+    None
 }
 
 /// Reads a child's stdout/stderr incrementally, broadcasts stdout chunks,
@@ -395,5 +462,25 @@ mod tests {
         assert!(now.ends_with('Z'));
         assert!(now.contains('T'));
         assert_eq!(now.len(), 24);
+    }
+
+    #[tokio::test]
+    async fn probe_sh_responds_to_hello() {
+        let adapter = adapter();
+        let result = adapter.probe().await.unwrap();
+        assert!(result.available, "{}", result.detail);
+        assert!(result.detail.contains("hello"), "{}", result.detail);
+    }
+
+    #[tokio::test]
+    async fn probe_missing_program_reports_unavailable() {
+        let adapter = CliAdapter::new(CliAdapterConfig {
+            name: "cli_missing".to_owned(),
+            program: "definitely-not-a-real-binary-xyz".to_owned(),
+            args: vec![],
+        });
+        let result = adapter.probe().await.unwrap();
+        assert!(!result.available);
+        assert!(result.detail.contains("not found"), "{}", result.detail);
     }
 }
