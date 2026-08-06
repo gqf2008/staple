@@ -81,11 +81,16 @@ pub async fn preview_install(cx: &Cx) -> Result<Json<team_catalog::PreviewResult
         .list(&company_id)
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
-    Ok(Json(team_catalog::preview(&team, &agents, &projects)))
+    Ok(Json(team_catalog::preview(
+        &team_catalog::catalog_root(),
+        &team,
+        &agents,
+        &projects,
+    )))
 }
 
 /// `POST /api/companies/{companyId}/teams/catalog/{catalogId}/install` —
-/// installs a team (creates agents + projects with provenance).
+/// installs a team (creates agents + projects + routines with provenance).
 #[route(POST "/api/companies/{company_id}/teams/catalog/{catalog_id}/install")]
 pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> {
     let company_id = path_param::<CompanyId>(cx)?.to_string();
@@ -96,6 +101,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
         .ok_or_else(|| ApiError::not_found("Catalog team not found"))?;
     let mut created_agents = 0i64;
     let mut created_projects = 0i64;
+    let mut agent_ids: std::collections::HashMap<String, String> = std::collections::HashMap::new();
     for slug in &team.agent_slugs {
         let agent = state
             .agents
@@ -111,6 +117,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
+        agent_ids.insert(slug.clone(), agent.id.clone());
         let metadata = team_catalog::provenance_metadata(&team.id, &team.key, &team.content_hash);
         let _ = state
             .agents
@@ -119,8 +126,10 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             .map_err(|error| ApiError::internal(error.to_string()))?;
         created_agents += 1;
     }
+    let mut project_ids: std::collections::HashMap<String, String> =
+        std::collections::HashMap::new();
     for slug in &team.project_slugs {
-        let _ = state
+        let project = state
             .projects
             .create(staple_data::NewProject {
                 company_id: company_id.clone(),
@@ -134,6 +143,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
+        project_ids.insert(slug.clone(), project.id);
         created_projects += 1;
     }
     let mut created_skills = 0i64;
@@ -154,6 +164,50 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             Err(_) => {}
         }
     }
+    let mut created_routines = 0i64;
+    for task in team_catalog::team_tasks(&team_catalog::catalog_root(), &team.id)
+        .iter()
+        .filter(|task| task.recurring)
+    {
+        let routine = state
+            .routines
+            .create(staple_data::NewRoutine {
+                company_id: company_id.clone(),
+                project_id: task
+                    .project
+                    .as_deref()
+                    .and_then(|slug| project_ids.get(slug))
+                    .cloned(),
+                goal_id: None,
+                parent_issue_id: None,
+                title: task.title.clone(),
+                description: Some(task.description.clone()),
+                assignee_agent_id: task
+                    .assignee
+                    .as_deref()
+                    .and_then(|slug| agent_ids.get(slug))
+                    .cloned(),
+                priority: "medium".to_owned(),
+                variables: None,
+            })
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+        state
+            .routines
+            .create_trigger(staple_data::NewTrigger {
+                company_id: company_id.clone(),
+                routine_id: routine.id,
+                schedule_kind: "cron".to_owned(),
+                schedule_expr: Some(
+                    task.schedule
+                        .clone()
+                        .unwrap_or_else(|| "0 9 * * *".to_owned()),
+                ),
+            })
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+        created_routines += 1;
+    }
     crate::audit::log_activity(
         &state.activity,
         &company_id,
@@ -166,6 +220,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
             "createdProjects": created_projects,
             "createdSkills": created_skills,
             "skippedSkills": skipped_skills,
+            "createdRoutines": created_routines,
         })),
     )
     .await?;
@@ -175,6 +230,7 @@ pub async fn install_team(cx: &Cx) -> Result<Json<serde_json::Value>, ApiError> 
         "createdProjects": created_projects,
         "createdSkills": created_skills,
         "skippedSkills": skipped_skills,
+        "createdRoutines": created_routines,
     })))
 }
 
@@ -187,6 +243,8 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
     let catalog_id = path_param::<CatalogId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     if let Some(team) = team_catalog::detail(&catalog_id) {
+        let mut agent_ids: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
         for slug in &team.agent_slugs {
             if let Ok(agent) = state
                 .agents
@@ -202,6 +260,7 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                 })
                 .await
             {
+                agent_ids.insert(slug.clone(), agent.id.clone());
                 let metadata =
                     team_catalog::provenance_metadata(&team.id, &team.key, &team.content_hash);
                 let _ = state
@@ -210,8 +269,10 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                     .await;
             }
         }
+        let mut project_ids: std::collections::HashMap<String, String> =
+            std::collections::HashMap::new();
         for slug in &team.project_slugs {
-            let _ = state
+            if let Ok(project) = state
                 .projects
                 .create(staple_data::NewProject {
                     company_id: company_id.clone(),
@@ -223,7 +284,10 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                     target_date: None,
                     env: None,
                 })
-                .await;
+                .await
+            {
+                project_ids.insert(slug.clone(), project.id);
+            }
         }
         for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
             let _ = state
@@ -235,6 +299,50 @@ pub async fn install_team_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOther
                     restriction_policy: staple_data::SkillRestrictionPolicy::default(),
                 })
                 .await;
+        }
+        let mut _created_routines = 0i64;
+        for task in team_catalog::team_tasks(&team_catalog::catalog_root(), &team.id)
+            .iter()
+            .filter(|task| task.recurring)
+        {
+            if let Ok(routine) = state
+                .routines
+                .create(staple_data::NewRoutine {
+                    company_id: company_id.clone(),
+                    project_id: task
+                        .project
+                        .as_deref()
+                        .and_then(|slug| project_ids.get(slug))
+                        .cloned(),
+                    goal_id: None,
+                    parent_issue_id: None,
+                    title: task.title.clone(),
+                    description: Some(task.description.clone()),
+                    assignee_agent_id: task
+                        .assignee
+                        .as_deref()
+                        .and_then(|slug| agent_ids.get(slug))
+                        .cloned(),
+                    priority: "medium".to_owned(),
+                    variables: None,
+                })
+                .await
+            {
+                let _ = state
+                    .routines
+                    .create_trigger(staple_data::NewTrigger {
+                        company_id: company_id.clone(),
+                        routine_id: routine.id,
+                        schedule_kind: "cron".to_owned(),
+                        schedule_expr: Some(
+                            task.schedule
+                                .clone()
+                                .unwrap_or_else(|| "0 9 * * *".to_owned()),
+                        ),
+                    })
+                    .await;
+                _created_routines += 1;
+            }
         }
     }
     Ok(topcoat::router::error::see_other(&format!(

@@ -203,8 +203,13 @@ pub fn list_at(root: &Path) -> Vec<CatalogTeam> {
                 .map(|items| {
                     items
                         .iter()
-                        .filter_map(serde_json::Value::as_str)
-                        .map(str::to_owned)
+                        .filter_map(|item| {
+                            item.as_str().map(str::to_owned).or_else(|| {
+                                item.get("path")
+                                    .and_then(serde_json::Value::as_str)
+                                    .map(str::to_owned)
+                            })
+                        })
                         .collect()
                 })
                 .unwrap_or_default();
@@ -415,6 +420,18 @@ pub struct PreviewSkill {
     pub slug: String,
 }
 
+/// One planned routine (from a recurring TASK.md).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct PreviewRoutine {
+    /// Task slug.
+    pub slug: String,
+    /// Routine title.
+    pub title: String,
+    /// Whether the task is recurring (always true for planned routines).
+    pub recurring: bool,
+}
+
 /// Install preview result.
 #[derive(Debug, Clone, serde::Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -429,11 +446,14 @@ pub struct PreviewResult {
     pub projects: Vec<PreviewProject>,
     /// Required skills (import deferred to the company-package batch).
     pub skills: Vec<PreviewSkill>,
+    /// Planned routines (from recurring tasks).
+    pub routines: Vec<PreviewRoutine>,
 }
 
 /// Computes an install preview against existing company rows.
 #[must_use]
 pub fn preview(
+    root: &Path,
     team: &CatalogTeam,
     existing_agents: &[staple_data::AgentRecord],
     existing_projects: &[staple_data::ProjectRecord],
@@ -467,12 +487,22 @@ pub fn preview(
         .iter()
         .map(|slug| PreviewSkill { slug: slug.clone() })
         .collect();
+    let routines = team_tasks(root, &team.id)
+        .iter()
+        .filter(|task| task.recurring)
+        .map(|task| PreviewRoutine {
+            slug: task.slug.clone(),
+            title: task.title.clone(),
+            recurring: true,
+        })
+        .collect();
     PreviewResult {
         catalog_id: team.id.clone(),
         team_name: team.name.clone(),
         agents,
         projects,
         skills,
+        routines,
     }
 }
 
@@ -517,6 +547,71 @@ pub fn team_skills(root: &Path, catalog_ref: &str) -> Vec<SkillSpec> {
         });
     }
     skills
+}
+
+/// One team task spec (parsed from `TASK.md` frontmatter + body).
+#[derive(Debug, Clone, serde::Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct TeamTaskSpec {
+    /// Task title (frontmatter `name`).
+    pub title: String,
+    /// Task slug.
+    pub slug: String,
+    /// Task description (frontmatter body).
+    pub description: String,
+    /// Assignee agent slug.
+    pub assignee: Option<String>,
+    /// Project slug.
+    pub project: Option<String>,
+    /// Whether the task is a recurring routine.
+    pub recurring: bool,
+    /// Optional cron schedule expression.
+    pub schedule: Option<String>,
+}
+
+/// Scans a team package for `**/tasks/**/TASK.md` files and parses their
+/// frontmatter (name/slug/assignee/project/recurring/schedule) plus the body
+/// as the description.
+#[must_use]
+pub fn team_tasks(root: &Path, catalog_ref: &str) -> Vec<TeamTaskSpec> {
+    let Some(team) = detail_at(root, catalog_ref) else {
+        return Vec::new();
+    };
+    let team_root = root.join(&team.path);
+    let mut tasks = Vec::new();
+    for file in &team.files {
+        if !file.contains("/tasks/") || !file.ends_with("TASK.md") {
+            continue;
+        }
+        let path = team_root.join(file);
+        let Ok(text) = std::fs::read_to_string(&path) else {
+            continue;
+        };
+        let (frontmatter, body) = parse_frontmatter(&text);
+        let slug = frontmatter.get("slug").cloned().unwrap_or_else(|| {
+            file.trim_end_matches("/TASK.md")
+                .rsplit('/')
+                .next()
+                .unwrap_or("task")
+                .to_owned()
+        });
+        let title = frontmatter
+            .get("name")
+            .cloned()
+            .unwrap_or_else(|| slug.clone());
+        tasks.push(TeamTaskSpec {
+            title,
+            slug,
+            description: body,
+            assignee: frontmatter.get("assignee").cloned(),
+            project: frontmatter.get("project").cloned(),
+            recurring: frontmatter
+                .get("recurring")
+                .is_some_and(|value| value == "true"),
+            schedule: frontmatter.get("schedule").cloned(),
+        });
+    }
+    tasks
 }
 
 /// Parses simple `---`-delimited frontmatter into a key/value map plus the
@@ -605,6 +700,20 @@ mod tests {
             "---\nname: helper-skill\ndescription: A helper\n---\n\nUsage",
         )
         .unwrap();
+        let heartbeat_dir = team_dir.join("projects/first-project/tasks/first-heartbeat");
+        fs::create_dir_all(&heartbeat_dir).unwrap();
+        fs::write(
+            heartbeat_dir.join("TASK.md"),
+            "---\nname: First Heartbeat Review\nslug: first-heartbeat\nassignee: ceo\nproject: first-project\nrecurring: true\n---\n\nReview current priorities.",
+        )
+        .unwrap();
+        let setup_dir = team_dir.join("projects/first-project/tasks/setup");
+        fs::create_dir_all(&setup_dir).unwrap();
+        fs::write(
+            setup_dir.join("TASK.md"),
+            "---\nname: Setup\nslug: setup\nassignee: cto\nproject: first-project\nrecurring: false\n---\n\nOne-time setup.",
+        )
+        .unwrap();
         let manifest = serde_json::json!({
             "schemaVersion": 1,
             "packageName": "@test/teams-catalog",
@@ -621,7 +730,13 @@ mod tests {
                 "contentHash": "sha256:abc",
                 "counts": { "agents": 2 },
                 "tags": ["default"],
-                "files": ["TEAM.md", "AGENTS.md", "skills/helper/SKILL.md"]
+                "files": [
+                    { "path": "TEAM.md", "kind": "team" },
+                    { "path": "AGENTS.md", "kind": "agent" },
+                    { "path": "skills/helper/SKILL.md", "kind": "skill" },
+                    { "path": "projects/first-project/tasks/first-heartbeat/TASK.md", "kind": "task" },
+                    { "path": "projects/first-project/tasks/setup/TASK.md", "kind": "task" }
+                ]
             }]
         });
         fs::write(
@@ -753,7 +868,12 @@ mod tests {
             metadata: serde_json::json!({}),
             created_at: String::new(),
         }];
-        let preview = preview(&team, &existing_agents, &[]);
+        let preview = preview(
+            Path::new("/nonexistent-catalog"),
+            &team,
+            &existing_agents,
+            &[],
+        );
         assert!(preview.agents[0].conflict); // ceo exists (case-insensitive)
         assert!(!preview.agents[1].conflict);
         assert_eq!(preview.projects.len(), 1);
@@ -772,5 +892,41 @@ mod tests {
         assert_eq!(skills[0].name, "helper-skill");
         assert_eq!(skills[0].description.as_deref(), Some("A helper"));
         assert!(team_skills(root, "missing").is_empty());
+    }
+
+    #[test]
+    fn team_tasks_parses_task_files() {
+        let dir = seed_catalog();
+        let root = dir.path();
+        let tasks = team_tasks(root, "test:bundled:acme:core-team");
+        assert_eq!(tasks.len(), 2);
+        let heartbeat = tasks
+            .iter()
+            .find(|task| task.slug == "first-heartbeat")
+            .expect("heartbeat task");
+        assert_eq!(heartbeat.title, "First Heartbeat Review");
+        assert_eq!(heartbeat.description, "Review current priorities.");
+        assert_eq!(heartbeat.assignee.as_deref(), Some("ceo"));
+        assert_eq!(heartbeat.project.as_deref(), Some("first-project"));
+        assert!(heartbeat.recurring);
+        assert_eq!(heartbeat.schedule, None);
+        let setup = tasks
+            .iter()
+            .find(|task| task.slug == "setup")
+            .expect("setup task");
+        assert!(!setup.recurring);
+        assert!(team_tasks(root, "missing").is_empty());
+    }
+
+    #[test]
+    fn preview_includes_planned_routines() {
+        let dir = seed_catalog();
+        let root = dir.path();
+        let team = detail_at(root, "test:bundled:acme:core-team").expect("team");
+        let preview = preview(root, &team, &[], &[]);
+        assert_eq!(preview.routines.len(), 1);
+        assert_eq!(preview.routines[0].slug, "first-heartbeat");
+        assert_eq!(preview.routines[0].title, "First Heartbeat Review");
+        assert!(preview.routines[0].recurring);
     }
 }
