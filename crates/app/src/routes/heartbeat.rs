@@ -96,6 +96,28 @@ pub async fn start_run(
     validate_start(&body)?;
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
+    // Shared-workspace concurrency gate: defer when the targeted shared
+    // workspace is busy under `auto`/`serialize` (issue #206 phase B).
+    if let Some(issue_id) = &body.issue_id {
+        let busy = crate::workspace_policy::check_shared_workspace_busy(
+            state,
+            &company_id,
+            issue_id,
+            None,
+        )
+        .await?;
+        if busy.busy {
+            let _ = crate::workspace_policy::enqueue_workspace_busy_retry(
+                state,
+                &company_id,
+                &body.agent_id,
+                issue_id,
+                1,
+            )
+            .await;
+            return Err(ApiError::conflict("Shared workspace is busy; run deferred"));
+        }
+    }
     let run = state
         .heartbeat
         .start(NewHeartbeatRun {

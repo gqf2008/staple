@@ -111,13 +111,67 @@ async fn dispatch_wakeups(state: &AppState, config: &SchedulerConfig) -> Result<
                 .reason
                 .clone()
                 .or_else(|| Some(format!("wakeup:{}", claimed.source)));
+            // Workspace-busy retry wakeups carry `{issueId, attempt}`; re-check
+            // the shared workspace and either start the run or retry up to the
+            // bounded maximum (issue #206 phase B).
+            let retry_issue_id = claimed
+                .payload
+                .as_ref()
+                .and_then(|payload| payload.get("issueId"))
+                .and_then(serde_json::Value::as_str)
+                .map(str::to_owned);
+            if let Some(issue_id) = &retry_issue_id {
+                let attempt = claimed
+                    .payload
+                    .as_ref()
+                    .and_then(|payload| payload.get("attempt"))
+                    .and_then(serde_json::Value::as_u64)
+                    .unwrap_or(1);
+                let busy = crate::workspace_policy::check_shared_workspace_busy(
+                    state,
+                    &company.id,
+                    issue_id,
+                    None,
+                )
+                .await
+                .map_err(|e| e.to_string())?
+                .busy;
+                if busy {
+                    if attempt < crate::workspace_policy::WORKSPACE_BUSY_MAX_RETRY {
+                        let _ = crate::workspace_policy::enqueue_workspace_busy_retry(
+                            state,
+                            &company.id,
+                            &claimed.agent_id,
+                            issue_id,
+                            attempt + 1,
+                        )
+                        .await;
+                        let _ = state
+                            .agent_runtime
+                            .wakeup_finish(&company.id, &claimed.id, "finished", None, None)
+                            .await;
+                    } else {
+                        let _ = state
+                            .agent_runtime
+                            .wakeup_finish(
+                                &company.id,
+                                &claimed.id,
+                                "failed",
+                                Some("workspace busy retry exhausted".to_owned()),
+                                None,
+                            )
+                            .await;
+                    }
+                    continue;
+                }
+            }
             match state
                 .heartbeat
                 .start(staple_data::NewHeartbeatRun {
                     company_id: company.id.clone(),
                     agent_id: claimed.agent_id.clone(),
                     invocation_source: "scheduler".to_owned(),
-                    issue_id: None,
+                    issue_id: retry_issue_id,
                     context_snapshot: None,
                     trigger_detail,
                 })

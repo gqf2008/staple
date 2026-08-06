@@ -34,6 +34,8 @@ pub struct ProjectWorkspaceRecord {
     pub visibility: String,
     /// Primary flag.
     pub is_primary: bool,
+    /// Shared workspace key (identifies a shared workspace for concurrency).
+    pub shared_workspace_key: Option<String>,
     /// ISO 8601 creation time.
     pub created_at: String,
 }
@@ -189,6 +191,8 @@ pub struct NewProjectWorkspace {
     pub repo_url: Option<String>,
     /// Primary flag.
     pub is_primary: bool,
+    /// Shared workspace key (shared concurrency scope).
+    pub shared_workspace_key: Option<String>,
 }
 
 /// Input for creating an execution workspace.
@@ -384,6 +388,19 @@ pub trait WorkspaceRepository: Send + Sync {
         &self,
         company_id: &str,
     ) -> Result<Vec<WorkspaceOperationRecord>, WorkspaceError>;
+
+    /// Whether a shared project workspace has an active (running/queued)
+    /// workspace operation from a run other than `exclude_run_id`.
+    ///
+    /// # Errors
+    ///
+    /// Returns [`WorkspaceError`] on database failure.
+    async fn shared_workspace_busy(
+        &self,
+        company_id: &str,
+        project_workspace_id: &str,
+        exclude_run_id: Option<&str>,
+    ) -> Result<bool, WorkspaceError>;
 }
 
 /// Turso/libSQL implementation of [`WorkspaceRepository`].
@@ -454,8 +471,9 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
         let id = Uuid::new_v4().to_string();
         conn.execute(
             "INSERT INTO project_workspaces (id, company_id, project_id, name, source_type,
-                                             cwd, repo_url, is_primary, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, 'local_path', ?5, ?6, ?7,
+                                             cwd, repo_url, is_primary, shared_workspace_key,
+                                             created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, 'local_path', ?5, ?6, ?7, ?8,
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'),
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
             libsql::params![
@@ -465,14 +483,16 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
                 input.name,
                 input.cwd,
                 input.repo_url,
-                i64::from(input.is_primary)
+                i64::from(input.is_primary),
+                input.shared_workspace_key
             ],
         )
         .await?;
         let mut rows = conn
             .query(
                 "SELECT id, company_id, project_id, name, source_type, cwd, repo_url,
-                        repo_ref, default_ref, visibility, is_primary, created_at
+                        repo_ref, default_ref, visibility, is_primary, created_at,
+                        shared_workspace_key
                  FROM project_workspaces WHERE id = ?1",
                 libsql::params![id],
             )
@@ -491,6 +511,7 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
             visibility: helpers::row_text(&row, 9)?.expect("visibility"),
             is_primary: helpers::row_i64(&row, 10)? != 0,
             created_at: helpers::row_text(&row, 11)?.expect("created_at"),
+            shared_workspace_key: helpers::row_text(&row, 12)?,
         })
     }
 
@@ -502,10 +523,12 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
         let conn = crate::connection::connect(&self.db).await?;
         let sql = match project_id {
             Some(_) => "SELECT id, company_id, project_id, name, source_type, cwd, repo_url,
-                        repo_ref, default_ref, visibility, is_primary, created_at
+                        repo_ref, default_ref, visibility, is_primary, created_at,
+                        shared_workspace_key
                  FROM project_workspaces WHERE company_id = ?1 AND project_id = ?2 ORDER BY created_at",
             None => "SELECT id, company_id, project_id, name, source_type, cwd, repo_url,
-                        repo_ref, default_ref, visibility, is_primary, created_at
+                        repo_ref, default_ref, visibility, is_primary, created_at,
+                        shared_workspace_key
                  FROM project_workspaces WHERE company_id = ?1 ORDER BY created_at",
         };
         let params: Vec<libsql::Value> = match project_id {
@@ -528,6 +551,7 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
                 visibility: helpers::row_text(&row, 9)?.expect("visibility"),
                 is_primary: helpers::row_i64(&row, 10)? != 0,
                 created_at: helpers::row_text(&row, 11)?.expect("created_at"),
+                shared_workspace_key: helpers::row_text(&row, 12)?,
             });
         }
         Ok(workspaces)
@@ -921,7 +945,31 @@ impl WorkspaceRepository for TursoWorkspaceRepository {
                 created_at: helpers::row_text(&row, 18)?.expect("created_at"),
             });
         }
+
         Ok(operations)
+    }
+
+    async fn shared_workspace_busy(
+        &self,
+        company_id: &str,
+        project_workspace_id: &str,
+        exclude_run_id: Option<&str>,
+    ) -> Result<bool, WorkspaceError> {
+        let conn = crate::connection::connect(&self.db).await?;
+        let mut rows = conn
+            .query(
+                "SELECT 1 FROM workspace_operations op
+                 JOIN execution_workspaces ew
+                   ON ew.id = op.execution_workspace_id AND ew.company_id = op.company_id
+                 WHERE op.company_id = ?1
+                   AND ew.project_workspace_id = ?2
+                   AND op.status IN ('running', 'queued')
+                   AND (?3 IS NULL OR op.heartbeat_run_id IS NULL OR op.heartbeat_run_id != ?3)
+                 LIMIT 1",
+                libsql::params![company_id, project_workspace_id, exclude_run_id],
+            )
+            .await?;
+        Ok(rows.next().await?.is_some())
     }
 }
 
@@ -983,6 +1031,7 @@ mod tests {
                 cwd: Some("/ws/main".to_owned()),
                 repo_url: None,
                 is_primary: true,
+                shared_workspace_key: None,
             })
             .await
             .unwrap();
@@ -998,6 +1047,7 @@ mod tests {
                 cwd: None,
                 repo_url: None,
                 is_primary: false,
+                shared_workspace_key: None,
             })
             .await
             .unwrap_err();
@@ -1043,6 +1093,7 @@ mod tests {
                 cwd: None,
                 repo_url: None,
                 is_primary: true,
+                shared_workspace_key: None,
             })
             .await
             .unwrap();
@@ -1099,5 +1150,87 @@ mod tests {
         assert_eq!(services.len(), 1);
         let ops = repo.list_operations("c1").await.unwrap();
         assert_eq!(ops.len(), 1);
+    }
+    #[tokio::test]
+    async fn shared_workspace_busy_detects_active_operations() {
+        let (dir, repo) = repo().await;
+        let db = open(&crate::DbConfig::local(dir.path().join("test.db")))
+            .await
+            .unwrap();
+        let conn = crate::connect(&db).await.unwrap();
+        conn.execute(
+            "INSERT INTO heartbeat_runs (id, company_id, agent_id, invocation_source, status)
+             VALUES ('run-1', 'c1', 'a1', 'manual', 'running')",
+            (),
+        )
+        .await
+        .unwrap();
+        let pw = repo
+            .create_project_workspace(NewProjectWorkspace {
+                company_id: "c1".to_owned(),
+                project_id: "p1".to_owned(),
+                name: "shared".to_owned(),
+                cwd: None,
+                repo_url: None,
+                is_primary: false,
+                shared_workspace_key: Some("team-ws".to_owned()),
+            })
+            .await
+            .unwrap();
+        assert_eq!(pw.shared_workspace_key.as_deref(), Some("team-ws"));
+        let ew = repo
+            .create_execution_workspace(NewExecutionWorkspace {
+                company_id: "c1".to_owned(),
+                project_id: "p1".to_owned(),
+                project_workspace_id: Some(pw.id.clone()),
+                source_issue_id: Some("i1".to_owned()),
+                mode: "reuse_existing".to_owned(),
+                strategy_type: "shared".to_owned(),
+                name: "exec".to_owned(),
+                cwd: None,
+                repo_url: None,
+            })
+            .await
+            .unwrap();
+        // No operations -> not busy.
+        assert!(
+            !repo
+                .shared_workspace_busy("c1", &pw.id, None)
+                .await
+                .unwrap()
+        );
+        // Active operation -> busy.
+        let op = repo
+            .create_operation(NewWorkspaceOperation {
+                company_id: "c1".to_owned(),
+                execution_workspace_id: Some(ew.id.clone()),
+                heartbeat_run_id: Some("run-1".to_owned()),
+                issue_id: Some("i1".to_owned()),
+                phase: "run".to_owned(),
+                command: None,
+                log_ref: None,
+            })
+            .await
+            .unwrap();
+        assert_eq!(op.status, "running");
+        assert!(
+            repo.shared_workspace_busy("c1", &pw.id, None)
+                .await
+                .unwrap()
+        );
+        // Excluding the owning run clears busy.
+        assert!(
+            !repo
+                .shared_workspace_busy("c1", &pw.id, Some("run-1"))
+                .await
+                .unwrap()
+        );
+        // A different company is never busy.
+        assert!(
+            !repo
+                .shared_workspace_busy("c2", &pw.id, None)
+                .await
+                .unwrap()
+        );
     }
 }
