@@ -51,6 +51,19 @@ async fn send_json(
     )
 }
 
+async fn get_html(router: &Router, path: &str) -> (StatusCode, String) {
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(path)
+        .body(Body::empty())
+        .unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    (status, String::from_utf8_lossy(&bytes).into_owned())
+}
+
 async fn send_json_with_header(
     router: &Router,
     method: Method,
@@ -968,4 +981,23 @@ async fn attention_feed_blocker_weight_ordering() {
         .as_u64()
         .unwrap();
     assert!(weight_a >= 1, "iss-xa chain holds up iss-extra");
+}
+
+#[tokio::test]
+async fn what_needs_me_page_renders_attention_feed() {
+    let (state, db) = test_state().await;
+    let app = router(state.clone());
+    let (company_id, _agent_id, _blocked_id, _newest_id) =
+        seed_attention_fixture(&state, &db).await;
+
+    let (status, html) = get_html(&app, &format!("/companies/{company_id}/what-needs-me")).await;
+    assert_eq!(status, StatusCode::OK, "page render");
+    assert!(html.contains("What needs me"), "page title");
+    assert!(html.contains("Blocked task"), "blocker item title");
+    assert!(
+        html.contains("Budget exhausted - Attention Co"),
+        "budget item title"
+    );
+    assert!(html.contains("dismiss/ui"), "dismiss form action");
+    assert!(html.contains("class=\"badge\""), "desk badge rendered");
 }

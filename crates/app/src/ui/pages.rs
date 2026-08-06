@@ -8,6 +8,7 @@ use topcoat::{
 };
 
 use crate::{
+    attention::{AttentionQuery, build_attention_feed},
     i18n::{Lang, lang_from_request, t, with_lang},
     state::AppState,
 };
@@ -3991,40 +3992,53 @@ pub async fn my_issues(cx: &Cx) -> Result {
     }
 }
 
-/// What needs me page: issues awaiting attention.
+/// What needs me page: issue-based attention feed.
 #[page("/companies/{company_id}/what-needs-me")]
 pub async fn what_needs_me(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
-    let issue_rows = state
-        .issues
-        .list(&company_id)
-        .await
-        .map_err(to_topcoat_error)?
-        .into_iter()
-        .filter(|issue| {
-            matches!(
-                issue.status.as_str(),
-                "backlog" | "todo" | "in_review" | "blocked"
-            )
-        })
-        .collect::<Vec<_>>();
+    let feed = build_attention_feed(
+        state,
+        &company_id,
+        &AttentionQuery {
+            limit: 100,
+            sort: "decide".to_owned(),
+            ..AttentionQuery::default()
+        },
+    )
+    .await
+    .map_err(to_topcoat_error)?;
     view! {
-        <h1 class="page-title">(t(lang, "whatNeedsMe.title"))</h1>
+        <h1 class="page-title">
+            (t(lang, "whatNeedsMe.title"))
+            if feed.desk_badge_count > 0 {
+                " " <span class="badge">(feed.desk_badge_count.to_string())</span>
+            }
+        </h1>
         <section>
             <h2>(t(lang, "whatNeedsMe.list"))</h2>
-            if issue_rows.is_empty() {
+            if feed.items.is_empty() {
                 <p class="empty">(t(lang, "whatNeedsMe.none"))</p>
             } else {
                 <ul class="list">
-                    for issue in issue_rows {
+                    for item in feed.items {
                         <li>
-                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
-                                <span class="mono">(issue.identifier.clone())</span>
-                                " " <strong>(issue.title.clone())</strong>
-                            </a>
-                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                            if let Some(href) = &item.subject.href {
+                                <a href=(with_lang(href, lang))>
+                                    <strong>(item.subject.title.clone())</strong>
+                                </a>
+                            } else {
+                                <strong>(item.subject.title.clone())</strong>
+                            }
+                            if let Some(identifier) = &item.subject.identifier {
+                                " " <span class="mono">(identifier.clone())</span>
+                            }
+                            " " <span class=(status_badge_class(&item.subject.status))>(item.subject.status.clone())</span>
+                            " " <span class="meta-row">(item.why_now.clone())</span>
+                            <form method="post" action=(with_lang(&format!("/companies/{company_id}/attention/{}/dismiss/ui", item.dedup_key), lang))>
+                                <button type="submit" class="secondary">(t(lang, "whatNeedsMe.dismiss"))</button>
+                            </form>
                         </li>
                     }
                 </ul>
