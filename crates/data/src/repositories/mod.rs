@@ -156,9 +156,9 @@ pub use issue_relations::{
     TursoIssueRelationRepository,
 };
 pub use issue_structure::{
-    ExecutionDecisionRecord, IssueApprovalRecord, IssueReadStateRecord, IssueStructureError,
-    IssueStructureRepository, NewExecutionDecision, NewThreadInteraction, ThreadInteractionRecord,
-    TursoIssueStructureRepository,
+    CreateThreadInteractionOutcome, ExecutionDecisionRecord, IssueApprovalRecord,
+    IssueReadStateRecord, IssueStructureError, IssueStructureRepository, NewExecutionDecision,
+    NewThreadInteraction, ThreadInteractionRecord, TursoIssueStructureRepository,
 };
 pub use issues::{
     IssueError, IssuePatch, IssueRecord, IssueRepository, NewIssue, TursoIssueRepository,

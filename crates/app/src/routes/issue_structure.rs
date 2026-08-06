@@ -12,6 +12,7 @@ use topcoat::{
 
 use crate::{
     audit::log_activity,
+    auth::{Principal, current_principal},
     error::ApiError,
     routes::{CompanyId, Id, is_uuid},
     state::AppState,
@@ -213,20 +214,30 @@ pub async fn create_thread_interaction(
     let issue_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let company_id = resolve_issue_company(state, &issue_id).await?;
-    let record = state
+    let (created_by_agent_id, created_by_user_id) = match current_principal(cx) {
+        Principal::Agent(agent) => (Some(agent.agent_id), None),
+        Principal::Board | Principal::BoardKey(_) => (None, board_user_id(cx)),
+    };
+    let outcome = state
         .issue_structure
         .create_thread_interaction(NewThreadInteraction {
             company_id,
             issue_id,
             kind: body.kind,
             payload: body.payload.unwrap_or_else(|| json!({})).to_string(),
+            created_by_agent_id,
+            created_by_user_id,
         })
         .await
         .map_err(structure_error_to_api)?;
-    Ok((
-        StatusCode::CREATED,
-        Json(serde_json::to_value(&record).unwrap_or_default()),
-    ))
+    let mut value = serde_json::to_value(&outcome.interaction).unwrap_or_default();
+    if let Some(object) = value.as_object_mut() {
+        object.insert(
+            "superseded".to_owned(),
+            serde_json::to_value(&outcome.superseded).unwrap_or_default(),
+        );
+    }
+    Ok((StatusCode::CREATED, Json(value)))
 }
 
 /// `GET /api/issues/{issueId}/thread-interactions`.
@@ -355,6 +366,23 @@ pub async fn list_execution_decisions(cx: &Cx) -> Result<Json<serde_json::Value>
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(Json(serde_json::to_value(&records).unwrap_or_default()))
+}
+
+/// Board actor identity from the `X-Board-User` header, when present.
+///
+/// Agents are recorded through `created_by_agent_id` instead; the header is
+/// ignored for agent principals.
+fn board_user_id(cx: &Cx) -> Option<String> {
+    topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts
+                .headers
+                .get("x-board-user")
+                .and_then(|value| value.to_str().ok())
+        })
+        .map(str::trim)
+        .filter(|value| !value.is_empty())
+        .map(str::to_owned)
 }
 
 /// Resolves an issue's company id through the issues repository.

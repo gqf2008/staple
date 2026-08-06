@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
 
 ## 使用方式
 
@@ -111,7 +111,7 @@
 - 2026-08-06：登记上游 8-03→8-04 增量（`sync/upstream` 落后于 `upstream/master`，手动触发镜像同步）：
   - **attention/决策桌 triage**（#10785）：`deskBadgeCount`（今天新增/到期，分页前计算）、`blockedTaskCount`、blocker 树 `blockingTreeLive`/`terminalBlockerIssueId`、按阻塞权重排序、pending request_confirmation 折叠 → issue #204
   - **共享工作区并发**：`sharedWorkspaceConcurrency`（auto/serialize/allow，project policy + issue settings + 执行目标/心跳序列化）→ issue #206
-  - **request confirmation supersede**：`superseded_by_newer_request` outcome + `supersededByInteractionId`，创建时过期旧 pending + sweep → issue #205
+  - **request confirmation supersede**：`superseded_by_newer_request` outcome + `supersededByInteractionId`，创建时过期旧 pending + sweep → ✅ 完成（issue #205）
   - **task-chat UI polish**（#10707）：rich-text composer / attachment chips / live-turn interstitials / mobile layout（React 组件级 UI 打磨）→ ⏳ 评估后明确不迁移（Topcoat 版 Board Chat 已有等价聊天交互；后续按 UX 差异单独登记）
   - **observability 与修复类**（plugin-host-services span、instrumentation、sandbox reset、daytona bwrap、managed sign-out redirect、duplicate create-task loading、lockfile）→ ⏳ 明确不迁移（遥测/埋点与上游 Bug 修复，无 Staple 功能面差异）
 - 2026-08-03：登记上游 **UI 国际化（i18n）sweep**（zh-CN/zh-TW 全量翻译 + 多语言 locale，来自参考分支 `sync/reference-i18n`，仅改动 Node 参考快照 `ui/`，不影响 `crates/`）。同日完成 Rust 侧 en + zh-CN 实现（#50）。
@@ -133,3 +133,4 @@
 | **UserProfile 公开页（u/:userSlug）** | 已实现：principal 身份资料页 + 统计（issue #173/PR #175） | ✅ 完成 |
 | **Onboarding 向导**（onboarding 路由） | 已实现：欢迎页 + 首个公司创建表单（issue #173/PR #175） | ✅ 完成 |
 | **cloud-upstream 设置**（company/settings/cloud-upstream） | 依赖上游云服务集成 | ⏳ 明确不迁移 |
+| **request confirmation 自动过期**（superseded_by_newer_request + 创建时过期同组旧 pending + sweep 分组幂等过期） | 已实现：创建交互路由接入 actor 列 + 同组旧 pending 过期，scheduler 每日 sweep，API/数据层测试覆盖（issue #205） | ✅ 完成 |
