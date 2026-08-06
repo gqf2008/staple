@@ -8,13 +8,13 @@ use staple_data::{
     CaseRepository, CompanyRepository, CostRepository, DecisionActionRepository,
     DecisionRepository, DocumentRepository, EnvironmentRepository, ExternalObjectCatalogRepository,
     ExternalObjectRepository, GoalRepository, HeartbeatRepository, InfrastructureRepository,
-    InviteRepository, IssueCommentRepository, IssueRelationRepository, IssueRepository,
-    IssueStructureRepository, LabelRepository, MembershipRepository, PermissionGrantRepository,
-    PipelineRepository, PluginRepository, PluginRuntimeRepository, PortabilityRepository,
-    PreferenceRepository, ProjectRepository, RoutineRepository, ScatteredRepository,
-    SecretBindingRepository, SecretRepository, SkillCatalogRepository, SkillRepository,
-    ToolCatalogRepository, ToolConnectionRepository, ToolGatewayRepository, WorkProductRepository,
-    WorkspaceRepository,
+    InstructionRepository, InviteRepository, IssueCommentRepository, IssueRelationRepository,
+    IssueRepository, IssueStructureRepository, LabelRepository, MembershipRepository,
+    PermissionGrantRepository, PipelineRepository, PluginRepository, PluginRuntimeRepository,
+    PortabilityRepository, PreferenceRepository, ProjectRepository, RoutineRepository,
+    ScatteredRepository, SecretBindingRepository, SecretRepository, SkillCatalogRepository,
+    SkillRepository, ToolCatalogRepository, ToolConnectionRepository, ToolGatewayRepository,
+    WorkProductRepository, WorkspaceRepository,
 };
 
 use crate::{board_claim::BoardClaimManager, storage::LocalStorage};
@@ -39,6 +39,8 @@ pub struct AppState {
     pub board_claim: Arc<BoardClaimManager>,
     /// Infrastructure repository (auth/settings/folders/watchdogs/events).
     pub infrastructure: Arc<dyn InfrastructureRepository>,
+    /// Instruction documents + agent instruction file mounts repository.
+    pub instructions: Arc<dyn InstructionRepository>,
     /// Board API keys / CLI auth challenges repository.
     pub board_keys: Arc<dyn BoardKeyRepository>,
     /// Budget policies / incidents repository.

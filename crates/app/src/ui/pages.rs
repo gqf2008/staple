@@ -6903,3 +6903,142 @@ pub async fn not_found(cx: &Cx) -> Result {
         </nav>
     }
 }
+
+/// Typed `{agent_id}` path segment for instruction pages.
+#[path_param(error = bad_request("Invalid agent id"))]
+pub(crate) struct AgentId(String);
+
+/// Percent-encodes a path value for use inside a URL path segment so nested
+/// instruction paths (`docs/AGENTS.md`) survive the single-segment `{path}`
+/// route parameter.
+#[must_use]
+pub fn encode_path_segment(value: &str) -> String {
+    let mut out = String::new();
+    for byte in value.bytes() {
+        match byte {
+            b'A'..=b'Z' | b'a'..=b'z' | b'0'..=b'9' | b'-' | b'_' | b'.' | b'~' => {
+                out.push(char::from(byte));
+            }
+            _ => out.push_str(&format!("%{byte:02X}")),
+        }
+    }
+    out
+}
+
+/// Company instruction document library: list + create + delete.
+#[page("/companies/{company_id}/instructions")]
+pub async fn company_instructions(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let documents = state
+        .instructions
+        .list_documents(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "instructions.title"))</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "settings.title"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "instructions.createDocument"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/instruction-documents/ui"), lang))>
+                <input type="text" name="name" placeholder=(t(lang, "instructions.nameLabel")) required="required">
+                <textarea name="content" rows="6" cols="80" placeholder=(t(lang, "instructions.contentLabel"))></textarea>
+                <button type="submit">(t(lang, "instructions.createDocument"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "instructions.documents"))</h2>
+            if documents.is_empty() {
+                <p class="empty">(t(lang, "instructions.noDocuments"))</p>
+            } else {
+                <ul class="list">
+                    for document in documents {
+                        <li>
+                            <strong>(document.name.clone())</strong>
+                            " " <span class="meta-row">(t(lang, "instructions.updatedAt")) " " (document.updated_at.clone())</span>
+                            <pre class="preview">(document.content.clone())</pre>
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/instruction-documents/{}/delete/ui", document.id), lang))>
+                                <button class="destructive" type="submit">(t(lang, "instructions.delete"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}
+
+/// Agent instruction files: list, view, add, edit, delete.
+#[page("/companies/{company_id}/agents/{agent_id}/instructions")]
+pub async fn agent_instructions(cx: &Cx) -> Result {
+    let lang = lang_from_request(cx);
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let agent_id = path_param::<AgentId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let Some(agent) = state
+        .agents
+        .get(&company_id, &agent_id)
+        .await
+        .map_err(to_topcoat_error)?
+    else {
+        return Err(topcoat::router::error::not_found().into());
+    };
+    let files = state
+        .instructions
+        .list_agent_files(&company_id, &agent_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    view! {
+        <h1 class="page-title">(t(lang, "instructions.agentFiles")) ": " (agent.name.clone())</h1>
+        <nav class="nav-row">
+            <a href=(with_lang(&format!("/agents/{agent_id}"), lang))>(t(lang, "instructions.backToAgent"))</a>
+            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang))>(t(lang, "agents.title"))</a>
+        </nav>
+        <section>
+            <h2>(t(lang, "instructions.addFile"))</h2>
+            <form class="inline-form" method="post"
+                  action=(with_lang(&format!("/companies/{company_id}/agents/{agent_id}/instructions/ui"), lang))>
+                <input type="text" name="path" placeholder=(t(lang, "instructions.pathLabel")) required="required">
+                <textarea name="content" rows="6" cols="80" placeholder=(t(lang, "instructions.contentLabel"))></textarea>
+                <label><input type="checkbox" name="isEntry" value="true"> (t(lang, "instructions.entry"))</label>
+                <button type="submit">(t(lang, "instructions.addFile"))</button>
+            </form>
+        </section>
+        <section>
+            <h2>(t(lang, "instructions.mountedFiles"))</h2>
+            if files.is_empty() {
+                <p class="empty">(t(lang, "instructions.noFiles"))</p>
+            } else {
+                <ul class="list">
+                    for file in files {
+                        <li>
+                            <span class="mono">(file.path.clone())</span>
+                            if file.is_entry {
+                                " " <span class="badge badge-done">(t(lang, "instructions.entry"))</span>
+                            }
+                            " " <span class="meta-row">(t(lang, "instructions.updatedAt")) " " (file.updated_at.clone())</span>
+                            <pre class="preview">(file.content.clone())</pre>
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/companies/{company_id}/agents/{agent_id}/instructions/{}/delete/ui", encode_path_segment(&file.path)), lang))>
+                                <button class="destructive" type="submit">(t(lang, "instructions.delete"))</button>
+                            </form>
+                            <form class="inline-form" method="post"
+                                  action=(with_lang(&format!("/companies/{company_id}/agents/{agent_id}/instructions/ui"), lang))>
+                                <input type="hidden" name="path" value=(file.path.clone())>
+                                <textarea name="content" rows="6" cols="80">(file.content.clone())</textarea>
+                                <label><input type="checkbox" name="isEntry" value="true"
+                                              checked=(file.is_entry)> (t(lang, "instructions.entry"))</label>
+                                <button type="submit">(t(lang, "instructions.save"))</button>
+                            </form>
+                        </li>
+                    }
+                </ul>
+            }
+        </section>
+    }
+}

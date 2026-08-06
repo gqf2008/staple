@@ -16,15 +16,16 @@ use staple_data::{
     TursoDecisionActionRepository, TursoDecisionRepository, TursoDocumentRepository,
     TursoEnvironmentRepository, TursoExternalObjectCatalogRepository,
     TursoExternalObjectRepository, TursoGoalRepository, TursoHeartbeatRepository,
-    TursoInfrastructureRepository, TursoInviteRepository, TursoIssueCommentRepository,
-    TursoIssueRelationRepository, TursoIssueRepository, TursoIssueStructureRepository,
-    TursoLabelRepository, TursoMembershipRepository, TursoPermissionGrantRepository,
-    TursoPipelineRepository, TursoPluginRepository, TursoPluginRuntimeRepository,
-    TursoPortabilityRepository, TursoPreferenceRepository, TursoProjectRepository,
-    TursoRoutineRepository, TursoScatteredRepository, TursoSecretBindingRepository,
-    TursoSecretRepository, TursoSkillCatalogRepository, TursoSkillRepository,
-    TursoToolCatalogRepository, TursoToolConnectionRepository, TursoToolGatewayRepository,
-    TursoWorkProductRepository, TursoWorkspaceRepository, migrate, open,
+    TursoInfrastructureRepository, TursoInstructionRepository, TursoInviteRepository,
+    TursoIssueCommentRepository, TursoIssueRelationRepository, TursoIssueRepository,
+    TursoIssueStructureRepository, TursoLabelRepository, TursoMembershipRepository,
+    TursoPermissionGrantRepository, TursoPipelineRepository, TursoPluginRepository,
+    TursoPluginRuntimeRepository, TursoPortabilityRepository, TursoPreferenceRepository,
+    TursoProjectRepository, TursoRoutineRepository, TursoScatteredRepository,
+    TursoSecretBindingRepository, TursoSecretRepository, TursoSkillCatalogRepository,
+    TursoSkillRepository, TursoToolCatalogRepository, TursoToolConnectionRepository,
+    TursoToolGatewayRepository, TursoWorkProductRepository, TursoWorkspaceRepository, migrate,
+    open,
 };
 use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
@@ -137,6 +138,11 @@ async fn core_business_flow_smoke() {
                 .unwrap(),
         )),
         infrastructure: Arc::new(TursoInfrastructureRepository::new(
+            open(&DbConfig::local(dir.path().join("test.db")))
+                .await
+                .unwrap(),
+        )),
+        instructions: Arc::new(TursoInstructionRepository::new(
             open(&DbConfig::local(dir.path().join("test.db")))
                 .await
                 .unwrap(),
@@ -920,6 +926,10 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/review-queue"),
             "Review queue",
         ),
+        (
+            format!("/companies/{company_id}/instructions"),
+            "Instruction documents",
+        ),
         (format!("/companies/{company_id}/learnings"), "Learnings"),
         (format!("/routines/{routine_id}"), "Run history"),
         (
@@ -960,6 +970,56 @@ async fn core_business_flow_smoke() {
         let html = String::from_utf8(bytes.to_vec()).unwrap();
         assert!(html.contains(needle), "page missing {needle}");
     }
+
+    // Instruction pages render and agent creation materializes the default
+    // AGENTS.md mount (issue #200).
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let smoke_agent = body
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|agent| agent["name"] == "Smoke Agent")
+        .expect("Smoke Agent is listed");
+    let smoke_agent_id = smoke_agent["id"].as_str().unwrap();
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!(
+            "/companies/{company_id}/agents/{smoke_agent_id}/instructions"
+        ))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains("Agent instructions"),
+        "agent instructions page missing"
+    );
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents/{smoke_agent_id}/instructions"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(
+        files.len(),
+        1,
+        "default bundle for engineer role: body: {body}"
+    );
+    assert_eq!(files[0]["path"], "AGENTS.md");
+    assert_eq!(files[0]["isEntry"], true);
 
     // Sidebar information architecture renders on company pages.
     let request = Request::builder()
