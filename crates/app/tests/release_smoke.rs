@@ -885,7 +885,7 @@ async fn core_business_flow_smoke() {
             "/board-claim/demo-token?code=demo".to_string(),
             "Claim board ownership",
         ),
-        ("/onboarding".to_string(), "Step 1 of 4"),
+        ("/onboarding".to_string(), "Step 1 of 5"),
         (
             format!("/companies/{company_id}/teams/catalog"),
             "Team catalog",

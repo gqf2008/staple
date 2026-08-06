@@ -1,0 +1,138 @@
+{
+  "schemaVersion": 1,
+  "packageName": "@paperclipai/teams-catalog",
+  "packageVersion": "0.1.0",
+  "generatedAt": "2026-06-04T18:03:41.262Z",
+  "teams": [
+    {
+      "id": "paperclipai:bundled:company-defaults:core-exec-team",
+      "key": "paperclipai/bundled/company-defaults/core-exec-team",
+      "kind": "bundled",
+      "category": "company-defaults",
+      "slug": "core-exec-team",
+      "name": "Core Exec Team",
+      "description": "Default leadership and engineering team for bootstrapping a Paperclip company with a CEO, CTO, QA Engineer, starter project, and a recurring CEO heartbeat review task.",
+      "path": "catalog/bundled/company-defaults/core-exec-team",
+      "entrypoint": "TEAM.md",
+      "schema": "agentcompanies/v1",
+      "defaultInstall": true,
+      "recommendedForCompanyTypes": [
+        "startup",
+        "software",
+        "generalist"
+      ],
+      "tags": [
+        "default",
+        "executive",
+        "engineering",
+        "qa"
+      ],
+      "counts": {
+        "agents": 3,
+        "projects": 1,
+        "tasks": 0,
+        "routines": 1,
+        "localSkills": 0,
+        "catalogSkills": 4,
+        "externalSkillSources": 0
+      },
+      "rootAgentSlugs": [
+        "ceo"
+      ],
+      "agentSlugs": [
+        "ceo",
+        "cto",
+        "qa"
+      ],
+      "projectSlugs": [
+        "first-project"
+      ],
+      "requiredSkills": [
+        {
+          "type": "catalog",
+          "ref": "github-pr-workflow",
+          "agentSlugs": [
+            "cto"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:bundled:software-development:github-pr-workflow",
+          "catalogSkillKey": "paperclipai/bundled/software-development/github-pr-workflow"
+        },
+        {
+          "type": "catalog",
+          "ref": "issue-triage",
+          "agentSlugs": [
+            "ceo"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:bundled:paperclip-operations:issue-triage",
+          "catalogSkillKey": "paperclipai/bundled/paperclip-operations/issue-triage"
+        },
+        {
+          "type": "catalog",
+          "ref": "qa-acceptance",
+          "agentSlugs": [
+            "qa"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:bundled:quality:qa-acceptance",
+          "catalogSkillKey": "paperclipai/bundled/quality/qa-acceptance"
+        },
+        {
+          "type": "catalog",
+          "ref": "task-planning",
+          "agentSlugs": [
+            "ceo",
+            "cto"
+          ],
+          "resolved": true,
+          "catalogSkillId": "paperclipai:bundled:paperclip-operations:task-planning",
+          "catalogSkillKey": "paperclipai/bundled/paperclip-operations/task-planning"
+        }
+      ],
+      "envInputs": [],
+      "sourceRefs": [],
+      "files": [
+        {
+          "path": "TEAM.md",
+          "kind": "team",
+          "sizeBytes": 2144,
+          "sha256": "4ab4f57f147e89a56a6753755d7ef142d91741b3c0159f2e53fb333cd2779eaf"
+        },
+        {
+          "path": "agents/ceo/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 2492,
+          "sha256": "50f580c51807762265f09c6fe7bf32d7701d64caeb30595bfd577b2f5087c21b"
+        },
+        {
+          "path": "agents/cto/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1449,
+          "sha256": "596e2e9fe08d7368b3b0cfe72c2635ea80444d92a2c0414157bfb0a17773fcaf"
+        },
+        {
+          "path": "agents/qa/AGENTS.md",
+          "kind": "agent",
+          "sizeBytes": 1307,
+          "sha256": "2a139b88b4b98516048395c569c1bc74fd31cdc2da65db410e9779b8d92c0343"
+        },
+        {
+          "path": "projects/first-project/PROJECT.md",
+          "kind": "project",
+          "sizeBytes": 364,
+          "sha256": "1f457ae956da52ff83adc1cf63a3fb84337a4afb25bd43f0d123902d75e871cc"
+        },
+        {
+          "path": "projects/first-project/tasks/first-heartbeat/TASK.md",
+          "kind": "task",
+          "sizeBytes": 292,
+          "sha256": "bdc979cafa43fc9b8f0d6f0e4120c01cecfb899082781a5da88e26fa262f18e4"
+        }
+      ],
+      "trustLevel": "markdown_only",
+      "compatibility": "compatible",
+      "contentHash": "sha256:0f20e9d56124c1dc90a1e4b128fabd863538bcc935117220f719d9620f7c89f1"
+    }
+  ]
+}
