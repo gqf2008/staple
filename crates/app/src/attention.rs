@@ -17,9 +17,7 @@
 //! (dismiss/snooze), activity boundaries, and decision-queue filtering.
 
 use serde::Serialize;
-use staple_data::{
-    ApprovalRecord, DecisionRecord, HeartbeatRunRecord, IssueRecord, ThreadInteractionRecord,
-};
+use staple_data::{ApprovalRecord, HeartbeatRunRecord, IssueRecord, ThreadInteractionRecord};
 
 use crate::error::ApiError;
 use crate::state::AppState;
@@ -189,17 +187,47 @@ pub async fn build_attention_feed(
     collect_failed_runs(state, company_id, &mut items).await?;
     collect_decisions(state, company_id, &mut items).await?;
 
+    // Enrich items with the decision queues that contain their subject.
+    let mut queues_by_source: std::collections::HashMap<String, Vec<AttentionQueueRef>> =
+        std::collections::HashMap::new();
+    for queue in state
+        .decisions
+        .list_queues(company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?
+    {
+        let queue_ref = AttentionQueueRef {
+            key: queue.key.clone().unwrap_or_default(),
+            title: queue.title.clone().unwrap_or_else(|| queue.name.clone()),
+        };
+        for queue_item in state
+            .decisions
+            .list_items(company_id, &queue.id)
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?
+        {
+            queues_by_source
+                .entry(queue_item.source_id)
+                .or_default()
+                .push(queue_ref.clone());
+        }
+    }
+    for item in &mut items {
+        if let Some(queues) = queues_by_source.get(&item.subject.id) {
+            item.queues = queues.clone();
+        }
+    }
+
     // Dismissals (dismiss/snooze) filter + attach, unless include_dismissed.
     let dismissals = state
         .attention_dismissals
         .list(company_id, &query.user_id)
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
-    let by_key: std::collections::HashMap<String, staple_data::AttentionDismissalRecord> =
-        dismissals
-            .into_iter()
-            .map(|row| (row.item_key.clone(), row))
-            .collect();
+    let by_key: std::collections::HashMap<String, staple_data::DismissalRecord> = dismissals
+        .into_iter()
+        .map(|row| (row.item_key.clone(), row))
+        .collect();
     items.retain_mut(|item| {
         let Some(dismissal) = by_key.get(&item.dedup_key) else {
             return true;
@@ -232,7 +260,11 @@ pub async fn build_attention_feed(
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?
             .into_iter()
-            .filter(|queue| queue.key.as_deref() == Some(queue_key.as_str()))
+            .filter(|queue| {
+                queue.key.as_deref() == Some(queue_key.as_str())
+                    || queue.title.as_deref() == Some(queue_key.as_str())
+                    || queue.name == *queue_key
+            })
             .map(|queue| queue.id)
             .collect::<Vec<_>>();
         let mut allowed: std::collections::HashSet<String> = std::collections::HashSet::new();
@@ -756,7 +788,7 @@ async fn collect_failed_runs(
 ) -> Result<(), ApiError> {
     let runs = state
         .heartbeat
-        .list(company_id)
+        .list(company_id, None, 10_000)
         .await
         .map_err(|error| ApiError::internal(error.to_string()))?;
     if runs.is_empty() {
@@ -901,7 +933,7 @@ async fn collect_decisions(
 
 /// Whether a dismissal is currently active for an item.
 fn dismissal_active(
-    dismissal: &staple_data::AttentionDismissalRecord,
+    dismissal: &staple_data::DismissalRecord,
     activity_at: &str,
     now_secs: i64,
 ) -> bool {

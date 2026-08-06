@@ -700,11 +700,13 @@ async fn attention_feed_dismissals() {
         seed_attention_fixture(&state, &db).await;
 
     // Find the approval item key.
-    let (_, body) = send_json(
+    let (_, body) = send_json_with_header(
         &app,
         Method::GET,
         &format!("/api/companies/{company_id}/attention"),
         json!({}),
+        "X-Board-User",
+        "user-1",
     )
     .await;
     let approval = body["items"]
@@ -730,11 +732,13 @@ async fn attention_feed_dismissals() {
     assert_eq!(status, StatusCode::CREATED, "dismissal create");
 
     // Feed excludes it by default and includes it with includeDismissed.
-    let (status, body) = send_json(
+    let (status, body) = send_json_with_header(
         &app,
         Method::GET,
         &format!("/api/companies/{company_id}/attention"),
         json!({}),
+        "X-Board-User",
+        "user-1",
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -746,11 +750,13 @@ async fn attention_feed_dismissals() {
             .any(|item| item["subject"]["id"] == approval_id),
         "dismissed approval must be hidden"
     );
-    let (status, body) = send_json(
+    let (status, body) = send_json_with_header(
         &app,
         Method::GET,
         &format!("/api/companies/{company_id}/attention?includeDismissed=true"),
         json!({}),
+        "X-Board-User",
+        "user-1",
     )
     .await;
     assert_eq!(status, StatusCode::OK);
@@ -773,11 +779,13 @@ async fn attention_feed_dismissals() {
     )
     .await;
     assert_eq!(status, StatusCode::NO_CONTENT, "restore");
-    let (_, body) = send_json(
+    let (_, body) = send_json_with_header(
         &app,
         Method::GET,
         &format!("/api/companies/{company_id}/attention"),
         json!({}),
+        "X-Board-User",
+        "user-1",
     )
     .await;
     assert!(
@@ -830,10 +838,10 @@ async fn attention_feed_activity_boundary_and_queue() {
     // Queue filter: add the approval to a decision queue; queue=key keeps it.
     let queue = state
         .decisions
-        .create_queue(&company_id, "Board Review", None, None)
+        .create_queue(&company_id, "Board_Review", None, None)
         .await
         .unwrap();
-    let queue_key = queue.key.clone().expect("queue key");
+    let queue_key = queue.title.clone().unwrap_or_else(|| queue.name.clone());
     let (_, body) = send_json(
         &app,
         Method::GET,
@@ -899,7 +907,7 @@ async fn attention_feed_blocker_weight_ordering() {
                 company_id.clone(),
                 title.to_owned(),
                 status.to_owned(),
-                number.to_owned().into(),
+                number.to_string(),
                 format!("ATT-{number}"),
                 agent_id.clone(),
             ],
