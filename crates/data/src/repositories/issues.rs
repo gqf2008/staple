@@ -125,6 +125,8 @@ pub struct NewIssue {
     pub work_mode: Option<String>,
     /// Billing code.
     pub billing_code: Option<String>,
+    /// Execution workspace settings JSON (TEXT).
+    pub execution_workspace_settings: Option<String>,
 }
 
 /// Partial issue update.
@@ -142,6 +144,8 @@ pub struct IssuePatch {
     pub assignee_agent_id: Option<Option<String>>,
     /// New billing code.
     pub billing_code: Option<Option<String>>,
+    /// New execution workspace settings JSON (`null` clears).
+    pub execution_workspace_settings: Option<Option<String>>,
 }
 
 /// Issues repository errors.
@@ -383,9 +387,9 @@ impl IssueRepository for TursoIssueRepository {
                                  description, status, priority, assignee_agent_id,
                                  assignee_user_id, created_by_user_id, issue_number,
                                  identifier, request_depth, work_mode, billing_code,
-                                 created_at, updated_at)
+                                 execution_workspace_settings, created_at, updated_at)
              VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10, ?11, ?12, ?13, ?14, ?15, ?16,
-                     ?17, strftime('%Y-%m-%dT%H:%M:%fZ','now'),
+                     ?17, ?18, strftime('%Y-%m-%dT%H:%M:%fZ','now'),
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
             libsql::params![
                 id.clone(),
@@ -404,7 +408,8 @@ impl IssueRepository for TursoIssueRepository {
                 identifier,
                 0i64,
                 input.work_mode.unwrap_or_else(|| "standard".to_owned()),
-                input.billing_code
+                input.billing_code,
+                input.execution_workspace_settings
             ],
         )
         .await?;
@@ -488,6 +493,12 @@ impl IssueRepository for TursoIssueRepository {
         push(
             "billing_code",
             patch.billing_code.map(|value| value.map(Into::into)),
+        );
+        push(
+            "execution_workspace_settings",
+            patch
+                .execution_workspace_settings
+                .map(|value| value.map(Into::into)),
         );
         // §8.2 side effects: entering in_progress stamps started_at once,
         // done stamps completed_at, cancelled stamps cancelled_at.
@@ -655,6 +666,7 @@ mod tests {
             created_by_user_id: None,
             work_mode: None,
             billing_code: None,
+            execution_workspace_settings: None,
         }
     }
 
@@ -817,6 +829,7 @@ mod tests {
             created_by_user_id: None,
             work_mode: None,
             billing_code: None,
+            execution_workspace_settings: None,
         })
         .await
         .unwrap();
@@ -834,6 +847,7 @@ mod tests {
             created_by_user_id: None,
             work_mode: None,
             billing_code: None,
+            execution_workspace_settings: None,
         })
         .await
         .unwrap();
@@ -863,6 +877,7 @@ mod tests {
                 created_by_user_id: None,
                 work_mode: None,
                 billing_code: None,
+                execution_workspace_settings: None,
             })
             .await
             .unwrap();
@@ -883,5 +898,106 @@ mod tests {
         assert_eq!(fetched.source_trust.as_deref(), Some("{}"));
         assert!(fetched.blocked_transition_at.is_some());
         assert!(fetched.project_workspace_id.is_none());
+    }
+
+    #[tokio::test]
+    async fn execution_workspace_settings_roundtrip() {
+        let (_dir, repo, conn) = repo().await;
+        seed(&conn).await;
+        let settings = serde_json::json!({ "sharedWorkspaceConcurrency": "allow" }).to_string();
+        let created = repo
+            .create(NewIssue {
+                company_id: "c1".to_owned(),
+                project_id: None,
+                goal_id: None,
+                parent_id: None,
+                title: "Settings".to_owned(),
+                description: None,
+                status: None,
+                priority: None,
+                assignee_agent_id: None,
+                assignee_user_id: None,
+                created_by_user_id: None,
+                work_mode: None,
+                billing_code: None,
+                execution_workspace_settings: Some(settings.clone()),
+            })
+            .await
+            .unwrap();
+        assert_eq!(
+            created.execution_workspace_settings.as_deref(),
+            Some(settings.as_str())
+        );
+
+        // Read-back through get/list.
+        let fetched = repo.get(&created.id).await.unwrap().unwrap();
+        assert_eq!(
+            fetched.execution_workspace_settings.as_deref(),
+            Some(settings.as_str())
+        );
+        let listed = repo.list("c1").await.unwrap();
+        assert_eq!(
+            listed[0].execution_workspace_settings.as_deref(),
+            Some(settings.as_str())
+        );
+
+        // Update to a different value.
+        let updated = repo
+            .update(
+                &created.id,
+                IssuePatch {
+                    execution_workspace_settings: Some(Some(
+                        serde_json::json!({ "sharedWorkspaceConcurrency": "serialize" })
+                            .to_string(),
+                    )),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            updated.execution_workspace_settings.as_deref(),
+            Some(r#"{"sharedWorkspaceConcurrency":"serialize"}"#)
+        );
+
+        // Clear with explicit null.
+        let cleared = repo
+            .update(
+                &created.id,
+                IssuePatch {
+                    execution_workspace_settings: Some(None),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(cleared.execution_workspace_settings, None);
+
+        // Omitting the field leaves the stored value untouched (still NULL).
+        let untouched = repo
+            .update(
+                &created.id,
+                IssuePatch {
+                    title: Some("Untouched".to_owned()),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(untouched.execution_workspace_settings, None);
+
+        // Raw column round-trip: stored as TEXT JSON.
+        let mut rows = conn
+            .query(
+                "SELECT execution_workspace_settings FROM issues WHERE id = ?1",
+                libsql::params![created.id],
+            )
+            .await
+            .unwrap();
+        let row = rows.next().await.unwrap().unwrap();
+        assert!(super::helpers::row_text(&row, 0).unwrap().is_none());
     }
 }

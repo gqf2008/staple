@@ -68,6 +68,8 @@ pub struct NewProject {
     pub target_date: Option<String>,
     /// Environment bindings (JSON).
     pub env: Option<String>,
+    /// Execution workspace policy JSON.
+    pub execution_workspace_policy: Option<serde_json::Value>,
 }
 
 /// Partial project update.
@@ -85,6 +87,8 @@ pub struct ProjectPatch {
     pub lead_agent_id: Option<Option<String>>,
     /// New target date.
     pub target_date: Option<Option<String>>,
+    /// New execution workspace policy JSON (`null` clears).
+    pub execution_workspace_policy: Option<Option<serde_json::Value>>,
 }
 
 /// Projects repository errors.
@@ -230,8 +234,9 @@ impl ProjectRepository for TursoProjectRepository {
         let id = Uuid::new_v4().to_string();
         conn.execute(
             "INSERT INTO projects (id, company_id, goal_id, name, description, status,
-                                   lead_agent_id, target_date, env, created_at, updated_at)
-             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9,
+                                   lead_agent_id, target_date, env, execution_workspace_policy,
+                                   created_at, updated_at)
+             VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9, ?10,
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'),
                      strftime('%Y-%m-%dT%H:%M:%fZ','now'))",
             libsql::params![
@@ -243,7 +248,10 @@ impl ProjectRepository for TursoProjectRepository {
                 input.status,
                 input.lead_agent_id,
                 input.target_date,
-                input.env
+                input.env,
+                input
+                    .execution_workspace_policy
+                    .map(|value| value.to_string())
             ],
         )
         .await?;
@@ -317,6 +325,12 @@ impl ProjectRepository for TursoProjectRepository {
             (
                 "target_date",
                 patch.target_date.map(|value| value.map(Into::into)),
+            ),
+            (
+                "execution_workspace_policy",
+                patch
+                    .execution_workspace_policy
+                    .map(|value| value.map(|json| json.to_string().into())),
             ),
         ]);
         if sets.is_empty() {
@@ -409,6 +423,7 @@ mod tests {
                 lead_agent_id: None,
                 target_date: None,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .unwrap_err();
@@ -425,6 +440,7 @@ mod tests {
                 lead_agent_id: Some("a2".to_owned()),
                 target_date: None,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .unwrap_err();
@@ -441,6 +457,7 @@ mod tests {
                 lead_agent_id: Some("a1".to_owned()),
                 target_date: Some("2026-09-01".to_owned()),
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .unwrap();
@@ -462,6 +479,7 @@ mod tests {
                 lead_agent_id: None,
                 target_date: None,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .unwrap_err();
@@ -482,6 +500,7 @@ mod tests {
                 lead_agent_id: None,
                 target_date: None,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
             .unwrap();
@@ -528,5 +547,95 @@ mod tests {
             .await
             .unwrap();
         assert!(result.is_none());
+    }
+
+    #[tokio::test]
+    async fn execution_workspace_policy_roundtrip() {
+        let (_dir, repo, conn) = repo().await;
+        seed(&conn).await;
+        let policy = serde_json::json!({
+            "enabled": true,
+            "sharedWorkspaceConcurrency": "serialize"
+        });
+        let created = repo
+            .create(NewProject {
+                company_id: "c1".to_owned(),
+                goal_id: None,
+                name: "Policy".to_owned(),
+                description: None,
+                status: "backlog".to_owned(),
+                lead_agent_id: None,
+                target_date: None,
+                env: None,
+                execution_workspace_policy: Some(policy.clone()),
+            })
+            .await
+            .unwrap();
+        assert_eq!(created.execution_workspace_policy, Some(policy.clone()));
+
+        // Read-back through get/list.
+        let fetched = repo.get(&created.id).await.unwrap().unwrap();
+        assert_eq!(fetched.execution_workspace_policy, Some(policy.clone()));
+        let listed = repo.list("c1").await.unwrap();
+        assert_eq!(listed[0].execution_workspace_policy, Some(policy.clone()));
+
+        // Update to a different value.
+        let updated = repo
+            .update(
+                &created.id,
+                ProjectPatch {
+                    execution_workspace_policy: Some(Some(serde_json::json!({
+                        "enabled": true,
+                        "sharedWorkspaceConcurrency": "allow"
+                    }))),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(
+            updated.execution_workspace_policy,
+            Some(serde_json::json!({ "enabled": true, "sharedWorkspaceConcurrency": "allow" }))
+        );
+
+        // Clear with explicit null.
+        let cleared = repo
+            .update(
+                &created.id,
+                ProjectPatch {
+                    execution_workspace_policy: Some(None),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(cleared.execution_workspace_policy, None);
+
+        // Omitting the field leaves the stored value untouched (still NULL).
+        let untouched = repo
+            .update(
+                &created.id,
+                ProjectPatch {
+                    name: Some("Untouched".to_owned()),
+                    ..Default::default()
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(untouched.execution_workspace_policy, None);
+
+        // Raw column round-trip: stored as TEXT JSON.
+        let mut rows = conn
+            .query(
+                "SELECT execution_workspace_policy FROM projects WHERE id = ?1",
+                libsql::params![created.id],
+            )
+            .await
+            .unwrap();
+        let row = rows.next().await.unwrap().unwrap();
+        assert!(super::helpers::row_text(&row, 0).unwrap().is_none());
     }
 }

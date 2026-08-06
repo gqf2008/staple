@@ -273,6 +273,7 @@ pub async fn move_status_ui(
                     priority: None,
                     assignee_agent_id: None,
                     billing_code: None,
+                    execution_workspace_settings: None,
                 },
             )
             .await;
@@ -1410,6 +1411,7 @@ pub async fn project_edit_ui(
         status: form.status.clone().or(Some(project.status.clone())),
         lead_agent_id: None,
         target_date: None,
+        execution_workspace_policy: None,
     };
     if form.status.is_none() {
         patch.status = None;
@@ -2196,6 +2198,7 @@ pub async fn create_project_ui(
                 lead_agent_id: form.lead_agent_id.filter(|value| !value.is_empty()),
                 target_date: form.target_date,
                 env: None,
+                execution_workspace_policy: None,
             })
             .await
     {
@@ -3949,6 +3952,7 @@ pub async fn claim_issue_ui(
                     priority: None,
                     assignee_agent_id: Some(Some(agent_id)),
                     billing_code: None,
+                    execution_workspace_settings: None,
                 },
             )
             .await;
@@ -4356,6 +4360,7 @@ pub async fn onboarding_ui(
                         lead_agent_id: None,
                         target_date: None,
                         env: None,
+                        execution_workspace_policy: None,
                     })
                     .await
                 {
@@ -4434,6 +4439,7 @@ pub async fn onboarding_ui(
                 created_by_user_id: None,
                 work_mode: None,
                 billing_code: None,
+                execution_workspace_settings: None,
             })
             .await
             .map_err(|error| ApiError::internal(error.to_string()))?;
