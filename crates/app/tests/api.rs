@@ -6230,6 +6230,66 @@ async fn onboarding_wizard_flow() {
     assert_eq!(runs.len(), 1);
     assert_eq!(runs[0]["status"], "running");
     assert_eq!(runs[0]["triggerDetail"], "onboarding");
+
+    // The bundled default team creates first-project + the first-heartbeat
+    // routine (recurring TASK.md from core-exec-team).
+    let (status, projects) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/projects"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        projects
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|project| project["name"] == "first-project"),
+        "missing first-project from bundled default team"
+    );
+    let (status, routines) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/routines"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {routines}");
+    let routines = routines.as_array().unwrap();
+    assert_eq!(routines.len(), 1, "expected first-heartbeat routine");
+    assert_eq!(routines[0]["title"], "First Heartbeat Review");
+    let ceo_id = agent_rows
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent")
+        .get("id")
+        .and_then(serde_json::Value::as_str)
+        .expect("ceo id");
+    let starter_project_id = projects
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|project| project["name"] == "first-project")
+        .expect("first-project")
+        .get("id")
+        .and_then(serde_json::Value::as_str)
+        .expect("first-project id");
+    assert_eq!(routines[0]["assigneeAgentId"], ceo_id);
+    assert_eq!(routines[0]["projectId"], starter_project_id);
+    let routine_id = routines[0]["id"].as_str().unwrap();
+    let (status, triggers) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/routines/{routine_id}/triggers"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {triggers}");
+    assert_eq!(triggers.as_array().unwrap().len(), 1);
+    assert_eq!(triggers[0]["scheduleKind"], "cron");
+    assert_eq!(triggers[0]["scheduleExpr"], "0 9 * * *");
 }
 
 #[tokio::test]
