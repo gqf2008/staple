@@ -83,6 +83,8 @@
 | 实验/设计页 | 上游 UxLab/DesignGuide 实验页（BootstrapSetupUxLab、InviteUxLab、IssueChatUxLab、IssueChatLongThreadPerf、RunTranscriptUxLab、SystemNoticeUxLab、ResponsibleUserDenialUxLab、TaskChatLab、DesignGuide） | ⏳ 明确不迁移（登记为实验性页面，无产品行为） |
 | 公司可移植性 | CompanyExport/CompanyImport：JSON manifest + zip 归档（附件导出/导入、preview 文件树 + 冲突统计） | ✅ 完成（issue #142/PR #143 + #146/PR #147 + #148/PR #149） |
 | Pipelines 扩展 | Review Queue + Learnings（attention/case-events/review-cases/resolve-suggestion 数据+API+页面） | ✅ 完成（issue #159/PR #161 + issue #160/PR #162） |
+| Onboarding 向导 + 自动初始化 | 4 步向导（公司名/使命/负责人/审查）+ 完成时创建公司/主智能体/首个任务/心跳 + 无公司首页进向导（E2E 对比差异 #1/#2/#4） | ✅ 完成（issue #186/PR #187） |
+| 信息架构 | 全局侧边栏导航（Dashboard/Inbox/Work/Company 分组 + 全局项），公司路由自动显示公司分组（E2E 对比差异 #3） | ✅ 完成（issue #188/PR #189 + #190） |
 
 ## 数据结构对齐登记（与上游 schema 逐表逐列）
 
