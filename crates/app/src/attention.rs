@@ -1,21 +1,25 @@
 //! Issue-based attention feed (upstream `server/src/services/attention.ts`
-//! parity, A1 core).
+//! parity).
 //!
-//! A1 covers the four primary source kinds with data present in Staple:
+//! Source kinds:
 //! - `approval` (pending approvals + issue links)
 //! - `issue_thread_interaction` (pending interactions; `request_confirmation`
 //!   collapsed to the newest per issue)
-//! - `blocker_attention` (issues with status `blocked`)
+//! - `blocker_attention` (blocked issues; multi-level blocker tree with
+//!   #10785 triage fields)
 //! - `budget_alert` (companies whose monthly budget is exhausted)
+//! - `failed_run` (latest failed/timed-out heartbeat run per agent)
+//! - `decision` (open decision-desk decisions)
 //!
 //! The feed envelope matches upstream (`companyId`, `generatedAt`,
 //! `totalCount`, `deskBadgeCount`, `countsBySourceKind`, `nextCursor`,
-//! `items`) with `activity`/`decide` sorts, cursor pagination, and the
-//! #10785 triage fields on blocker items (`blockedTaskCount`,
-//! `blockingTreeLive`, `terminalBlockerIssueId`).
+//! `items`) with `activity`/`decide` sorts, cursor pagination, dismissals
+//! (dismiss/snooze), activity boundaries, and decision-queue filtering.
 
 use serde::Serialize;
-use staple_data::{ApprovalRecord, IssueRecord, ThreadInteractionRecord};
+use staple_data::{
+    ApprovalRecord, DecisionRecord, HeartbeatRunRecord, IssueRecord, ThreadInteractionRecord,
+};
 
 use crate::error::ApiError;
 use crate::state::AppState;
@@ -88,6 +92,32 @@ pub struct AttentionItem {
     pub related_issue: Option<AttentionSubject>,
     /// Kind-specific detail.
     pub detail: serde_json::Value,
+    /// Active dismissal/snooze state for this item, when present.
+    pub dismissal: Option<DismissalInfo>,
+    /// Decision queues containing this item's subject.
+    pub queues: Vec<AttentionQueueRef>,
+}
+
+/// Dismissal/snooze state attached to an item.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DismissalInfo {
+    /// `dismiss` | `snooze`.
+    pub kind: String,
+    /// Dismissal timestamp.
+    pub dismissed_at: String,
+    /// Snooze expiry, when snoozing.
+    pub snoozed_until: Option<String>,
+}
+
+/// A decision queue reference.
+#[derive(Debug, Clone, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct AttentionQueueRef {
+    /// Queue key.
+    pub key: String,
+    /// Queue title.
+    pub title: String,
 }
 
 /// The attention feed.
@@ -111,7 +141,7 @@ pub struct AttentionFeed {
 }
 
 /// Feed query options.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Default)]
 pub struct AttentionQuery {
     /// Page size (1..=100).
     pub limit: usize,
@@ -119,6 +149,18 @@ pub struct AttentionQuery {
     pub cursor: Option<String>,
     /// Sort mode (`activity` | `decide`).
     pub sort: String,
+    /// Include dismissed/snoozed items.
+    pub include_dismissed: bool,
+    /// Only items with activity at/after this ISO boundary.
+    pub activity_since: Option<String>,
+    /// Only items with activity at/before this ISO boundary.
+    pub activity_until: Option<String>,
+    /// Include all items (requires `queue`).
+    pub all: bool,
+    /// Restrict to items in a decision queue (by queue key).
+    pub queue: Option<String>,
+    /// Acting board user id (dismissal scope).
+    pub user_id: String,
 }
 
 /// Builds the attention feed for a company.
@@ -135,12 +177,77 @@ pub async fn build_attention_feed(
         .duration_since(std::time::UNIX_EPOCH)
         .map(|d| d.as_secs() as i64)
         .unwrap_or(0);
+    if query.all && query.queue.is_none() {
+        return Err(ApiError::bad_request("all requires a queue filter"));
+    }
     let mut items = Vec::new();
 
     collect_approvals(state, company_id, &mut items).await?;
     collect_interactions(state, company_id, &mut items).await?;
     collect_blockers(state, company_id, &mut items).await?;
     collect_budget_alerts(state, company_id, &mut items).await?;
+    collect_failed_runs(state, company_id, &mut items).await?;
+    collect_decisions(state, company_id, &mut items).await?;
+
+    // Dismissals (dismiss/snooze) filter + attach, unless include_dismissed.
+    let dismissals = state
+        .attention_dismissals
+        .list(company_id, &query.user_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    let by_key: std::collections::HashMap<String, staple_data::AttentionDismissalRecord> =
+        dismissals
+            .into_iter()
+            .map(|row| (row.item_key.clone(), row))
+            .collect();
+    items.retain_mut(|item| {
+        let Some(dismissal) = by_key.get(&item.dedup_key) else {
+            return true;
+        };
+        let active = dismissal_active(dismissal, &item.activity_at, now);
+        if active && !query.include_dismissed {
+            return false;
+        }
+        item.dismissal = Some(DismissalInfo {
+            kind: dismissal.kind.clone(),
+            dismissed_at: dismissal.dismissed_at.clone(),
+            snoozed_until: dismissal.snoozed_until.clone(),
+        });
+        true
+    });
+
+    // Activity boundaries.
+    if let Some(since) = &query.activity_since {
+        items.retain(|item| item.activity_at >= *since);
+    }
+    if let Some(until) = &query.activity_until {
+        items.retain(|item| item.activity_at <= *until);
+    }
+
+    // Decision-queue filtering.
+    if let Some(queue_key) = &query.queue {
+        let queue_ids = state
+            .decisions
+            .list_queues(company_id)
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?
+            .into_iter()
+            .filter(|queue| queue.key.as_deref() == Some(queue_key.as_str()))
+            .map(|queue| queue.id)
+            .collect::<Vec<_>>();
+        let mut allowed: std::collections::HashSet<String> = std::collections::HashSet::new();
+        for queue_id in queue_ids {
+            for item in state
+                .decisions
+                .list_items(company_id, &queue_id)
+                .await
+                .map_err(|error| ApiError::internal(error.to_string()))?
+            {
+                allowed.insert(item.source_id);
+            }
+        }
+        items.retain(|item| allowed.contains(&item.subject.id));
+    }
 
     let total_count = items.len();
     let desk_badge_count = items
@@ -154,6 +261,8 @@ pub async fn build_attention_feed(
         "issue_thread_interaction",
         "blocker_attention",
         "budget_alert",
+        "failed_run",
+        "decision",
     ] {
         let count = items.iter().filter(|item| item.source_kind == kind).count();
         counts.insert(kind.to_owned(), serde_json::json!(count));
@@ -165,6 +274,7 @@ pub async fn build_attention_feed(
         "activity"
     };
     sort_items(&mut items, sort);
+    reorder_blocked_by_weight(&mut items);
 
     let start = match &query.cursor {
         Some(cursor) => {
@@ -283,6 +393,8 @@ fn approval_item(
             "requestedByUserId": approval.requested_by_user_id,
             "issueId": issue_id,
         }),
+        dismissal: None,
+        queues: Vec::new(),
     }
 }
 
@@ -392,8 +504,15 @@ fn interaction_item(
             "summaryExcerpt": title,
             "images": [],
         }),
+        dismissal: None,
+        queues: Vec::new(),
     }
 }
+
+/// Blocked-tree traversal limits (upstream `BLOCKER_ATTENTION_MAX_DEPTH` /
+/// `BLOCKER_ATTENTION_MAX_NODES`).
+const BLOCKER_MAX_DEPTH: usize = 8;
+const BLOCKER_MAX_NODES: usize = 200;
 
 async fn collect_blockers(
     state: &AppState,
@@ -416,41 +535,60 @@ async fn collect_blockers(
         .iter()
         .map(|issue| (issue.id.as_str(), issue))
         .collect();
-    // open statuses: anything except done/cancelled
     let is_open = |issue: &IssueRecord| issue.status != "done" && issue.status != "cancelled";
 
     for issue in blocked {
-        let blockers = state
-            .relations
-            .list_blockers(&issue.id)
-            .await
-            .map_err(|error| ApiError::internal(error.to_string()))?;
-        if blockers.is_empty() {
+        // Walk the blocker tree breadth-first from the blocked issue, bounded
+        // by depth and total-node limits. `chain` collects every issue that
+        // (transitively) blocks the subject.
+        let mut chain: Vec<&IssueRecord> = Vec::new();
+        let mut visited: std::collections::HashSet<String> = std::collections::HashSet::new();
+        let mut frontier: Vec<String> = vec![issue.id.clone()];
+        let mut depth = 0usize;
+        while !frontier.is_empty() && depth < BLOCKER_MAX_DEPTH {
+            depth += 1;
+            let mut next: Vec<String> = Vec::new();
+            for id in frontier {
+                if chain.len() >= BLOCKER_MAX_NODES || !visited.insert(id.clone()) {
+                    continue;
+                }
+                let blockers = state
+                    .relations
+                    .list_blockers(&id)
+                    .await
+                    .map_err(|error| ApiError::internal(error.to_string()))?;
+                for relation in blockers {
+                    if let Some(blocker) = issue_by_id.get(relation.issue_id.as_str()).copied() {
+                        chain.push(blocker);
+                        next.push(blocker.id.clone());
+                    }
+                }
+            }
+            frontier = next;
+        }
+        if chain.is_empty() {
             continue;
         }
-        let blocking_summaries: Vec<&IssueRecord> = blockers
-            .iter()
-            .filter_map(|relation| issue_by_id.get(relation.issue_id.as_str()).copied())
-            .collect();
-        if blocking_summaries.is_empty() {
-            continue;
-        }
-        let any_live = blocking_summaries.iter().any(|blocker| is_open(blocker));
-        let sample = blocking_summaries
+        let any_live = chain.iter().any(|blocker| is_open(blocker));
+        let sample = chain
             .first()
             .map(|blocker| blocker.identifier.clone())
             .unwrap_or_else(|| issue.id.clone());
-        // Number of open issues held up by the same blocker chain (sharing at
-        // least one direct blocker with the subject, excluding the subject).
-        let blocking_ids: std::collections::HashSet<&str> = blockers
-            .iter()
-            .map(|relation| relation.issue_id.as_str())
-            .collect();
+        let terminal_id = chain
+            .last()
+            .map(|blocker| blocker.id.clone())
+            .unwrap_or_else(|| issue.id.clone());
+        let chain_ids: std::collections::HashSet<&str> =
+            chain.iter().map(|blocker| blocker.id.as_str()).collect();
+        // Number of open issues held up by the chain: open issues (excluding
+        // the subject and chain members) that are directly blocked by any
+        // chain member.
         let mut blocked_task_count = 0usize;
-        for candidate in issues
-            .iter()
-            .filter(|candidate| candidate.id != issue.id && is_open(candidate))
-        {
+        for candidate in issues.iter().filter(|candidate| {
+            candidate.id != issue.id
+                && is_open(candidate)
+                && !chain_ids.contains(candidate.id.as_str())
+        }) {
             let candidate_blockers = state
                 .relations
                 .list_blockers(&candidate.id)
@@ -458,16 +596,17 @@ async fn collect_blockers(
                 .map_err(|error| ApiError::internal(error.to_string()))?;
             if candidate_blockers
                 .iter()
-                .any(|relation| blocking_ids.contains(relation.issue_id.as_str()))
+                .any(|relation| chain_ids.contains(relation.issue_id.as_str()))
             {
                 blocked_task_count += 1;
             }
         }
         items.push(blocker_item(
             issue,
-            &blocking_summaries,
+            &chain,
             any_live,
             sample,
+            terminal_id,
             blocked_task_count,
         ));
     }
@@ -477,12 +616,13 @@ async fn collect_blockers(
 #[allow(clippy::too_many_arguments)]
 fn blocker_item(
     issue: &IssueRecord,
-    blocking_summaries: &[&IssueRecord],
+    chain: &[&IssueRecord],
     any_live: bool,
     sample: String,
+    terminal_blocker_id: String,
     blocked_task_count: usize,
 ) -> AttentionItem {
-    let first = blocking_summaries[0];
+    let first = chain[0];
     let blocking_issue = serde_json::json!({
         "id": first.id,
         "identifier": first.identifier,
@@ -529,8 +669,10 @@ fn blocker_item(
             "blockingIssue": blocking_issue,
             "blockedTaskCount": blocked_task_count,
             "blockingTreeLive": any_live,
-            "terminalBlockerIssueId": first.id,
+            "terminalBlockerIssueId": terminal_blocker_id,
         }),
+        dismissal: None,
+        queues: Vec::new(),
     }
 }
 
@@ -601,8 +743,231 @@ async fn collect_budget_alerts(
             "spentMonthlyCents": company.spent_monthly_cents,
             "percent": percent,
         }),
+        dismissal: None,
+        queues: Vec::new(),
     });
     Ok(())
+}
+
+async fn collect_failed_runs(
+    state: &AppState,
+    company_id: &str,
+    items: &mut Vec<AttentionItem>,
+) -> Result<(), ApiError> {
+    let runs = state
+        .heartbeat
+        .list(company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    if runs.is_empty() {
+        return Ok(());
+    }
+    let agents = state
+        .agents
+        .list(company_id)
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    let agent_name: std::collections::HashMap<&str, &str> = agents
+        .iter()
+        .map(|agent| (agent.id.as_str(), agent.name.as_str()))
+        .collect();
+    // Keep only the latest run per agent; emit a failed_run item when that
+    // latest run is failed/timed_out (a newer successful run clears it).
+    let mut latest_by_agent: std::collections::HashMap<&str, &HeartbeatRunRecord> =
+        std::collections::HashMap::new();
+    for run in runs.iter() {
+        let current = latest_by_agent.get(run.agent_id.as_str()).copied();
+        if current.is_none_or(|existing| run.created_at > existing.created_at) {
+            latest_by_agent.insert(run.agent_id.as_str(), run);
+        }
+    }
+    for run in latest_by_agent.values() {
+        if run.status != "failed" && run.status != "timed_out" {
+            continue;
+        }
+        let name = agent_name
+            .get(run.agent_id.as_str())
+            .copied()
+            .unwrap_or("agent");
+        let id = format!("run:{}", run.id);
+        items.push(AttentionItem {
+            id: id.clone(),
+            source_kind: "failed_run".to_owned(),
+            subject: AttentionSubject {
+                kind: "run".to_owned(),
+                id: run.id.clone(),
+                company_id: company_id.to_owned(),
+                title: format!("{name} run {}", run.status),
+                identifier: None,
+                status: run.status.clone(),
+                href: Some(format!(
+                    "/companies/{company_id}/agents/{}/runs/{}",
+                    run.agent_id, run.id
+                )),
+                metadata: serde_json::json!({
+                    "agentId": run.agent_id,
+                    "agentName": name,
+                    "error": run.error,
+                }),
+            },
+            why_now: "Run failed after automatic retries were exhausted.".to_owned(),
+            decision_verbs: vec![
+                verb("retry", "Retry", "Retry the failed run or issue."),
+                verb("reassign", "Reassign", "Move the work to another owner."),
+                verb(
+                    "dismiss",
+                    "Dismiss",
+                    "Dismiss this failed-run attention row.",
+                ),
+            ],
+            inline_resolvable: true,
+            entry_rule: "latest failed/timed_out run has no newer run".to_owned(),
+            exit_rule: "A newer run exists for the same agent or the row is dismissed.".to_owned(),
+            dedup_key: id,
+            severity: "high".to_owned(),
+            activity_at: run
+                .finished_at
+                .clone()
+                .unwrap_or_else(|| run.updated_at.clone()),
+            created_at: run.created_at.clone(),
+            updated_at: run.updated_at.clone(),
+            related_issue: None,
+            detail: serde_json::json!({
+                "kind": "failed_run",
+                "agentName": name,
+                "failureReasonExcerpt": run.error,
+            }),
+            dismissal: None,
+            queues: Vec::new(),
+        });
+    }
+    Ok(())
+}
+
+async fn collect_decisions(
+    state: &AppState,
+    company_id: &str,
+    items: &mut Vec<AttentionItem>,
+) -> Result<(), ApiError> {
+    let decisions = state
+        .decision_actions
+        .list_decisions(company_id, Some("open"))
+        .await
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    for decision in decisions {
+        let id = format!("decision:{}", decision.id);
+        items.push(AttentionItem {
+            id: id.clone(),
+            source_kind: "decision".to_owned(),
+            subject: AttentionSubject {
+                kind: "decision".to_owned(),
+                id: decision.id.clone(),
+                company_id: company_id.to_owned(),
+                title: decision.title.clone(),
+                identifier: None,
+                status: decision.status.clone(),
+                href: Some(format!(
+                    "/companies/{company_id}/decisions?decisionId={}",
+                    decision.id
+                )),
+                metadata: serde_json::json!({
+                    "originIssueId": decision.origin_issue_id,
+                    "originAgentId": decision.origin_agent_id,
+                    "bundleId": decision.bundle_id,
+                }),
+            },
+            why_now: "An agent decision is waiting for a board response.".to_owned(),
+            decision_verbs: vec![verb("decide", "Review", "Review and choose an option.")],
+            inline_resolvable: true,
+            entry_rule: "decisions.status = 'open'".to_owned(),
+            exit_rule: "Decision is decided, expired, or cancelled.".to_owned(),
+            dedup_key: id,
+            severity: "medium".to_owned(),
+            activity_at: decision.updated_at.clone(),
+            created_at: decision.created_at.clone(),
+            updated_at: decision.updated_at.clone(),
+            related_issue: None,
+            detail: serde_json::json!({
+                "kind": "generic",
+                "summaryExcerpt": decision.body,
+                "images": [],
+            }),
+            dismissal: None,
+            queues: Vec::new(),
+        });
+    }
+    Ok(())
+}
+
+/// Whether a dismissal is currently active for an item.
+fn dismissal_active(
+    dismissal: &staple_data::AttentionDismissalRecord,
+    activity_at: &str,
+    now_secs: i64,
+) -> bool {
+    if dismissal.kind == "snooze" {
+        return dismissal
+            .snoozed_until
+            .as_deref()
+            .is_some_and(|until| iso_to_unix(until).unwrap_or(0) > now_secs);
+    }
+    // Dismiss: active when dismissed after the item's last activity.
+    iso_to_unix(&dismissal.dismissed_at).unwrap_or(0) >= iso_to_unix(activity_at).unwrap_or(0)
+}
+
+fn iso_to_unix(iso: &str) -> Option<i64> {
+    let iso = iso.strip_suffix('Z').unwrap_or(iso);
+    let (date, time) = iso.split_once('T')?;
+    let mut parts = date.split('-');
+    let year: i64 = parts.next()?.parse().ok()?;
+    let month: u32 = parts.next()?.parse().ok()?;
+    let day: u32 = parts.next()?.parse().ok()?;
+    let mut time_parts = time.split(':');
+    let hour: i64 = time_parts.next()?.parse().ok()?;
+    let minute: i64 = time_parts.next()?.parse().ok()?;
+    let second: f64 = time_parts.next()?.parse().ok()?;
+    let days = days_from_civil(year, month, day);
+    Some(days * 86_400 + hour * 3600 + minute * 60 + second as i64)
+}
+
+fn days_from_civil(year: i64, month: u32, day: u32) -> i64 {
+    let y = if month <= 2 { year - 1 } else { year };
+    let era = if y >= 0 { y } else { y - 399 } / 400;
+    let yoe = y - era * 400;
+    let mp = i64::from(month) + if month > 2 { -3 } else { 9 };
+    let doy = (153 * mp + 2) / 5 + i64::from(day) - 1;
+    let doe = yoe * 365 + yoe / 4 - yoe / 100 + doy;
+    era * 146_097 + doe - 719_468
+}
+
+/// `orderBlockedAttentionByWeight` parity: blocker items keep their sorted
+/// slots but are ordered among themselves by blocked-task weight (descending).
+fn reorder_blocked_by_weight(items: &mut [AttentionItem]) {
+    let slots: Vec<usize> = items
+        .iter()
+        .enumerate()
+        .filter(|(_, item)| item.source_kind == "blocker_attention")
+        .map(|(index, _)| index)
+        .collect();
+    if slots.len() < 2 {
+        return;
+    }
+    let mut blockers: Vec<AttentionItem> =
+        slots.iter().map(|&index| items[index].clone()).collect();
+    blockers.sort_by(|left, right| {
+        let weight = |item: &AttentionItem| {
+            item.detail
+                .get("blockedTaskCount")
+                .and_then(|value| value.as_u64())
+                .unwrap_or(0)
+        };
+        weight(right)
+            .cmp(&weight(left))
+            .then_with(|| left.updated_at.cmp(&right.updated_at))
+    });
+    for (slot, item) in slots.iter().zip(blockers) {
+        items[*slot] = item;
+    }
 }
 
 // -- helpers -----------------------------------------------------------------

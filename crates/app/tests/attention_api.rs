@@ -51,6 +51,30 @@ async fn send_json(
     )
 }
 
+async fn send_json_with_header(
+    router: &Router,
+    method: Method,
+    path: &str,
+    body: Value,
+    header_name: &str,
+    header_value: &str,
+) -> (StatusCode, Value) {
+    let mut builder = Request::builder().method(method).uri(path);
+    if !body.is_null() {
+        builder = builder.header(CONTENT_TYPE, "application/json");
+    }
+    builder = builder.header(header_name, header_value);
+    let request = builder.body(Body::from(body.to_string())).unwrap();
+    let response = router.handle(request).await;
+    let status = response.status();
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    (
+        status,
+        serde_json::from_slice(&bytes).unwrap_or(Value::Null),
+    )
+}
+
 async fn test_state() -> (AppState, staple_data::Database) {
     let dir = tempfile::tempdir().unwrap();
     let seed_db = open(&DbConfig::local(dir.path().join("test.db")))
@@ -588,4 +612,347 @@ async fn attention_feed_decide_sort_is_oldest_first() {
     let mut sorted = created.clone();
     sorted.sort();
     assert_eq!(created, sorted, "decide sort must be oldest-first");
+}
+
+#[tokio::test]
+async fn attention_feed_failed_run_and_decision_kinds() {
+    let (state, db) = test_state().await;
+    let app = router(state.clone());
+    let (company_id, agent_id, blocked_id, _newest_id) = seed_attention_fixture(&state, &db).await;
+
+    // Failed heartbeat run for the agent.
+    let run = state
+        .heartbeat
+        .start(staple_data::NewHeartbeatRun {
+            company_id: company_id.clone(),
+            agent_id: agent_id.clone(),
+            invocation_source: "manual".to_owned(),
+            issue_id: Some(blocked_id.clone()),
+            context_snapshot: None,
+            trigger_detail: Some("test".to_owned()),
+        })
+        .await
+        .unwrap();
+    state
+        .heartbeat
+        .complete(
+            &run.id,
+            staple_data::CompleteHeartbeatRun {
+                status: "failed".to_owned(),
+                error: Some("boom".to_owned()),
+                error_kind: None,
+            },
+        )
+        .await
+        .unwrap();
+
+    // Open decision linked to the agent + blocked issue + run.
+    let conn = staple_data::connect(&db).await.unwrap();
+    conn.execute(
+        "INSERT INTO decisions (id, company_id, bundle_id, origin_agent_id, origin_issue_id,
+                                origin_run_id, title, body, options, expires_at, signed_spec)
+         VALUES ('dec1', ?1, NULL, ?2, ?3, ?4, 'Proposed plan', 'Pick an option', '[]',
+                 strftime('%Y-%m-%dT%H:%M:%fZ','now','+7 days'), 'sig')",
+        [
+            company_id.clone(),
+            agent_id.clone(),
+            blocked_id.clone(),
+            run.id.clone(),
+        ],
+    )
+    .await
+    .unwrap();
+
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["countsBySourceKind"]["failed_run"], 1);
+    assert_eq!(body["countsBySourceKind"]["decision"], 1);
+    let items = body["items"].as_array().unwrap();
+    let failed = items
+        .iter()
+        .find(|item| item["sourceKind"] == "failed_run")
+        .expect("failed_run item");
+    assert_eq!(failed["subject"]["status"], "failed");
+    assert_eq!(failed["detail"]["failureReasonExcerpt"], "boom");
+    let decision = items
+        .iter()
+        .find(|item| item["sourceKind"] == "decision")
+        .expect("decision item");
+    assert_eq!(decision["subject"]["metadata"]["originIssueId"], blocked_id);
+}
+
+#[tokio::test]
+async fn attention_feed_dismissals() {
+    let (state, db) = test_state().await;
+    let app = router(state.clone());
+    let (company_id, _agent_id, _blocked_id, _newest_id) =
+        seed_attention_fixture(&state, &db).await;
+
+    // Find the approval item key.
+    let (_, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention"),
+        json!({}),
+    )
+    .await;
+    let approval = body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["sourceKind"] == "approval")
+        .expect("approval item")
+        .clone();
+    let item_key = approval["dedupKey"].as_str().unwrap().to_owned();
+    let approval_id = approval["subject"]["id"].as_str().unwrap().to_owned();
+
+    // Dismiss it.
+    let (status, _) = send_json_with_header(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/inbox-dismissals"),
+        json!({ "itemKey": item_key, "kind": "dismiss" }),
+        "X-Board-User",
+        "user-1",
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "dismissal create");
+
+    // Feed excludes it by default and includes it with includeDismissed.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        !body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["subject"]["id"] == approval_id),
+        "dismissed approval must be hidden"
+    );
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?includeDismissed=true"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let visible = body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["subject"]["id"] == approval_id)
+        .expect("dismissed approval visible with includeDismissed");
+    assert_eq!(visible["dismissal"]["kind"], "dismiss");
+
+    // Restore it.
+    let (status, _) = send_json_with_header(
+        &app,
+        Method::DELETE,
+        &format!("/api/companies/{company_id}/inbox-dismissals/{item_key}"),
+        Value::Null,
+        "X-Board-User",
+        "user-1",
+    )
+    .await;
+    assert_eq!(status, StatusCode::NO_CONTENT, "restore");
+    let (_, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention"),
+        json!({}),
+    )
+    .await;
+    assert!(
+        body["items"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|item| item["subject"]["id"] == approval_id),
+        "approval visible again after restore"
+    );
+}
+
+#[tokio::test]
+async fn attention_feed_activity_boundary_and_queue() {
+    let (state, db) = test_state().await;
+    let app = router(state.clone());
+    let (company_id, _agent_id, _blocked_id, _newest_id) =
+        seed_attention_fixture(&state, &db).await;
+
+    // Activity boundary: far-future since -> empty; far-past until -> all.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?activitySince=2999-01-01T00:00:00.000Z"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["items"].as_array().unwrap().len(), 0);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?activityUntil=2000-01-01T00:00:00.000Z"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(body["items"].as_array().unwrap().len(), 0);
+
+    // all without queue -> 400.
+    let (status, _) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?all=true"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::BAD_REQUEST);
+
+    // Queue filter: add the approval to a decision queue; queue=key keeps it.
+    let queue = state
+        .decisions
+        .create_queue(&company_id, "Board Review", None, None)
+        .await
+        .unwrap();
+    let queue_key = queue.key.clone().expect("queue key");
+    let (_, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention"),
+        json!({}),
+    )
+    .await;
+    let approval = body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|item| item["sourceKind"] == "approval")
+        .expect("approval item")
+        .clone();
+    let approval_id = approval["subject"]["id"].as_str().unwrap().to_owned();
+    state
+        .decisions
+        .add_item(&company_id, &queue.id, "approval", &approval_id, None)
+        .await
+        .unwrap();
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?queue={queue_key}&all=true"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let items = body["items"].as_array().unwrap();
+    assert_eq!(items.len(), 1);
+    assert_eq!(items[0]["subject"]["id"], approval_id);
+    assert!(!items[0]["queues"].as_array().unwrap().is_empty());
+}
+
+#[tokio::test]
+async fn attention_feed_blocker_weight_ordering() {
+    let (state, db) = test_state().await;
+    let app = router(state.clone());
+    let (company_id, agent_id, _blocked_id, _newest_id) = seed_attention_fixture(&state, &db).await;
+
+    // Two additional blocked issues with different blocker weights:
+    // blocker-a blocks issue-a (weight 1: issue-extra is also blocked by it);
+    // blocker-b blocks issue-b (weight 0).
+    let conn = staple_data::connect(&db).await.unwrap();
+    for (id, title, number) in [
+        ("iss-ba", "Blocker A", 10),
+        ("iss-bb", "Blocker B", 11),
+        ("iss-xa", "Blocked A", 20),
+        ("iss-xb", "Blocked B", 21),
+        ("iss-extra", "Extra blocked", 22),
+    ] {
+        let status = if id.starts_with("iss-b") {
+            "in_progress"
+        } else {
+            "blocked"
+        };
+        conn.execute(
+            "INSERT INTO issues (id, company_id, title, status, priority, issue_number,
+                                 identifier, assignee_agent_id)
+             VALUES (?1, ?2, ?3, ?4, 'high', ?5, ?6, ?7)",
+            [
+                id.to_owned(),
+                company_id.clone(),
+                title.to_owned(),
+                status.to_owned(),
+                number.to_owned().into(),
+                format!("ATT-{number}"),
+                agent_id.clone(),
+            ],
+        )
+        .await
+        .unwrap();
+    }
+    conn.execute(
+        "INSERT INTO issue_relations (id, company_id, issue_id, related_issue_id, type)
+         VALUES ('r-ba', ?1, 'iss-ba', 'iss-xa', 'blocks')",
+        [company_id.clone()],
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issue_relations (id, company_id, issue_id, related_issue_id, type)
+         VALUES ('r-bb', ?1, 'iss-bb', 'iss-xb', 'blocks')",
+        [company_id.clone()],
+    )
+    .await
+    .unwrap();
+    conn.execute(
+        "INSERT INTO issue_relations (id, company_id, issue_id, related_issue_id, type)
+         VALUES ('r-ex', ?1, 'iss-ba', 'iss-extra', 'blocks')",
+        [company_id.clone()],
+    )
+    .await
+    .unwrap();
+
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/attention?sort=decide"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let blockers: Vec<&Value> = body["items"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .filter(|item| item["sourceKind"] == "blocker_attention")
+        .collect();
+    assert!(blockers.len() >= 3, "expected 3 blocker items");
+    // iss-xa is blocked by iss-ba which also blocks iss-extra -> weight >= 1;
+    // iss-xb has weight 0. Weight ordering puts heavier blockers first.
+    let idx = |subject_id: &str| {
+        blockers
+            .iter()
+            .position(|item| item["subject"]["id"] == subject_id)
+            .unwrap()
+    };
+    assert!(
+        idx("iss-xa") < idx("iss-xb"),
+        "heavier blocker chain must be ordered first"
+    );
+    let weight_a = blockers[idx("iss-xa")]["detail"]["blockedTaskCount"]
+        .as_u64()
+        .unwrap();
+    assert!(weight_a >= 1, "iss-xa chain holds up iss-extra");
 }
