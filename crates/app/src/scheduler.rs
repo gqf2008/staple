@@ -200,7 +200,9 @@ async fn trigger_routines(state: &AppState) -> Result<(), String> {
     Ok(())
 }
 
-/// Runs the 90-day retention sweep once per configured interval.
+/// Runs the daily maintenance sweeps once per configured interval: the
+/// 90-day decision retention sweep per company, plus the global
+/// superseded-pending-request-confirmation sweep.
 async fn run_sweep(
     state: &AppState,
     config: &SchedulerConfig,
@@ -217,6 +219,16 @@ async fn run_sweep(
             .sweep(&company.id, 90)
             .await
             .map_err(|e| e.to_string())?;
+    }
+    // Expire all but the newest pending request_confirmation per
+    // (company, issue, kind, created_by_agent_id). Idempotent; failures are
+    // only logged so one bad sweep never blocks the rest of the tick.
+    if let Err(error) = state
+        .issue_structure
+        .expire_superseded_pending_confirmations()
+        .await
+    {
+        tracing::warn!(%error, "confirmation supersede sweep failed");
     }
     *last_sweep = Some(today);
     let _ = config.sweep_interval_days;

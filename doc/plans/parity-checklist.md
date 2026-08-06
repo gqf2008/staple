@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-06（全部对齐完成：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205）。
 
 ## 使用方式
 
@@ -127,3 +127,4 @@
 | **UserProfile 公开页（u/:userSlug）** | 已实现：principal 身份资料页 + 统计（issue #173/PR #175） | ✅ 完成 |
 | **Onboarding 向导**（onboarding 路由） | 已实现：欢迎页 + 首个公司创建表单（issue #173/PR #175） | ✅ 完成 |
 | **cloud-upstream 设置**（company/settings/cloud-upstream） | 依赖上游云服务集成 | ⏳ 明确不迁移 |
+| **request confirmation 自动过期**（superseded_by_newer_request + 创建时过期同组旧 pending + sweep 分组幂等过期） | 已实现：创建交互路由接入 actor 列 + 同组旧 pending 过期，scheduler 每日 sweep，API/数据层测试覆盖（issue #205） | ✅ 完成 |
