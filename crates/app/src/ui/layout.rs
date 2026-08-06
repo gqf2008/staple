@@ -1,9 +1,19 @@
 //! Root layout: HTML document, localized navigation, token layer, and the
 //! language switcher.
 
-use topcoat::{Result, context::Cx, router::layout, view::view};
+use topcoat::{
+    Result,
+    context::{Cx, app_context},
+    router::layout,
+    view::view,
+};
 
-use crate::i18n::{Lang, lang_code, lang_from_request, t, with_lang};
+use crate::{
+    attention::{AttentionQuery, build_attention_feed},
+    i18n::{Lang, lang_code, lang_from_request, t, with_lang},
+    routes::sidebar_badges::sidebar_badges_for,
+    state::AppState,
+};
 
 use super::styles::TOKENS_CSS;
 
@@ -33,6 +43,30 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
         .strip_prefix("/companies/")
         .and_then(|rest| rest.split('/').next())
         .map(str::to_owned);
+    // Sidebar badges (best-effort; failures render without badges).
+    let mut inbox_badge = 0usize;
+    let mut approvals_badge = 0usize;
+    let mut attention_badge = 0usize;
+    if let Some(company_id) = &company_id {
+        let state = app_context::<AppState>(cx);
+        if let Ok(badges) = sidebar_badges_for(state, company_id).await {
+            inbox_badge = badges.inbox;
+            approvals_badge = badges.approvals;
+        }
+        if let Ok(feed) = build_attention_feed(
+            state,
+            company_id,
+            &AttentionQuery {
+                limit: 1,
+                sort: "activity".to_owned(),
+                ..AttentionQuery::default()
+            },
+        )
+        .await
+        {
+            attention_badge = feed.desk_badge_count;
+        }
+    }
     view! {
         <!DOCTYPE html>
         <html lang=(html_lang)>
@@ -52,8 +86,24 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                             <h3>(t(lang, "nav.board"))</h3>
                             <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
                             <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>(t(lang, "inbox.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>(t(lang, "whatNeedsMe.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>
+                                (t(lang, "inbox.title"))
+                                if inbox_badge > 0 {
+                                    " " <span class="badge badge-default">(inbox_badge.to_string())</span>
+                                }
+                            </a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>
+                                (t(lang, "whatNeedsMe.title"))
+                                if attention_badge > 0 {
+                                    " " <span class="badge badge-default">(attention_badge.to_string())</span>
+                                }
+                            </a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>
+                                (t(lang, "approvals.title"))
+                                if approvals_badge > 0 {
+                                    " " <span class="badge badge-default">(approvals_badge.to_string())</span>
+                                }
+                            </a>
                             <h3>(t(lang, "nav.work"))</h3>
                             <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
                             <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>

@@ -45,6 +45,7 @@ pub mod routines;
 pub mod scattered;
 pub mod secret_bindings;
 pub mod secrets;
+pub mod sidebar_badges;
 pub mod skill_catalog;
 pub mod skills;
 pub mod team_catalog;
