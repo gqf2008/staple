@@ -908,3 +908,133 @@ async fn onboarding_materializes_default_instructions() {
         .unwrap();
     assert_eq!(entry["isEntry"], true);
 }
+
+#[tokio::test]
+async fn team_catalog_install_materializes_default_instructions() {
+    let (state, db) = test_state().await;
+    let (company_id, _) = seed_companies_and_agent(&db).await;
+    let app = router(state);
+
+    // Install the bundled default team (core-exec-team: ceo/cto/qa) through
+    // the install API; the created agents must get role-based default
+    // instruction bundles (ceo -> 4 files, other roles -> AGENTS.md only).
+    let install_path = format!(
+        "/api/companies/{company_id}/teams/catalog/paperclipai%3Abundled%3Acompany-defaults%3Acore-exec-team/install"
+    );
+    let (status, body) = send_json(&app, Method::POST, &install_path, json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body["createdAgents"], 3);
+
+    let (status, agents) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {agents}");
+    let agents = agents.as_array().unwrap();
+    let ceo = agents
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent");
+    let cto = agents
+        .iter()
+        .find(|agent| agent["name"] == "cto")
+        .expect("cto agent");
+
+    // ceo gets the full default bundle.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/{company_id}/agents/{}/instructions",
+            ceo["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(
+        files.len(),
+        4,
+        "ceo bundle: AGENTS.md + HEARTBEAT.md + SOUL.md + TOOLS.md"
+    );
+    let entry = files
+        .iter()
+        .find(|file| file["path"] == "AGENTS.md")
+        .unwrap();
+    assert_eq!(entry["isEntry"], true);
+    assert!(!entry["content"].as_str().unwrap().is_empty());
+    for path in ["HEARTBEAT.md", "SOUL.md", "TOOLS.md"] {
+        let file = files.iter().find(|file| file["path"] == path).unwrap();
+        assert_eq!(file["isEntry"], false, "{path} must not be the entry file");
+    }
+
+    // cto (non-ceo role) gets only AGENTS.md.
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/{company_id}/agents/{}/instructions",
+            cto["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0]["path"], "AGENTS.md");
+    assert_eq!(files[0]["isEntry"], true);
+
+    // The UI install path is best-effort too: install into company c2 (no
+    // existing agents) through the form route and check the same mounting.
+    let (status, _) = send_form(
+        &app,
+        "/companies/c2/teams/catalog/paperclipai%3Abundled%3Acompany-defaults%3Acore-exec-team/install/ui",
+        &[],
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER);
+    let (status, agents) =
+        send_json(&app, Method::GET, "/api/companies/c2/agents", json!({})).await;
+    assert_eq!(status, StatusCode::OK, "body: {agents}");
+    let agents = agents.as_array().unwrap();
+    let ceo = agents
+        .iter()
+        .find(|agent| agent["name"] == "ceo")
+        .expect("ceo agent via UI install");
+    let cto = agents
+        .iter()
+        .find(|agent| agent["name"] == "cto")
+        .expect("cto agent via UI install");
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/c2/agents/{}/instructions",
+            ceo["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    assert_eq!(body.as_array().unwrap().len(), 4);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!(
+            "/api/companies/c2/agents/{}/instructions",
+            cto["id"].as_str().unwrap()
+        ),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "body: {body}");
+    let files = body.as_array().unwrap();
+    assert_eq!(files.len(), 1);
+    assert_eq!(files[0]["path"], "AGENTS.md");
+    assert_eq!(files[0]["isEntry"], true);
+}
