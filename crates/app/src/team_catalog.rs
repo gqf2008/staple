@@ -280,6 +280,12 @@ fn base64_encode(bytes: &[u8]) -> String {
     base64::engine::general_purpose::STANDARD.encode(bytes)
 }
 
+/// The default team installed by onboarding (upstream company-defaults).
+#[must_use]
+pub fn default_catalog_ref() -> &'static str {
+    "paperclipai:bundled:company-defaults:core-exec-team"
+}
+
 /// Lists all catalog teams. Returns an empty list when no catalog package
 /// is present.
 #[must_use]

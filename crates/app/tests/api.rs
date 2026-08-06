@@ -6033,6 +6033,104 @@ async fn team_catalog_install_api() {
 }
 
 #[tokio::test]
+async fn onboarding_wizard_flow() {
+    let (state, _db) = test_state_with_db().await;
+    let app = router(state);
+
+    // Step 1: company name -> renders step 2.
+    let (status, body) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/ui",
+        "step=1&company_name=Onboard+Co",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert!(body.contains("Step 2 of 4"), "{body}");
+
+    // Step 2: mission preset -> step 3.
+    let (status, body) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/ui",
+        "step=2&company_name=Onboard+Co&mission_preset=Build+a+SaaS+product",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert!(body.contains("Step 3 of 4"), "{body}");
+
+    // Step 3: lead name -> step 4 review with values.
+    let (status, body) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/ui",
+        "step=3&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff",
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK, "{body}");
+    assert!(body.contains("Step 4 of 4"), "{body}");
+    assert!(body.contains("Onboard Co"), "{body}");
+
+    // Step 4: complete -> redirect to dashboard.
+    let (status, _) = send_form(
+        &app,
+        Method::POST,
+        "/onboarding/ui",
+        "step=4&company_name=Onboard+Co&mission=Build+a+SaaS+product&lead_name=Chief+of+Staff",
+    )
+    .await;
+    assert_eq!(status, StatusCode::SEE_OTHER, "expected redirect");
+
+    // Company, lead agent, first task, and heartbeat run were created.
+    let (status, companies) = send_json(&app, Method::GET, "/api/companies", json!({})).await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(companies.as_array().unwrap().len(), 1);
+    let company_id = companies[0]["id"].as_str().unwrap().to_owned();
+    let (status, agents) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert!(
+        agents
+            .as_array()
+            .unwrap()
+            .iter()
+            .any(|agent| agent["name"] == "Chief of Staff" && agent["status"] == "active")
+    );
+    let (status, issues) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/issues"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    assert_eq!(issues.as_array().unwrap().len(), 1);
+    assert!(
+        issues[0]["title"]
+            .as_str()
+            .unwrap()
+            .contains("first engineer")
+    );
+    let (status, runs) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/heartbeat-runs"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let runs = runs.as_array().unwrap();
+    assert_eq!(runs.len(), 1);
+    assert_eq!(runs[0]["status"], "running");
+    assert_eq!(runs[0]["triggerDetail"], "onboarding");
+}
+
+#[tokio::test]
 async fn board_claim_challenge_flow() {
     let (state, db) = test_state_with_db().await;
     let app = router(state.clone());
