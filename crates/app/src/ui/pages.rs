@@ -8,7 +8,7 @@ use topcoat::{
 };
 
 use crate::{
-    i18n::{lang_from_request, t, with_lang},
+    i18n::{Lang, lang_from_request, t, with_lang},
     state::AppState,
 };
 
@@ -66,6 +66,9 @@ pub async fn home(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
     let state = app_context::<AppState>(cx);
     let companies = state.companies.list().await.map_err(to_topcoat_error)?;
+    if companies.is_empty() {
+        return onboarding_view(cx, lang, 1, String::new(), String::new(), String::new()).await;
+    }
     view! {
         <h1 class="page-title">(t(lang, "page.title.companies"))</h1>
         <form class="inline-form" method="post" action=(with_lang("/companies/ui", lang))>
@@ -4567,21 +4570,88 @@ pub async fn user_profile(cx: &Cx) -> Result {
 #[page("/onboarding")]
 pub async fn onboarding(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
-    view! {
+    let step = topcoat::context::try_request_context::<http::request::Parts>(cx)
+        .and_then(|parts| {
+            parts.uri.query().and_then(|query| {
+                query.split('&').find_map(|pair| {
+                    let (key, value) = pair.split_once('=')?;
+                    (key == "step").then(|| value.to_owned())
+                })
+            })
+        })
+        .and_then(|value| value.parse::<usize>().ok())
+        .unwrap_or(1);
+    onboarding_view(cx, lang, step, String::new(), String::new(), String::new()).await
+}
+
+/// Renders one onboarding wizard step (shared by the page and form handler).
+pub(crate) async fn onboarding_view(
+    cx: &Cx,
+    lang: Lang,
+    step: usize,
+    company_name: String,
+    mission: String,
+    lead_name: String,
+) -> Result {
+    let step = step.clamp(1, 4);
+    let form_action = with_lang("/onboarding/ui", lang);
+    let back_url = with_lang("/onboarding", lang);
+    let lead_default = t(lang, "onboarding.leadDefault");
+    view! { cx =>
         <h1 class="page-title">(t(lang, "onboarding.title"))</h1>
-        <p class="meta-row">(t(lang, "onboarding.hint"))</p>
-        <form class="stack-form" method="post" action=(with_lang("/companies/ui", lang))>
-            <label>(t(lang, "onboarding.name"))</label>
-            <input type="text" name="name" required="required">
-            <label>(t(lang, "onboarding.description"))</label>
-            <input type="text" name="description">
-            <label>(t(lang, "onboarding.budget"))</label>
-            <input type="number" name="budgetMonthlyCents" value="0" min="0">
-            <label>(t(lang, "onboarding.attachments"))</label>
-            <input type="number" name="attachmentMaxBytes" value="0" min="1">
-            <button type="submit">(t(lang, "onboarding.create"))</button>
-        </form>
-        <a class="button" href=(with_lang("/", lang))>(t(lang, "onboarding.openBoard"))</a>
+        <p class="meta-row">
+            (t(lang, "onboarding.step")) " " (step) " " (t(lang, "onboarding.of")) " 4"
+        </p>
+        if step == 1 {
+            <h2>(t(lang, "onboarding.companyStep"))</h2>
+            <p class="meta-row">(t(lang, "onboarding.companyHint"))</p>
+            <form class="stack-form" method="post" action=(form_action.clone())>
+                <input type="hidden" name="step" value="1">
+                <label>(t(lang, "onboarding.name"))</label>
+                <input type="text" name="company_name" required="required">
+                <button type="submit">(t(lang, "onboarding.next"))</button>
+            </form>
+        } else if step == 2 {
+            <h2>(t(lang, "onboarding.missionStep"))</h2>
+            <p class="meta-row">(t(lang, "onboarding.missionHint"))</p>
+            <form class="stack-form" method="post" action=(form_action.clone())>
+                <input type="hidden" name="step" value="2">
+                <input type="hidden" name="company_name" value=(company_name.clone())>
+                <label>(t(lang, "onboarding.missionLabel"))</label>
+                <input type="text" name="mission" value=(mission.clone()) placeholder=(t(lang, "onboarding.missionSaaS"))>
+                <p class="meta-row">
+                    <button type="submit" name="mission_preset" value=(t(lang, "onboarding.missionSaaS"))>(t(lang, "onboarding.missionSaaS"))</button>
+                    <button type="submit" name="mission_preset" value=(t(lang, "onboarding.missionContent"))>(t(lang, "onboarding.missionContent"))</button>
+                    <button type="submit" name="mission_preset" value=(t(lang, "onboarding.missionMarketplace"))>(t(lang, "onboarding.missionMarketplace"))</button>
+                </p>
+                <button type="submit">(t(lang, "onboarding.missionConfirm"))</button>
+            </form>
+        } else if step == 3 {
+            <h2>(t(lang, "onboarding.leadStep"))</h2>
+            <p class="meta-row">(t(lang, "onboarding.leadHint"))</p>
+            <form class="stack-form" method="post" action=(form_action.clone())>
+                <input type="hidden" name="step" value="3">
+                <input type="hidden" name="company_name" value=(company_name.clone())>
+                <input type="hidden" name="mission" value=(mission.clone())>
+                <label>(t(lang, "onboarding.leadName"))</label>
+                <input type="text" name="lead_name" value=(if lead_name.is_empty() { lead_default.clone() } else { lead_name.clone() })>
+                <button type="submit">(t(lang, "onboarding.next"))</button>
+            </form>
+        } else {
+            <h2>(t(lang, "onboarding.reviewStep"))</h2>
+            <p class="meta-row">(t(lang, "onboarding.reviewHint"))</p>
+            <p class="meta-row">(t(lang, "onboarding.reviewCompany")) ": " (company_name.clone())</p>
+            <p class="meta-row">(t(lang, "onboarding.reviewMission")) ": " (mission.clone())</p>
+            <p class="meta-row">(t(lang, "onboarding.reviewLead")) ": " (lead_name.clone())</p>
+            <form class="stack-form" method="post" action=(form_action)>
+                <input type="hidden" name="step" value="4">
+                <input type="hidden" name="company_name" value=(company_name.clone())>
+                <input type="hidden" name="mission" value=(mission.clone())>
+                <input type="hidden" name="lead_name" value=(lead_name.clone())>
+                <button type="submit">(t(lang, "onboarding.start"))</button>
+            </form>
+        }
+        <a class="button" href=(back_url)>(t(lang, "onboarding.back"))</a>
     }
 }
 

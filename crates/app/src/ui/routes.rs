@@ -7,7 +7,15 @@ use topcoat::{
     router::{content::Form, error::see_other, path_param, route},
 };
 
-use crate::{audit::log_activity, error::ApiError, state::AppState};
+use crate::{
+    audit::log_activity,
+    error::ApiError,
+    i18n::{lang_from_request, with_lang},
+    state::AppState,
+    team_catalog,
+    ui::pages::onboarding_view,
+};
+use topcoat::router::IntoResponse;
 
 /// Shared `{id}` path parameter for UI routes.
 #[path_param(error = bad_request("Invalid id"))]
@@ -4210,4 +4218,164 @@ pub async fn user_company_access_ui(
         .set_user_company_access(&user_id, &form.company_ids)
         .await;
     Ok(see_other("/instance/settings"))
+}
+
+/// Form for the onboarding wizard (form fields are snake_case).
+#[derive(Debug, Deserialize)]
+pub struct OnboardingForm {
+    /// Current step (1..4); the handler advances to the next.
+    pub step: usize,
+    /// Company name.
+    #[serde(default)]
+    pub company_name: String,
+    /// Mission text (typed).
+    #[serde(default)]
+    pub mission: String,
+    /// Mission preset button value.
+    #[serde(default)]
+    pub mission_preset: Option<String>,
+    /// Lead agent name.
+    #[serde(default)]
+    pub lead_name: String,
+}
+
+/// `POST /onboarding/ui` — advances the onboarding wizard; the final step
+/// creates the company, default team, first task, and a heartbeat run.
+#[route(POST "/onboarding/ui")]
+pub async fn onboarding_ui(
+    cx: &Cx,
+    Form(form): Form<OnboardingForm>,
+) -> Result<topcoat::router::Response, ApiError> {
+    let lang = lang_from_request(cx);
+    let mission = form.mission_preset.unwrap_or(form.mission);
+    if form.step == 4 {
+        let state = app_context::<AppState>(cx);
+        let lead_name = if form.lead_name.trim().is_empty() {
+            "Chief of Staff".to_owned()
+        } else {
+            form.lead_name.clone()
+        };
+        let company = state
+            .companies
+            .create(staple_data::NewCompany {
+                name: form.company_name.clone(),
+                description: Some(mission.clone()),
+                budget_monthly_cents: 100_0000,
+                attachment_max_bytes: 10_485_760,
+            })
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+
+        // Lead agent.
+        let lead = state
+            .agents
+            .create(staple_data::NewAgent {
+                company_id: company.id.clone(),
+                name: lead_name.clone(),
+                role: "worker".to_owned(),
+                title: Some("Chief of Staff".to_owned()),
+                icon: None,
+                reports_to: None,
+                adapter_type: "cli".to_owned(),
+                budget_monthly_cents: 0,
+            })
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+
+        // Default team (when the teams-catalog package is present).
+        if let Some(team) = team_catalog::detail(team_catalog::default_catalog_ref()) {
+            for slug in &team.agent_slugs {
+                let _ = state
+                    .agents
+                    .create(staple_data::NewAgent {
+                        company_id: company.id.clone(),
+                        name: slug.clone(),
+                        role: "worker".to_owned(),
+                        title: None,
+                        icon: None,
+                        reports_to: Some(lead.id.clone()),
+                        adapter_type: "cli".to_owned(),
+                        budget_monthly_cents: 0,
+                    })
+                    .await;
+            }
+            for skill in team_catalog::team_skills(&team_catalog::catalog_root(), &team.id) {
+                let _ = state
+                    .skills
+                    .create(staple_data::NewSkill {
+                        company_id: company.id.clone(),
+                        name: skill.name,
+                        description: skill.description,
+                        restriction_policy: staple_data::SkillRestrictionPolicy::default(),
+                    })
+                    .await;
+            }
+        }
+
+        // First task.
+        let task = state
+            .issues
+            .create(staple_data::NewIssue {
+                company_id: company.id.clone(),
+                project_id: None,
+                goal_id: None,
+                parent_id: None,
+                title: "Hire your first engineer and draft a hiring plan".to_owned(),
+                description: Some("Onboarding starter task.".to_owned()),
+                status: Some("todo".to_owned()),
+                priority: Some("high".to_owned()),
+                assignee_agent_id: Some(lead.id.clone()),
+                assignee_user_id: None,
+                created_by_user_id: None,
+                work_mode: None,
+                billing_code: None,
+            })
+            .await
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+
+        // Heartbeat run for the lead agent on the first task.
+        let _ = state
+            .heartbeat
+            .start(staple_data::NewHeartbeatRun {
+                company_id: company.id.clone(),
+                agent_id: lead.id.clone(),
+                invocation_source: "manual".to_owned(),
+                issue_id: Some(task.id.clone()),
+                context_snapshot: None,
+                trigger_detail: Some("onboarding".to_owned()),
+            })
+            .await;
+
+        let _ = log_activity(
+            &state.activity,
+            &company.id,
+            "onboarding.completed",
+            "company",
+            &company.id,
+            Some(serde_json::json!({ "leadAgent": lead.id, "task": task.id })),
+        )
+        .await;
+
+        let location = with_lang(&format!("/companies/{}/dashboard", company.id), lang);
+        let response = topcoat::router::Response::builder()
+            .status(303)
+            .header("Location", location)
+            .body(topcoat::router::Body::empty())
+            .map_err(|error| ApiError::internal(error.to_string()))?;
+        return Ok(response);
+    }
+
+    let next_step = form.step.saturating_add(1).clamp(1, 4);
+    let view = onboarding_view(
+        cx,
+        lang,
+        next_step,
+        form.company_name,
+        mission,
+        form.lead_name,
+    )
+    .await
+    .map_err(|error| ApiError::internal(error.to_string()))?;
+    view.into_response(cx)
+        .map_err(|error| ApiError::internal(error.to_string()))
 }
