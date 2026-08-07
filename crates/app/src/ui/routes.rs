@@ -4564,3 +4564,14 @@ pub async fn onboarding_adapter_test_ui(
     view.into_response(cx)
         .map_err(|error| ApiError::internal(error.to_string()))
 }
+
+/// `GET /static/command_palette.js` — global Cmd/Ctrl+K command palette.
+#[route(GET "/static/command_palette.js")]
+pub async fn command_palette_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("command_palette.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
