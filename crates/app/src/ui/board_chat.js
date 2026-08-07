@@ -140,9 +140,20 @@ document.addEventListener("DOMContentLoaded", function () {
               lastStderrTool = null;
               var text = document.createTextNode(obj.content || "");
               agentBody.insertBefore(text, cursorEl);
-            } else if (obj.type === "tool") {
+            } else if (obj.type === "toolCall" || obj.type === "tool") {
               lastStderrTool = null;
-              agentBody.insertBefore(toolAccordion(obj.name || "call", obj.content || "", false), cursorEl);
+              var toolTitle = (obj.name || "call") + (obj.id ? " · " + obj.id : "");
+              var toolBody = obj.content || "";
+              if (!toolBody && obj.arguments !== undefined) {
+                try {
+                  toolBody = (typeof obj.arguments === "string")
+                    ? obj.arguments
+                    : JSON.stringify(obj.arguments, null, 2);
+                } catch (e) {
+                  toolBody = String(obj.arguments);
+                }
+              }
+              agentBody.insertBefore(toolAccordion(toolTitle, toolBody, false), cursorEl);
             } else if (obj.type === "stderr") {
               var stderrBody = lastStderrTool ? lastStderrTool.querySelector(".chat-tool-body") : null;
               if (stderrBody) {

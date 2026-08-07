@@ -9,6 +9,7 @@ pub mod contract;
 pub mod http;
 pub mod plugins;
 pub mod registry;
+pub mod tool_call;
 
 pub use cli::{CliAdapter, CliAdapterConfig};
 pub use contract::{
@@ -21,3 +22,4 @@ pub use plugins::{
     PluginReport,
 };
 pub use registry::AdapterRegistry;
+pub use tool_call::{ToolCall, parse_tool_call_line};
