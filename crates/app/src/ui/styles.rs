@@ -263,10 +263,11 @@ body {
 .sidebar-resizer {
   position: absolute;
   top: 0;
-  right: -3px;
-  width: 6px;
+  right: calc(var(--space-1-5) / -2);
+  width: var(--space-1-5);
   height: 100%;
   cursor: col-resize;
+  touch-action: none;
   z-index: 1;
 }
 .app-sidebar { position: relative; }
@@ -279,6 +280,8 @@ body {
 @media (max-width: 48rem) {
   .app-sidebar { width: 64px !important; }
   .app-sidebar a, .app-sidebar h3 { visibility: hidden; }
+  .app-sidebar .sidebar-resizer { display: none; }
+  #sidebar-toggle { display: none; }
   .app-sidebar .sidebar-toggle { width: calc(100% - var(--space-3)); margin: 0 var(--space-1-5) var(--space-2); }
 }
 .app-main { flex: 1; min-width: 0; padding: var(--space-4); width: 100%; }

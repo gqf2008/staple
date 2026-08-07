@@ -65,6 +65,8 @@ function makeEnv({
   collapsedStored = false,
   widthStored = null,
   storageThrows = false,
+  narrow = false,
+  withResizer = true,
 } = {}) {
   const sidebar = new Element("nav");
   sidebar.setAttribute("class", "app-sidebar");
@@ -79,9 +81,12 @@ function makeEnv({
   const resizer = new Element("div");
   resizer.setAttribute("id", "sidebar-resizer");
   const windowObj = new Element("window");
+  windowObj.matchMedia = () => ({ matches: narrow });
   const document = {
     _listeners: new Map(),
-    _byId: new Map([["sidebar-toggle", toggle], ["sidebar-resizer", resizer]]),
+    _byId: new Map(withResizer
+      ? [["sidebar-toggle", toggle], ["sidebar-resizer", resizer]]
+      : [["sidebar-toggle", toggle]]),
     addEventListener(type, cb) {
       if (!this._listeners.has(type)) this._listeners.set(type, []);
       this._listeners.get(type).push(cb);
@@ -177,6 +182,64 @@ test("storage throwing does not break collapse", () => {
   assert.equal(sidebar.classList.contains("collapsed"), true);
   toggle.dispatchEvent({ type: "click" });
   assert.equal(sidebar.classList.contains("collapsed"), false);
+});
+
+test("drag disables width transition while dragging and restores after", () => {
+  const { sidebar, resizer, windowObj } = makeEnv({ widthStored: "240" });
+  resizer.dispatchEvent({ type: "pointerdown", clientX: 100, pointerId: 1 });
+  assert.equal(sidebar.style.transition, "none");
+  windowObj.dispatchEvent({ type: "pointermove", clientX: 200 });
+  assert.equal(sidebar.style.width, "340px");
+  windowObj.dispatchEvent({ type: "pointerup" });
+  assert.equal(sidebar.style.transition, "");
+});
+
+test("pointercancel restores start width and transition", () => {
+  const { sidebar, resizer, windowObj } = makeEnv({ widthStored: "240" });
+  resizer.dispatchEvent({ type: "pointerdown", clientX: 100, pointerId: 1 });
+  windowObj.dispatchEvent({ type: "pointermove", clientX: 300 });
+  assert.equal(sidebar.style.width, "420px"); // clamped at MAX
+  windowObj.dispatchEvent({ type: "pointercancel" });
+  assert.equal(sidebar.style.width, "240px");
+  assert.equal(sidebar.style.transition, "");
+});
+
+test("drag is ignored on narrow screens", () => {
+  const { sidebar, resizer, windowObj } = makeEnv({ widthStored: "240", narrow: true });
+  resizer.dispatchEvent({ type: "pointerdown", clientX: 100, pointerId: 1 });
+  windowObj.dispatchEvent({ type: "pointermove", clientX: 300 });
+  assert.equal(sidebar.style.width, "240px");
+  assert.equal(sidebar.style.transition, undefined);
+});
+
+test("keyboard resizing: ArrowRight/Left/Home/End", () => {
+  const { sidebar, resizer, storage } = makeEnv({ widthStored: "240" });
+  let saved = null;
+  const orig = storage.setItem;
+  storage.setItem = function (key, value) { if (key === "staple.sidebar.width") saved = value; orig.call(this, key, value); };
+  resizer.dispatchEvent({ type: "keydown", key: "ArrowRight" });
+  assert.equal(sidebar.style.width, "256px");
+  assert.equal(resizer.getAttribute("aria-valuenow"), "256");
+  assert.equal(saved, "256");
+  resizer.dispatchEvent({ type: "keydown", key: "ArrowLeft" });
+  assert.equal(sidebar.style.width, "240px");
+  resizer.dispatchEvent({ type: "keydown", key: "End" });
+  assert.equal(sidebar.style.width, "420px");
+  resizer.dispatchEvent({ type: "keydown", key: "Home" });
+  assert.equal(sidebar.style.width, "208px");
+});
+
+test("invalid stored widths fall back to defaults / clamp", () => {
+  assert.equal(makeEnv({ widthStored: "abc" }).sidebar.style.width, "240px");
+  assert.equal(makeEnv({ widthStored: "240.6" }).sidebar.style.width, "241px");
+  assert.equal(makeEnv({ widthStored: "" }).sidebar.style.width, "240px");
+});
+
+test("no-op without resizer element", () => {
+  const env = makeEnv({ widthStored: "320", withResizer: false });
+  assert.equal(env.sidebar.style.width, "320px"); // collapse still works
+  env.toggle.dispatchEvent({ type: "click" });
+  assert.equal(env.sidebar.classList.contains("collapsed"), true);
 });
 
 test("no-op without sidebar markup", () => {
