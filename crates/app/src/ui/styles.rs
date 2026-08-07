@@ -325,7 +325,7 @@ body {
 
 .empty { color: var(--color-muted-foreground); padding: var(--space-4); }
 
-form.inline-form { display: flex; gap: var(--space-2); align-items: center; margin: var(--space-2) 0; }
+form.inline-form { display: flex; flex-wrap: wrap; gap: var(--space-2); align-items: center; margin: var(--space-2) 0; }
 
 input[type="text"], textarea, select {
   font: inherit;
