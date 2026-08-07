@@ -557,4 +557,55 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   background: color-mix(in srgb, var(--color-status-blocked) 8%, var(--color-background));
   color: var(--color-status-blocked);
 }
+
+/* Command palette (Cmd/Ctrl+K, upstream CommandPalette parity). */
+.command-palette {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding-top: 12vh;
+  background: color-mix(in srgb, var(--color-foreground) 35%, transparent);
+}
+.command-palette[hidden] { display: none; }
+.command-palette-panel {
+  width: min(32rem, calc(100vw - var(--space-8)));
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  overflow: hidden;
+}
+.command-palette-input {
+  width: 100%;
+  box-sizing: border-box;
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  padding: var(--space-3);
+  font-size: var(--font-size-md);
+  background: transparent;
+  color: var(--color-foreground);
+  outline: none;
+}
+.command-palette-list {
+  max-height: 48vh;
+  overflow-y: auto;
+  padding: var(--space-1);
+}
+.command-item {
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-sm);
+  color: var(--color-foreground);
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  cursor: pointer;
+}
+.command-item:hover, .command-item.active { background: var(--color-muted); }
+.command-item .command-id { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
+.command-empty { padding: var(--space-3); font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 "#;

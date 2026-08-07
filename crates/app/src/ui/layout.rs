@@ -128,8 +128,36 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     </nav>
                     <main class="app-main">(slot?)</main>
                 </div>
+                <div id="command-palette" class="command-palette" hidden="hidden">
+                    <div class="command-palette-panel" data-company-id=(company_id.clone().unwrap_or_default())>
+                        <input id="command-input" class="command-palette-input" type="text"
+                               placeholder=(t(lang, "palette.placeholder")) autocomplete="off">
+                        <div id="command-list" class="command-palette-list">
+                            <a class="command-item" href=(with_lang("/", lang)) data-kind="page">(t(lang, "nav.companies"))</a>
+                            if let Some(company_id) = &company_id {
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/board"), lang)) data-kind="page">(t(lang, "nav.board"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/issues"), lang)) data-kind="page">(t(lang, "nav.issues"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/agents"), lang)) data-kind="page">(t(lang, "agents.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/goals"), lang)) data-kind="page">(t(lang, "nav.goals"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/projects"), lang)) data-kind="page">(t(lang, "nav.projects"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/routines"), lang)) data-kind="page">(t(lang, "routines.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/skills"), lang)) data-kind="page">(t(lang, "settings.skills"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/approvals"), lang)) data-kind="page">(t(lang, "approvals.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/inbox"), lang)) data-kind="page">(t(lang, "inbox.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang)) data-kind="page">(t(lang, "whatNeedsMe.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/decisions"), lang)) data-kind="page">(t(lang, "decisions.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/costs"), lang)) data-kind="page">(t(lang, "costs.title"))</a>
+                                <a class="command-item" href=(with_lang(&format!("/companies/{company_id}/settings"), lang)) data-kind="page">(t(lang, "settings.title"))</a>
+                            }
+                            <a class="command-item" href=(with_lang("/instance/settings", lang)) data-kind="page">(t(lang, "instance.title"))</a>
+                            <a class="command-item" href=(with_lang("/profile/settings", lang)) data-kind="page">(t(lang, "profile.title"))</a>
+                            <a class="command-item" href=(with_lang("/adapters", lang)) data-kind="page">(t(lang, "adapters.title"))</a>
+                        </div>
+                    </div>
+                </div>
                 <script src="/static/board_chat.js"></script>
                 <script src="/static/board_zip.js"></script>
+                <script src="/static/command_palette.js"></script>
             </body>
         </html>
     }

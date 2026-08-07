@@ -380,6 +380,7 @@ static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
     entries(&[
         ("nav.title", "Staple"),
         ("nav.companies", "Companies"),
+        ("palette.placeholder", "Search pages, tasks…"),
         ("nav.work", "Work"),
         ("nav.company", "Company"),
         ("skills.title", "Skills"),
@@ -1351,6 +1352,7 @@ static ZH_CN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
     entries(&[
         ("nav.title", "Staple"),
         ("nav.companies", "公司"),
+        ("palette.placeholder", "搜索页面、任务…"),
         ("nav.work", "工作"),
         ("nav.company", "公司"),
         ("skills.title", "技能"),
