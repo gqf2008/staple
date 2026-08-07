@@ -35,7 +35,7 @@ struct ManagedProcess {
     notify: Arc<Notify>,
     /// Accumulated stdout (for observe / error messages).
     output: Mutex<String>,
-    /// Incremental stdout sender (for stream subscribers); taken by the
+    /// Output event sender (stdout deltas + stderr diagnostics); taken by the
     /// child task so the channel closes when the run finishes.
     tx: Mutex<Option<mpsc::UnboundedSender<crate::contract::OutputEvent>>>,
     /// The single subscriber receiver (consumed by the first `stream` call).
@@ -245,59 +245,66 @@ fn find_program(program: &str) -> Option<std::path::PathBuf> {
 
 /// Reads a child's stdout/stderr incrementally, broadcasts stdout chunks,
 /// and stores the final status when the child exits.
+/// Reads a pipe fully, streaming each chunk as an [`OutputEvent`], and
+/// returns the accumulated text (for observe / error messages).
+async fn read_pipe<R: tokio::io::AsyncRead + Unpin>(
+    mut reader: R,
+    sender: &Option<mpsc::UnboundedSender<crate::contract::OutputEvent>>,
+    is_stderr: bool,
+) -> String {
+    let mut buf = String::new();
+    let mut chunk = [0u8; 4096];
+    loop {
+        let n = match reader.read(&mut chunk).await {
+            Ok(0) => break,
+            Ok(n) => n,
+            Err(_) => break,
+        };
+        let text = String::from_utf8_lossy(&chunk[..n]).to_string();
+        buf.push_str(&text);
+        if let Some(sender) = sender {
+            let event = if is_stderr {
+                crate::contract::OutputEvent::Stderr {
+                    content: text,
+                    name: None,
+                }
+            } else {
+                crate::contract::OutputEvent::Delta { content: text }
+            };
+            let _ = sender.send(event);
+        }
+    }
+    buf
+}
+
 async fn run_child(
     mut child: Child,
     stdout: Option<tokio::process::ChildStdout>,
     stderr: Option<tokio::process::ChildStderr>,
     state: Arc<ManagedProcess>,
 ) {
-    let mut output_buf = String::new();
-    let mut error_buf = String::new();
     // Taking the sender means it is dropped when this task finishes, which
     // closes the stream for subscribers.
     let sender = state.tx.lock().await.take();
 
-    if let Some(mut stdout) = stdout {
-        let mut chunk = [0u8; 4096];
-        loop {
-            let read = tokio::select! {
-                _ = tokio::time::sleep(std::time::Duration::from_secs(3600)) => {
-                    // No-op timeout keeps the select well-formed; reads return
-                    // immediately when data is available.
-                    0
-                }
-                result = stdout.read(&mut chunk) => match result {
-                    Ok(0) => break,
-                    Ok(n) => n,
-                    Err(_) => break,
-                },
-            };
-            if read == 0 {
-                break;
-            }
-            let text = String::from_utf8_lossy(&chunk[..read]).to_string();
-            output_buf.push_str(&text);
-            if let Some(sender) = &sender {
-                let _ = sender.send(crate::contract::OutputEvent::Delta(text));
-            }
-        }
-    }
-    if let Some(mut stderr) = stderr {
-        let mut chunk = [0u8; 4096];
-        loop {
-            match stderr.read(&mut chunk).await {
-                Ok(0) => break,
-                Ok(n) => {
-                    let text = String::from_utf8_lossy(&chunk[..n]).to_string();
-                    error_buf.push_str(&text);
-                    if let Some(sender) = &sender {
-                        let _ = sender.send(crate::contract::OutputEvent::Stderr(text));
-                    }
-                }
-                Err(_) => break,
-            }
-        }
-    }
+    // Read stdout and stderr concurrently so stderr diagnostics stream in
+    // real time and large interleaved output cannot deadlock the pipe.
+    let stdout_task = stdout.map(|reader| {
+        let sender = sender.clone();
+        tokio::spawn(async move { read_pipe(reader, &sender, false).await })
+    });
+    let stderr_task = stderr.map(|reader| {
+        let sender = sender.clone();
+        tokio::spawn(async move { read_pipe(reader, &sender, true).await })
+    });
+    let output_buf = match stdout_task {
+        Some(task) => task.await.unwrap_or_default(),
+        None => String::new(),
+    };
+    let error_buf = match stderr_task {
+        Some(task) => task.await.unwrap_or_default(),
+        None => String::new(),
+    };
 
     let exit = child.wait().await;
     let mut guard = state.status.lock().await;
@@ -390,8 +397,10 @@ mod tests {
         loop {
             let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
             match chunk {
-                Some(crate::contract::OutputEvent::Delta(text)) => collected.push_str(&text),
-                Some(crate::contract::OutputEvent::Stderr(_)) => {}
+                Some(crate::contract::OutputEvent::Delta { content: text }) => {
+                    collected.push_str(&text)
+                }
+                Some(crate::contract::OutputEvent::Stderr { .. }) => {}
                 None => break,
             }
         }
@@ -507,8 +516,10 @@ mod tests {
         loop {
             let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
             match chunk {
-                Some(crate::contract::OutputEvent::Delta(text)) => deltas.push_str(&text),
-                Some(crate::contract::OutputEvent::Stderr(text)) => {
+                Some(crate::contract::OutputEvent::Delta { content: text }) => {
+                    deltas.push_str(&text)
+                }
+                Some(crate::contract::OutputEvent::Stderr { content: text, .. }) => {
                     if text.contains("oops") {
                         stderr_seen = true;
                     }
@@ -521,5 +532,69 @@ mod tests {
             "expected a Stderr event with the diagnostic text"
         );
         assert!(deltas.contains("out"), "got deltas: {deltas:?}");
+    }
+    #[tokio::test]
+    async fn stream_yields_stderr_before_stdout_closes() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: "echo err >&2; sleep 0.3; echo out".to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut stderr_before_end = false;
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(crate::contract::OutputEvent::Stderr { .. }) => stderr_before_end = true,
+                Some(crate::contract::OutputEvent::Delta { .. }) => {}
+                None => break,
+            }
+        }
+        assert!(
+            stderr_before_end,
+            "stderr event should arrive while the stream is open"
+        );
+    }
+
+    #[tokio::test]
+    async fn stream_handles_large_interleaved_output_without_deadlock() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: "yes x | head -c 200000; echo done >&2".to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut deltas = String::new();
+        let mut stderr_seen = false;
+        let deadline = tokio::time::sleep(std::time::Duration::from_secs(20));
+        tokio::pin!(deadline);
+        loop {
+            tokio::select! {
+                _ = &mut deadline => panic!("stream deadlocked"),
+                chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)) => {
+                    match chunk {
+                        Some(crate::contract::OutputEvent::Delta { content }) => deltas.push_str(&content),
+                        Some(crate::contract::OutputEvent::Stderr { content, .. }) => {
+                            if content.contains("done") { stderr_seen = true; }
+                        }
+                        None => break,
+                    }
+                }
+            }
+        }
+        assert!(
+            deltas.len() >= 200_000,
+            "expected large stdout, got {}",
+            deltas.len()
+        );
+        assert!(stderr_seen, "expected stderr 'done'");
     }
 }

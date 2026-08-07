@@ -172,20 +172,9 @@ pub async fn board_chat_stream(
                 let _ = tx.send(Ok(Frame::data(Bytes::from(event)))).await;
                 return;
             };
-            let payload = match chunk {
-                staple_adapters::OutputEvent::Delta(content) => serde_json::json!({
-                    "type": "delta",
-                    "content": content,
-                }),
-                staple_adapters::OutputEvent::Stderr(content) => serde_json::json!({
-                    "type": "stderr",
-                    "name": "stderr",
-                    "content": content,
-                }),
-            };
             let event = format!(
                 "data: {}\n\n",
-                serde_json::to_string(&payload).unwrap_or_else(|_| "{}".to_owned())
+                serde_json::to_string(&chunk).unwrap_or_else(|_| "{}".to_owned())
             );
             if tx.send(Ok(Frame::data(Bytes::from(event)))).await.is_err() {
                 return;

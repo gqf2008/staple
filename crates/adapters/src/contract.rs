@@ -80,9 +80,17 @@ pub enum RunStatus {
 #[serde(tag = "type", rename_all = "camelCase")]
 pub enum OutputEvent {
     /// Regular assistant text.
-    Delta(String),
+    Delta {
+        /// Text content.
+        content: String,
+    },
     /// Tool / diagnostic stderr output (rendered as a collapsible block).
-    Stderr(String),
+    Stderr {
+        /// Diagnostic text.
+        content: String,
+        /// Optional block label (frontend defaults to "stderr").
+        name: Option<String>,
+    },
 }
 
 /// Incremental output stream for a run (events as they are produced).
@@ -144,5 +152,29 @@ impl RunStatus {
     #[must_use]
     pub fn is_terminal(&self) -> bool {
         !matches!(self, Self::Running)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::OutputEvent;
+
+    #[test]
+    fn output_event_wire_shape() {
+        assert_eq!(
+            serde_json::to_string(&OutputEvent::Delta {
+                content: "hi".to_owned()
+            })
+            .unwrap(),
+            r#"{"type":"delta","content":"hi"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&OutputEvent::Stderr {
+                content: "oops".to_owned(),
+                name: None
+            })
+            .unwrap(),
+            r#"{"type":"stderr","content":"oops","name":null}"#
+        );
     }
 }
