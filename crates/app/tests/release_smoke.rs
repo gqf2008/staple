@@ -757,6 +757,55 @@ async fn core_business_flow_smoke() {
         "home page missing UI-created company"
     );
 
+    // 4.2. Mutating form redirects carry a flash code rendered as a global
+    // toast (issue #231: success/failure feedback for form POSTs).
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}?flash=created"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains("toast toast-success") && html.contains(">Created<"),
+        "flash toast missing from page"
+    );
+
+    // 4.3. Without a flash code no toast renders; an error code renders the
+    // error toast (issue #231).
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        !html.contains("id=\"flash-toast\""),
+        "toast must not render without a flash code"
+    );
+
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}?flash=error"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains("toast toast-error") && html.contains(">Something went wrong<"),
+        "error flash toast missing from page"
+    );
+
     // 5. New UI surfaces render: board, search, settings.
     // Apps ecosystem: create an application + connection so the app
     // detail page has data to render.
@@ -1047,6 +1096,28 @@ async fn core_business_flow_smoke() {
         let html = String::from_utf8(bytes.to_vec()).unwrap();
         assert!(html.contains(needle), "page missing {needle}");
     }
+
+    // Command palette empty state (issue #229): the placeholder is
+    // server-rendered hidden and the JS (covered by scripts/tests/) toggles it
+    // when a query matches nothing. The exact markup is the regression guard.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}/board"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains(r#"id="command-empty" class="command-empty" hidden="hidden" role="status""#),
+        "command palette empty state must render hidden and be toggled by JS"
+    );
+    assert!(
+        html.contains("No matches."),
+        "command palette empty state label missing"
+    );
 
     // request_revision transitions pending -> revision_requested (B5).
     let request = Request::builder()

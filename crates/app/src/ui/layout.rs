@@ -23,6 +23,31 @@ use super::styles::TOKENS_CSS;
 pub async fn root(cx: &Cx, slot: Result) -> Result {
     let lang = lang_from_request(cx);
     let parts = topcoat::context::try_request_context::<http::request::Parts>(cx);
+    // Flash toast: rendered from the `?flash=` code left by mutating form
+    // handlers (issue #231); auto-dismissed by ui_feedback.js.
+    let flash = parts.as_ref().and_then(|parts| {
+        parts.uri.query().and_then(|query| {
+            query.split('&').find_map(|pair| {
+                let (key, value) = pair.split_once('=')?;
+                (key == "flash").then_some(value.to_owned())
+            })
+        })
+    });
+    let (flash_kind, flash_key) = match flash.as_deref() {
+        Some("created") => ("success", "flash.created"),
+        Some("saved") => ("success", "flash.saved"),
+        Some("updated") => ("success", "flash.updated"),
+        Some("triggered") => ("success", "flash.triggered"),
+        Some("comment-added") => ("success", "flash.comment_added"),
+        Some("decided") => ("success", "flash.decided"),
+        Some("claimed") => ("success", "flash.claimed"),
+        Some("archived") => ("success", "flash.archived"),
+        Some("unarchived") => ("success", "flash.unarchived"),
+        Some("dismissed") => ("success", "flash.dismissed"),
+        Some("invalid") => ("error", "flash.invalid"),
+        Some("error") | Some(_) => ("error", "flash.error"),
+        None => ("", ""),
+    };
     let current_path = parts
         .map(|parts| parts.uri.path().to_owned())
         .unwrap_or_else(|| "/".to_owned());
@@ -156,9 +181,15 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                         </div>
                     </div>
                 </div>
+                if !flash_kind.is_empty() {
+                    <div id="flash-toast" class=(format!("toast toast-{flash_kind}")) role="status" aria-live="polite">
+                        (t(lang, flash_key))
+                    </div>
+                }
                 <script src="/static/board_chat.js"></script>
                 <script src="/static/board_zip.js"></script>
                 <script src="/static/command_palette.js"></script>
+                <script src="/static/ui_feedback.js"></script>
             </body>
         </html>
     }
