@@ -434,4 +434,16 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   margin-top: var(--space-1);
 }
 .row-card-actions { display: flex; gap: var(--space-2); flex: none; align-items: center; }
+
+/* Approval / decision cards (B5). */
+.card-excerpt {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+.card-actions { display: flex; gap: var(--space-2); flex: none; align-items: center; }
+.approval-type { font-weight: 600; font-size: var(--font-size-sm); }
 "#;
