@@ -338,108 +338,174 @@ pub async fn issue_detail(cx: &Cx) -> Result {
         .list_for_issue(&issue_id)
         .await
         .map_err(to_topcoat_error)?;
+    let interactions = state
+        .issue_structure
+        .list_thread_interactions(&issue_id)
+        .await
+        .map_err(to_topcoat_error)?;
     let agent_rows = state
         .agents
         .list(&issue.company_id)
         .await
         .map_err(to_topcoat_error)?;
-
+    let agent_name: std::collections::HashMap<&str, &str> = agent_rows
+        .iter()
+        .map(|agent| (agent.id.as_str(), agent.name.as_str()))
+        .collect();
+    let project_name = if let Some(project_id) = &issue.project_id {
+        state
+            .projects
+            .get(project_id)
+            .await
+            .map_err(to_topcoat_error)?
+            .map(|project| project.name)
+    } else {
+        None
+    };
+    let assignee_name = issue
+        .assignee_agent_id
+        .as_deref()
+        .and_then(|id| agent_name.get(id))
+        .copied();
+    let status_label = issue.status.replace('_', " ");
     view! {
-        <h1 class="page-title">(issue.identifier) " " (issue.title)</h1>
-        <p>
-            <span class=(status_badge_class(&issue.status))>(issue.status)</span>
-            " " (t(lang, "meta.priority")) ": " <span class="mono">(issue.priority)</span>
-        </p>
-        <p class="meta-row">
-            (t(lang, "meta.company")) ": " (issue.company_id)
-            " | " (t(lang, "meta.assignee")) ": "
-            (issue.assignee_agent_id.as_deref().unwrap_or("-"))
-        </p>
-        if let Some(description) = &issue.description {
-            <p>(description)</p>
-        }
+        <div class="issue-header">
+            <div class="issue-header-top">
+                <span class="mono">(issue.identifier.clone())</span>
+                <span class=(format!("issue-status-pill issue-status-pill-{}", issue.status))>
+                    <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                    " " (status_label)
+                </span>
+                <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>
+                    (issue.priority.clone())
+                </span>
+                if let Some(name) = assignee_name {
+                    " " <span class="board-assignee">
+                        <span class="board-assignee-dot">(name.chars().next().unwrap_or('?').to_uppercase().to_string())</span>
+                        <span>(name.to_string())</span>
+                    </span>
+                }
+            </div>
+            <h1 class="issue-title">(issue.title.clone())</h1>
+            <div class="issue-meta">
+                <span>(t(lang, "meta.created")) ": " (issue.created_at.clone())</span>
+                if let Some(project) = project_name {
+                    " " <span>(t(lang, "meta.project")) ": " (project)</span>
+                }
+            </div>
+        </div>
 
-        <section>
-            <h2>(t(lang, "issue.claim"))</h2>
-            <form class="inline-form" method="post"
-                  action=(with_lang(&format!("/issues/{issue_id}/claim/ui"), lang))>
-                <select name="agent_id">
-                    for agent in agent_rows {
-                        if Some(agent.id.as_str()) == issue.assignee_agent_id.as_deref() {
-                            <option value=(agent.id.clone()) selected="selected">(agent.name.clone())</option>
-                        } else {
-                            <option value=(agent.id.clone())>(agent.name.clone())</option>
+        <div class="issue-layout">
+            <div>
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.description"))</h2>
+                    if let Some(description) = &issue.description {
+                        <p class="issue-description">(description.clone())</p>
+                    } else {
+                        <p class="empty">(t(lang, "empty.noDescription"))</p>
+                    }
+                </section>
+
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.comments"))</h2>
+                    <form class="inline-form" method="post" action=(with_lang(&format!("/issues/{issue_id}/comments/ui"), lang))>
+                        <input type="text" name="body" placeholder=(t(lang, "issue.commentPlaceholder")) required="">
+                        <button type="submit">(t(lang, "issue.add"))</button>
+                    </form>
+                    if comments.is_empty() {
+                        <p class="empty">(t(lang, "empty.noComments"))</p>
+                    } else {
+                        for comment in comments {
+                            <div class="comment-card">
+                                <p class="comment-meta">
+                                    (comment.author_user_id.as_deref().unwrap_or("agent"))
+                                    " @ " (comment.created_at)
+                                </p>
+                                <p class="comment-body">(comment.body)</p>
+                            </div>
                         }
                     }
-                </select>
-                <button type="submit">(t(lang, "issue.claim"))</button>
-            </form>
-        </section>
+                </section>
+            </div>
 
-        <section>
-            <h2>(t(lang, "issue.comments"))</h2>
-            <form class="inline-form" method="post" action=(with_lang(&format!("/issues/{issue_id}/comments/ui"), lang))>
-                <input type="text" name="body" placeholder=(t(lang, "issue.commentPlaceholder")) required="">
-                <button type="submit">(t(lang, "issue.add"))</button>
-            </form>
-            if comments.is_empty() {
-                <p class="empty">(t(lang, "empty.noComments"))</p>
-            } else {
-                <ul class="list">
-                    for comment in comments {
-                        <li>
-                            <p class="meta-row">(comment.author_user_id.as_deref().unwrap_or("agent")) " @ " (comment.created_at)</p>
-                            <p>(comment.body)</p>
-                        </li>
-                    }
-                </ul>
-            }
-        </section>
+            <aside class="issue-sidebar">
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.claim"))</h2>
+                    <form class="inline-form" method="post"
+                          action=(with_lang(&format!("/issues/{issue_id}/claim/ui"), lang))>
+                        <select name="agent_id">
+                            for agent in &agent_rows {
+                                if Some(agent.id.as_str()) == issue.assignee_agent_id.as_deref() {
+                                    <option value=(agent.id.clone()) selected="selected">(agent.name.clone())</option>
+                                } else {
+                                    <option value=(agent.id.clone())>(agent.name.clone())</option>
+                                }
+                            }
+                        </select>
+                        <button type="submit">(t(lang, "issue.claim"))</button>
+                    </form>
+                </section>
 
-        <section>
-            <h2>(t(lang, "issue.documents"))</h2>
-            if documents.is_empty() {
-                <p class="empty">(t(lang, "empty.noDocuments"))</p>
-            } else {
-                <ul class="list">
-                    for document in documents {
-                        <li>
-                            <strong>(document.title.as_deref().unwrap_or(&t(lang, "issue.untitled")))</strong>
-                            " " (t(lang, "issue.rev")) " " <span class="mono">(document.latest_revision_number)</span>
-                        </li>
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.workProducts"))</h2>
+                    if work_products.is_empty() {
+                        <p class="empty">(t(lang, "empty.noWorkProducts"))</p>
+                    } else {
+                        <div class="chip-row">
+                            for product in work_products {
+                                <span class="chip">(product.title) " · " (product.r#type)</span>
+                            }
+                        </div>
                     }
-                </ul>
-            }
-        </section>
+                </section>
 
-        <section>
-            <h2>(t(lang, "issue.attachments"))</h2>
-            if attachments.is_empty() {
-                <p class="empty">(t(lang, "empty.noAttachments"))</p>
-            } else {
-                <ul class="list">
-                    for attachment in attachments {
-                        <li><span class="mono">(attachment.asset_id)</span></li>
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.documents"))</h2>
+                    if documents.is_empty() {
+                        <p class="empty">(t(lang, "empty.noDocuments"))</p>
+                    } else {
+                        <ul class="list">
+                            for document in documents {
+                                <li>
+                                    <strong>(document.title.as_deref().unwrap_or(&t(lang, "issue.untitled")))</strong>
+                                    " " (t(lang, "issue.rev")) " " <span class="mono">(document.latest_revision_number)</span>
+                                </li>
+                            }
+                        </ul>
                     }
-                </ul>
-            }
-        </section>
+                </section>
 
-        <section>
-            <h2>(t(lang, "issue.workProducts"))</h2>
-            if work_products.is_empty() {
-                <p class="empty">(t(lang, "empty.noWorkProducts"))</p>
-            } else {
-                <ul class="list">
-                    for product in work_products {
-                        <li>
-                            <strong>(product.title)</strong>
-                            " " <span class="mono">(product.r#type)</span>
-                        </li>
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.attachments"))</h2>
+                    if attachments.is_empty() {
+                        <p class="empty">(t(lang, "empty.noAttachments"))</p>
+                    } else {
+                        <div class="chip-row">
+                            for attachment in attachments {
+                                <span class="chip"><span class="mono">(attachment.asset_id)</span></span>
+                            }
+                        </div>
                     }
-                </ul>
-            }
-        </section>
+                </section>
+
+                <section class="issue-section">
+                    <h2>(t(lang, "issue.interactions"))</h2>
+                    if interactions.is_empty() {
+                        <p class="empty">(t(lang, "empty.noInteractions"))</p>
+                    } else {
+                        for interaction in interactions {
+                            <div class="interaction-card">
+                                <div class="interaction-kind">
+                                    (interaction.kind.replace('_', " "))
+                                    " · " (interaction.status)
+                                </div>
+                                <p class="interaction-payload">(interaction.payload)</p>
+                            </div>
+                        }
+                    }
+                </section>
+            </aside>
+        </div>
     }
 }
 

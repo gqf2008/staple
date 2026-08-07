@@ -307,4 +307,106 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   font-weight: 600;
 }
 .board-column form { margin: var(--space-1) 0 0; }
+
+/* Issue detail (upstream IssueDetail parity, B3): header pill + two-column
+   layout + timeline comments + work product/attachment chips. */
+.issue-header {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+.issue-header-top {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+}
+.issue-title {
+  font-size: var(--font-size-xl);
+  line-height: 1.3;
+  margin: 0;
+}
+.issue-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  color: var(--color-muted-foreground);
+  font-size: var(--font-size-sm);
+}
+.issue-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem 0.5rem;
+  border-radius: 9999px;
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+}
+.issue-status-pill-backlog, .issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-cancelled) 16%, var(--color-background)); color: var(--color-status-cancelled); }
+.issue-status-pill-todo { background: color-mix(in srgb, var(--color-status-todo) 16%, var(--color-background)); color: var(--color-status-todo); }
+.issue-status-pill-in_progress { background: color-mix(in srgb, var(--color-status-in-progress) 16%, var(--color-background)); color: var(--color-status-in-progress); }
+.issue-status-pill-in_review { background: color-mix(in srgb, var(--color-status-in-review) 16%, var(--color-background)); color: var(--color-status-in-review); }
+.issue-status-pill-blocked { background: color-mix(in srgb, var(--color-status-blocked) 16%, var(--color-background)); color: var(--color-status-blocked); }
+.issue-status-pill-done { background: color-mix(in srgb, var(--color-status-done) 16%, var(--color-background)); color: var(--color-status-done); }
+.issue-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 20rem;
+  gap: var(--space-4);
+  align-items: start;
+}
+@media (max-width: 60rem) { .issue-layout { grid-template-columns: 1fr; } }
+.issue-sidebar { display: flex; flex-direction: column; gap: var(--space-4); }
+.issue-section {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-4);
+}
+.issue-section h2 { margin: 0 0 var(--space-3); font-size: var(--font-size-sm); }
+.issue-description { white-space: pre-wrap; font-size: var(--font-size-sm); line-height: 1.6; }
+.comment-card {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.comment-card .comment-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  margin-bottom: var(--space-1);
+}
+.comment-card .comment-body { font-size: var(--font-size-sm); white-space: pre-wrap; margin: 0; }
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: 0.125rem 0.5rem;
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  background: var(--color-background);
+}
+.chip-row { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.interaction-card {
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-left-color: var(--color-status-in-progress);
+  border-radius: var(--radius-sm);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.interaction-card .interaction-kind {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: capitalize;
+  color: var(--color-muted-foreground);
+}
+.interaction-card .interaction-payload { font-size: var(--font-size-sm); white-space: pre-wrap; margin: var(--space-1) 0 0; }
 "#;
