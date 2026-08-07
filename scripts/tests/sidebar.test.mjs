@@ -298,6 +298,13 @@ test("narrow mode: desktop collapse/width persistence is ignored", () => {
   assert.equal(sidebar.style.width, "240px");
 });
 
+test("cross-breakpoint: desktop -> narrow clears toggle inline width", () => {
+  const { toggle, setNarrow } = makeEnv({ narrow: false });
+  assert.notEqual(toggle.style.width, "");
+  setNarrow(true);
+  assert.equal(toggle.style.width, "");
+});
+
 test("cross-breakpoint: desktop -> narrow -> toggle opens drawer", () => {
   const { sidebar, toggle, setNarrow } = makeEnv({ narrow: false });
   setNarrow(true);

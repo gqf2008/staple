@@ -319,7 +319,6 @@ body {
       visibility 0s;
     box-shadow: var(--shadow-lg);
   }
-  .app-sidebar a, .app-sidebar h3 { visibility: visible; }
   .app-sidebar .sidebar-resizer { display: none; }
   #sidebar-toggle {
     position: fixed;

@@ -93,6 +93,9 @@
         // Drawer mode: desktop collapse/width persistence is ignored.
         sidebar.classList.remove("collapsed");
         sidebar.style.width = sidebarWidth;
+        // Let the narrow media query size the hamburger (40px) — the desktop
+        // inline width would otherwise stay and cover page content.
+        toggle.style.width = "";
         setDrawer(readStored(MOBILE_KEY, "0") === "1");
       } else {
         drawerOpen = false;
