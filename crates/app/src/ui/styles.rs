@@ -169,6 +169,7 @@ body {
   transition: width var(--motion-duration-fast) var(--motion-ease-base);
 }
 .app-sidebar.collapsed { width: 64px; overflow: hidden; }
+.app-sidebar.collapsed a, .app-sidebar.collapsed h3 { visibility: hidden; }
 .app-sidebar a {
   display: block;
   padding: var(--space-1) var(--space-3);
@@ -480,8 +481,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .issue-section {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
 }
 .issue-section h2 { margin: 0 0 var(--space-3); font-size: var(--font-size-sm); }
 .issue-description { white-space: pre-wrap; font-size: var(--font-size-sm); line-height: 1.6; }

@@ -104,7 +104,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
             <body>
                 <div class="app-shell">
                     <nav class="app-sidebar" data-collapsible="true">
-                        <button type="button" class="sidebar-toggle secondary" id="sidebar-toggle" aria-label=(t(lang, "nav.collapse")) aria-expanded="true">("\u{ab}")</button>
+                        <button type="button" class="sidebar-toggle secondary" id="sidebar-toggle" aria-controls="app-sidebar" aria-label=(t(lang, "nav.collapse")) aria-expanded="true" data-collapse=(t(lang, "nav.collapse")) data-expand=(t(lang, "nav.expand"))>("\u{ab}")</button>
                         <a class="brand" href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
                         <h3>(t(lang, "nav.companies"))</h3>
                         <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
