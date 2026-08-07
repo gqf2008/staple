@@ -22,6 +22,7 @@ pub const TOKENS_CSS: &str = r#"
 }
 
 :root {
+  color-scheme: light;
   /* color — aligned with upstream ui/src/index.css (light theme, OKLCH) */
   --color-background: oklch(1 0 0);
   --color-foreground: oklch(0.145 0 0);
@@ -63,6 +64,22 @@ pub const TOKENS_CSS: &str = r#"
   --color-status-backlog: #a8aeb2;
   --color-status-idle: #a8aeb2;
   --color-status-error: #dc2626;
+
+  /* status-icon colors — aligned with upstream --status-task-icon-*
+     (light values; the .dark block overrides the four that need a darker
+     AA-tuned hue, PAP-238). Used by status dots and board column headers;
+     chips/pills keep the mode-independent base hue. */
+  --color-status-icon-todo: #cc7a00;
+  --color-status-icon-done: #16a34a;
+  --color-status-icon-in-progress: #2563eb;
+  --color-status-icon-in-review: #7c3aed;
+  --color-status-icon-blocked: #dc2626;
+  --color-status-icon-cancelled: #52585d;
+  --color-status-icon-backlog: #52585d;
+  --color-status-icon-paused: #cc7a00;
+  --color-status-icon-running: #2563eb;
+  --color-status-icon-idle: #52585d;
+  --color-status-icon-error: #dc2626;
 
   /* priority colors — Staple extension (upstream has no priority token set;
      kept for board/issue priority chips, documented in ui-pixel-baseline) */
@@ -131,6 +148,53 @@ pub const TOKENS_CSS: &str = r#"
     --motion-duration-deliberate: 0ms;
     --motion-duration-pulse: 0ms;
   }
+}
+
+/* Dark theme (issue #242) — values aligned with upstream ui/src/index.css
+   `.dark` block. Applied by /static/theme.js via <html class="dark">; the
+   pre-paint inline script in layout.rs prevents a light flash (FOUC). */
+.dark {
+  color-scheme: dark;
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.922 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  --color-secondary: oklch(0.269 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.637 0.237 25.331);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(1 0 0 / 10%);
+  --color-input: oklch(1 0 0 / 15%);
+  --color-ring: oklch(0.556 0 0);
+  --color-sidebar: oklch(0.205 0 0);
+  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary: oklch(0.488 0.243 264.376);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.269 0 0);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(1 0 0 / 10%);
+  --color-sidebar-ring: oklch(0.556 0 0);
+
+  /* Dark-mode AA overrides for status-icon hues (PAP-238); in_progress /
+     blocked stay identical both modes. Chips/pills keep the mode-independent
+     base hues (--color-status-*). Upstream tokens Staple has no consumer for
+     (--bubble-agent, --chart-*, --chip-match-*, --paperclip-doc-annotation-*)
+     are intentionally not ported. */
+  --color-status-icon-todo: #fbbf24;
+  --color-status-icon-done: #34d06f;
+  --color-status-icon-in-review: #9474f0;
+  --color-status-icon-cancelled: #9a958a;
+  --color-status-icon-backlog: #9a958a;
+  --color-status-icon-paused: #fbbf24;
+  --color-status-icon-idle: #9a958a;
 }
 * { box-sizing: border-box; }
 
@@ -321,17 +385,17 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-top: 1px solid var(--color-border);
 }
 .board-column.drag-over { outline: 2px solid var(--color-primary); outline-offset: -2px; }
-.board-column-backlog .board-column-header { color: var(--color-status-backlog); }
+.board-column-backlog .board-column-header { color: var(--color-status-icon-backlog); }
 .board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-backlog) 8%, var(--color-background)); }
-.board-column-todo .board-column-header { color: var(--color-status-todo); }
+.board-column-todo .board-column-header { color: var(--color-status-icon-todo); }
 .board-column-todo .board-column-body { background: color-mix(in srgb, var(--color-status-todo) 10%, var(--color-background)); }
-.board-column-in_progress .board-column-header { color: var(--color-status-in-progress); }
+.board-column-in_progress .board-column-header { color: var(--color-status-icon-in-progress); }
 .board-column-in_progress .board-column-body { background: color-mix(in srgb, var(--color-status-in-progress) 10%, var(--color-background)); }
-.board-column-in_review .board-column-header { color: var(--color-status-in-review); }
+.board-column-in_review .board-column-header { color: var(--color-status-icon-in-review); }
 .board-column-in_review .board-column-body { background: color-mix(in srgb, var(--color-status-in-review) 10%, var(--color-background)); }
-.board-column-blocked .board-column-header { color: var(--color-status-blocked); }
+.board-column-blocked .board-column-header { color: var(--color-status-icon-blocked); }
 .board-column-blocked .board-column-body { background: color-mix(in srgb, var(--color-status-blocked) 10%, var(--color-background)); }
-.board-column-done .board-column-header { color: var(--color-status-done); }
+.board-column-done .board-column-header { color: var(--color-status-icon-done); }
 .board-column-done .board-column-body { background: color-mix(in srgb, var(--color-status-done) 8%, var(--color-background)); }
 .board-column-cancelled .board-column-header,
 .board-column-cancelled .board-column-body { opacity: 0.7; }
@@ -343,25 +407,25 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   flex: none;
   background: var(--color-muted-foreground);
 }
-.status-dot-backlog { background: var(--color-status-backlog); }
-.status-dot-cancelled { background: var(--color-status-cancelled); }
-.status-dot-todo { background: var(--color-status-todo); }
-.status-dot-in_progress { background: var(--color-status-in-progress); }
-.status-dot-in_review { background: var(--color-status-in-review); }
-.status-dot-blocked { background: var(--color-status-blocked); }
-.status-dot-done { background: var(--color-status-done); }
-.status-dot-pending { background: var(--color-status-todo); }
-.status-dot-failed, .status-dot-timed_out { background: var(--color-status-blocked); }
+.status-dot-backlog { background: var(--color-status-icon-backlog); }
+.status-dot-cancelled { background: var(--color-status-icon-cancelled); }
+.status-dot-todo { background: var(--color-status-icon-todo); }
+.status-dot-in_progress { background: var(--color-status-icon-in-progress); }
+.status-dot-in_review { background: var(--color-status-icon-in-review); }
+.status-dot-blocked { background: var(--color-status-icon-blocked); }
+.status-dot-done { background: var(--color-status-icon-done); }
+.status-dot-pending { background: var(--color-status-icon-todo); }
+.status-dot-failed, .status-dot-timed_out { background: var(--color-status-icon-blocked); }
 .status-dot-over_budget { background: var(--color-priority-critical); }
-.status-dot-open { background: var(--color-status-in-progress); }
+.status-dot-open { background: var(--color-status-icon-in-progress); }
 .status-dot-approved, .status-dot-decided, .status-dot-active,
-.status-dot-achieved, .status-dot-completed { background: var(--color-status-done); }
-.status-dot-rejected, .status-dot-expired, .status-dot-terminated { background: var(--color-status-cancelled); }
-.status-dot-revision_requested { background: var(--color-status-in-review); }
-.status-dot-paused { background: var(--color-status-paused); }
-.status-dot-planned, .status-dot-todo { background: var(--color-status-todo); }
-.status-dot-error { background: var(--color-status-blocked); }
-.status-dot-idle { background: var(--color-muted-foreground); }
+.status-dot-achieved, .status-dot-completed { background: var(--color-status-icon-done); }
+.status-dot-rejected, .status-dot-expired, .status-dot-terminated { background: var(--color-status-icon-cancelled); }
+.status-dot-revision_requested { background: var(--color-status-icon-in-review); }
+.status-dot-paused { background: var(--color-status-icon-paused); }
+.status-dot-planned, .status-dot-todo { background: var(--color-status-icon-todo); }
+.status-dot-error { background: var(--color-status-icon-blocked); }
+.status-dot-idle { background: var(--color-status-icon-idle); }
 .board-card {
   display: block;
   background: var(--color-card);

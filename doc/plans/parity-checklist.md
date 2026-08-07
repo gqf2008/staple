@@ -1,8 +1,9 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-07（功能/API/数据结构对齐完成；**UI/UX 非 1:1**——issue #217 分批推进中：B1 侧边栏 badge ✅、B2 看板 ✅、B3 Issue 详情 ✅、B4 列表卡片 ✅、B5 审批/决策卡片 ✅、B6 Board Chat 气泡/流式/工具折叠 ✅（含 B6.2：adapter 结构化输出事件 Delta/Stderr，聊天 stderr 折叠真实落地；B6.3：adapter tool-call 结构化解析 ✅ issue #230，见 `doc/plans/2026-08-07-adapter-tool-call-parse.md`）、B7 其余列表页统一 ✅、#231 UI 反馈近似（loading/toast + 架构性差异登记）✅）：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-07（功能/API/数据结构对齐完成；**UI/UX：视觉 token/布局/深色已对齐，剩余架构性差异已登记**——issue #217 分批推进中：B1 侧边栏 badge ✅、B2 看板 ✅、B3 Issue 详情 ✅、B4 列表卡片 ✅、B5 审批/决策卡片 ✅、B6 Board Chat 气泡/流式/工具折叠 ✅（含 B6.2：adapter 结构化输出事件 Delta/Stderr，聊天 stderr 折叠真实落地；B6.3：adapter tool-call 结构化解析 ✅ issue #230，见 `doc/plans/2026-08-07-adapter-tool-call-parse.md`）、B7 其余列表页统一 ✅、#231 UI 反馈近似（loading/toast + 架构性差异登记）✅）：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
 > 2026-08-07 建立 UI 像素级基线（issue #228/PR #232）：19 页截图 + token/布局量化对比，结论为视觉 token 层系统性差异（主色/底色/字体/圆角/内容宽度/按钮），功能与结构对齐。
+> 2026-08-07 UI 对齐落地：A 视觉 token 层（#236/#239）、B 布局与组件规格（#237/#241）、C 上游 Storybook 运行时截图基线（#238/#240）、D 深色主题（#242，`.dark` 语义 token + 状态图标色逐值对齐 + system/light/dark 切换 + 防 FOUC；未消费上游 token 如 --bubble-agent/--chart-*/--chip-match-* 已登记未移植）全部完成；剩余差异为 Topcoat SSR 架构性限制（侧栏拖拽尺寸、SPA 动画/乐观更新/skeleton、移动端适配），已登记。
 
 ## 使用方式
 

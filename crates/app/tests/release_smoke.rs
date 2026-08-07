@@ -1002,6 +1002,20 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/board"), "sidebar-toggle"),
         (format!("/companies/{company_id}/board"), "data-collapsible"),
         ("/static/sidebar.js".to_string(), "collapsed"),
+        ("/static/theme.js".to_string(), "staple.theme"),
+        (
+            "/static/theme_init.js".to_string(),
+            "prefers-color-scheme: dark",
+        ),
+        (format!("/companies/{company_id}/board"), "theme-toggle"),
+        (
+            format!("/companies/{company_id}/board"),
+            "/static/theme_init.js",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "--color-background: oklch(0.145 0 0)",
+        ),
         (
             format!("/companies/{company_id}/export-import"),
             "Export / Import",
