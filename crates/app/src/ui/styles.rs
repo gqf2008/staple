@@ -818,6 +818,11 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-lg);
   overflow: hidden;
+  animation: palette-in var(--motion-duration-fast) var(--motion-ease-base);
+}
+@keyframes palette-in {
+  from { opacity: 0; transform: scale(0.98); }
+  to { opacity: 1; transform: scale(1); }
 }
 .command-palette-input {
   width: 100%;
@@ -883,7 +888,12 @@ button[disabled] { opacity: 0.6; cursor: default; }
   background: var(--color-card);
   box-shadow: var(--shadow-lg);
   font-size: var(--font-size-sm);
+  animation: toast-in var(--motion-duration-base) var(--motion-ease-base);
   transition: opacity var(--motion-duration-base) var(--motion-ease-base);
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translate(-50%, -8px); }
+  to { opacity: 1; transform: translate(-50%, 0); }
 }
 .toast[hidden] { display: none; }
 .toast.hide { opacity: 0; }
@@ -891,6 +901,7 @@ button[disabled] { opacity: 0.6; cursor: default; }
 .toast-error { border-color: var(--color-destructive); color: var(--color-destructive); }
 @media (prefers-reduced-motion: reduce) {
   .spinner { animation: none; }
-  .toast { transition: none; }
+  .toast { animation: none; transition: none; }
+  .command-palette-panel { animation: none; }
 }
 "#;

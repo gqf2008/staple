@@ -1013,6 +1013,14 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/board"),
             "form.inline-form { display: flex; flex-wrap: wrap;",
         ),
+        (
+            format!("/companies/{company_id}/board"),
+            "@keyframes toast-in",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "@keyframes palette-in",
+        ),
         ("/static/sidebar.js".to_string(), "collapsed"),
         ("/static/theme.js".to_string(), "staple.theme"),
         (
