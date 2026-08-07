@@ -1097,6 +1097,28 @@ async fn core_business_flow_smoke() {
         assert!(html.contains(needle), "page missing {needle}");
     }
 
+    // Command palette empty state (issue #229): the placeholder is
+    // server-rendered hidden and the JS (covered by scripts/tests/) toggles it
+    // when a query matches nothing. The exact markup is the regression guard.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}/board"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains(r#"id="command-empty" class="command-empty" hidden="hidden" role="status""#),
+        "command palette empty state must render hidden and be toggled by JS"
+    );
+    assert!(
+        html.contains("No matches."),
+        "command palette empty state label missing"
+    );
+
     // request_revision transitions pending -> revision_requested (B5).
     let request = Request::builder()
         .method(Method::POST)

@@ -1,4 +1,4 @@
-.PHONY: dev test lint build check
+.PHONY: dev test lint build check js-test
 
 # Run the app (dev mode)
 dev:
@@ -20,6 +20,11 @@ build:
 # Smoke-test the core business flow through the Rust binary surface
 smoke:
 	cargo test -p staple-app --test release_smoke
+
+# JS behavior tests for the Topcoat UI (Node built-in test runner, zero
+# dependencies; runs scripts/tests/*.test.mjs against the real palette script)
+js-test:
+	node --test scripts/tests/*.test.mjs
 
 # Node reference runtime was frozen and removed (Phase 5). The reference
 # mirror (gqf2008/paperclip) retains the Node code for behavior comparison.
