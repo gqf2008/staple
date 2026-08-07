@@ -80,6 +80,7 @@ pub const TOKENS_CSS: &str = r#"
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-10: 2.5rem;
   --space-12: 3rem;
   --border-width: 0.125rem;
 
@@ -158,25 +159,55 @@ body {
 
 .app-nav a:hover { text-decoration: underline; }
 
-.app-shell { display: flex; gap: var(--space-6); align-items: flex-start; }
-.app-sidebar { width: 220px; flex-shrink: 0; border-right: 1px solid var(--color-border); padding-right: var(--space-4); }
-.app-sidebar a { display: block; padding: var(--space-1) 0; color: var(--color-muted-foreground); text-decoration: none; }
+.app-shell { display: flex; align-items: flex-start; min-height: 100vh; }
+.app-sidebar {
+  width: 240px;
+  flex-shrink: 0;
+  background: var(--color-sidebar);
+  border-right: 1px solid var(--color-border);
+  padding: var(--space-3) 0;
+  transition: width var(--motion-duration-fast) var(--motion-ease-base);
+}
+.app-sidebar.collapsed { width: 64px; overflow: hidden; }
+.app-sidebar.collapsed a, .app-sidebar.collapsed h3 { visibility: hidden; }
+.app-sidebar a {
+  display: block;
+  padding: var(--space-1) var(--space-3);
+  color: var(--color-muted-foreground);
+  text-decoration: none;
+  white-space: nowrap;
+  overflow: hidden;
+}
 .app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
-.app-sidebar a.brand { font-weight: 600; color: var(--color-primary-foreground); margin-bottom: var(--space-3); }
-.app-sidebar h3 { font-size: var(--font-size-sm); text-transform: uppercase; letter-spacing: 0.05em; color: var(--color-muted-foreground); margin: var(--space-3) 0 var(--space-1); }
-.app-main { flex: 1; min-width: 0; padding: var(--space-6); max-width: 960px; margin: 0 auto; }
+.app-sidebar a.brand { font-weight: 600; color: var(--color-foreground); margin-bottom: var(--space-3); }
+.app-sidebar h3 {
+  font-size: var(--font-size-sm);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-muted-foreground);
+  margin: var(--space-3) 0 var(--space-1);
+  padding: 0 var(--space-3);
+  white-space: nowrap;
+  overflow: hidden;
+}
+.sidebar-toggle {
+  width: calc(100% - var(--space-6));
+  margin: 0 var(--space-3) var(--space-2);
+  height: var(--space-8);
+  font-size: var(--font-size-sm);
+}
+.app-main { flex: 1; min-width: 0; padding: var(--space-4); width: 100%; }
+@media (min-width: 48rem) {
+  .app-main { padding: var(--space-6); }
+}
 
 .card {
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  padding: var(--space-4);
+  padding: var(--space-6);
   margin-bottom: var(--space-4);
-  box-shadow: var(--shadow-sm);
-  transition: box-shadow var(--motion-duration-fast) var(--motion-ease-base);
 }
-
-.card:hover { box-shadow: var(--shadow-md); }
 
 .card h3 { margin: 0 0 var(--space-2); font-size: var(--font-size-lg); }
 
@@ -219,9 +250,11 @@ input[type="text"], textarea, select {
 
 button {
   font: inherit;
-  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-sm);
+  height: var(--space-10);
+  padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-md);
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   cursor: pointer;
@@ -448,8 +481,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .issue-section {
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  padding: var(--space-4);
+  border-radius: var(--radius-lg);
+  padding: var(--space-6);
 }
 .issue-section h2 { margin: 0 0 var(--space-3); font-size: var(--font-size-sm); }
 .issue-description { white-space: pre-wrap; font-size: var(--font-size-sm); line-height: 1.6; }

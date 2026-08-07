@@ -379,6 +379,8 @@ fn upstream_table(lang: Lang) -> &'static HashMap<String, String> {
 static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
     entries(&[
         ("nav.title", "Staple"),
+        ("nav.collapse", "Collapse sidebar"),
+        ("nav.expand", "Expand sidebar"),
         ("flash.created", "Created"),
         ("flash.saved", "Saved"),
         ("flash.updated", "Updated"),
@@ -1364,6 +1366,8 @@ static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
 static ZH_CN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
     entries(&[
         ("nav.title", "Staple"),
+        ("nav.collapse", "收起侧栏"),
+        ("nav.expand", "展开侧栏"),
         ("flash.created", "已创建"),
         ("flash.saved", "已保存"),
         ("flash.updated", "已更新"),

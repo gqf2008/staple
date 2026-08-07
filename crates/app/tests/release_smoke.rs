@@ -999,6 +999,9 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/board"),
             "command-item[hidden]",
         ),
+        (format!("/companies/{company_id}/board"), "sidebar-toggle"),
+        (format!("/companies/{company_id}/board"), "data-collapsible"),
+        ("/static/sidebar.js".to_string(), "collapsed"),
         (
             format!("/companies/{company_id}/export-import"),
             "Export / Import",

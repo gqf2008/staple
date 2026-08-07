@@ -3,7 +3,7 @@
 > 状态：**基线已建立（2026-08-07）**。结论：**当前未达到像素级 1:1**，本文给出量化差距与可执行修复清单。
 > 用途：后续 UI polish 的验收依据；对应 issue #228。
 >
-> **更新（2026-08-07，issue #236/PR 待合）**：F1/F2/F6 已实施——色彩/圆角/动效/状态色/字体（InterVariable 自托管）已对齐上游 index.css；剩余 F3（侧栏）/F4（全宽内容区）/F5（按钮卡片规格）由「UI 对齐 B（issue #237）」承接，F7（上游运行时截图）由 issue #238 承接。
+> **更新（2026-08-07）**：F1–F7 全部实施——F1/F2/F6（issue #236/PR #239）：色彩/圆角/动效/状态色/字体（InterVariable 自托管）对齐上游 index.css；F3/F4/F5（issue #237）：侧栏 240px + 折叠 rail 64px、内容区全宽 p-4/p-6、按钮/卡片规格对齐上游 shadcn（侧栏拖拽调整与 SPA 动画登记为架构近似）；F7（issue #238/PR #240）：上游 Storybook 运行时截图基线（32 张，浅色/深色）已入库。
 
 ### F1/F2/F6 实测记录（2026-08-07，issue #236）
 
@@ -92,11 +92,11 @@ Playwright 1440×900 实测（token 对齐后 build）：
 
 - [x] F1 视觉 token 层对齐上游（issue #236：色彩/圆角/动效已对齐；补齐 input/ring/sidebar/popover 等语义 token）：`--color-background/foreground/primary/muted-*/border/radius-*` 等值改为上游 OKLCH 值（保留 Staple 扩展 token 作为超集），并补齐缺失语义 token（sidebar/input/ring/popover 等）。
 - [x] F2 字体：引入 InterVariable（issue #236：自托管 woff2 + @font-face + 静态路由）（或本地字体回退链）对齐上游 `--font-sans`。
-- [ ] F3 侧栏：默认宽 240px，支持折叠 rail(64px) 与拖拽（Topcoat 可近似实现，或登记为架构差异）。
-- [ ] F4 内容区：移除 `max-width:960px` 居中，改全宽 + `p-4/p-6`（对齐上游 flex-1 布局）。
-- [ ] F5 按钮/卡片：主按钮 `h-10/px-4/text-sm/rounded-md`，卡片 `rounded-lg/py-6/px-6` 对齐上游 shadcn 规格。
+- [x] F3 侧栏（issue #237）：默认 240px + 折叠 rail 64px（#sidebar-toggle + localStorage，折叠后隐藏文本残片）；拖拽调整尺寸登记为架构近似（SSR）；≤48rem 窄屏未做移动端适配（登记为已知限制）。
+- [x] F4 内容区（issue #237）：移除 960px 居中，改全宽 + `p-4`（`≥48rem` 时 `p-6`）。
+- [x] F5 按钮/卡片（issue #237）：主按钮 `h-10/px-4/text-sm/rounded-md`；卡片 `rounded-lg/py-6/px-6` 无阴影（对齐上游 Card，真实表面 `.issue-section` 已对齐；`.card` 为预留基类）。
 - [x] F6 状态色/优先级色（issue #236：状态色对齐上游 --status-*；优先级色保留为扩展并登记）：上游 `--status-task-*`/`--status-agent-*`（hex）与 Staple `--color-status-*` 映射核对（部分已对齐，如 done=#16a34a vs 上游 #22c55e 需复核）。
-- [ ] F7 上游运行时截图基线：起上游 Node UI（或 Storybook）截同页面对比，把「派生」项升级为「实测」。
+- [x] F7 上游运行时截图基线（issue #238/PR #240）：上游 Storybook v10.5.5 实测 32 张（浅 16 + 深 16），侧栏 240/Button 40×6.4px/Badge 22px/Card 8px 16px/CommandPalette 448px 全部实测，见 `doc/plans/2026-08-07-upstream-runtime-shots.md`。
 
 ## 7. 复现/验证
 
@@ -110,4 +110,4 @@ grep -cE '^\s*--[a-z0-9-]+:' crates/app/src/ui/styles.rs   # 50
 ```
 
 - 交付物：`doc/plans/ui-baseline/`（staple/ 19 页 + upstream/ 6 张对照 + contact-sheet.html）。
-- 本次为文档/基线交付，不含代码改动；F1–F7 待独立 issue 实施。
+- 本次为文档/基线交付，不含代码改动；F1–F7 已由 issue #236/#237/#238 实施并合入。

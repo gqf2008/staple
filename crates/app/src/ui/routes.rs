@@ -4792,6 +4792,18 @@ pub async fn ui_feedback_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiEr
     Ok(response)
 }
 
+/// `GET /static/sidebar.js` — sidebar collapse (240px ↔ 64px rail) for the
+/// SSR layout, approximating the upstream SidebarShell (issue #237).
+#[route(GET "/static/sidebar.js")]
+pub async fn sidebar_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("sidebar.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
 /// `GET /static/fonts/InterVariable.woff2` — self-hosted variable font used by
 /// the token layer `--font-sans` (aligned with upstream `ui/public/fonts/`).
 #[route(GET "/static/fonts/InterVariable.woff2")]
