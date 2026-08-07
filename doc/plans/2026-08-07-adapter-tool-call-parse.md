@@ -39,7 +39,7 @@ CLI，因此解析层必须格式无关（按行自识别），而不是为每�
 
 | # | 来源 CLI | 样例 | 识别 |
 |---|---|---|---|
-| B1 | Hermes CLI quiet-mode（TTY/pipe） | `  ┊ 💻 $         curl -s https://example.com  0.2s`、`  [done] ┊ 🔍 search    pattern  0.1s (0.5s)` | `┊` 必须位于行首（允许 `[done]` 前缀）；非 `💬` 助手行；结尾带 `N.Ns` 时长；**动词白名单**（`$`/`exec`/`terminal`/`bash`/`search`/`read`/`write`/`edit` 等已知 Hermes 工具动词，`thinking`/`done` 等普通动词不判工具）；id 由调用方合成 |
+| B1 | Hermes CLI quiet-mode（TTY/pipe） | `  ┊ 💻 $         curl -s https://example.com  0.2s`、`  [done] ┊ 🔍 search    pattern  0.1s (0.5s)` | `┊` 必须位于行首（允许 `[done]` 前缀）；非 `💬` 助手行；结尾带 `N.Ns` 时长；**动词白名单**（与上游 `nameMap` 一致：`$`/`exec`/`terminal`/`search`/`grep`/`find`/`fetch`/`read`/`read_file`/`write`/`write_file`/`patch`/`patch_file`/`search_files`/`execute_code` 及 browser 系列等，大小写不敏感；`thinking`/`done` 等普通动词不判工具）；id 由调用方合成 |
 
 ### C. 无法可靠解析——登记降级（不阻塞显示）⏳
 

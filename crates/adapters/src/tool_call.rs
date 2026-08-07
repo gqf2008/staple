@@ -445,17 +445,22 @@ fn parse_hermes_line(trimmed: &str) -> Option<ToolCall> {
 
 /// Maps a Hermes quiet-mode verb to a tool name (upstream `nameMap`).
 fn hermes_tool_name(verb: &str) -> Option<&'static str> {
-    match verb {
+    // Upstream `packages/adapters/hermes/src/ui/parse-stdout.ts` resolves the
+    // verb case-insensitively through its `nameMap`; mirror it exactly so the
+    // Rust parser and the reference mirror agree on which lines are tools.
+    match verb.to_ascii_lowercase().as_str() {
         "$" | "exec" | "terminal" => Some("shell"),
-        "search" | "grep" | "find" | "web_search" => Some("search"),
+        "search" | "grep" | "find" | "web_search" | "search_files" => Some("search"),
         "fetch" | "web_extract" => Some("fetch"),
         "crawl" => Some("crawl"),
         "navigate" | "snapshot" | "click" | "type" | "scroll" | "back" | "press" | "close"
         | "images" | "vision" | "browser_navigate" | "browser_click" | "browser_type"
-        | "browser_snapshot" | "browser_vision" => Some("browser"),
-        "read" => Some("read"),
+        | "browser_snapshot" | "browser_vision" | "browser_scroll" | "browser_press"
+        | "browser_back" | "browser_close" | "browser_get_images" => Some("browser"),
+        "read" | "read_file" => Some("read"),
         "write" => Some("write"),
-        "patch" => Some("patch"),
+        "write_file" => Some("write_file"),
+        "patch" | "patch_file" => Some("patch"),
         "plan" => Some("plan"),
         "recall" | "session_search" => Some("recall"),
         "proc" => Some("process"),
@@ -463,7 +468,7 @@ fn hermes_tool_name(verb: &str) -> Option<&'static str> {
         "todo" => Some("todo"),
         "memory" => Some("memory"),
         "clarify" => Some("clarify"),
-        "code" | "execute" => Some("execute"),
+        "code" | "execute" | "execute_code" => Some("execute"),
         _ => None,
     }
 }
@@ -758,5 +763,33 @@ mod tests {
     fn multi_line_json_pretty_printed_degrades_to_none() {
         none("{");
         none(r#"  "type": "tool_call","#);
+    }
+
+    #[test]
+    fn hermes_name_map_covers_upstream_verbs() {
+        // Every verb in the reference mirror's Hermes nameMap must resolve,
+        // case-insensitively, to the same tool name the upstream does.
+        let cases = [
+            ("browser_scroll", "browser"),
+            ("browser_press", "browser"),
+            ("browser_back", "browser"),
+            ("browser_close", "browser"),
+            ("browser_get_images", "browser"),
+            ("read_file", "read"),
+            ("write_file", "write_file"),
+            ("search_files", "search"),
+            ("patch_file", "patch"),
+            ("execute_code", "execute"),
+            ("READ_FILE", "read"),
+            ("$", "shell"),
+            ("Web_Search", "search"),
+        ];
+        for (verb, expected) in cases {
+            assert_eq!(hermes_tool_name(verb), Some(expected), "verb {verb}");
+        }
+        // Non-tool verbs stay non-tools even when they look like lines.
+        assert_eq!(hermes_tool_name("thinking"), None);
+        assert_eq!(hermes_tool_name("done"), None);
+        assert_eq!(hermes_tool_name("bash"), None);
     }
 }

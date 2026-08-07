@@ -311,6 +311,11 @@ fn emit_lines(
         if line_buf[consumed + relative] == b'\r' && line_buf.get(end) == Some(&b'\n') {
             end += 1;
         }
+        // A trailing `\r` may be the first half of a `\r\n` split across
+        // chunks; defer it until more bytes arrive (or EOF flushes it).
+        if line_buf[consumed + relative] == b'\r' && end >= line_buf.len() {
+            break;
+        }
         emit_line(&line_buf[consumed..end], sender, is_stderr, tool_seq);
         consumed = end;
     }
@@ -619,6 +624,32 @@ mod tests {
         assert_eq!(tool_calls.len(), 1, "got {tool_calls:?}");
         assert_eq!(tool_calls[0].id, "a1");
         assert!(deltas.contains("progress 50%"), "got: {deltas:?}");
+    }
+
+    #[test]
+    fn emit_lines_merges_crlf_split_across_chunks() {
+        // A `\r` at the end of one chunk must be deferred so a `\r\n`
+        // pair split across chunks emits as one line, not a `\r` line plus
+        // an empty `\n` line.
+        let (tx, mut rx) = tokio::sync::mpsc::unbounded_channel();
+        let mut line_buf = Vec::new();
+        let mut tool_seq = 0u64;
+        emit_lines(b"hello\r", &mut line_buf, &tx, false, &mut tool_seq);
+        assert!(rx.try_recv().is_err(), "trailing \\r must be deferred");
+        emit_lines(b"\nworld\n", &mut line_buf, &tx, false, &mut tool_seq);
+        match rx.blocking_recv().expect("first line") {
+            crate::contract::OutputEvent::Delta { content } => {
+                assert_eq!(content, "hello\r\n");
+            }
+            other => panic!("unexpected first event {other:?}"),
+        }
+        match rx.blocking_recv().expect("second line") {
+            crate::contract::OutputEvent::Delta { content } => {
+                assert_eq!(content, "world\n");
+            }
+            other => panic!("unexpected second event {other:?}"),
+        }
+        assert!(rx.try_recv().is_err(), "no extra events expected");
     }
 
     #[tokio::test]
