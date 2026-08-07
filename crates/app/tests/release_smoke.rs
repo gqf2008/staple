@@ -785,9 +785,67 @@ async fn core_business_flow_smoke() {
     assert_eq!(status, StatusCode::CREATED, "body: {body}");
     let connection_id = body["id"].as_str().unwrap().to_owned();
 
+    // B5 (issue #217): approval card with verb actions + decisions card.
+    let (status, pending) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({ "type": "budget_override_required", "payload": { "reason": "smoke" } }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {pending}");
+    let pending_id = pending["id"].as_str().unwrap().to_owned();
+    let (status, agents) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/agents"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let agent_id = agents.as_array().unwrap()[0]["id"]
+        .as_str()
+        .unwrap()
+        .to_owned();
+    let (status, run) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/heartbeat-runs"),
+        json!({ "agentId": agent_id, "issueId": issue_id }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {run}");
+    let run_id = run["id"].as_str().unwrap().to_owned();
+    let (status, decision_body) = send_json(
+        &app,
+        Method::POST,
+        &format!("/api/companies/{company_id}/decisions"),
+        json!({
+            "title": "Smoke Decision",
+            "body": "Pick an option",
+            "options": [{ "id": "a", "label": "A" }],
+            "expiresAt": "2999-01-01T00:00:00.000Z",
+            "signedSpec": "sig",
+            "originAgentId": agent_id,
+            "originIssueId": issue_id,
+            "originRunId": run_id,
+        }),
+    )
+    .await;
+    assert_eq!(status, StatusCode::CREATED, "body: {decision_body}");
+
     for (path, needle) in [
         (format!("/companies/{company_id}/board"), "board-card"),
         (format!("/companies/{company_id}/inbox"), "row-card"),
+        (
+            format!("/companies/{company_id}/approvals"),
+            "status-dot-pending",
+        ),
+        (
+            format!("/companies/{company_id}/approvals"),
+            "Request revision",
+        ),
+        (format!("/companies/{company_id}/decisions"), "row-card"),
         (
             format!("/companies/{company_id}/search?q=Core"),
             "Core task",
@@ -976,6 +1034,31 @@ async fn core_business_flow_smoke() {
         let html = String::from_utf8(bytes.to_vec()).unwrap();
         assert!(html.contains(needle), "page missing {needle}");
     }
+
+    // request_revision transitions pending -> revision_requested (B5).
+    let request = Request::builder()
+        .method(Method::POST)
+        .uri(format!("/approvals/{pending_id}/decide/ui"))
+        .header(CONTENT_TYPE, "application/x-www-form-urlencoded")
+        .body(Body::from("decision=request_revision"))
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::SEE_OTHER);
+    let (status, body) = send_json(
+        &app,
+        Method::GET,
+        &format!("/api/companies/{company_id}/approvals"),
+        json!({}),
+    )
+    .await;
+    assert_eq!(status, StatusCode::OK);
+    let revised = body
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|approval| approval["id"] == pending_id)
+        .expect("pending approval");
+    assert_eq!(revised["status"], "revision_requested");
 
     // Instruction pages render and agent creation materializes the default
     // AGENTS.md mount (issue #200).

@@ -76,7 +76,7 @@ pub enum ApprovalError {
     /// The approval is not in a decidable state.
     #[error("approval is not pending")]
     NotPending,
-    /// The decision value is not `approved` or `rejected`.
+    /// The decision value is not `approved`, `rejected`, or `request_revision`.
     #[error("invalid decision")]
     InvalidDecision,
 }
@@ -86,11 +86,13 @@ pub enum ApprovalError {
 pub fn allowed_approval_transition(from: &str, to: &str) -> bool {
     matches!(
         (from, to),
-        ("pending", "approved" | "rejected" | "cancelled")
-            | (
-                "revision_requested",
-                "approved" | "rejected" | "cancelled" | "pending"
-            )
+        (
+            "pending",
+            "approved" | "rejected" | "revision_requested" | "cancelled"
+        ) | (
+            "revision_requested",
+            "approved" | "rejected" | "cancelled" | "pending"
+        )
     )
 }
 
@@ -242,7 +244,10 @@ impl ApprovalRepository for TursoApprovalRepository {
         id: &str,
         decision: ApprovalDecision,
     ) -> Result<Option<ApprovalRecord>, ApprovalError> {
-        if !matches!(decision.decision.as_str(), "approved" | "rejected") {
+        if !matches!(
+            decision.decision.as_str(),
+            "approved" | "rejected" | "request_revision"
+        ) {
             return Err(ApprovalError::InvalidDecision);
         }
         let conn = crate::connection::connect(&self.db).await?;
@@ -250,7 +255,12 @@ impl ApprovalRepository for TursoApprovalRepository {
         let Some(approval) = approval else {
             return Ok(None);
         };
-        if !allowed_approval_transition(&approval.status, &decision.decision) {
+        let target_status = if decision.decision == "request_revision" {
+            "revision_requested"
+        } else {
+            decision.decision.as_str()
+        };
+        if !allowed_approval_transition(&approval.status, target_status) {
             return Err(ApprovalError::NotPending);
         }
         conn.execute(
@@ -260,7 +270,7 @@ impl ApprovalRepository for TursoApprovalRepository {
                  updated_at = strftime('%Y-%m-%dT%H:%M:%fZ','now')
              WHERE id = ?4",
             libsql::params![
-                decision.decision,
+                target_status,
                 decision.decision_note,
                 decision.decided_by_user_id,
                 id
@@ -420,5 +430,57 @@ mod tests {
             .await
             .unwrap_err();
         assert!(matches!(error, ApprovalError::CompanyNotFound));
+    }
+    #[tokio::test]
+    async fn request_revision_state_machine() {
+        let (_dir, repo, conn) = repo().await;
+        conn.execute(
+            "INSERT INTO companies (id, name, issue_prefix, attachment_max_bytes)
+             VALUES ('c1', 'Alpha', 'ALPHA', 1024)",
+            (),
+        )
+        .await
+        .unwrap();
+        let created = repo
+            .create(NewApproval {
+                company_id: "c1".to_owned(),
+                r#type: "budget_override_required".to_owned(),
+                requested_by_agent_id: None,
+                requested_by_user_id: None,
+                payload: "{}".to_owned(),
+            })
+            .await
+            .unwrap();
+
+        // pending -> revision_requested via request_revision decision.
+        let revised = repo
+            .decide(
+                &created.id,
+                ApprovalDecision {
+                    decision: "request_revision".to_owned(),
+                    decision_note: Some("please revise".to_owned()),
+                    decided_by_user_id: Some("board".to_owned()),
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(revised.status, "revision_requested");
+        assert_eq!(revised.decision_note.as_deref(), Some("please revise"));
+
+        // revision_requested -> approved.
+        let approved = repo
+            .decide(
+                &created.id,
+                ApprovalDecision {
+                    decision: "approved".to_owned(),
+                    decision_note: None,
+                    decided_by_user_id: Some("board".to_owned()),
+                },
+            )
+            .await
+            .unwrap()
+            .unwrap();
+        assert_eq!(approved.status, "approved");
     }
 }

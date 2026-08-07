@@ -17,6 +17,16 @@ fn to_topcoat_error(error: impl ToString) -> topcoat::Error {
     topcoat::Error::from(std::io::Error::other(error.to_string()))
 }
 
+/// Truncates a string for single-line card excerpts (keeps whole chars).
+fn excerpt(value: &str, max: usize) -> String {
+    let mut chars = value.chars();
+    if chars.clone().count() <= max {
+        return value.to_owned();
+    }
+    let truncated: String = chars.by_ref().take(max).collect();
+    format!("{truncated}…")
+}
+
 /// Typed `{company_id}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid company id"))]
 pub(crate) struct CompanyId(String);
@@ -524,7 +534,7 @@ pub async fn approvals(cx: &Cx) -> Result {
     view! {
         <h1 class="page-title">(t(lang, "approvals.title"))</h1>
 
-        <section>
+        <section class="issue-section">
             <h2>(t(lang, "approvals.request"))</h2>
             <form class="inline-form" method="post" action=(with_lang(&format!("/companies/{company_id}/approvals/ui"), lang))>
                 <select name="type">
@@ -540,30 +550,73 @@ pub async fn approvals(cx: &Cx) -> Result {
 
         <section>
             <h2>(t(lang, "approvals.pending"))</h2>
-            if approvals.is_empty() {
+            let actionable: Vec<_> = approvals
+                .iter()
+                .filter(|approval| {
+                    approval.status == "pending" || approval.status == "revision_requested"
+                })
+                .collect();
+            if actionable.is_empty() {
                 <p class="empty">(t(lang, "approvals.noApprovals"))</p>
             } else {
-                <ul class="list">
-                    for approval in approvals {
-                        <li>
-                            <a href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
-                                <strong>(&approval.r#type)</strong>
+                for approval in actionable {
+                    <div class="row-card">
+                        <span class=(format!("status-dot status-dot-{}", approval.status.clone())) aria-hidden="true"></span>
+                        <div class="row-card-main">
+                            <a class="row-card-title" href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
+                                (approval.r#type.clone())
                             </a>
-                            " " <span class=(status_badge_class(&approval.status))>(&approval.status)</span>
-                            " " <span class="mono">(&approval.id)</span>
-                            if approval.status == "pending" {
+                            <div class="row-card-meta">
+                                (approval.status.replace('_', " ")) " · " (approval.created_at.clone())
+                            </div>
+                            <div class="card-excerpt">(excerpt(&approval.payload, 120))</div>
+                        </div>
+                        <div class="row-card-actions">
+                            if approval.status == "pending" || approval.status == "revision_requested" {
                                 <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
                                     <input type="hidden" name="decision" value="approved">
                                     <button type="submit">(t(lang, "approvals.approve"))</button>
+                                </form>
+                                <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
+                                    <input type="hidden" name="decision" value="request_revision">
+                                    <button type="submit" class="secondary">(t(lang, "approvals.revision"))</button>
                                 </form>
                                 <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
                                     <input type="hidden" name="decision" value="rejected">
                                     <button type="submit" class="destructive">(t(lang, "approvals.reject"))</button>
                                 </form>
                             }
-                        </li>
-                    }
-                </ul>
+                        </div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "approvals.recent"))</h2>
+            let recent: Vec<_> = approvals
+                .iter()
+                .filter(|approval| {
+                    approval.status != "pending" && approval.status != "revision_requested"
+                })
+                .collect();
+            if recent.is_empty() {
+                <p class="empty">(t(lang, "approvals.noApprovals"))</p>
+            } else {
+                for approval in recent {
+                    <div class="row-card">
+                        <span class=(format!("status-dot status-dot-{}", approval.status.clone())) aria-hidden="true"></span>
+                        <div class="row-card-main">
+                            <a class="row-card-title" href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
+                                (approval.r#type.clone())
+                            </a>
+                            <div class="row-card-meta">
+                                (approval.status.replace('_', " ")) " · " (approval.created_at.clone())
+                            </div>
+                            <div class="card-excerpt">(excerpt(&approval.payload, 120))</div>
+                        </div>
+                    </div>
+                }
             }
         </section>
     }
@@ -3069,6 +3122,10 @@ pub async fn decisions(cx: &Cx) -> Result {
         .list(&company_id)
         .await
         .map_err(to_topcoat_error)?;
+    let issue_identifier: std::collections::HashMap<&str, &str> = issue_rows
+        .iter()
+        .map(|issue| (issue.id.as_str(), issue.identifier.as_str()))
+        .collect();
     let run_rows = state
         .heartbeat
         .list(&company_id, None, 50)
@@ -3077,7 +3134,7 @@ pub async fn decisions(cx: &Cx) -> Result {
     let statuses = ["open", "decided", "cancelled", "expired"];
     view! {
         <h1 class="page-title">(t(lang, "decisions.title"))</h1>
-        <section>
+        <section class="issue-section">
             <h2>(t(lang, "decisions.create"))</h2>
             <form class="stack-form" method="post"
                   action=(with_lang(&format!("/companies/{company_id}/decisions/ui"), lang))>
@@ -3113,25 +3170,36 @@ pub async fn decisions(cx: &Cx) -> Result {
                         <option value=(run.id.clone())>(run.id.clone())</option>
                     }
                 </select>
-                <button type="submit">(t(lang, "common.create"))</button>
+                <button type="submit">(t(lang, "decisions.create"))</button>
             </form>
         </section>
+
         <section>
-            <h2>(t(lang, "section.decisions"))</h2>
+            <h2>(t(lang, "decisions.list"))</h2>
             if decision_rows.is_empty() {
                 <p class="empty">(t(lang, "decisions.none"))</p>
             } else {
-                <ul class="list">
-                    for decision in decision_rows {
-                        <li>
-                            <a href=(with_lang(&format!("/decisions/{}", decision.id), lang))>
-                                <strong>(decision.title)</strong>
+                for decision in decision_rows {
+                    <div class="row-card">
+                        <span class=(format!("status-dot status-dot-{}", decision.status.clone())) aria-hidden="true"></span>
+                        <div class="row-card-main">
+                            <a class="row-card-title" href=(with_lang(&format!("/decisions/{}", decision.id), lang))>
+                                (decision.title.clone())
                             </a>
-                            " " <span class=(status_badge_class(&decision.status))>(decision.status)</span>
-                            " " <span class="meta-row">(t(lang, "decisions.expires")) ": " (decision.expires_at)</span>
-                        </li>
-                    }
-                </ul>
+                            <div class="row-card-meta">
+                                (decision.status.clone())
+                                " · "
+                                if let Some(identifier) = issue_identifier.get(decision.origin_issue_id.as_str()) {
+                                    (identifier.to_string())
+                                } else {
+                                    (t(lang, "decisions.noIssue"))
+                                }
+                                " · " (decision.expires_at.clone())
+                            </div>
+                            <div class="card-excerpt">(excerpt(&decision.body, 120))</div>
+                        </div>
+                    </div>
+                }
             }
         </section>
     }

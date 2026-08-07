@@ -252,6 +252,9 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .status-dot-failed, .status-dot-timed_out { background: var(--color-status-blocked); }
 .status-dot-over_budget { background: var(--color-priority-critical); }
 .status-dot-open { background: var(--color-status-in-progress); }
+.status-dot-approved, .status-dot-decided { background: var(--color-status-done); }
+.status-dot-rejected, .status-dot-expired { background: var(--color-status-cancelled); }
+.status-dot-revision_requested { background: var(--color-status-in-review); }
 .board-card {
   display: block;
   background: var(--color-card);
@@ -434,4 +437,14 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   margin-top: var(--space-1);
 }
 .row-card-actions { display: flex; gap: var(--space-2); flex: none; align-items: center; }
+
+/* Approval / decision cards (B5). */
+.card-excerpt {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 "#;
