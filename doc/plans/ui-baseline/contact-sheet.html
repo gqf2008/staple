@@ -22,4 +22,27 @@
 <tr><td>Settings</td><td><img src="staple/settings.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td><td>—（上游无同页截图，规格对比见基线文档 §3–§4）</td></tr>
 <tr><td>Skills</td><td><img src="staple/skills.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td><td>—（上游无同页截图，规格对比见基线文档 §3–§4）</td></tr>
 <tr><td>What needs me</td><td><img src="staple/what-needs-me.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td><td>—（上游无同页截图，规格对比见基线文档 §3–§4）</td></tr>
-</table></body></html>
+</table>
+<h2 style="margin-top:32px">上游运行时截图（issue #238，Storybook 实测，1440×900）</h2>
+<p>来源：<code>/Volumes/Workspace/GitHub/paperclip/ui</code> 的 Storybook v10.5.5（<code>pnpm storybook</code>，http://localhost:6006），Playwright headless 截图。
+浅色（<code>globals=theme:light</code>）为主集，与 Staple 浅色页面并排；上游默认运行时为深色主题，补充集见 <a href="upstream-runtime/dark/">upstream-runtime/dark/</a>。
+逐项差异与实测 token/组件规格见 <a href="../2026-08-07-upstream-runtime-shots.md">2026-08-07-upstream-runtime-shots.md</a>。</p>
+<table><tr><th>组件/页面</th><th>来源 Storybook story</th><th>上游（运行时实测）</th></tr>
+<tr><td>侧栏/导航布局（SidebarShell 展开/折叠）</td><td>product-navigation-layout--board-chrome-matrix</td><td><img src="upstream-runtime/sidebar.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>侧栏图标对齐</td><td>product-navigation-layout--sidebar-icon-alignment</td><td><img src="upstream-runtime/sidebar-icon-alignment.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Button（全部 variant/尺寸）</td><td>foundations-primitive-matrix--all-primitives</td><td><img src="upstream-runtime/button.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Badge（全部 variant/状态徽标）</td><td>foundations-primitive-matrix--all-primitives</td><td><img src="upstream-runtime/badge.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Card（bg-card 面板）</td><td>paperclip-assigned-backlog-safeguards--overview</td><td><img src="upstream-runtime/card.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Board 列与卡（KanbanBoard）</td><td>paperclip-successful-run-handoff--issue-card-indicator</td><td><img src="upstream-runtime/board-columns-cards.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Issue 列表行（IssuesList）</td><td>product-issue-management--full-surface-matrix</td><td><img src="upstream-runtime/issue-list-rows.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Issue 列配置/分组（IssueColumns）</td><td>product-issue-management--full-surface-matrix</td><td><img src="upstream-runtime/issue-columns.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Issue 详情属性面板（IssueProperties）</td><td>product-issue-management--issue-properties-long-values-desktop</td><td><img src="upstream-runtime/issue-detail-properties.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Issue 线程/聊天时间线</td><td>product-chat-comments--issue-chat-with-timeline</td><td><img src="upstream-runtime/issue-thread.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>CommandPalette（cmdk 内联）</td><td>foundations-primitive-coverage--command-palette-inline</td><td><img src="upstream-runtime/command-palette-inline.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Cmd+K / 搜索（Search & Command K）</td><td>product-search-command-k--search-surfaces</td><td><img src="upstream-runtime/command-k-search.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Inbox 行（未读/选中/阻塞/评审）</td><td>product-control-plane-surfaces--board-state-matrix</td><td><img src="upstream-runtime/inbox-rows.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>ApprovalCard 治理卡</td><td>product-control-plane-surfaces--board-state-matrix</td><td><img src="upstream-runtime/approval-card.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>BudgetPolicyCard（healthy/warning/hard-stop）</td><td>product-control-plane-surfaces--board-state-matrix</td><td><img src="upstream-runtime/budget-card.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+<tr><td>Inbox Blocked 空态</td><td>product-inbox-blocked-tab--desktop-loaded</td><td><img src="upstream-runtime/inbox-blocked-empty.png" loading="lazy" style="max-width:100%;border:1px solid #ccc"></td></tr>
+</table>
+</body></html>
