@@ -549,11 +549,17 @@ pub async fn approvals(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>(t(lang, "approvals.list"))</h2>
-            if approvals.is_empty() {
+            <h2>(t(lang, "approvals.pending"))</h2>
+            let actionable: Vec<_> = approvals
+                .iter()
+                .filter(|approval| {
+                    approval.status == "pending" || approval.status == "revision_requested"
+                })
+                .collect();
+            if actionable.is_empty() {
                 <p class="empty">(t(lang, "approvals.noApprovals"))</p>
             } else {
-                for approval in approvals {
+                for approval in actionable {
                     <div class="row-card">
                         <span class=(format!("status-dot status-dot-{}", approval.status.clone())) aria-hidden="true"></span>
                         <div class="row-card-main">
@@ -580,6 +586,34 @@ pub async fn approvals(cx: &Cx) -> Result {
                                     <button type="submit" class="destructive">(t(lang, "approvals.reject"))</button>
                                 </form>
                             }
+                        </div>
+                    </div>
+                }
+            }
+        </section>
+
+        <section>
+            <h2>(t(lang, "approvals.recent"))</h2>
+            let recent: Vec<_> = approvals
+                .iter()
+                .filter(|approval| {
+                    approval.status != "pending" && approval.status != "revision_requested"
+                })
+                .collect();
+            if recent.is_empty() {
+                <p class="empty">(t(lang, "approvals.noApprovals"))</p>
+            } else {
+                for approval in recent {
+                    <div class="row-card">
+                        <span class=(format!("status-dot status-dot-{}", approval.status.clone())) aria-hidden="true"></span>
+                        <div class="row-card-main">
+                            <a class="row-card-title" href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
+                                (approval.r#type.clone())
+                            </a>
+                            <div class="row-card-meta">
+                                (approval.status.replace('_', " ")) " · " (approval.created_at.clone())
+                            </div>
+                            <div class="card-excerpt">(excerpt(&approval.payload, 120))</div>
                         </div>
                     </div>
                 }
