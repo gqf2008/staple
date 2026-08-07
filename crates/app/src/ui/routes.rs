@@ -21,6 +21,14 @@ use topcoat::router::IntoResponse;
 #[path_param(error = bad_request("Invalid id"))]
 pub(crate) struct Id(String);
 
+/// Redirects to `path` with a `flash` code consumed by the global toast
+/// (issue #231). Appends `?flash=<code>` (or `&flash=<code>` when `path`
+/// already carries a query string).
+fn see_other_flash(path: &str, code: &str) -> topcoat::router::error::SeeOther {
+    let separator = if path.contains('?') { '&' } else { '?' };
+    see_other(&format!("{path}{separator}flash={code}"))
+}
+
 /// `POST /issues/{id}/comments/ui` — adds a comment, redirects to the issue.
 #[route(POST "/issues/{id}/comments/ui")]
 pub async fn add_comment_ui(
@@ -30,6 +38,7 @@ pub async fn add_comment_ui(
     let issue_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let body = form.body.trim().to_owned();
+    let mut code = "error";
     if !body.is_empty()
         && let Ok(comment) = state
             .comments
@@ -50,8 +59,9 @@ pub async fn add_comment_ui(
             Some(serde_json::json!({ "issueId": comment.issue_id })),
         )
         .await;
+        code = "comment-added";
     }
-    Ok(see_other(&format!("/issues/{issue_id}")))
+    Ok(see_other_flash(&format!("/issues/{issue_id}"), code))
 }
 
 /// `POST /companies/{company_id}/approvals/ui` — creates an approval,
@@ -64,6 +74,7 @@ pub async fn create_approval_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let r#type = form.r#type.trim().to_owned();
+    let mut code = "invalid";
     if !r#type.is_empty()
         && let Ok(approval) = state
             .approvals
@@ -85,8 +96,12 @@ pub async fn create_approval_ui(
             Some(serde_json::json!({ "type": approval.r#type })),
         )
         .await;
+        code = "created";
     }
-    Ok(see_other(&format!("/companies/{company_id}/approvals")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/approvals"),
+        code,
+    ))
 }
 
 /// `POST /approvals/{id}/decide/ui` — approves or rejects, redirects back.
@@ -107,6 +122,7 @@ pub async fn decide_approval_ui(
     {
         return Ok(see_other("/"));
     }
+    let mut code = "error";
     if let Ok(decided) = state
         .approvals
         .decide(
@@ -129,8 +145,9 @@ pub async fn decide_approval_ui(
             Some(serde_json::json!({ "status": decided.status, "type": decided.r#type })),
         )
         .await;
+        code = "decided";
     }
-    Ok(see_other(&format!("/approvals/{approval_id}")))
+    Ok(see_other_flash(&format!("/approvals/{approval_id}"), code))
 }
 
 /// `POST /approvals/{id}/comments/ui` — adds an approval comment and
@@ -143,6 +160,7 @@ pub async fn add_approval_comment_ui(
     let approval_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let body = form.body.trim().to_owned();
+    let mut code = "error";
     if !body.is_empty()
         && let Ok(Some(approval)) = state.approvals.get(&approval_id).await
     {
@@ -156,8 +174,9 @@ pub async fn add_approval_comment_ui(
                 body,
             })
             .await;
+        code = "comment-added";
     }
-    Ok(see_other(&format!("/approvals/{approval_id}")))
+    Ok(see_other_flash(&format!("/approvals/{approval_id}"), code))
 }
 
 /// Shared `{company_id}` path parameter for UI routes.
@@ -209,9 +228,12 @@ pub async fn create_company_ui(
             Some(serde_json::json!({ "name": company.name })),
         )
         .await;
-        return Ok(see_other(&format!("/companies/{}", company.id)));
+        return Ok(see_other_flash(
+            &format!("/companies/{}", company.id),
+            "created",
+        ));
     }
-    Ok(see_other("/"))
+    Ok(see_other_flash("/", "invalid"))
 }
 
 /// Comment form fields.
@@ -261,8 +283,9 @@ pub async fn move_status_ui(
     };
     let company_id = issue.company_id;
     let status = form.status.trim().to_owned();
-    if !status.is_empty() {
-        let _ = state
+    let mut code = "error";
+    if !status.is_empty()
+        && state
             .issues
             .update(
                 &issue_id,
@@ -276,9 +299,15 @@ pub async fn move_status_ui(
                     execution_workspace_settings: None,
                 },
             )
-            .await;
+            .await
+            .is_ok()
+    {
+        code = "updated";
     }
-    Ok(see_other(&format!("/companies/{company_id}/board")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/board"),
+        code,
+    ))
 }
 
 /// `POST /companies/{company_id}/settings/ui` — applies a settings form
@@ -290,11 +319,12 @@ pub async fn settings_ui(
 ) -> Result<topcoat::router::error::SeeOther> {
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
+    let mut code = "invalid";
     match form.action.as_str() {
         "company" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-            if !name.is_empty() {
-                let _ = state
+            if !name.is_empty()
+                && state
                     .companies
                     .update(
                         &company_id,
@@ -309,32 +339,45 @@ pub async fn settings_ui(
                             require_board_approval_for_new_agents: None,
                         },
                     )
-                    .await;
+                    .await
+                    .is_ok()
+            {
+                code = "saved";
             }
         }
         "budget" => {
-            if let Some(cents) = form.budget_monthly_cents {
-                let _ = state.costs.set_company_budget(&company_id, cents).await;
+            if let Some(cents) = form.budget_monthly_cents
+                && state
+                    .costs
+                    .set_company_budget(&company_id, cents)
+                    .await
+                    .is_ok()
+            {
+                code = "saved";
             }
         }
         "secret" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
             let value = form.value.clone().unwrap_or_default();
-            if !name.is_empty() && !value.is_empty() {
-                let _ = state
+            if !name.is_empty()
+                && !value.is_empty()
+                && state
                     .secrets
                     .create_secret(staple_data::NewSecret {
                         company_id: company_id.clone(),
                         name,
                         value,
                     })
-                    .await;
+                    .await
+                    .is_ok()
+            {
+                code = "saved";
             }
         }
         "skill" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-            if !name.is_empty() {
-                let _ = state
+            if !name.is_empty()
+                && state
                     .skills
                     .create(staple_data::NewSkill {
                         company_id: company_id.clone(),
@@ -346,12 +389,18 @@ pub async fn settings_ui(
                             deny_agent_ids: Vec::new(),
                         },
                     })
-                    .await;
+                    .await
+                    .is_ok()
+            {
+                code = "saved";
             }
         }
         _ => {}
     }
-    Ok(see_other(&format!("/companies/{company_id}/settings")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/settings"),
+        code,
+    ))
 }
 
 /// Status move form.
@@ -461,9 +510,12 @@ pub async fn create_agent_ui(
                 "failed to materialize default agent instructions"
             );
         }
-        return Ok(see_other(&format!("/agents/{}", agent.id)));
+        return Ok(see_other_flash(&format!("/agents/{}", agent.id), "created"));
     }
-    Ok(see_other(&format!("/companies/{company_id}/agents")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/agents"),
+        "invalid",
+    ))
 }
 
 /// `POST /agents/{id}/status/ui` — pause/resume an agent.
@@ -477,7 +529,7 @@ pub async fn agent_status_ui(
     let Some(company_id) = state.agents.company_of(&agent_id).await.ok().flatten() else {
         return Ok(see_other("/"));
     };
-    let _ = state
+    let code = if state
         .agents
         .update_status(
             &company_id,
@@ -485,8 +537,14 @@ pub async fn agent_status_ui(
             &form.status,
             Some(Some(form.pause_reason.unwrap_or_default())),
         )
-        .await;
-    Ok(see_other(&format!("/agents/{agent_id}")))
+        .await
+        .is_ok()
+    {
+        "updated"
+    } else {
+        "error"
+    };
+    Ok(see_other_flash(&format!("/agents/{agent_id}"), code))
 }
 
 /// `POST /agents/{id}/budget/ui` — set an agent budget.
@@ -500,11 +558,17 @@ pub async fn agent_budget_ui(
     let Some(company_id) = state.agents.company_of(&agent_id).await.ok().flatten() else {
         return Ok(see_other("/"));
     };
-    let _ = state
+    let code = if state
         .agents
         .set_budget(&company_id, &agent_id, form.budget_monthly_cents)
-        .await;
-    Ok(see_other(&format!("/agents/{agent_id}")))
+        .await
+        .is_ok()
+    {
+        "saved"
+    } else {
+        "error"
+    };
+    Ok(see_other_flash(&format!("/agents/{agent_id}"), code))
 }
 
 /// `POST /issues/{id}/archive/ui` and `/unarchive/ui` — inbox controls.
@@ -513,10 +577,17 @@ pub async fn archive_issue_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOthe
     let issue_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     if let Some(issue) = state.issues.get(&issue_id).await.ok().flatten() {
-        let _ = state.issues.set_hidden(&issue_id, true).await;
-        return Ok(see_other(&format!("/companies/{}/inbox", issue.company_id)));
+        let code = if state.issues.set_hidden(&issue_id, true).await.is_ok() {
+            "archived"
+        } else {
+            "error"
+        };
+        return Ok(see_other_flash(
+            &format!("/companies/{}/inbox", issue.company_id),
+            code,
+        ));
     }
-    Ok(see_other("/"))
+    Ok(see_other_flash("/", "error"))
 }
 
 /// `POST /issues/{id}/unarchive/ui`.
@@ -525,10 +596,17 @@ pub async fn unarchive_issue_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOt
     let issue_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     if let Some(issue) = state.issues.get(&issue_id).await.ok().flatten() {
-        let _ = state.issues.set_hidden(&issue_id, false).await;
-        return Ok(see_other(&format!("/companies/{}/inbox", issue.company_id)));
+        let code = if state.issues.set_hidden(&issue_id, false).await.is_ok() {
+            "unarchived"
+        } else {
+            "error"
+        };
+        return Ok(see_other_flash(
+            &format!("/companies/{}/inbox", issue.company_id),
+            code,
+        ));
     }
-    Ok(see_other("/"))
+    Ok(see_other_flash("/", "error"))
 }
 
 /// `{item_key}` path parameter (attention dismissal UI).
@@ -547,7 +625,7 @@ pub async fn dismiss_attention_item_ui(cx: &Cx) -> Result<topcoat::router::error
         .and_then(|value| value.to_str().ok())
         .unwrap_or("board")
         .to_owned();
-    let _ = state
+    let ok = state
         .attention_dismissals
         .upsert(staple_data::NewDismissal {
             company_id: company_id.clone(),
@@ -556,8 +634,13 @@ pub async fn dismiss_attention_item_ui(cx: &Cx) -> Result<topcoat::router::error
             kind: "dismiss".to_owned(),
             snoozed_until: None,
         })
-        .await;
-    Ok(see_other(&format!("/companies/{company_id}/what-needs-me")))
+        .await
+        .is_ok();
+    let code = if ok { "dismissed" } else { "error" };
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/what-needs-me"),
+        code,
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -704,8 +787,8 @@ pub async fn routine_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let title = form.title.trim().to_owned();
-    if !title.is_empty() {
-        let _ = state
+    let code = if !title.is_empty()
+        && state
             .routines
             .create(staple_data::NewRoutine {
                 company_id: company_id.clone(),
@@ -718,9 +801,17 @@ pub async fn routine_ui(
                 priority: "medium".to_owned(),
                 variables: None,
             })
-            .await;
-    }
-    Ok(see_other(&format!("/companies/{company_id}/routines")))
+            .await
+            .is_ok()
+    {
+        "created"
+    } else {
+        "invalid"
+    };
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/routines"),
+        code,
+    ))
 }
 
 /// `POST /routines/{id}/trigger/ui`.
@@ -729,13 +820,19 @@ pub async fn routine_trigger_ui(cx: &Cx) -> Result<topcoat::router::error::SeeOt
     let routine_id = path_param::<Id>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     if let Ok(Some(routine)) = state.routines.get(&routine_id).await {
-        let _ = state
+        let code = if state
             .routines
             .trigger(&routine.company_id, &routine_id)
-            .await;
-        return Ok(see_other(&format!("/routines/{routine_id}")));
+            .await
+            .is_ok()
+        {
+            "triggered"
+        } else {
+            "error"
+        };
+        return Ok(see_other_flash(&format!("/routines/{routine_id}"), code));
     }
-    Ok(see_other("/"))
+    Ok(see_other_flash("/", "error"))
 }
 
 // ---------------------------------------------------------------------------
@@ -752,17 +849,26 @@ pub async fn secret_ui(
     let state = app_context::<AppState>(cx);
     let name = form.name.as_deref().unwrap_or("").trim().to_owned();
     let value = form.value.clone().unwrap_or_default();
-    if !name.is_empty() && !value.is_empty() {
-        let _ = state
+    let code = if !name.is_empty()
+        && !value.is_empty()
+        && state
             .secrets
             .create_secret(staple_data::NewSecret {
                 company_id: company_id.clone(),
                 name,
                 value,
             })
-            .await;
-    }
-    Ok(see_other(&format!("/companies/{company_id}/secrets")))
+            .await
+            .is_ok()
+    {
+        "saved"
+    } else {
+        "invalid"
+    };
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/secrets"),
+        code,
+    ))
 }
 
 /// `POST /companies/{company_id}/skills/ui`.
@@ -774,8 +880,8 @@ pub async fn skill_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-    if !name.is_empty() {
-        let _ = state
+    let code = if !name.is_empty()
+        && state
             .skills
             .create(staple_data::NewSkill {
                 company_id: company_id.clone(),
@@ -787,9 +893,17 @@ pub async fn skill_ui(
                     deny_agent_ids: Vec::new(),
                 },
             })
-            .await;
-    }
-    Ok(see_other(&format!("/companies/{company_id}/skills")))
+            .await
+            .is_ok()
+    {
+        "created"
+    } else {
+        "invalid"
+    };
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/skills"),
+        code,
+    ))
 }
 
 // ---------------------------------------------------------------------------
@@ -1657,9 +1771,15 @@ pub async fn pipeline_create_ui(
             })
             .await
     {
-        return Ok(see_other(&format!("/pipelines/{}", pipeline.id)));
+        return Ok(see_other_flash(
+            &format!("/pipelines/{}", pipeline.id),
+            "created",
+        ));
     }
-    Ok(see_other(&format!("/companies/{company_id}/pipelines")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/pipelines"),
+        "invalid",
+    ))
 }
 
 /// `POST /pipelines/{id}/stages/ui` — creates a stage.
@@ -1851,8 +1971,8 @@ pub async fn pipeline_settings_ui(
         return Ok(see_other("/"));
     };
     let name = form.name.trim().to_owned();
-    if !name.is_empty() {
-        let _ = state
+    let code = if !name.is_empty()
+        && state
             .pipelines
             .update_pipeline(
                 &company_id,
@@ -1861,9 +1981,14 @@ pub async fn pipeline_settings_ui(
                 Some(Some(form.description.unwrap_or_default())),
                 Some(form.status.as_deref() == Some("archived")),
             )
-            .await;
-    }
-    Ok(see_other(&format!("/pipelines/{pipeline_id}")))
+            .await
+            .is_ok()
+    {
+        "saved"
+    } else {
+        "invalid"
+    };
+    Ok(see_other_flash(&format!("/pipelines/{pipeline_id}"), code))
 }
 
 /// Stage form.
@@ -2110,6 +2235,7 @@ pub async fn create_goal_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let title = form.title.trim().to_owned();
+    let mut code = "invalid";
     if !title.is_empty()
         && let Ok(goal) = state
             .goals
@@ -2133,8 +2259,12 @@ pub async fn create_goal_ui(
             Some(serde_json::json!({ "title": goal.title })),
         )
         .await;
+        code = "created";
     }
-    Ok(see_other(&format!("/companies/{company_id}/goals")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/goals"),
+        code,
+    ))
 }
 
 /// `POST /goals/{id}/edit/ui` — updates a goal, redirects to its detail.
@@ -2149,21 +2279,28 @@ pub async fn update_goal_ui(
         return Ok(see_other("/"));
     };
     let title = form.title.trim().to_owned();
-    let _ = state
-        .goals
-        .update(
-            &goal_id,
-            staple_data::GoalPatch {
-                title: Some(title),
-                description: Some(form.description),
-                level: form.level,
-                parent_id: Some(form.parent_id.filter(|value| !value.is_empty())),
-                owner_agent_id: Some(form.owner_agent_id.filter(|value| !value.is_empty())),
-                status: form.status,
-            },
-        )
-        .await;
-    Ok(see_other(&format!("/goals/{goal_id}")))
+    let code = if !title.is_empty()
+        && state
+            .goals
+            .update(
+                &goal_id,
+                staple_data::GoalPatch {
+                    title: Some(title),
+                    description: Some(form.description),
+                    level: form.level,
+                    parent_id: Some(form.parent_id.filter(|value| !value.is_empty())),
+                    owner_agent_id: Some(form.owner_agent_id.filter(|value| !value.is_empty())),
+                    status: form.status,
+                },
+            )
+            .await
+            .is_ok()
+    {
+        "saved"
+    } else {
+        "invalid"
+    };
+    Ok(see_other_flash(&format!("/goals/{goal_id}"), code))
 }
 
 /// `POST /goals/{id}/status/ui` — sets a goal status, redirects to its detail.
@@ -2179,7 +2316,7 @@ pub async fn set_goal_status_ui(
     };
     let company_id = goal.company_id.clone();
     let status = form.status.clone();
-    let _ = state
+    let code = if state
         .goals
         .update(
             &goal_id,
@@ -2192,7 +2329,13 @@ pub async fn set_goal_status_ui(
                 status: Some(status),
             },
         )
-        .await;
+        .await
+        .is_ok()
+    {
+        "updated"
+    } else {
+        "error"
+    };
     let _ = log_activity(
         &state.activity,
         &company_id,
@@ -2202,7 +2345,7 @@ pub async fn set_goal_status_ui(
         Some(serde_json::json!({ "status": form.status })),
     )
     .await;
-    Ok(see_other(&format!("/goals/{goal_id}")))
+    Ok(see_other_flash(&format!("/goals/{goal_id}"), code))
 }
 
 /// `POST /companies/{companyId}/projects/ui` — creates a project, redirects to
@@ -2215,6 +2358,7 @@ pub async fn create_project_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let name = form.name.trim().to_owned();
+    let mut code = "invalid";
     if !name.is_empty()
         && let Ok(project) = state
             .projects
@@ -2240,8 +2384,12 @@ pub async fn create_project_ui(
             Some(serde_json::json!({ "name": project.name })),
         )
         .await;
+        code = "created";
     }
-    Ok(see_other(&format!("/companies/{company_id}/projects")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/projects"),
+        code,
+    ))
 }
 
 // --- Decisions & training example UI forms --------------------------------
@@ -2311,6 +2459,7 @@ pub async fn create_decision_ui(
     let expires_at = form.expires_at.trim().to_owned();
     let options = serde_json::from_str(form.options.as_deref().unwrap_or("[]"))
         .unwrap_or_else(|_| serde_json::json!([]));
+    let mut code = "invalid";
     if !title.is_empty()
         && !expires_at.is_empty()
         && !form.origin_agent_id.is_empty()
@@ -2353,8 +2502,12 @@ pub async fn create_decision_ui(
             Some(serde_json::json!({ "title": decision.title })),
         )
         .await;
+        code = "created";
     }
-    Ok(see_other(&format!("/companies/{company_id}/decisions")))
+    Ok(see_other_flash(
+        &format!("/companies/{company_id}/decisions"),
+        code,
+    ))
 }
 
 /// `POST /decisions/{id}/resolve/ui` — resolves a decision, redirects to its
@@ -4569,6 +4722,18 @@ pub async fn onboarding_adapter_test_ui(
 #[route(GET "/static/command_palette.js")]
 pub async fn command_palette_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
     let body = topcoat::router::Body::from(include_str!("command_palette.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
+/// `GET /static/ui_feedback.js` — global mutating-form loading + flash toast
+/// behavior (issue #231).
+#[route(GET "/static/ui_feedback.js")]
+pub async fn ui_feedback_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("ui_feedback.js"));
     let response = topcoat::router::Response::builder()
         .header("Content-Type", "text/javascript; charset=utf-8")
         .body(body)

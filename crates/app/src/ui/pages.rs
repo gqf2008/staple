@@ -4466,7 +4466,7 @@ pub async fn board_chat(cx: &Cx) -> Result {
         <h1 class="page-title">(t(lang, "boardChat.title"))</h1>
         <p class="meta-row">(t(lang, "boardChat.hint"))</p>
         <div id="chat-log" class="chat-log"></div>
-        <form class="stack-form" id="chat-form"
+        <form class="stack-form" id="chat-form" data-no-feedback="true"
               data-user-label=(t(lang, "boardChat.you"))
               data-assistant-label=(t(lang, "boardChat.assistant"))>
             <label>(t(lang, "boardChat.adapterLabel"))</label>
@@ -5124,7 +5124,7 @@ pub async fn export_import(cx: &Cx) -> Result {
             <a class="button" href=(with_lang(&format!("/api/companies/{company_id}/export/archive"), lang))>
                 (t(lang, "exportImport.downloadZip"))
             </a>
-            <form class="stack-form" id="zip-form">
+            <form class="stack-form" id="zip-form" data-no-feedback="true">
                 <input type="hidden" name="company_id" value=(company_id)>
                 <label>(t(lang, "exportImport.zipFile"))</label>
                 <input type="file" id="zip-file" name="archive" accept=".zip">

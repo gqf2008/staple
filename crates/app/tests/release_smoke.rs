@@ -757,6 +757,23 @@ async fn core_business_flow_smoke() {
         "home page missing UI-created company"
     );
 
+    // 4.2. Mutating form redirects carry a flash code rendered as a global
+    // toast (issue #231: success/failure feedback for form POSTs).
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}?flash=created"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        html.contains("toast toast-success") && html.contains(">Created<"),
+        "flash toast missing from page"
+    );
+
     // 5. New UI surfaces render: board, search, settings.
     // Apps ecosystem: create an application + connection so the app
     // detail page has data to render.
