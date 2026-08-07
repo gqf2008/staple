@@ -4804,6 +4804,36 @@ pub async fn sidebar_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError>
     Ok(response)
 }
 
+/// `GET /static/fonts/InterVariable.woff2` — self-hosted variable font used by
+/// the token layer `--font-sans` (aligned with upstream `ui/public/fonts/`).
+#[route(GET "/static/fonts/InterVariable.woff2")]
+pub async fn inter_variable_font(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_bytes!("fonts/InterVariable.woff2").as_slice());
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "font/woff2")
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
+/// `GET /static/fonts/InterVariable-Italic.woff2` — italic variant.
+#[route(GET "/static/fonts/InterVariable-Italic.woff2")]
+pub async fn inter_variable_italic_font(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body =
+        topcoat::router::Body::from(include_bytes!("fonts/InterVariable-Italic.woff2").as_slice());
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "font/woff2")
+        .header("Cache-Control", "public, max-age=31536000, immutable")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
 #[cfg(test)]
 mod tests {
     use super::flash_uri;

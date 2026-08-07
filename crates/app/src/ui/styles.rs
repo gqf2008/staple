@@ -5,34 +5,76 @@
 /// No component may contain a bare hex/px value — all values resolve through
 /// these custom properties.
 pub const TOKENS_CSS: &str = r#"
+@font-face {
+  font-family: "InterVariable";
+  src: url("/static/fonts/InterVariable.woff2") format("woff2");
+  font-display: swap;
+  font-style: normal;
+  font-weight: 100 900;
+}
+
+@font-face {
+  font-family: "InterVariable";
+  src: url("/static/fonts/InterVariable-Italic.woff2") format("woff2");
+  font-display: swap;
+  font-style: italic;
+  font-weight: 100 900;
+}
+
 :root {
-  /* color */
-  --color-background: #fafaf9;
-  --color-foreground: #1c1917;
-  --color-card: #ffffff;
-  --color-card-foreground: #1c1917;
-  --color-primary: #2563eb;
-  --color-primary-foreground: #ffffff;
-  --color-muted: #f5f5f4;
-  --color-muted-foreground: #78716c;
-  --color-border: #e7e5e4;
-  --color-destructive: #dc2626;
-  --color-status-running: #16a34a;
-  --color-status-paused: #d97706;
+  /* color — aligned with upstream ui/src/index.css (light theme, OKLCH) */
+  --color-background: oklch(1 0 0);
+  --color-foreground: oklch(0.145 0 0);
+  --color-card: oklch(1 0 0);
+  --color-card-foreground: oklch(0.145 0 0);
+  --color-popover: oklch(1 0 0);
+  --color-popover-foreground: oklch(0.145 0 0);
+  --color-primary: oklch(0.205 0 0);
+  --color-primary-foreground: oklch(0.985 0 0);
+  --color-secondary: oklch(0.97 0 0);
+  --color-secondary-foreground: oklch(0.205 0 0);
+  --color-muted: oklch(0.97 0 0);
+  --color-muted-foreground: oklch(0.556 0 0);
+  --color-accent: oklch(0.97 0 0);
+  --color-accent-foreground: oklch(0.205 0 0);
+  --color-destructive: oklch(0.577 0.245 27.325);
+  --color-destructive-foreground: oklch(0.577 0.245 27.325);
+  --color-border: oklch(0.922 0 0);
+  --color-input: oklch(0.922 0 0);
+  --color-ring: oklch(0.708 0 0);
+  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar-foreground: oklch(0.145 0 0);
+  --color-sidebar-primary: oklch(0.205 0 0);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.97 0 0);
+  --color-sidebar-accent-foreground: oklch(0.205 0 0);
+  --color-sidebar-border: oklch(0.922 0 0);
+  --color-sidebar-ring: oklch(0.708 0 0);
+
+  /* status colors — aligned with upstream --status-task-* / --status-agent-* */
+  --color-status-running: #2563eb;
+  --color-status-paused: #f59e0b;
   --color-status-blocked: #dc2626;
-  --color-status-done: #16a34a;
+  --color-status-done: #22c55e;
   --color-status-todo: #f59e0b;
   --color-status-in-progress: #2563eb;
-  --color-status-in-review: #8b5cf6;
-  --color-status-cancelled: #78716c;
+  --color-status-in-review: #7c3aed;
+  --color-status-cancelled: #a8aeb2;
+  --color-status-backlog: #a8aeb2;
+  --color-status-idle: #a8aeb2;
+  --color-status-error: #dc2626;
+
+  /* priority colors — Staple extension (upstream has no priority token set;
+     kept for board/issue priority chips, documented in ui-pixel-baseline) */
   --color-priority-critical: #dc2626;
   --color-priority-high: #ea580c;
   --color-priority-medium: #2563eb;
   --color-priority-low: #78716c;
 
   /* spacing */
+  --space-0-5: 0.125rem;
   --space-1: 0.25rem;
-  --border-width: 0.125rem;
+  --space-1-5: 0.375rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
@@ -40,18 +82,22 @@ pub const TOKENS_CSS: &str = r#"
   --space-8: 2rem;
   --space-10: 2.5rem;
   --space-12: 3rem;
+  --border-width: 0.125rem;
 
-  /* shadows */
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.18);
-
-  /* radius */
+  /* radius — upstream ladder: --radius 0.5rem anchor, sm/md/lg/xl/2xl/3xl/4xl
+     = 0.6/0.8/1.0/1.4/1.8/2.2/2.6 x anchor */
   --radius-sm: 0.3rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
+  --radius-md: 0.4rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.7rem;
+  --radius-2xl: 0.9rem;
+  --radius-3xl: 1.1rem;
+  --radius-4xl: 1.3rem;
+  --radius-full: 9999px;
 
-  /* typography */
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  /* typography — upstream stack, InterVariable self-hosted (see @font-face) */
+  --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-size-xs: 0.75rem;
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
@@ -61,19 +107,31 @@ pub const TOKENS_CSS: &str = r#"
   /* shadow */
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px rgb(0 0 0 / 0.07);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.18);
 
-  /* motion */
-  --motion-duration-fast: 120ms;
-  --motion-duration-base: 200ms;
-  --motion-duration-slow: 1s;
+  /* motion — upstream durations (fast/base/slow/deliberate); pulse is a
+     Staple extension for chat/thinking dots */
+  --motion-duration-instant: 80ms;
+  --motion-duration-fast: 160ms;
+  --motion-duration-base: 240ms;
+  --motion-duration-slow: 360ms;
+  --motion-duration-deliberate: 520ms;
   --motion-duration-pulse: 1.2s;
   --motion-ease-base: cubic-bezier(0.4, 0, 0.2, 1);
-  --radius-full: 9999px;
-  --space-0-5: 0.125rem;
-  --space-1-5: 0.375rem;
+
   --toast-max-width: 28rem;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-duration-instant: 0ms;
+    --motion-duration-fast: 0ms;
+    --motion-duration-base: 0ms;
+    --motion-duration-slow: 0ms;
+    --motion-duration-deliberate: 0ms;
+    --motion-duration-pulse: 0ms;
+  }
+}
 * { box-sizing: border-box; }
 
 body {
@@ -262,8 +320,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-top: 1px solid var(--color-border);
 }
 .board-column.drag-over { outline: 2px solid var(--color-primary); outline-offset: -2px; }
-.board-column-backlog .board-column-header { color: var(--color-status-cancelled); }
-.board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-cancelled) 8%, var(--color-background)); }
+.board-column-backlog .board-column-header { color: var(--color-status-backlog); }
+.board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-backlog) 8%, var(--color-background)); }
 .board-column-todo .board-column-header { color: var(--color-status-todo); }
 .board-column-todo .board-column-body { background: color-mix(in srgb, var(--color-status-todo) 10%, var(--color-background)); }
 .board-column-in_progress .board-column-header { color: var(--color-status-in-progress); }
@@ -284,7 +342,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   flex: none;
   background: var(--color-muted-foreground);
 }
-.status-dot-backlog, .status-dot-cancelled { background: var(--color-status-cancelled); }
+.status-dot-backlog { background: var(--color-status-backlog); }
+.status-dot-cancelled { background: var(--color-status-cancelled); }
 .status-dot-todo { background: var(--color-status-todo); }
 .status-dot-in_progress { background: var(--color-status-in-progress); }
 .status-dot-in_review { background: var(--color-status-in-review); }
@@ -310,7 +369,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   cursor: grab;
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--motion-duration-fast) var(--motion-ease-base);
 }
 .board-card:hover { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
 .board-card.dragging { opacity: 0.35; }
@@ -403,7 +462,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   font-weight: 600;
   text-transform: capitalize;
 }
-.issue-status-pill-backlog, .issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-cancelled) 16%, var(--color-background)); color: var(--color-status-cancelled); }
+.issue-status-pill-backlog { background: color-mix(in srgb, var(--color-status-backlog) 16%, var(--color-background)); color: var(--color-status-backlog); }
+.issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-cancelled) 16%, var(--color-background)); color: var(--color-status-cancelled); }
 .issue-status-pill-todo { background: color-mix(in srgb, var(--color-status-todo) 16%, var(--color-background)); color: var(--color-status-todo); }
 .issue-status-pill-in_progress { background: color-mix(in srgb, var(--color-status-in-progress) 16%, var(--color-background)); color: var(--color-status-in-progress); }
 .issue-status-pill-in_review { background: color-mix(in srgb, var(--color-status-in-review) 16%, var(--color-background)); color: var(--color-status-in-review); }

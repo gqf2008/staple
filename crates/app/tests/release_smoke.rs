@@ -1122,6 +1122,45 @@ async fn core_business_flow_smoke() {
         "command palette empty state label missing"
     );
 
+    // Self-hosted InterVariable font (UI 对齐 A / #236): the token layer must
+    // reference the font-face URL and the font route must serve woff2.
+    assert!(
+        html.contains(r#"--font-sans: "InterVariable""#),
+        "InterVariable font stack missing from token layer"
+    );
+    assert!(
+        html.contains(r#"url("/static/fonts/InterVariable.woff2")"#),
+        "InterVariable @font-face URL missing from token layer"
+    );
+    for (font_path, font_needle) in [
+        ("/static/fonts/InterVariable.woff2", "wOF2"),
+        ("/static/fonts/InterVariable-Italic.woff2", "wOF2"),
+    ] {
+        let request = Request::builder()
+            .method(Method::GET)
+            .uri(font_path)
+            .body(Body::empty())
+            .unwrap();
+        let response = app.handle(request).await;
+        assert_eq!(response.status(), StatusCode::OK, "font {font_path}");
+        let headers = response.headers().clone();
+        let content_type = headers
+            .get(CONTENT_TYPE)
+            .and_then(|value| value.to_str().ok())
+            .unwrap_or_default()
+            .to_owned();
+        assert!(
+            content_type.starts_with("font/woff2"),
+            "font {font_path} content-type: {content_type}"
+        );
+        let (_, body) = response.into_parts();
+        let bytes = to_bytes(body, usize::MAX).await.unwrap();
+        assert!(
+            bytes.starts_with(font_needle.as_bytes()),
+            "font {font_path} body does not start with woff2 magic"
+        );
+    }
+
     // request_revision transitions pending -> revision_requested (B5).
     let request = Request::builder()
         .method(Method::POST)
