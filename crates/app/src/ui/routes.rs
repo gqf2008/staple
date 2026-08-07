@@ -4829,10 +4829,6 @@ pub async fn inter_variable_italic_font(_cx: &Cx) -> Result<topcoat::router::Res
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
 }
-        .body(body)
-        .map_err(|error| ApiError::internal(error.to_string()))?;
-    Ok(response)
-}
 
 #[cfg(test)]
 mod tests {
