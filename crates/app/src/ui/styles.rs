@@ -240,6 +240,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   height: 0.5rem;
   border-radius: 9999px;
   flex: none;
+  background: var(--color-muted-foreground);
 }
 .status-dot-backlog, .status-dot-cancelled { background: var(--color-status-cancelled); }
 .status-dot-todo { background: var(--color-status-todo); }
@@ -247,6 +248,10 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .status-dot-in_review { background: var(--color-status-in-review); }
 .status-dot-blocked { background: var(--color-status-blocked); }
 .status-dot-done { background: var(--color-status-done); }
+.status-dot-pending { background: var(--color-status-todo); }
+.status-dot-failed, .status-dot-timed_out { background: var(--color-status-blocked); }
+.status-dot-over_budget { background: var(--color-priority-critical); }
+.status-dot-open { background: var(--color-status-in-progress); }
 .board-card {
   display: block;
   background: var(--color-card);

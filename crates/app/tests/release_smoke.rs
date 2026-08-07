@@ -787,6 +787,7 @@ async fn core_business_flow_smoke() {
 
     for (path, needle) in [
         (format!("/companies/{company_id}/board"), "board-card"),
+        (format!("/companies/{company_id}/inbox"), "row-card"),
         (
             format!("/companies/{company_id}/search?q=Core"),
             "Core task",

@@ -373,7 +373,7 @@ pub async fn issue_detail(cx: &Cx) -> Result {
             <div class="issue-header-top">
                 <span class="mono">(issue.identifier.clone())</span>
                 <span class=(format!("issue-status-pill issue-status-pill-{}", issue.status))>
-                    <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                    <span class=(format!("status-dot status-dot-{}", issue.status)) aria-hidden="true"></span>
                     " " (status_label)
                 </span>
                 <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>
@@ -1317,7 +1317,7 @@ pub async fn inbox(cx: &Cx) -> Result {
         } else {
             for issue in issues {
                 <div class="row-card">
-                    <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                    <span class=(format!("status-dot status-dot-{}", issue.status)) aria-hidden="true"></span>
                     <div class="row-card-main">
                         <a class="row-card-title" href=(with_lang(&format!("/issues/{}", issue.id), lang))>
                             (issue.identifier.clone()) " " (issue.title.clone())
@@ -4075,7 +4075,7 @@ pub async fn my_issues(cx: &Cx) -> Result {
             } else {
                 for issue in issue_rows {
                     <div class="row-card">
-                        <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                        <span class=(format!("status-dot status-dot-{}", issue.status)) aria-hidden="true"></span>
                         <div class="row-card-main">
                             <a class="row-card-title" href=(with_lang(&format!("/issues/{}", issue.id), lang))>
                                 (issue.identifier.clone()) " " (issue.title.clone())
@@ -4124,14 +4124,19 @@ pub async fn what_needs_me(cx: &Cx) -> Result {
                 <div>
                     for item in feed.items {
                         <div class="row-card">
-                            <span class=(format!("status-dot status-dot-{}", item.subject.status.clone()))></span>
+                            <span class=(format!("status-dot status-dot-{}", item.subject.status.clone())) aria-hidden="true"></span>
                             <div class="row-card-main">
                                 if let Some(href) = &item.subject.href {
                                     <a class="row-card-title" href=(with_lang(href, lang))>(item.subject.title.clone())</a>
                                 } else {
                                     <span class="row-card-title">(item.subject.title.clone())</span>
                                 }
-                                <div class="row-card-meta">(item.why_now.clone())</div>
+                                <div class="row-card-meta">
+                                    if let Some(identifier) = &item.subject.identifier {
+                                        <span class="mono">(identifier.clone())</span> " · "
+                                    }
+                                    (item.why_now.clone())
+                                </div>
                             </div>
                             <div class="row-card-actions">
                                 <form method="post" action=(with_lang(&format!("/companies/{company_id}/attention/{}/dismiss/ui", item.dedup_key), lang))>
