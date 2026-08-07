@@ -49,9 +49,9 @@
 |---|---|---|---|
 | 侧边栏宽 | **240px**（`aside`，`border-r 1px oklch(0.922 0 0)`，bg `oklch(1 0 0)`） | 220px 固定 | 差异（窄 20px，且无折叠/拖拽） |
 | Button 默认 | 高 **40px**，padding 8px 12px，radius **6.4px**（rounded-md），bg `oklch(0.205 0 0)`（近黑）+ 白字，font-size 14px / weight 500 | 高 36px，padding 8px 12px，radius 4.8px，蓝 `#2563eb` 底白字 | **差异**（高度/圆角/主色/字号/字重） |
-| Badge | 高 **22px**，padding 2px 8px，radius 胶囊（calc(0.5rem * 9999…)），font-size 12px；default=近黑底白字、secondary=`oklch(0.97 0 0)` | Staple 徽标规格见基线 §3 | 待 Staple 侧复核（基线未量化 badge） |
+| Badge | 高 **22px**，padding 2px 8px，radius rounded-full（胶囊，Tailwind v4 序列化为极大值），font-size 12px；default=近黑底白字、secondary=`oklch(0.97 0 0)` | Staple 徽标规格见基线 §3 | 待 Staple 侧复核（基线未量化 badge） |
 | Card | radius **8px**（rounded-lg），border 1px `oklch(0.922 0 0)`，bg `oklch(1 0 0)`，padding 16px | inbox 卡 radius 8px / border `#e7e5e4` / padding 12px；看板卡 4.8px | 部分一致（8px/边框近似）；padding 与看板卡圆角不同 |
-| CommandPalette | 宽 448px（max-w-md），radius 8px，border 1px，bg 白，shadow sm | Staple 无同款组件（#228 未对比） | 待 Staple 侧实施后对比 |
+| CommandPalette | 宽 448px（max-w-md），radius 8px，border 1px，bg 白，shadow md（0 4px 6px -1px / 0 2px 4px -2px） | Staple 无同款组件（#228 未对比） | 待 Staple 侧实施后对比 |
 | KanbanBoard | 列：Backlog/Todo/In Progress/In Review/Blocked/Done/Cancelled；卡含 identifier、标题、负责人头像 | Staple 看板列结构近似 | 结构近似，token 差异同上 |
 | 字体 | `InterVariable, Inter, ui-sans-serif, …`（--font-sans） | Staple `ui-sans-serif, system-ui, …`（无 Inter） | **差异**（缺 Inter） |
 | 浅色 token | background `oklch(1 0 0)`、foreground `oklch(0.145 0 0)`、primary `oklch(0.205 0 0)`、muted `oklch(0.97 0 0)`、muted-foreground `oklch(0.556 0 0)`、border `oklch(0.922 0 0)`、radius 0.5rem（md=×0.8、lg=0.5rem） | Staple 见基线 §2 表 | 与基线 §2 判断一致（系统性差异） |
@@ -71,7 +71,7 @@
 1. **完整 SPA 页面路由（/issues、/board、/search 等真实数据页）**：Storybook 提供的是组件级「矩阵」故事，不挂载 App 路由外壳；真实页面 = Storybook 片段 + 路由/数据层，需 vite dev + 后端/假数据。本次未运行 `vite dev`（Storybook 已满足验收 ≥8）。
 2. **Command K 全局弹层交互**（打开/焦点/键盘导航/空态切换）：静态故事只呈现渲染态，无法由截图核实交互行为。
 3. **侧栏折叠/拖拽、看板拖卡（DnD）交互**：截图仅静态态；交互行为需浏览器自动化实测（本次范围外）。
-4. **字体文件来源**：运行时字体栈解析为 InterVariable/Inter，但未专门核实字体文件是否本地打包或依赖网络（截图环境网络可用，未见字体 404；若 CI 无网络可能回退 ui-sans-serif）。
+4. **字体文件来源**：已核实本地打包——上游 `ui/public/fonts/InterVariable.woff2` 存在，Storybook 下 `document.fonts` 确认 InterVariable 加载成功（Staple 侧 #236 已同步自托管 + 静态路由）。
 5. **深色主题下的 Staple 对照**：Staple 当前仅浅色，深色集（`dark/`）仅作上游默认运行时记录，无法并排。
 
 ## 6. 验收对照
