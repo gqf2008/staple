@@ -30,10 +30,11 @@ document.addEventListener("DOMContentLoaded", function () {
 
   function highlight() {
     var shown = visibleItems();
+    var prev = list.querySelector("#command-active-item");
+    if (prev) prev.removeAttribute("id");
     shown.forEach(function (el, index) {
       el.classList.toggle("active", index === active);
       if (index === active) el.setAttribute("id", "command-active-item");
-      else if (el.getAttribute("id") === "command-active-item") el.removeAttribute("id");
     });
     if (input) {
       if (active >= 0 && active < shown.length) {
