@@ -73,6 +73,7 @@ by `rust-toolchain.toml` (stable, edition 2024).
 - `make test` — run all workspace tests
 - `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
 - `make build` — release build
+- `make js-test` — run the UI JS behavior tests (Node built-in test runner, zero dependencies)
 
 ### Data layer
 
