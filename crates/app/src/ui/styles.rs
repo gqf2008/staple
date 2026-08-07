@@ -60,7 +60,12 @@ pub const TOKENS_CSS: &str = r#"
   /* motion */
   --motion-duration-fast: 120ms;
   --motion-duration-base: 200ms;
+  --motion-duration-slow: 1s;
+  --motion-duration-pulse: 1.2s;
   --motion-ease-base: cubic-bezier(0.4, 0, 0.2, 1);
+  --radius-full: 9999px;
+  --space-0-5: 0.125rem;
+  --space-1-5: 0.375rem;
 }
 
 * { box-sizing: border-box; }
@@ -236,9 +241,9 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .board-column-cancelled .board-column-body { opacity: 0.7; }
 .status-dot {
   display: inline-block;
-  width: 0.5rem;
-  height: 0.5rem;
-  border-radius: 9999px;
+  width: var(--space-2);
+  height: var(--space-2);
+  border-radius: var(--radius-full);
   flex: none;
   background: var(--color-muted-foreground);
 }
@@ -308,7 +313,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   justify-content: center;
   width: 1.25rem;
   height: 1.25rem;
-  border-radius: 9999px;
+  border-radius: var(--radius-full);
   background: var(--color-primary);
   color: var(--color-primary-foreground);
   font-size: var(--font-size-xs);
@@ -446,5 +451,105 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   overflow: hidden;
   text-overflow: ellipsis;
   max-width: 100%;
+}
+
+/* Board chat (B6): bubbles, streaming cursor, thinking, tool accordions. */
+.chat-log {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  max-height: 60vh;
+  overflow-y: auto;
+  padding: var(--space-3);
+  background: var(--color-background);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-4);
+}
+.chat-bubble {
+  display: flex;
+  flex-direction: column;
+  max-width: 80%;
+  padding: var(--space-2) var(--space-3);
+  border-radius: var(--radius-md);
+  font-size: var(--font-size-sm);
+  line-height: 1.5;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+.chat-bubble-user {
+  align-self: flex-end;
+  background: color-mix(in srgb, var(--color-primary) 14%, var(--color-background));
+  border: 1px solid color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+}
+.chat-bubble-agent {
+  align-self: flex-start;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+}
+.chat-bubble-header {
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  margin-bottom: var(--space-1);
+}
+.chat-cursor {
+  display: inline-block;
+  width: var(--space-2);
+  height: 1rem;
+  margin-left: var(--space-0-5);
+  vertical-align: text-bottom;
+  background: var(--color-primary);
+  animation: chat-blink var(--motion-duration-slow) step-end infinite;
+}
+@keyframes chat-blink { 50% { opacity: 0; } }
+.chat-thinking {
+  display: inline-flex;
+  gap: var(--space-1);
+  padding: var(--space-2) 0;
+}
+.chat-thinking span {
+  width: var(--space-1-5);
+  height: var(--space-1-5);
+  border-radius: var(--radius-full);
+  background: var(--color-muted-foreground);
+  animation: chat-pulse var(--motion-duration-pulse) ease-in-out infinite;
+}
+.chat-thinking span:nth-child(2) { animation-delay: 0.2s; }
+.chat-thinking span:nth-child(3) { animation-delay: 0.4s; }
+@keyframes chat-pulse { 0%, 80%, 100% { opacity: 0.25; } 40% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .chat-cursor, .chat-thinking span { animation: none; }
+  .chat-cursor { opacity: 1; }
+}
+.chat-tool {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+  margin-top: var(--space-1);
+  background: var(--color-background);
+}
+.chat-tool-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  color: var(--color-muted-foreground);
+  cursor: pointer;
+  user-select: none;
+}
+.chat-tool-body {
+  display: none;
+  padding: var(--space-1) var(--space-2);
+  font-size: var(--font-size-xs);
+  font-family: var(--font-mono);
+  white-space: pre-wrap;
+  border-top: 1px solid var(--color-border);
+}
+.chat-tool.open .chat-tool-body { display: block; }
+.chat-tool-stderr {
+  background: color-mix(in srgb, var(--color-status-blocked) 8%, var(--color-background));
+  color: var(--color-status-blocked);
 }
 "#;

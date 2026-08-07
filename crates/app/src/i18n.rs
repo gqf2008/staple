@@ -699,6 +699,8 @@ static EN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
         ),
         ("boardChat.messageLabel", "Message"),
         ("boardChat.send", "Send"),
+        ("boardChat.you", "You"),
+        ("boardChat.assistant", "Assistant"),
         ("boardChat.adapterLabel", "Adapter"),
         ("exportImport.title", "Export / Import"),
         (
@@ -1656,6 +1658,8 @@ static ZH_CN: LazyLock<HashMap<&'static str, &'static str>> = LazyLock::new(|| {
         ),
         ("boardChat.messageLabel", "消息"),
         ("boardChat.send", "发送"),
+        ("boardChat.you", "你"),
+        ("boardChat.assistant", "助手"),
         ("boardChat.adapterLabel", "适配器"),
         ("exportImport.title", "导出 / 导入"),
         (
