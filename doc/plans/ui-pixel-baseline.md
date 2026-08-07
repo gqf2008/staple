@@ -4,6 +4,8 @@
 > 用途：后续 UI polish 的验收依据；对应 issue #228。
 >
 > **更新（2026-08-07）**：F1–F7 全部实施——F1/F2/F6（issue #236/PR #239）：色彩/圆角/动效/状态色/字体（InterVariable 自托管）对齐上游 index.css；F3/F4/F5（issue #237）：侧栏 240px + 折叠 rail 64px、内容区全宽 p-4/p-6、按钮/卡片规格对齐上游 shadcn（侧栏拖拽调整与 SPA 动画登记为架构近似）；F7（issue #238/PR #240）：上游 Storybook 运行时截图基线（32 张，浅色/深色）已入库。
+>
+> **更新（2026-08-07，issue #242）**：深色主题已对齐上游——`.dark` token 块逐值对齐上游 `ui/src/index.css` `.dark`；`/static/theme_init.js`（head 同步，防 FOUC）+ `/static/theme.js`（system/light/dark 三态切换 + localStorage 持久化 + 跟随系统）；Playwright 实测深色背景/前景/主色/卡片/侧栏与上游一致。
 
 ### F1/F2/F6 实测记录（2026-08-07，issue #236）
 
@@ -83,7 +85,7 @@ Playwright 1440×900 实测（token 对齐后 build）：
 
 ## 5. 明确结论
 
-1. **未达到像素级 1:1**。功能/API/数据结构已对齐（见 parity-checklist）；视觉 token 层已按 issue #236 对齐上游（色彩/圆角/动效/字体/状态色），但布局与组件规格（侧栏/全宽/按钮/卡片，issue #237）与上游运行时实测基线（issue #238）尚未完成。
+1. **未达到像素级 1:1（剩余项均为已登记架构性差异）**。功能/API/数据结构已对齐（见 parity-checklist）；视觉 token 层（#236）、布局与组件规格（#237）、上游运行时实测基线（#238）、深色主题（#242）均已实施；剩余差异为 Topcoat SSR 架构性限制（侧栏拖拽尺寸、SPA 路由动画/乐观更新/skeleton、移动端适配），已逐项登记。
 2. 差距分两类：
    - **可修复（建议立项）**：token 层对齐（背景/前景/主色/圆角/字体）、侧栏 240px + 折叠/拖拽、内容区去 960 居中改全宽、按钮/卡片规格对齐。
    - **架构性不可 1:1（登记即可）**：SPA 路由动画/即时局部更新/富文本编辑器，Topcoat SSR 下只能近似（parity-checklist 已登记）。

@@ -4792,6 +4792,31 @@ pub async fn ui_feedback_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiEr
     Ok(response)
 }
 
+/// `GET /static/theme_init.js` — pre-paint theme bootstrap applied synchronously
+/// in `<head>` so the first paint already carries the correct `dark` class
+/// (no light flash), issue #242.
+#[route(GET "/static/theme_init.js")]
+pub async fn theme_init_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("theme_init.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
+/// `GET /static/theme.js` — theme switching (system/light/dark, persisted),
+/// approximating the upstream dark-mode toggle (issue #242).
+#[route(GET "/static/theme.js")]
+pub async fn theme_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("theme.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
 /// `GET /static/sidebar.js` — sidebar collapse (240px ↔ 64px rail) for the
 /// SSR layout, approximating the upstream SidebarShell (issue #237).
 #[route(GET "/static/sidebar.js")]

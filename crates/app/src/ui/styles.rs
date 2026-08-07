@@ -132,6 +132,44 @@ pub const TOKENS_CSS: &str = r#"
     --motion-duration-pulse: 0ms;
   }
 }
+
+/* Dark theme (issue #242) — values aligned with upstream ui/src/index.css
+   `.dark` block. Applied by /static/theme.js via <html class="dark">; the
+   pre-paint inline script in layout.rs prevents a light flash (FOUC). */
+.dark {
+  color-scheme: dark;
+  --color-background: oklch(0.145 0 0);
+  --color-foreground: oklch(0.985 0 0);
+  --color-card: oklch(0.205 0 0);
+  --color-card-foreground: oklch(0.985 0 0);
+  --color-popover: oklch(0.205 0 0);
+  --color-popover-foreground: oklch(0.985 0 0);
+  --color-primary: oklch(0.922 0 0);
+  --color-primary-foreground: oklch(0.205 0 0);
+  --color-secondary: oklch(0.269 0 0);
+  --color-secondary-foreground: oklch(0.985 0 0);
+  --color-muted: oklch(0.269 0 0);
+  --color-muted-foreground: oklch(0.708 0 0);
+  --color-accent: oklch(0.269 0 0);
+  --color-accent-foreground: oklch(0.985 0 0);
+  --color-destructive: oklch(0.637 0.237 25.331);
+  --color-destructive-foreground: oklch(0.985 0 0);
+  --color-border: oklch(1 0 0 / 10%);
+  --color-input: oklch(1 0 0 / 15%);
+  --color-ring: oklch(0.556 0 0);
+  --color-sidebar: oklch(0.205 0 0);
+  --color-sidebar-foreground: oklch(0.985 0 0);
+  --color-sidebar-primary: oklch(0.488 0.243 264.376);
+  --color-sidebar-primary-foreground: oklch(0.985 0 0);
+  --color-sidebar-accent: oklch(0.269 0 0);
+  --color-sidebar-accent-foreground: oklch(0.985 0 0);
+  --color-sidebar-border: oklch(1 0 0 / 10%);
+  --color-sidebar-ring: oklch(0.556 0 0);
+
+  /* status/priority hues are mode-independent upstream (--status-task-* /
+     --status-agent-* fixed hex), so Staple keeps the same values; chips
+     derive text/fill from the base hue via color-mix like upstream. */
+}
 * { box-sizing: border-box; }
 
 body {
