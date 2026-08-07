@@ -937,6 +937,7 @@ async fn core_business_flow_smoke() {
         ),
         (format!("/issues/{issue_id}/watchdogs"), "Issue watchdogs"),
         (format!("/companies/{company_id}/board/chat"), "cli_local"),
+        ("/static/board_chat.js".to_string(), "chat-bubble"),
         (
             format!("/companies/{company_id}/export-import"),
             "Export / Import",
