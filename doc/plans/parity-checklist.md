@@ -1,7 +1,7 @@
 # 功能 Parity Checklist（Phase 5 完成度度量）
 
 > 按模块跟踪与上游（参考镜像 `gqf2008/paperclip`）的功能对齐。
-> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-07（功能/API/数据结构对齐完成；**UI/UX 非 1:1**——issue #217 分批推进中：B1 侧边栏 badge ✅、B2 看板 ✅、B3 Issue 详情 ✅、B4 列表卡片 ✅、B5 审批/决策卡片 ✅、B6 Board Chat 气泡/流式/工具折叠 ✅（含 B6.2：adapter 结构化输出事件 Delta/Stderr，聊天 stderr 折叠真实落地）、B7 其余列表页统一 ✅）：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
+> 状态：`未开始` / `进行中` / `完成`。更新日期：2026-08-07（功能/API/数据结构对齐完成；**UI/UX 非 1:1**——issue #217 分批推进中：B1 侧边栏 badge ✅、B2 看板 ✅、B3 Issue 详情 ✅、B4 列表卡片 ✅、B5 审批/决策卡片 ✅、B6 Board Chat 气泡/流式/工具折叠 ✅（含 B6.2：adapter 结构化输出事件 Delta/Stderr，聊天 stderr 折叠真实落地）、B7 其余列表页统一 ✅、#231 UI 反馈近似（loading/toast + 架构性差异登记）✅）：扩展 issues + scheduler + UI 全页面 + Pipelines 全套 + 38 语言 locale + 看板拖拽 + P3 双栈切换 #27 + InviteLanding 真实落地页 #150 + 数据结构列级对齐 0 缺列 + Pipelines Review Queue/Learnings + decision_desk/routines 读回补齐 + InstanceAccess 用户公司访问 + 团队包 routine 安装 #199 + 指令文件体系 #200 + request confirmation 自动过期 #205；2026-08-06 登记上游 8-03→8-04 增量：attention/决策桌 triage #10785、shared workspace concurrency、request confirmation supersede、task-chat UI polish、observability/修复类）。
 > 2026-08-07 建立 UI 像素级基线（issue #228/PR #232）：19 页截图 + token/布局量化对比，结论为视觉 token 层系统性差异（主色/底色/字体/圆角/内容宽度/按钮），功能与结构对齐。
 
 ## 使用方式
@@ -117,6 +117,58 @@
   - **observability 与修复类**（plugin-host-services span、instrumentation、sandbox reset、daytona bwrap、managed sign-out redirect、duplicate create-task loading、lockfile）→ ⏳ 明确不迁移（遥测/埋点与上游 Bug 修复，无 Staple 功能面差异）
 - 2026-08-03：登记上游 **UI 国际化（i18n）sweep**（zh-CN/zh-TW 全量翻译 + 多语言 locale，来自参考分支 `sync/reference-i18n`，仅改动 Node 参考快照 `ui/`，不影响 `crates/`）。同日完成 Rust 侧 en + zh-CN 实现（#50）。
 
+
+## SSR 无法 1:1 的 UI 动画/过渡（架构性差异登记，issue #231）
+
+Topcoat 服务端渲染 + 表单 POST 重定向架构下，上游 SPA 的部分动画/过渡无法 1:1 迁移，按「明确不迁移 / 近似」登记。近似实现：`crates/app/src/ui/styles.rs`（spinner/toast token）、`ui_feedback.js`（提交中按钮禁用 + spinner、toast 自动消失）、UI 路由 `?flash=` 服务端反馈。
+
+loading 态对全部 `form[method="post"]` 全局生效（board chat / zip 等 fetch 驱动表单以 `data-no-feedback` 排除）；`?flash=` 服务端成功/失败 toast 覆盖以下已接线表单：
+
+**已覆盖清单（?flash= 接线）**
+
+| 模块 | 表单 |
+|---|---|
+| companies | 创建 |
+| goals | 创建 / 编辑 / 状态 |
+| projects | 创建 |
+| issues | 评论 / 状态移动 / 归档 / 取消归档 / 认领 |
+| approvals | 创建 / 决策 / 评论 |
+| settings | 公司 / 预算 / 密钥 / 技能 |
+| agents | 创建 / 暂停恢复 / 预算 |
+| attention | dismiss |
+| decisions | 创建 |
+| routines | 创建 / 触发 |
+| pipelines | 创建 / 设置 |
+| secrets | 创建 |
+| skills | 创建 |
+| import | 已有 `?result=` 反馈（沿用） |
+
+**未覆盖 / 延后清单（loading 仍全局生效，toast 可后续接线）**
+
+| 模块 | 表单 |
+|---|---|
+| decisions | resolve |
+| pipelines | stages / transitions / cases / case move |
+| projects | edit |
+| memberships / invites | 成员 / 邀请 / join-request 审批 |
+| status-cards / summary-slots / finance-events / feedback-votes | 创建/更新 |
+| skills | version / policy / comments / stars / test-inputs |
+| secret-bindings / user-secrets | providers / bindings / definitions / declarations |
+| folders / watchdogs | 创建 / 删除 |
+| instance / profile settings | 用户与偏好设置 |
+| plugins | register / settings / status / configs / state / entities / runs |
+| board-claim | 认领（页面本身渲染 available/claimed/expired 状态） |
+| review-queue | decide（redirect 回列表） |
+| onboarding | 向导多步流程（自含步骤反馈） |
+
+| 上游 SPA 交互 | Staple 处置 | 说明 |
+|---|---|---|
+| 路由切换过渡动画（React Router AnimatePresence / page transition） | ⏳ 明确不迁移 | SSR 每次导航为整页加载，无客户端路由切换，不做过渡动画 |
+| 乐观更新 / 即时 DOM 更新（提交后本地先渲染再同步） | ⏳ 明确不迁移 | 表单 POST + 303 重定向后服务端重渲染；以提交中 loading + 重定向后 toast 近似 |
+| 客户端 toast 出入场动画（framer-motion spring） | ⏳ 近似 | 服务端渲染 `#flash-toast`（token 样式）+ 轻量 JS 淡出自动隐藏（4s，`prefers-reduced-motion` 关闭过渡） |
+| 表单提交 loading（React state + Button loading prop） | ⏳ 近似 | `ui_feedback.js` 提交时禁用提交按钮并追加 `.spinner` token；fetch 类表单（board chat / zip）以 `data-no-feedback` 排除 |
+| React Suspense skeleton / 列表懒加载骨架屏 | ⏳ 明确不迁移 | SSR 首屏直接输出数据，无客户端数据拉取，不做 skeleton |
+| 客户端即时表单校验（onChange 校验） | ⏳ 近似 | 沿用 HTML5 `required`/`min` 原生校验；提交失败经 `?flash=invalid/error` 服务端反馈 |
 
 ## 明确延后 / 待办登记（上游能力，审计后给出最终处置）
 

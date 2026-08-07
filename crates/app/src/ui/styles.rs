@@ -32,6 +32,7 @@ pub const TOKENS_CSS: &str = r#"
 
   /* spacing */
   --space-1: 0.25rem;
+  --border-width: 0.125rem;
   --space-2: 0.5rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
@@ -69,6 +70,7 @@ pub const TOKENS_CSS: &str = r#"
   --radius-full: 9999px;
   --space-0-5: 0.125rem;
   --space-1-5: 0.375rem;
+  --toast-max-width: 28rem;
 }
 
 * { box-sizing: border-box; }
@@ -612,4 +614,47 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .command-item[hidden] { display: none; }
 .command-item .command-id { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
 .command-empty { padding: var(--space-3); font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
+
+/* UI feedback (issue #231): mutating form loading state + flash toast.
+   All values come from the token layer; no bare hex/px. */
+button[disabled] { opacity: 0.6; cursor: default; }
+.btn-loading { opacity: 0.85; }
+.btn-loading .spinner { margin-left: var(--space-1); }
+.spinner {
+  display: inline-block;
+  width: var(--space-3);
+  height: var(--space-3);
+  border: var(--border-width) solid var(--color-border);
+  border-top-color: var(--color-primary);
+  border-radius: var(--radius-full);
+  animation: spinner-rotate var(--motion-duration-slow) linear infinite;
+  vertical-align: text-bottom;
+}
+@keyframes spinner-rotate { to { transform: rotate(360deg); } }
+.toast {
+  position: fixed;
+  top: var(--space-4);
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  gap: var(--space-2);
+  align-items: center;
+  max-width: min(var(--toast-max-width), calc(100vw - var(--space-8)));
+  padding: var(--space-2) var(--space-4);
+  border: var(--border-width) solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-card);
+  box-shadow: var(--shadow-lg);
+  font-size: var(--font-size-sm);
+  transition: opacity var(--motion-duration-base) var(--motion-ease-base);
+}
+.toast[hidden] { display: none; }
+.toast.hide { opacity: 0; }
+.toast-success { border-color: var(--color-status-done); color: var(--color-status-done); }
+.toast-error { border-color: var(--color-destructive); color: var(--color-destructive); }
+@media (prefers-reduced-motion: reduce) {
+  .spinner { animation: none; }
+  .toast { transition: none; }
+}
 "#;
