@@ -4817,8 +4817,9 @@ pub async fn theme_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
     Ok(response)
 }
 
-/// `GET /static/sidebar.js` — sidebar collapse (240px ↔ 64px rail) for the
-/// SSR layout, approximating the upstream SidebarShell (issue #237).
+/// `GET /static/sidebar.js` — sidebar collapse (240px ↔ 64px rail) +
+/// drag/keyboard resize (208–420px, persisted) for the SSR layout,
+/// approximating the upstream SidebarShell (issues #237 + #244).
 #[route(GET "/static/sidebar.js")]
 pub async fn sidebar_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
     let body = topcoat::router::Body::from(include_str!("sidebar.js"));

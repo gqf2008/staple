@@ -94,7 +94,7 @@ Playwright 1440×900 实测（token 对齐后 build）：
 
 - [x] F1 视觉 token 层对齐上游（issue #236：色彩/圆角/动效已对齐；补齐 input/ring/sidebar/popover 等语义 token）：`--color-background/foreground/primary/muted-*/border/radius-*` 等值改为上游 OKLCH 值（保留 Staple 扩展 token 作为超集），并补齐缺失语义 token（sidebar/input/ring/popover 等）。
 - [x] F2 字体：引入 InterVariable（issue #236：自托管 woff2 + @font-face + 静态路由）（或本地字体回退链）对齐上游 `--font-sans`。
-- [x] F3 侧栏（issue #237）：默认 240px + 折叠 rail 64px（#sidebar-toggle + localStorage，折叠后隐藏文本残片）；拖拽调整尺寸登记为架构近似（SSR）；≤48rem 窄屏未做移动端适配（登记为已知限制）。
+- [x] F3 侧栏（issue #237 + #244）：默认 240px + 折叠 rail 64px（#sidebar-toggle + localStorage，折叠后隐藏文本残片）；拖拽调整宽度已实现（#sidebar-resizer，208–420px 夹紧 + localStorage 持久化 + 键盘 Arrow/Home/End + aria-valuenow）；≤48rem 窄屏自动折叠为 rail 64px 并隐藏折叠/拖拽控件（与上游 off-canvas drawer 的差异登记为 SSR 近似；根页 `.inline-form` 窄屏溢出为既有问题，另行处理）。
 - [x] F4 内容区（issue #237）：移除 960px 居中，改全宽 + `p-4`（`≥48rem` 时 `p-6`）。
 - [x] F5 按钮/卡片（issue #237）：主按钮 `h-10/px-4/text-sm/rounded-md`；卡片 `rounded-lg/py-6/px-6` 无阴影（对齐上游 Card，真实表面 `.issue-section` 已对齐；`.card` 为预留基类）。
 - [x] F6 状态色/优先级色（issue #236：状态色对齐上游 --status-*；优先级色保留为扩展并登记）：上游 `--status-task-*`/`--status-agent-*`（hex）与 Staple `--color-status-*` 映射核对（部分已对齐，如 done=#16a34a vs 上游 #22c55e 需复核）。
