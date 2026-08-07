@@ -240,6 +240,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   height: 0.5rem;
   border-radius: 9999px;
   flex: none;
+  background: var(--color-muted-foreground);
 }
 .status-dot-backlog, .status-dot-cancelled { background: var(--color-status-cancelled); }
 .status-dot-todo { background: var(--color-status-todo); }
@@ -247,6 +248,10 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .status-dot-in_review { background: var(--color-status-in-review); }
 .status-dot-blocked { background: var(--color-status-blocked); }
 .status-dot-done { background: var(--color-status-done); }
+.status-dot-pending { background: var(--color-status-todo); }
+.status-dot-failed, .status-dot-timed_out { background: var(--color-status-blocked); }
+.status-dot-over_budget { background: var(--color-priority-critical); }
+.status-dot-open { background: var(--color-status-in-progress); }
 .board-card {
   display: block;
   background: var(--color-card);
@@ -409,4 +414,24 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   color: var(--color-muted-foreground);
 }
 .interaction-card .interaction-payload { font-size: var(--font-size-sm); white-space: pre-wrap; margin: var(--space-1) 0 0; }
+
+/* List rows (B4: inbox / my-issues / what-needs-me card rows). */
+.row-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.row-card-main { flex: 1 1 auto; min-width: 0; }
+.row-card-title { font-weight: 600; font-size: var(--font-size-sm); }
+.row-card-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  margin-top: var(--space-1);
+}
+.row-card-actions { display: flex; gap: var(--space-2); flex: none; align-items: center; }
 "#;
