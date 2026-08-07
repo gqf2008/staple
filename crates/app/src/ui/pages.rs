@@ -17,6 +17,16 @@ fn to_topcoat_error(error: impl ToString) -> topcoat::Error {
     topcoat::Error::from(std::io::Error::other(error.to_string()))
 }
 
+/// Truncates a string for single-line card excerpts (keeps whole chars).
+fn excerpt(value: &str, max: usize) -> String {
+    let mut chars = value.chars();
+    if chars.clone().count() <= max {
+        return value.to_owned();
+    }
+    let truncated: String = chars.by_ref().take(max).collect();
+    format!("{truncated}…")
+}
+
 /// Typed `{company_id}` path segment for UI pages.
 #[path_param(error = bad_request("Invalid company id"))]
 pub(crate) struct CompanyId(String);
@@ -539,7 +549,7 @@ pub async fn approvals(cx: &Cx) -> Result {
         </section>
 
         <section>
-            <h2>(t(lang, "approvals.pending"))</h2>
+            <h2>(t(lang, "approvals.list"))</h2>
             if approvals.is_empty() {
                 <p class="empty">(t(lang, "approvals.noApprovals"))</p>
             } else {
@@ -547,15 +557,15 @@ pub async fn approvals(cx: &Cx) -> Result {
                     <div class="row-card">
                         <span class=(format!("status-dot status-dot-{}", approval.status.clone())) aria-hidden="true"></span>
                         <div class="row-card-main">
-                            <a class="approval-type" href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
+                            <a class="row-card-title" href=(with_lang(&format!("/approvals/{}", approval.id), lang))>
                                 (approval.r#type.clone())
                             </a>
                             <div class="row-card-meta">
-                                (approval.status.clone()) " · " (approval.created_at.clone())
+                                (approval.status.replace('_', " ")) " · " (approval.created_at.clone())
                             </div>
-                            <div class="card-excerpt">(approval.payload.clone())</div>
+                            <div class="card-excerpt">(excerpt(&approval.payload, 120))</div>
                         </div>
-                        <div class="card-actions">
+                        <div class="row-card-actions">
                             if approval.status == "pending" || approval.status == "revision_requested" {
                                 <form class="inline-form" method="post" action=(with_lang(&format!("/approvals/{}/decide/ui", approval.id), lang))>
                                     <input type="hidden" name="decision" value="approved">
@@ -3152,7 +3162,7 @@ pub async fn decisions(cx: &Cx) -> Result {
                                 }
                                 " · " (decision.expires_at.clone())
                             </div>
-                            <div class="card-excerpt">(decision.body.clone())</div>
+                            <div class="card-excerpt">(excerpt(&decision.body, 120))</div>
                         </div>
                     </div>
                 }
