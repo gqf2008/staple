@@ -1029,18 +1029,17 @@ pub async fn agents(cx: &Cx) -> Result {
         if agents.is_empty() {
             <p class="empty">(t(lang, "agents.noAgents"))</p>
         } else {
-            <ul class="list">
-                for agent in agents {
-                    <li>
-                        <a href=(with_lang(&format!("/agents/{}", agent.id), lang))>
-                            <strong>(agent.name)</strong>
-                        </a>
-                        " " <span class=(status_badge_class(&agent.status))>(agent.status)</span>
-                        " " <span class="badge badge-default">(agent.role)</span>
-                        " " <span class="meta-row">(agent.adapter_type)</span>
-                    </li>
-                }
-            </ul>
+            <div>
+                    for agent in &agents {
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", agent.status.clone())) aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <a class="row-card-title" href=(with_lang(&format!("/agents/{}", agent.id), lang))>(agent.name.clone())</a>
+                                <div class="row-card-meta">(agent.role.clone()) " · " (agent.status.replace('_', " "))</div>
+                            </div>
+                        </div>
+                    }
+                </div>
         }
     }
 }
@@ -1538,14 +1537,20 @@ pub async fn costs(cx: &Cx) -> Result {
             if rows.is_empty() {
                 <p class="empty">(t(lang, "costs.noRows"))</p>
             } else {
-                <ul class="list">
-                    for row in rows {
-                        <li>
-                            <span class="mono">(row.agent_id)</span>
-                            " " <span class="meta-row">(t(lang, "costs.spent")) ": " (row.spent_monthly_cents) "¢ / " (row.budget_monthly_cents) "¢"</span>
-                        </li>
+                <div>
+                    for row in &rows {
+                        <div class="row-card">
+                            <span class="status-dot status-dot-pending" aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <span class="row-card-title"><span class="mono">(row.agent_id.clone())</span></span>
+                                <div class="row-card-meta">
+                                    (t(lang, "costs.spent")) ": " (row.spent_monthly_cents) "¢"
+                                    " · " (t(lang, "costs.budget")) ": " (row.budget_monthly_cents) "¢"
+                                </div>
+                            </div>
+                        </div>
                     }
-                </ul>
+                </div>
             }
         </section>
     }
@@ -1572,21 +1577,22 @@ pub async fn routines(cx: &Cx) -> Result {
         if routines.is_empty() {
             <p class="empty">(t(lang, "routines.noRoutines"))</p>
         } else {
-            <ul class="list">
-                for routine in routines {
-                    <li>
-                        <a href=(with_lang(&format!("/routines/{}", routine.id), lang))>
-                            <strong>(routine.title)</strong>
-                        </a>
-                        " " <span class=(status_badge_class(&routine.status))>(routine.status)</span>
-                        " " <span class="meta-row">(t(lang, "routines.rev")) " " (routine.latest_revision_number)</span>
-                        <form class="inline-form" method="post"
-                              action=(with_lang(&format!("/routines/{}/trigger/ui", routine.id), lang))>
-                            <button type="submit">(t(lang, "routines.trigger"))</button>
-                        </form>
-                    </li>
-                }
-            </ul>
+            <div>
+                    for routine in &routines {
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", routine.status.clone())) aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <a class="row-card-title" href=(with_lang(&format!("/routines/{}", routine.id), lang))>(routine.title.clone())</a>
+                                <div class="row-card-meta">
+                                    (routine.status.replace('_', " "))
+                                    if let Some(description) = &routine.description {
+                                        " · " (description.clone())
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
         }
     }
 }
@@ -1779,19 +1785,22 @@ pub async fn skills_page(cx: &Cx) -> Result {
         if skills.is_empty() {
             <p class="empty">(t(lang, "settings.noSkills"))</p>
         } else {
-            <ul class="list">
-                for skill in skills {
-                    <li>
-                        <a href=(with_lang(&format!("/companies/{company_id}/skills/{}", skill.id), lang))>
-                            <strong>(skill.name)</strong>
-                        </a>
-                        " " <span class="badge badge-default">(skill.status)</span>
-                        if let Some(description) = &skill.description {
-                            " " <span class="meta-row">(description.clone())</span>
-                        }
-                    </li>
-                }
-            </ul>
+            <div>
+                    for skill in &skills {
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", skill.status.clone())) aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <a class="row-card-title" href=(with_lang(&format!("/companies/{company_id}/skills/{}", skill.id), lang))>(skill.name.clone())</a>
+                                <div class="row-card-meta">
+                                    (skill.status.replace('_', " "))
+                                    if let Some(description) = &skill.description {
+                                        " · " (description.clone())
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
         }
     }
 }
@@ -2865,17 +2874,22 @@ pub async fn goals(cx: &Cx) -> Result {
             if goal_rows.is_empty() {
                 <p class="empty">(t(lang, "pages.goals.none"))</p>
             } else {
-                <ul class="list">
-                    for goal in goal_rows {
-                        <li>
-                            <a href=(with_lang(&format!("/goals/{}", goal.id), lang))>
-                                <strong>(goal.title)</strong>
-                            </a>
-                            " " <span class="badge badge-default">(goal.level)</span>
-                            " " <span class=(status_badge_class(&goal.status))>(goal.status)</span>
-                        </li>
+                <div>
+                    for goal in &goal_rows {
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", goal.status.clone())) aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <a class="row-card-title" href=(with_lang(&format!("/goals/{}", goal.id), lang))>(goal.title.clone())</a>
+                                <div class="row-card-meta">
+                                    (goal.level.clone()) " · " (goal.status.replace('_', " "))
+                                    if let Some(description) = &goal.description {
+                                        " · " (description.clone())
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     }
-                </ul>
+                </div>
             }
         </section>
     }
@@ -3086,16 +3100,22 @@ pub async fn projects(cx: &Cx) -> Result {
             if project_rows.is_empty() {
                 <p class="empty">(t(lang, "pages.projects.none"))</p>
             } else {
-                <ul class="list">
-                    for project in project_rows {
-                        <li>
-                            <a href=(with_lang(&format!("/projects/{}", project.id), lang))>
-                                <strong>(project.name)</strong>
-                            </a>
-                            " " <span class=(status_badge_class(&project.status))>(project.status)</span>
-                        </li>
+                <div>
+                    for project in &project_rows {
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", project.status.clone())) aria-hidden="true"></span>
+                            <div class="row-card-main">
+                                <a class="row-card-title" href=(with_lang(&format!("/projects/{}", project.id), lang))>(project.name.clone())</a>
+                                <div class="row-card-meta">
+                                    (project.status.replace('_', " "))
+                                    if let Some(description) = &project.description {
+                                        " · " (description.clone())
+                                    }
+                                </div>
+                            </div>
+                        </div>
                     }
-                </ul>
+                </div>
             }
         </section>
     }
