@@ -1035,7 +1035,9 @@ pub async fn agents(cx: &Cx) -> Result {
                             <span class=(format!("status-dot status-dot-{}", agent.status.clone())) aria-hidden="true"></span>
                             <div class="row-card-main">
                                 <a class="row-card-title" href=(with_lang(&format!("/agents/{}", agent.id), lang))>(agent.name.clone())</a>
-                                <div class="row-card-meta">(agent.role.clone()) " · " (agent.status.replace('_', " "))</div>
+                                <div class="row-card-meta">
+                                    (agent.role.clone()) " · " (agent.status.replace('_', " ")) " · " (agent.adapter_type.clone())
+                                </div>
                             </div>
                         </div>
                     }
@@ -1542,7 +1544,9 @@ pub async fn costs(cx: &Cx) -> Result {
                         <div class="row-card">
                             <span class="status-dot status-dot-pending" aria-hidden="true"></span>
                             <div class="row-card-main">
-                                <span class="row-card-title"><span class="mono">(row.agent_id.clone())</span></span>
+                                <a class="row-card-title" href=(with_lang(&format!("/agents/{}", row.agent_id), lang))>
+                                    <span class="mono">(row.agent_id.clone())</span>
+                                </a>
                                 <div class="row-card-meta">
                                     (t(lang, "costs.spent")) ": " (row.spent_monthly_cents) "¢"
                                     " · " (t(lang, "costs.budget")) ": " (row.budget_monthly_cents) "¢"
@@ -1585,10 +1589,17 @@ pub async fn routines(cx: &Cx) -> Result {
                                 <a class="row-card-title" href=(with_lang(&format!("/routines/{}", routine.id), lang))>(routine.title.clone())</a>
                                 <div class="row-card-meta">
                                     (routine.status.replace('_', " "))
+                                    " · " (t(lang, "routines.rev")) " " (routine.latest_revision_number)
                                     if let Some(description) = &routine.description {
                                         " · " (description.clone())
                                     }
                                 </div>
+                            </div>
+                            <div class="row-card-actions">
+                                <form class="inline-form" method="post"
+                                      action=(with_lang(&format!("/routines/{}/trigger/ui", routine.id), lang))>
+                                    <button type="submit" class="secondary">(t(lang, "routines.trigger"))</button>
+                                </form>
                             </div>
                         </div>
                     }

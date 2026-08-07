@@ -257,9 +257,14 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 .status-dot-failed, .status-dot-timed_out { background: var(--color-status-blocked); }
 .status-dot-over_budget { background: var(--color-priority-critical); }
 .status-dot-open { background: var(--color-status-in-progress); }
-.status-dot-approved, .status-dot-decided { background: var(--color-status-done); }
-.status-dot-rejected, .status-dot-expired { background: var(--color-status-cancelled); }
+.status-dot-approved, .status-dot-decided, .status-dot-active,
+.status-dot-achieved, .status-dot-completed { background: var(--color-status-done); }
+.status-dot-rejected, .status-dot-expired, .status-dot-terminated { background: var(--color-status-cancelled); }
 .status-dot-revision_requested { background: var(--color-status-in-review); }
+.status-dot-paused { background: var(--color-status-paused); }
+.status-dot-planned, .status-dot-todo { background: var(--color-status-todo); }
+.status-dot-error { background: var(--color-status-blocked); }
+.status-dot-idle { background: var(--color-muted-foreground); }
 .board-card {
   display: block;
   background: var(--color-card);
