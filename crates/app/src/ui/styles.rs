@@ -21,6 +21,14 @@ pub const TOKENS_CSS: &str = r#"
   --color-status-paused: #d97706;
   --color-status-blocked: #dc2626;
   --color-status-done: #16a34a;
+  --color-status-todo: #f59e0b;
+  --color-status-in-progress: #2563eb;
+  --color-status-in-review: #8b5cf6;
+  --color-status-cancelled: #78716c;
+  --color-priority-critical: #dc2626;
+  --color-priority-high: #ea580c;
+  --color-priority-medium: #2563eb;
+  --color-priority-low: #78716c;
 
   /* spacing */
   --space-1: 0.25rem;
@@ -166,16 +174,137 @@ section { margin-bottom: var(--space-8); }
 .nav-row a:hover { text-decoration: underline; }
 .muted-link { color: var(--color-muted-foreground); text-decoration: none; font-size: var(--font-size-sm); }
 
-.board-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(14rem, 1fr)); gap: var(--space-4); }
-.board-column { background: var(--color-muted); border: 1px solid var(--color-border); border-radius: var(--radius-md); padding: var(--space-3); }
-.board-column-title { font-size: var(--font-size-sm); margin: 0 0 var(--space-3); }
-.board-column .list li { border-bottom: 1px solid var(--color-border); }
-.board-column form { margin: var(--space-1) 0 0; }
-
 form.stack-form { display: flex; flex-direction: column; gap: var(--space-2); max-width: 24rem; }
 form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 
-.board-card { cursor: grab; }
-.board-card.dragging { opacity: 0.5; }
-.board-column.drag-over { outline: 2px dashed var(--color-primary); outline-offset: -2px; }
+/* Board (upstream KanbanBoard parity): horizontal scroll, status-hued
+   columns, card with priority rail + assignee. All values from tokens. */
+.board-grid {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  padding-bottom: var(--space-4);
+  align-items: flex-start;
+}
+.board-column {
+  flex: 0 0 16rem;
+  min-width: 16rem;
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+.board-column-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.board-column-count {
+  margin-left: auto;
+  font-size: var(--font-size-xs);
+  font-variant-numeric: tabular-nums;
+  opacity: 0.75;
+}
+.board-column-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-2);
+  min-height: 6rem;
+  border-top: 1px solid var(--color-border);
+}
+.board-column.drag-over { outline: 2px solid var(--color-primary); outline-offset: -2px; }
+.board-column-backlog .board-column-header { color: var(--color-status-cancelled); }
+.board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-cancelled) 8%, var(--color-background)); }
+.board-column-todo .board-column-header { color: var(--color-status-todo); }
+.board-column-todo .board-column-body { background: color-mix(in srgb, var(--color-status-todo) 10%, var(--color-background)); }
+.board-column-in_progress .board-column-header { color: var(--color-status-in-progress); }
+.board-column-in_progress .board-column-body { background: color-mix(in srgb, var(--color-status-in-progress) 10%, var(--color-background)); }
+.board-column-in_review .board-column-header { color: var(--color-status-in-review); }
+.board-column-in_review .board-column-body { background: color-mix(in srgb, var(--color-status-in-review) 10%, var(--color-background)); }
+.board-column-blocked .board-column-header { color: var(--color-status-blocked); }
+.board-column-blocked .board-column-body { background: color-mix(in srgb, var(--color-status-blocked) 10%, var(--color-background)); }
+.board-column-done .board-column-header { color: var(--color-status-done); }
+.board-column-done .board-column-body { background: color-mix(in srgb, var(--color-status-done) 8%, var(--color-background)); }
+.board-column-cancelled .board-column-header,
+.board-column-cancelled .board-column-body { opacity: 0.7; }
+.status-dot {
+  display: inline-block;
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  flex: none;
+}
+.status-dot-backlog, .status-dot-cancelled { background: var(--color-status-cancelled); }
+.status-dot-todo { background: var(--color-status-todo); }
+.status-dot-in_progress { background: var(--color-status-in-progress); }
+.status-dot-in_review { background: var(--color-status-in-review); }
+.status-dot-blocked { background: var(--color-status-blocked); }
+.status-dot-done { background: var(--color-status-done); }
+.board-card {
+  display: block;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-left-width: 3px;
+  border-radius: var(--radius-sm);
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  cursor: grab;
+  transition: box-shadow 120ms ease;
+}
+.board-card:hover { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+.board-card.dragging { opacity: 0.35; }
+.board-card-priority-critical { border-left-color: var(--color-priority-critical); }
+.board-card-priority-high { border-left-color: var(--color-priority-high); }
+.board-card-priority-medium { border-left-color: var(--color-priority-medium); }
+.board-card-priority-low { border-left-color: var(--color-priority-low); }
+.board-card-id {
+  font-family: var(--font-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+}
+.board-card-title {
+  margin: var(--space-1) 0 var(--space-2);
+  font-size: var(--font-size-sm);
+  line-height: 1.35;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.board-card-footer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--font-size-xs);
+}
+.board-priority-label { font-weight: 600; font-size: var(--font-size-xs); }
+.board-priority-critical { color: var(--color-priority-critical); }
+.board-priority-high { color: var(--color-priority-high); }
+.board-priority-medium { color: var(--color-priority-medium); }
+.board-priority-low { color: var(--color-priority-low); }
+.board-assignee {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-muted-foreground);
+}
+.board-assignee-dot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.25rem;
+  height: 1.25rem;
+  border-radius: 9999px;
+  background: var(--color-primary);
+  color: var(--color-primary-foreground);
+  font-size: var(--font-size-xs);
+  font-weight: 600;
+}
+.board-column form { margin: var(--space-1) 0 0; }
 "#;
