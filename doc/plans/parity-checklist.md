@@ -119,7 +119,46 @@
 
 ## SSR 无法 1:1 的 UI 动画/过渡（架构性差异登记，issue #231）
 
-Topcoat 服务端渲染 + 表单 POST 重定向架构下，上游 SPA 的部分动画/过渡无法 1:1 迁移，按「明确不迁移 / 近似」登记。近似实现：`crates/app/src/ui/styles.rs`（spinner/toast token）、`ui_feedback.js`（提交中按钮禁用 + spinner、toast 自动消失）、UI 路由 `?flash=` 服务端反馈；已覆盖主要 mutating 表单（companies/goals/projects/issues/approvals/settings/agents/attention/decisions/routines/pipelines/secrets/skills）。
+Topcoat 服务端渲染 + 表单 POST 重定向架构下，上游 SPA 的部分动画/过渡无法 1:1 迁移，按「明确不迁移 / 近似」登记。近似实现：`crates/app/src/ui/styles.rs`（spinner/toast token）、`ui_feedback.js`（提交中按钮禁用 + spinner、toast 自动消失）、UI 路由 `?flash=` 服务端反馈。
+
+loading 态对全部 `form[method="post"]` 全局生效（board chat / zip 等 fetch 驱动表单以 `data-no-feedback` 排除）；`?flash=` 服务端成功/失败 toast 覆盖以下已接线表单：
+
+**已覆盖清单（?flash= 接线）**
+
+| 模块 | 表单 |
+|---|---|
+| companies | 创建 |
+| goals | 创建 / 编辑 / 状态 |
+| projects | 创建 |
+| issues | 评论 / 状态移动 / 归档 / 取消归档 / 认领 |
+| approvals | 创建 / 决策 / 评论 |
+| settings | 公司 / 预算 / 密钥 / 技能 |
+| agents | 创建 / 暂停恢复 / 预算 |
+| attention | dismiss |
+| decisions | 创建 |
+| routines | 创建 / 触发 |
+| pipelines | 创建 / 设置 |
+| secrets | 创建 |
+| skills | 创建 |
+| import | 已有 `?result=` 反馈（沿用） |
+
+**未覆盖 / 延后清单（loading 仍全局生效，toast 可后续接线）**
+
+| 模块 | 表单 |
+|---|---|
+| decisions | resolve |
+| pipelines | stages / transitions / cases / case move |
+| projects | edit |
+| memberships / invites | 成员 / 邀请 / join-request 审批 |
+| status-cards / summary-slots / finance-events / feedback-votes | 创建/更新 |
+| skills | version / policy / comments / stars / test-inputs |
+| secret-bindings / user-secrets | providers / bindings / definitions / declarations |
+| folders / watchdogs | 创建 / 删除 |
+| instance / profile settings | 用户与偏好设置 |
+| plugins | register / settings / status / configs / state / entities / runs |
+| board-claim | 认领（页面本身渲染 available/claimed/expired 状态） |
+| review-queue | decide（redirect 回列表） |
+| onboarding | 向导多步流程（自含步骤反馈） |
 
 | 上游 SPA 交互 | Staple 处置 | 说明 |
 |---|---|---|

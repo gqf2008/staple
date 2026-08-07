@@ -70,6 +70,7 @@ pub const TOKENS_CSS: &str = r#"
   --radius-full: 9999px;
   --space-0-5: 0.125rem;
   --space-1-5: 0.375rem;
+  --toast-max-width: 28rem;
 }
 
 * { box-sizing: border-box; }
@@ -639,7 +640,7 @@ button[disabled] { opacity: 0.6; cursor: default; }
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  max-width: min(28rem, calc(100vw - var(--space-8)));
+  max-width: min(var(--toast-max-width), calc(100vw - var(--space-8)));
   padding: var(--space-2) var(--space-4);
   border: var(--border-width) solid var(--color-border);
   border-radius: var(--radius-md);

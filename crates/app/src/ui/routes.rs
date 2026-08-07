@@ -21,12 +21,18 @@ use topcoat::router::IntoResponse;
 #[path_param(error = bad_request("Invalid id"))]
 pub(crate) struct Id(String);
 
-/// Redirects to `path` with a `flash` code consumed by the global toast
-/// (issue #231). Appends `?flash=<code>` (or `&flash=<code>` when `path`
-/// already carries a query string).
-fn see_other_flash(path: &str, code: &str) -> topcoat::router::error::SeeOther {
+/// Builds the redirect URI with a `flash` query parameter (issue #231).
+/// Appends `?flash=<code>`, or `&flash=<code>` when `path` already carries a
+/// query string (the existing query is preserved).
+fn flash_uri(path: &str, code: &str) -> String {
     let separator = if path.contains('?') { '&' } else { '?' };
-    see_other(&format!("{path}{separator}flash={code}"))
+    format!("{path}{separator}flash={code}")
+}
+
+/// Redirects to `path` with a `flash` code consumed by the global toast
+/// (issue #231).
+fn see_other_flash(path: &str, code: &str) -> topcoat::router::error::SeeOther {
+    see_other(&flash_uri(path, code))
 }
 
 /// `POST /issues/{id}/comments/ui` — adds a comment, redirects to the issue.
@@ -74,18 +80,18 @@ pub async fn create_approval_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let r#type = form.r#type.trim().to_owned();
-    let mut code = "invalid";
-    if !r#type.is_empty()
-        && let Ok(approval) = state
-            .approvals
-            .create(staple_data::NewApproval {
-                company_id: company_id.clone(),
-                r#type,
-                requested_by_agent_id: None,
-                requested_by_user_id: Some(crate::auth::current_actor(cx)),
-                payload: form.payload.unwrap_or_else(|| "{}".to_owned()),
-            })
-            .await
+    let code = if r#type.is_empty() {
+        "invalid"
+    } else if let Ok(approval) = state
+        .approvals
+        .create(staple_data::NewApproval {
+            company_id: company_id.clone(),
+            r#type,
+            requested_by_agent_id: None,
+            requested_by_user_id: Some(crate::auth::current_actor(cx)),
+            payload: form.payload.unwrap_or_else(|| "{}".to_owned()),
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -96,8 +102,10 @@ pub async fn create_approval_ui(
             Some(serde_json::json!({ "type": approval.r#type })),
         )
         .await;
-        code = "created";
-    }
+        "created"
+    } else {
+        "error"
+    };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/approvals"),
         code,
@@ -208,16 +216,18 @@ pub async fn create_company_ui(
 ) -> Result<topcoat::router::error::SeeOther> {
     let state = app_context::<AppState>(cx);
     let name = form.name.trim().to_owned();
-    if !name.is_empty()
-        && let Ok(company) = state
-            .companies
-            .create(staple_data::NewCompany {
-                name,
-                description: form.description.filter(|value| !value.trim().is_empty()),
-                budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
-                attachment_max_bytes: form.attachment_max_bytes.unwrap_or(0),
-            })
-            .await
+    if name.is_empty() {
+        return Ok(see_other_flash("/", "invalid"));
+    }
+    if let Ok(company) = state
+        .companies
+        .create(staple_data::NewCompany {
+            name,
+            description: form.description.filter(|value| !value.trim().is_empty()),
+            budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
+            attachment_max_bytes: form.attachment_max_bytes.unwrap_or(0),
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -233,7 +243,7 @@ pub async fn create_company_ui(
             "created",
         ));
     }
-    Ok(see_other_flash("/", "invalid"))
+    Ok(see_other_flash("/", "error"))
 }
 
 /// Comment form fields.
@@ -283,9 +293,9 @@ pub async fn move_status_ui(
     };
     let company_id = issue.company_id;
     let status = form.status.trim().to_owned();
-    let mut code = "error";
-    if !status.is_empty()
-        && state
+    let mut code = "invalid";
+    if !status.is_empty() {
+        code = if state
             .issues
             .update(
                 &issue_id,
@@ -301,8 +311,11 @@ pub async fn move_status_ui(
             )
             .await
             .is_ok()
-    {
-        code = "updated";
+        {
+            "updated"
+        } else {
+            "error"
+        };
     }
     Ok(see_other_flash(
         &format!("/companies/{company_id}/board"),
@@ -323,8 +336,8 @@ pub async fn settings_ui(
     match form.action.as_str() {
         "company" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-            if !name.is_empty()
-                && state
+            if !name.is_empty() {
+                code = if state
                     .companies
                     .update(
                         &company_id,
@@ -341,27 +354,32 @@ pub async fn settings_ui(
                     )
                     .await
                     .is_ok()
-            {
-                code = "saved";
+                {
+                    "saved"
+                } else {
+                    "error"
+                };
             }
         }
         "budget" => {
-            if let Some(cents) = form.budget_monthly_cents
-                && state
+            if let Some(cents) = form.budget_monthly_cents {
+                code = if state
                     .costs
                     .set_company_budget(&company_id, cents)
                     .await
                     .is_ok()
-            {
-                code = "saved";
+                {
+                    "saved"
+                } else {
+                    "error"
+                };
             }
         }
         "secret" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
             let value = form.value.clone().unwrap_or_default();
-            if !name.is_empty()
-                && !value.is_empty()
-                && state
+            if !name.is_empty() && !value.is_empty() {
+                code = if state
                     .secrets
                     .create_secret(staple_data::NewSecret {
                         company_id: company_id.clone(),
@@ -370,14 +388,17 @@ pub async fn settings_ui(
                     })
                     .await
                     .is_ok()
-            {
-                code = "saved";
+                {
+                    "saved"
+                } else {
+                    "error"
+                };
             }
         }
         "skill" => {
             let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-            if !name.is_empty()
-                && state
+            if !name.is_empty() {
+                code = if state
                     .skills
                     .create(staple_data::NewSkill {
                         company_id: company_id.clone(),
@@ -391,8 +412,11 @@ pub async fn settings_ui(
                     })
                     .await
                     .is_ok()
-            {
-                code = "saved";
+                {
+                    "saved"
+                } else {
+                    "error"
+                };
             }
         }
         _ => {}
@@ -468,23 +492,28 @@ pub async fn create_agent_ui(
     let state = app_context::<AppState>(cx);
     let name = form.name.trim().to_owned();
     let role = form.role.clone().unwrap_or_else(|| "general".to_owned());
-    if !name.is_empty()
-        && let Ok(agent) = state
-            .agents
-            .create(staple_data::NewAgent {
-                company_id: company_id.clone(),
-                name,
-                role: role.clone(),
-                title: form.title.filter(|value| !value.trim().is_empty()),
-                icon: None,
-                reports_to: form.reports_to.filter(|value| !value.trim().is_empty()),
-                adapter_type: form
-                    .adapter_type
-                    .filter(|value| !value.trim().is_empty())
-                    .unwrap_or_else(|| "cli_local".to_owned()),
-                budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
-            })
-            .await
+    if name.is_empty() {
+        return Ok(see_other_flash(
+            &format!("/companies/{company_id}/agents"),
+            "invalid",
+        ));
+    }
+    if let Ok(agent) = state
+        .agents
+        .create(staple_data::NewAgent {
+            company_id: company_id.clone(),
+            name,
+            role: role.clone(),
+            title: form.title.filter(|value| !value.trim().is_empty()),
+            icon: None,
+            reports_to: form.reports_to.filter(|value| !value.trim().is_empty()),
+            adapter_type: form
+                .adapter_type
+                .filter(|value| !value.trim().is_empty())
+                .unwrap_or_else(|| "cli_local".to_owned()),
+            budget_monthly_cents: form.budget_monthly_cents.unwrap_or(0),
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -514,7 +543,7 @@ pub async fn create_agent_ui(
     }
     Ok(see_other_flash(
         &format!("/companies/{company_id}/agents"),
-        "invalid",
+        "error",
     ))
 }
 
@@ -787,26 +816,27 @@ pub async fn routine_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let title = form.title.trim().to_owned();
-    let code = if !title.is_empty()
-        && state
-            .routines
-            .create(staple_data::NewRoutine {
-                company_id: company_id.clone(),
-                project_id: None,
-                goal_id: None,
-                parent_issue_id: None,
-                title,
-                description: None,
-                assignee_agent_id: None,
-                priority: "medium".to_owned(),
-                variables: None,
-            })
-            .await
-            .is_ok()
+    let code = if title.is_empty() {
+        "invalid"
+    } else if state
+        .routines
+        .create(staple_data::NewRoutine {
+            company_id: company_id.clone(),
+            project_id: None,
+            goal_id: None,
+            parent_issue_id: None,
+            title,
+            description: None,
+            assignee_agent_id: None,
+            priority: "medium".to_owned(),
+            variables: None,
+        })
+        .await
+        .is_ok()
     {
         "created"
     } else {
-        "invalid"
+        "error"
     };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/routines"),
@@ -849,21 +879,21 @@ pub async fn secret_ui(
     let state = app_context::<AppState>(cx);
     let name = form.name.as_deref().unwrap_or("").trim().to_owned();
     let value = form.value.clone().unwrap_or_default();
-    let code = if !name.is_empty()
-        && !value.is_empty()
-        && state
-            .secrets
-            .create_secret(staple_data::NewSecret {
-                company_id: company_id.clone(),
-                name,
-                value,
-            })
-            .await
-            .is_ok()
+    let code = if name.is_empty() || value.is_empty() {
+        "invalid"
+    } else if state
+        .secrets
+        .create_secret(staple_data::NewSecret {
+            company_id: company_id.clone(),
+            name,
+            value,
+        })
+        .await
+        .is_ok()
     {
         "saved"
     } else {
-        "invalid"
+        "error"
     };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/secrets"),
@@ -880,25 +910,26 @@ pub async fn skill_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let name = form.name.as_deref().unwrap_or("").trim().to_owned();
-    let code = if !name.is_empty()
-        && state
-            .skills
-            .create(staple_data::NewSkill {
-                company_id: company_id.clone(),
-                name,
-                description: form.description.clone().filter(|d| !d.trim().is_empty()),
-                restriction_policy: staple_data::SkillRestrictionPolicy {
-                    allowed_agent_ids: Vec::new(),
-                    allowed_roles: Vec::new(),
-                    deny_agent_ids: Vec::new(),
-                },
-            })
-            .await
-            .is_ok()
+    let code = if name.is_empty() {
+        "invalid"
+    } else if state
+        .skills
+        .create(staple_data::NewSkill {
+            company_id: company_id.clone(),
+            name,
+            description: form.description.clone().filter(|d| !d.trim().is_empty()),
+            restriction_policy: staple_data::SkillRestrictionPolicy {
+                allowed_agent_ids: Vec::new(),
+                allowed_roles: Vec::new(),
+                deny_agent_ids: Vec::new(),
+            },
+        })
+        .await
+        .is_ok()
     {
         "created"
     } else {
-        "invalid"
+        "error"
     };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/skills"),
@@ -1756,20 +1787,24 @@ pub async fn pipeline_create_ui(
     let state = app_context::<AppState>(cx);
     let key = form.key.trim().to_owned();
     let name = form.name.trim().to_owned();
-    if !key.is_empty()
-        && !name.is_empty()
-        && let Ok(pipeline) = state
-            .pipelines
-            .create_pipeline(staple_data::NewPipeline {
-                company_id: company_id.clone(),
-                project_id: None,
-                key,
-                name,
-                description: None,
-                enforce_transitions: form.enforce == Some("1".to_owned()),
-                created_by_user_id: Some(crate::auth::current_actor(cx)),
-            })
-            .await
+    if key.is_empty() || name.is_empty() {
+        return Ok(see_other_flash(
+            &format!("/companies/{company_id}/pipelines"),
+            "invalid",
+        ));
+    }
+    if let Ok(pipeline) = state
+        .pipelines
+        .create_pipeline(staple_data::NewPipeline {
+            company_id: company_id.clone(),
+            project_id: None,
+            key,
+            name,
+            description: None,
+            enforce_transitions: form.enforce == Some("1".to_owned()),
+            created_by_user_id: Some(crate::auth::current_actor(cx)),
+        })
+        .await
     {
         return Ok(see_other_flash(
             &format!("/pipelines/{}", pipeline.id),
@@ -1778,7 +1813,7 @@ pub async fn pipeline_create_ui(
     }
     Ok(see_other_flash(
         &format!("/companies/{company_id}/pipelines"),
-        "invalid",
+        "error",
     ))
 }
 
@@ -1971,22 +2006,23 @@ pub async fn pipeline_settings_ui(
         return Ok(see_other("/"));
     };
     let name = form.name.trim().to_owned();
-    let code = if !name.is_empty()
-        && state
-            .pipelines
-            .update_pipeline(
-                &company_id,
-                &pipeline_id,
-                Some(name),
-                Some(Some(form.description.unwrap_or_default())),
-                Some(form.status.as_deref() == Some("archived")),
-            )
-            .await
-            .is_ok()
+    let code = if name.is_empty() {
+        "invalid"
+    } else if state
+        .pipelines
+        .update_pipeline(
+            &company_id,
+            &pipeline_id,
+            Some(name),
+            Some(Some(form.description.unwrap_or_default())),
+            Some(form.status.as_deref() == Some("archived")),
+        )
+        .await
+        .is_ok()
     {
         "saved"
     } else {
-        "invalid"
+        "error"
     };
     Ok(see_other_flash(&format!("/pipelines/{pipeline_id}"), code))
 }
@@ -2235,20 +2271,20 @@ pub async fn create_goal_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let title = form.title.trim().to_owned();
-    let mut code = "invalid";
-    if !title.is_empty()
-        && let Ok(goal) = state
-            .goals
-            .create(staple_data::NewGoal {
-                company_id: company_id.clone(),
-                title,
-                description: form.description,
-                level: form.level.unwrap_or_else(|| "company".to_owned()),
-                parent_id: form.parent_id.filter(|value| !value.is_empty()),
-                owner_agent_id: form.owner_agent_id.filter(|value| !value.is_empty()),
-                status: form.status.unwrap_or_else(|| "planned".to_owned()),
-            })
-            .await
+    let code = if title.is_empty() {
+        "invalid"
+    } else if let Ok(goal) = state
+        .goals
+        .create(staple_data::NewGoal {
+            company_id: company_id.clone(),
+            title,
+            description: form.description,
+            level: form.level.unwrap_or_else(|| "company".to_owned()),
+            parent_id: form.parent_id.filter(|value| !value.is_empty()),
+            owner_agent_id: form.owner_agent_id.filter(|value| !value.is_empty()),
+            status: form.status.unwrap_or_else(|| "planned".to_owned()),
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -2259,8 +2295,10 @@ pub async fn create_goal_ui(
             Some(serde_json::json!({ "title": goal.title })),
         )
         .await;
-        code = "created";
-    }
+        "created"
+    } else {
+        "error"
+    };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/goals"),
         code,
@@ -2279,26 +2317,27 @@ pub async fn update_goal_ui(
         return Ok(see_other("/"));
     };
     let title = form.title.trim().to_owned();
-    let code = if !title.is_empty()
-        && state
-            .goals
-            .update(
-                &goal_id,
-                staple_data::GoalPatch {
-                    title: Some(title),
-                    description: Some(form.description),
-                    level: form.level,
-                    parent_id: Some(form.parent_id.filter(|value| !value.is_empty())),
-                    owner_agent_id: Some(form.owner_agent_id.filter(|value| !value.is_empty())),
-                    status: form.status,
-                },
-            )
-            .await
-            .is_ok()
+    let code = if title.is_empty() {
+        "invalid"
+    } else if state
+        .goals
+        .update(
+            &goal_id,
+            staple_data::GoalPatch {
+                title: Some(title),
+                description: Some(form.description),
+                level: form.level,
+                parent_id: Some(form.parent_id.filter(|value| !value.is_empty())),
+                owner_agent_id: Some(form.owner_agent_id.filter(|value| !value.is_empty())),
+                status: form.status,
+            },
+        )
+        .await
+        .is_ok()
     {
         "saved"
     } else {
-        "invalid"
+        "error"
     };
     Ok(see_other_flash(&format!("/goals/{goal_id}"), code))
 }
@@ -2358,22 +2397,22 @@ pub async fn create_project_ui(
     let company_id = path_param::<CompanyId>(cx)?.to_string();
     let state = app_context::<AppState>(cx);
     let name = form.name.trim().to_owned();
-    let mut code = "invalid";
-    if !name.is_empty()
-        && let Ok(project) = state
-            .projects
-            .create(staple_data::NewProject {
-                company_id: company_id.clone(),
-                goal_id: form.goal_id.filter(|value| !value.is_empty()),
-                name,
-                description: form.description,
-                status: form.status.unwrap_or_else(|| "backlog".to_owned()),
-                lead_agent_id: form.lead_agent_id.filter(|value| !value.is_empty()),
-                target_date: form.target_date,
-                env: None,
-                execution_workspace_policy: None,
-            })
-            .await
+    let code = if name.is_empty() {
+        "invalid"
+    } else if let Ok(project) = state
+        .projects
+        .create(staple_data::NewProject {
+            company_id: company_id.clone(),
+            goal_id: form.goal_id.filter(|value| !value.is_empty()),
+            name,
+            description: form.description,
+            status: form.status.unwrap_or_else(|| "backlog".to_owned()),
+            lead_agent_id: form.lead_agent_id.filter(|value| !value.is_empty()),
+            target_date: form.target_date,
+            env: None,
+            execution_workspace_policy: None,
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -2384,8 +2423,10 @@ pub async fn create_project_ui(
             Some(serde_json::json!({ "name": project.name })),
         )
         .await;
-        code = "created";
-    }
+        "created"
+    } else {
+        "error"
+    };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/projects"),
         code,
@@ -2459,39 +2500,40 @@ pub async fn create_decision_ui(
     let expires_at = form.expires_at.trim().to_owned();
     let options = serde_json::from_str(form.options.as_deref().unwrap_or("[]"))
         .unwrap_or_else(|_| serde_json::json!([]));
-    let mut code = "invalid";
-    if !title.is_empty()
-        && !expires_at.is_empty()
-        && !form.origin_agent_id.is_empty()
-        && !form.origin_issue_id.is_empty()
-        && !form.origin_run_id.is_empty()
-        && let Ok(decision) = state
-            .decision_actions
-            .create_decision(staple_data::NewDecision {
-                company_id: company_id.clone(),
-                bundle_id: None,
-                origin_agent_id: form.origin_agent_id,
-                origin_issue_id: form.origin_issue_id,
-                origin_run_id: form.origin_run_id,
-                rule_key: None,
-                title,
-                body: form.body.unwrap_or_default(),
-                options,
-                inputs: None,
-                status: form.status.unwrap_or_else(|| "open".to_owned()),
-                execution_status: None,
-                chosen_option_id: None,
-                input_values: None,
-                decided_by_user_id: None,
-                decided_at: None,
-                expires_at,
-                idempotency_key: None,
-                signed_spec: "manual".to_owned(),
-                target_snapshots: serde_json::json!({}),
-                continuation_policy: "none".to_owned(),
-                metadata: serde_json::json!({}),
-            })
-            .await
+    let code = if title.is_empty()
+        || expires_at.is_empty()
+        || form.origin_agent_id.is_empty()
+        || form.origin_issue_id.is_empty()
+        || form.origin_run_id.is_empty()
+    {
+        "invalid"
+    } else if let Ok(decision) = state
+        .decision_actions
+        .create_decision(staple_data::NewDecision {
+            company_id: company_id.clone(),
+            bundle_id: None,
+            origin_agent_id: form.origin_agent_id,
+            origin_issue_id: form.origin_issue_id,
+            origin_run_id: form.origin_run_id,
+            rule_key: None,
+            title,
+            body: form.body.unwrap_or_default(),
+            options,
+            inputs: None,
+            status: form.status.unwrap_or_else(|| "open".to_owned()),
+            execution_status: None,
+            chosen_option_id: None,
+            input_values: None,
+            decided_by_user_id: None,
+            decided_at: None,
+            expires_at,
+            idempotency_key: None,
+            signed_spec: "manual".to_owned(),
+            target_snapshots: serde_json::json!({}),
+            continuation_policy: "none".to_owned(),
+            metadata: serde_json::json!({}),
+        })
+        .await
     {
         let _ = log_activity(
             &state.activity,
@@ -2502,8 +2544,10 @@ pub async fn create_decision_ui(
             Some(serde_json::json!({ "title": decision.title })),
         )
         .await;
-        code = "created";
-    }
+        "created"
+    } else {
+        "error"
+    };
     Ok(see_other_flash(
         &format!("/companies/{company_id}/decisions"),
         code,
@@ -4121,9 +4165,10 @@ pub async fn claim_issue_ui(
     let Some(issue) = state.issues.get(&issue_id).await.ok().flatten() else {
         return Ok(see_other("/"));
     };
+    let mut code = "invalid";
     if !form.agent_id.trim().is_empty() {
         let agent_id = form.agent_id.clone();
-        let _ = state
+        code = if state
             .issues
             .update(
                 &issue_id,
@@ -4137,7 +4182,13 @@ pub async fn claim_issue_ui(
                     execution_workspace_settings: None,
                 },
             )
-            .await;
+            .await
+            .is_ok()
+        {
+            "claimed"
+        } else {
+            "error"
+        };
         let _ = log_activity(
             &state.activity,
             &issue.company_id,
@@ -4148,7 +4199,7 @@ pub async fn claim_issue_ui(
         )
         .await;
     }
-    Ok(see_other(&format!("/issues/{issue_id}")))
+    Ok(see_other_flash(&format!("/issues/{issue_id}"), code))
 }
 
 /// `GET /static/board_chat.js` — streaming chat behavior for the board chat
@@ -4739,4 +4790,32 @@ pub async fn ui_feedback_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiEr
         .body(body)
         .map_err(|error| ApiError::internal(error.to_string()))?;
     Ok(response)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::flash_uri;
+
+    #[test]
+    fn flash_uri_appends_new_query_without_existing_query() {
+        assert_eq!(
+            flash_uri("/issues/issue-1", "created"),
+            "/issues/issue-1?flash=created"
+        );
+    }
+
+    #[test]
+    fn flash_uri_uses_ampersand_and_preserves_existing_query() {
+        assert_eq!(
+            flash_uri("/companies/company-1/settings?lang=en", "saved"),
+            "/companies/company-1/settings?lang=en&flash=saved"
+        );
+        assert_eq!(
+            flash_uri(
+                "/companies/company-1/export-import?result=ok&lang=en",
+                "saved"
+            ),
+            "/companies/company-1/export-import?result=ok&lang=en&flash=saved"
+        );
+    }
 }

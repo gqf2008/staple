@@ -36,9 +36,9 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
     let (flash_kind, flash_key) = match flash.as_deref() {
         Some("created") => ("success", "flash.created"),
         Some("saved") => ("success", "flash.saved"),
-        Some("updated") | Some("moved") => ("success", "flash.updated"),
+        Some("updated") => ("success", "flash.updated"),
         Some("triggered") => ("success", "flash.triggered"),
-        Some("comment-added") => ("success", "flash.commentAdded"),
+        Some("comment-added") => ("success", "flash.comment_added"),
         Some("decided") => ("success", "flash.decided"),
         Some("claimed") => ("success", "flash.claimed"),
         Some("archived") => ("success", "flash.archived"),
