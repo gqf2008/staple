@@ -837,6 +837,9 @@ async fn core_business_flow_smoke() {
     for (path, needle) in [
         (format!("/companies/{company_id}/board"), "board-card"),
         (format!("/companies/{company_id}/inbox"), "row-card"),
+        (format!("/companies/{company_id}/agents"), "row-card"),
+        (format!("/companies/{company_id}/projects"), "row-card"),
+        (format!("/companies/{company_id}/costs"), "Budget"),
         (
             format!("/companies/{company_id}/approvals"),
             "status-dot-pending",
