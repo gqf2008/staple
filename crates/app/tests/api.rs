@@ -38,17 +38,21 @@ use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
 /// A stream that yields at most one value (for the echo adapter).
 struct OnceStream {
-    value: Option<String>,
+    values: Vec<staple_adapters::OutputEvent>,
 }
 
 impl futures_core::Stream for OnceStream {
-    type Item = String;
+    type Item = staple_adapters::OutputEvent;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
         _cx: &mut std::task::Context<'_>,
     ) -> std::task::Poll<Option<Self::Item>> {
-        std::task::Poll::Ready(self.value.take())
+        if self.values.is_empty() {
+            std::task::Poll::Ready(None)
+        } else {
+            std::task::Poll::Ready(Some(self.values.remove(0)))
+        }
     }
 }
 
@@ -90,7 +94,15 @@ impl AgentAdapter for EchoAdapter {
             .cloned()
             .ok_or_else(|| AdapterError::Observe("unknown run".to_owned()))?;
         Ok(Box::pin(OnceStream {
-            value: Some(output),
+            values: vec![
+                staple_adapters::OutputEvent::Delta {
+                    content: output.clone(),
+                },
+                staple_adapters::OutputEvent::Stderr {
+                    content: "diagnostic".to_owned(),
+                    name: None,
+                },
+            ],
         }))
     }
 
@@ -655,6 +667,14 @@ async fn board_chat_stream_validation_and_sse() {
     assert!(
         body.contains("data:"),
         "expected SSE data event, body: {body}"
+    );
+    assert!(
+        body.contains("\"type\":\"delta\""),
+        "expected delta SSE event, body: {body}"
+    );
+    assert!(
+        body.contains("\"type\":\"stderr\""),
+        "expected stderr SSE event, body: {body}"
     );
 }
 

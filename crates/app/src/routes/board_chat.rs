@@ -172,11 +172,11 @@ pub async fn board_chat_stream(
                 let _ = tx.send(Ok(Frame::data(Bytes::from(event)))).await;
                 return;
             };
-            let delta = format!(
-                "data: {{\"type\":\"delta\",\"content\":{}}}\n\n",
-                serde_json::to_string(&chunk).unwrap_or_else(|_| "\"\"".to_owned())
+            let event = format!(
+                "data: {}\n\n",
+                serde_json::to_string(&chunk).unwrap_or_else(|_| "{}".to_owned())
             );
-            if tx.send(Ok(Frame::data(Bytes::from(delta)))).await.is_err() {
+            if tx.send(Ok(Frame::data(Bytes::from(event)))).await.is_err() {
                 return;
             }
         }

@@ -80,6 +80,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     var userLabel = form.getAttribute("data-user-label") || "You";
     var assistantLabel = form.getAttribute("data-assistant-label") || "Assistant";
+    var lastStderrTool = null;
     var userBody = bubble("user", userLabel);
     userBody.textContent = message;
 
@@ -136,15 +137,24 @@ document.addEventListener("DOMContentLoaded", function () {
           try {
             var obj = JSON.parse(dataLine);
             if (obj.type === "delta") {
+              lastStderrTool = null;
               var text = document.createTextNode(obj.content || "");
               agentBody.insertBefore(text, cursorEl);
             } else if (obj.type === "tool") {
+              lastStderrTool = null;
               agentBody.insertBefore(toolAccordion(obj.name || "call", obj.content || "", false), cursorEl);
             } else if (obj.type === "stderr") {
-              agentBody.insertBefore(toolAccordion(obj.name || "stderr", obj.content || "", true), cursorEl);
+              var stderrBody = lastStderrTool ? lastStderrTool.querySelector(".chat-tool-body") : null;
+              if (stderrBody) {
+                stderrBody.appendChild(document.createTextNode(obj.content || ""));
+              } else {
+                lastStderrTool = toolAccordion(obj.name || "stderr", obj.content || "", true);
+                agentBody.insertBefore(lastStderrTool, cursorEl);
+              }
             } else if (obj.type === "done") {
               if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
             } else if (obj.type === "error" || obj.error !== undefined) {
+              lastStderrTool = null;
               var errText = " [error" + (obj.error ? ": " + obj.error : "") + "] ";
               agentBody.insertBefore(document.createTextNode(errText), cursorEl);
             }

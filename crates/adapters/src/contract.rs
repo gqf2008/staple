@@ -75,8 +75,26 @@ pub enum RunStatus {
     Cancelled,
 }
 
-/// Incremental output stream for a run (chunks as they are produced).
-pub type OutputStream = Pin<Box<dyn Stream<Item = String> + Send + 'static>>;
+/// One incremental output event from a run.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum OutputEvent {
+    /// Regular assistant text.
+    Delta {
+        /// Text content.
+        content: String,
+    },
+    /// Tool / diagnostic stderr output (rendered as a collapsible block).
+    Stderr {
+        /// Diagnostic text.
+        content: String,
+        /// Optional block label (frontend defaults to "stderr").
+        name: Option<String>,
+    },
+}
+
+/// Incremental output stream for a run (events as they are produced).
+pub type OutputStream = Pin<Box<dyn Stream<Item = OutputEvent> + Send + 'static>>;
 
 /// The adapter contract implemented by every built-in and plugin adapter.
 #[async_trait::async_trait]
@@ -134,5 +152,29 @@ impl RunStatus {
     #[must_use]
     pub fn is_terminal(&self) -> bool {
         !matches!(self, Self::Running)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::OutputEvent;
+
+    #[test]
+    fn output_event_wire_shape() {
+        assert_eq!(
+            serde_json::to_string(&OutputEvent::Delta {
+                content: "hi".to_owned()
+            })
+            .unwrap(),
+            r#"{"type":"delta","content":"hi"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&OutputEvent::Stderr {
+                content: "oops".to_owned(),
+                name: None
+            })
+            .unwrap(),
+            r#"{"type":"stderr","content":"oops","name":null}"#
+        );
     }
 }
