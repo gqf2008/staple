@@ -5,7 +5,7 @@
 >
 > **更新（2026-08-07）**：F1–F7 全部实施——F1/F2/F6（issue #236/PR #239）：色彩/圆角/动效/状态色/字体（InterVariable 自托管）对齐上游 index.css；F3/F4/F5（issue #237）：侧栏 240px + 折叠 rail 64px、内容区全宽 p-4/p-6、按钮/卡片规格对齐上游 shadcn（侧栏拖拽调整与 SPA 动画登记为架构近似）；F7（issue #238/PR #240）：上游 Storybook 运行时截图基线（32 张，浅色/深色）已入库。
 >
-> **更新（2026-08-07，issue #242）**：深色主题已对齐上游——`.dark` token 块逐值对齐上游 `ui/src/index.css` `.dark`；`/static/theme_init.js`（head 同步，防 FOUC）+ `/static/theme.js`（system/light/dark 三态切换 + localStorage 持久化 + 跟随系统）；Playwright 实测深色背景/前景/主色/卡片/侧栏与上游一致。
+> **更新（2026-08-07，issue #242）**：深色主题已实施——`.dark` 语义 token（背景/前景/卡片/主色/弱化/边框/破坏/侧栏等）与状态图标色（`--color-status-icon-*`，浅色+深色 AA 覆盖）逐值对齐上游 `ui/src/index.css` `.dark`，由可复现测试（`scripts/tests/theme_tokens.test.mjs`）锁定；`/static/theme_init.js`（head 同步，防 FOUC）+ `/static/theme.js`（system/light/dark 三态切换 + localStorage 持久化 + 跟随系统）。上游 Staple 无消费者的 token（`--bubble-agent`/`--chart-*`/`--chip-match-*`/`--paperclip-doc-annotation-*`）未移植，已登记。
 
 ### F1/F2/F6 实测记录（2026-08-07，issue #236）
 
