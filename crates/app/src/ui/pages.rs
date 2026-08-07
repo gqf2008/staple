@@ -637,6 +637,15 @@ pub async fn board(cx: &Cx) -> Result {
         .list(&company_id)
         .await
         .map_err(to_topcoat_error)?;
+    let agent_rows = state
+        .agents
+        .list(&company_id)
+        .await
+        .map_err(to_topcoat_error)?;
+    let agent_name: std::collections::HashMap<&str, &str> = agent_rows
+        .iter()
+        .map(|agent| (agent.id.as_str(), agent.name.as_str()))
+        .collect();
     let statuses = [
         "backlog",
         "todo",
@@ -644,6 +653,7 @@ pub async fn board(cx: &Cx) -> Result {
         "in_review",
         "blocked",
         "done",
+        "cancelled",
     ];
     let moveable = [
         "backlog",
@@ -659,20 +669,37 @@ pub async fn board(cx: &Cx) -> Result {
         <a class="muted-link" href=(with_lang(&format!("/companies/{company_id}"), lang))>"← "</a>
         <div class="board-grid">
             for status in statuses {
-                <section class="board-column" data-status=(status)>
-                    <h2 class="board-column-title">
-                        <span class=(status_badge_class(status))>(status)</span>
-                        " " <span class="mono">(
+                <section class=(format!("board-column board-column-{status}")) data-status=(status)>
+                    <div class="board-column-header">
+                        <span class=(format!("status-dot status-dot-{status}"))></span>
+                        <span>(status.replace('_', " "))</span>
+                        <span class="board-column-count">(
                             issues.iter().filter(|issue| issue.status == status).count()
                         )</span>
-                    </h2>
-                    <ul class="list">
+                    </div>
+                    <div class="board-column-body">
                         for issue in issues.iter().filter(|issue| issue.status == status) {
-                            <li class="board-card" data-issue-id=(issue.id.clone())>
-                                <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
-                                    <span class="mono">(issue.identifier.clone())</span>
-                                    " " <strong>(issue.title.clone())</strong>
-                                </a>
+                            <a class=(format!("board-card board-card-priority-{}", issue.priority))
+                               data-issue-id=(issue.id.clone())
+                               href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                <div class="board-card-id">(issue.identifier.clone())</div>
+                                <div class="board-card-title">(issue.title.clone())</div>
+                                <div class="board-card-footer">
+                                    <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>
+                                        (issue.priority.clone())
+                                    </span>
+                                    if let Some(assignee_id) = &issue.assignee_agent_id {
+                                        if let Some(name) = agent_name.get(assignee_id.as_str()) {
+                                            " "
+                                            <span class="board-assignee">
+                                                <span class="board-assignee-dot">(
+                                                    name.chars().next().unwrap_or('?').to_uppercase().to_string()
+                                                )</span>
+                                                <span>(name.to_string())</span>
+                                            </span>
+                                        }
+                                    }
+                                </div>
                                 <form class="inline-form" method="post"
                                       action=(with_lang(&format!("/issues/{}/status/ui", issue.id), lang))>
                                     <select name="status">
@@ -684,9 +711,9 @@ pub async fn board(cx: &Cx) -> Result {
                                     </select>
                                     <button type="submit">(t(lang, "board.move"))</button>
                                 </form>
-                            </li>
+                            </a>
                         }
-                    </ul>
+                    </div>
                 </section>
             }
         </div>
@@ -701,7 +728,6 @@ struct SearchQuery {
     q: Option<String>,
 }
 
-/// Search page: company/task search over issues.
 #[page("/companies/{company_id}/search")]
 pub async fn search(cx: &Cx) -> Result {
     let lang = lang_from_request(cx);
