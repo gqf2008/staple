@@ -1153,10 +1153,8 @@ async fn core_business_flow_smoke() {
         let (_, body) = response.into_parts();
         let bytes = to_bytes(body, usize::MAX).await.unwrap();
         assert!(
-            bytes
-                .windows(4)
-                .any(|window| window == font_needle.as_bytes()),
-            "font {font_path} body does not look like woff2"
+            bytes.starts_with(font_needle.as_bytes()),
+            "font {font_path} body does not start with woff2 magic"
         );
     }
 

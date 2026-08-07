@@ -60,6 +60,7 @@ pub const TOKENS_CSS: &str = r#"
   --color-status-in-progress: #2563eb;
   --color-status-in-review: #7c3aed;
   --color-status-cancelled: #a8aeb2;
+  --color-status-backlog: #a8aeb2;
   --color-status-idle: #a8aeb2;
   --color-status-error: #dc2626;
 
@@ -287,8 +288,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-top: 1px solid var(--color-border);
 }
 .board-column.drag-over { outline: 2px solid var(--color-primary); outline-offset: -2px; }
-.board-column-backlog .board-column-header { color: var(--color-status-cancelled); }
-.board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-cancelled) 8%, var(--color-background)); }
+.board-column-backlog .board-column-header { color: var(--color-status-backlog); }
+.board-column-backlog .board-column-body { background: color-mix(in srgb, var(--color-status-backlog) 8%, var(--color-background)); }
 .board-column-todo .board-column-header { color: var(--color-status-todo); }
 .board-column-todo .board-column-body { background: color-mix(in srgb, var(--color-status-todo) 10%, var(--color-background)); }
 .board-column-in_progress .board-column-header { color: var(--color-status-in-progress); }
@@ -309,7 +310,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   flex: none;
   background: var(--color-muted-foreground);
 }
-.status-dot-backlog, .status-dot-cancelled { background: var(--color-status-cancelled); }
+.status-dot-backlog, .status-dot-cancelled { background: var(--color-status-backlog); }
 .status-dot-todo { background: var(--color-status-todo); }
 .status-dot-in_progress { background: var(--color-status-in-progress); }
 .status-dot-in_review { background: var(--color-status-in-review); }
@@ -335,7 +336,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   border-radius: var(--radius-sm);
   padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
   cursor: grab;
-  transition: box-shadow 120ms ease;
+  transition: box-shadow var(--motion-duration-fast) var(--motion-ease-base);
 }
 .board-card:hover { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
 .board-card.dragging { opacity: 0.35; }
@@ -428,7 +429,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   font-weight: 600;
   text-transform: capitalize;
 }
-.issue-status-pill-backlog, .issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-cancelled) 16%, var(--color-background)); color: var(--color-status-cancelled); }
+.issue-status-pill-backlog, .issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-backlog) 16%, var(--color-background)); color: var(--color-status-backlog); }
 .issue-status-pill-todo { background: color-mix(in srgb, var(--color-status-todo) 16%, var(--color-background)); color: var(--color-status-todo); }
 .issue-status-pill-in_progress { background: color-mix(in srgb, var(--color-status-in-progress) 16%, var(--color-background)); color: var(--color-status-in-progress); }
 .issue-status-pill-in_review { background: color-mix(in srgb, var(--color-status-in-review) 16%, var(--color-background)); color: var(--color-status-in-review); }

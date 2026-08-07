@@ -5,6 +5,20 @@
 >
 > **更新（2026-08-07，issue #236/PR 待合）**：F1/F2/F6 已实施——色彩/圆角/动效/状态色/字体（InterVariable 自托管）已对齐上游 index.css；剩余 F3（侧栏）/F4（全宽内容区）/F5（按钮卡片规格）由「UI 对齐 B（issue #237）」承接，F7（上游运行时截图）由 issue #238 承接。
 
+### F1/F2/F6 实测记录（2026-08-07，issue #236）
+
+Playwright 1440×900 实测（token 对齐后 build）：
+
+| 项 | 实测值 |
+|---|---|
+| `body` font-family | `InterVariable, Inter, ui-sans-serif, …`（字体路由 200，`document.fonts.check('16px "InterVariable"') = true`） |
+| `body` background / color | `oklch(1 0 0)` / `oklch(0.145 0 0)` |
+| `--color-primary` | `oklch(0.205 0 0)`（主按钮背景，文字 `oklch(0.985 0 0)`） |
+| `--color-muted-foreground` / `--color-border` | `oklch(0.556 0 0)` / `oklch(0.922 0 0)` |
+| `--radius-md` / `--radius-lg` | `0.4rem` / `0.5rem` |
+| `--motion-duration-fast` | `160ms`（reduced-motion 下 `0ms`） |
+| 状态色 | `running=#2563eb`、`done=#22c55e`、`in-review=#7c3aed`、`cancelled/backlog=#a8aeb2`（release_smoke 断言 token 与字体路由） |
+
 ## 1. 方法与素材
 
 - **Staple 侧**：`cargo run`（端口 3100，演示公司 `Demo 智能体公司`），Playwright headless Chromium 1440×900 截图 19 个核心页面（`doc/plans/ui-baseline/staple/*.png`），并实测计算样式（布局/字号/颜色/圆角/间距）。
