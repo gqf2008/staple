@@ -16,22 +16,22 @@
 
 ## 2. Token 层对比（量化）
 
-令牌源比对：上游 `ui/src/index.css`（含 Tailwind `@theme` 展开共 543 个 `--token`），Staple `crates/app/src/ui/styles.rs`（50 个）。**仅 18 个同名 token，且 18 个值全部不同**；上游语义层约 80+ token，Staple 大量缺失（popover/secondary/accent/input/ring/sidebar-*/chart-*/status-*/agent 渐变/chip-match 等）。
+令牌源比对：上游 `ui/src/index.css` 含 **540 个唯一 token 名（595 处声明）**，Staple `crates/app/src/ui/styles.rs` 仅 **50 个**（统计命令见 §7）。**仅 18 个同名 token，其中 17 个解析值不同**（`--color-card` 同为纯白，`--font-mono` 主字体栈一致、回退链略短）；上游语义层约 80+ token，Staple 大量缺失（popover/secondary/accent/input/ring/sidebar-*/chart-*/status-*/agent 渐变/chip-match 等）。
 
 | token | 上游值（ui/src/index.css） | Staple 值（styles.rs） | 差异 |
 |---|---|---|---|
 | `--color-background` | `oklch(1 0 0)`（纯白 #fff） | `#fafaf9`（暖灰 stone-50） | 明显 |
 | `--color-foreground` | `oklch(0.145 0 0)`（近黑） | `#1c1917`（stone-900） | 轻微 |
-| `--color-card` | `oklch(1 0 0)` | `#ffffff` | 一致（值同 #fff）|
+| `--color-card` | `oklch(1 0 0)` = #fff | `#ffffff` | 解析值一致 |
 | `--color-primary` | `oklch(0.205 0 0)`（近黑主色） | `#2563eb`（蓝 blue-600） | **重大** |
 | `--color-muted` | `oklch(0.97 0 0)`（近白） | `#f5f5f4` | 轻微 |
 | `--color-muted-foreground` | `oklch(0.556 0 0)`（中性灰） | `#78716c`（暖灰） | 明显（色相偏暖）|
 | `--color-border` | `oklch(0.922 0 0)` | `#e7e5e4` | 轻微 |
 | `--color-destructive` | `oklch(0.577 0.245 27.325)` | `#dc2626` | 近似（红）|
 | `--font-sans` | `InterVariable, Inter, ui-sans-serif…` | `ui-sans-serif, system-ui…` | **重大（无 Inter）** |
-| `--font-mono` | `ui-monospace, SFMono…` | `ui-monospace, SFMono…` | 一致 |
+| `--font-mono` | `ui-monospace, SFMono-Regular, Menlo…` | `ui-monospace, SFMono-Regular, Menlo…` | 主栈一致，回退链略短 |
 | `--radius-sm/md/lg` | `0.3rem / 0.4rem / 0.5rem` | `0.3rem / 0.5rem / 0.75rem` | md/lg 不一致 |
-| `--motion-duration-fast/base/slow` | `100ms / 200ms / 300ms`（派生） | `120ms / 200ms / 1s` | fast/slow 不一致 |
+| `--motion-duration-fast/base/slow` | `160ms / 240ms / 360ms`（`prefers-reduced-motion` 下归零 0ms） | `120ms / 200ms / 1s` | fast/slow 不一致 |
 
 > 说明：上游 `--radius` 基值 0.5rem，sm=0.3、md=0.4、lg=0.5；Staple md=0.5、lg=0.75，圆角整体偏大。上游 motion 值见 index.css（待复核具体行），Staple `slow=1s` 用于 pulse 动画。
 
@@ -89,8 +89,8 @@
 STAPLE_DB_PATH=/tmp/staple-demo-1786027836.db PORT=3100 ./target/debug/staple-app
 # 截图（本机 Playwright headless 1440×900，脚本见提交说明）
 # token 对比
-grep -E '^\s*--[a-z0-9-]+:' /Volumes/Workspace/GitHub/paperclip/ui/src/index.css
-grep -E '^\s*--[a-z0-9-]+:' crates/app/src/ui/styles.rs
+grep -oE '^\s*--[A-Za-z0-9-]+:' /Volumes/Workspace/GitHub/paperclip/ui/src/index.css | sort -u | wc -l   # 540 唯一
+grep -cE '^\s*--[a-z0-9-]+:' crates/app/src/ui/styles.rs   # 50
 ```
 
 - 交付物：`doc/plans/ui-baseline/`（staple/ 19 页 + upstream/ 6 张对照 + contact-sheet.html）。
