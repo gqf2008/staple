@@ -37,18 +37,18 @@ struct ManagedProcess {
     output: Mutex<String>,
     /// Incremental stdout sender (for stream subscribers); taken by the
     /// child task so the channel closes when the run finishes.
-    tx: Mutex<Option<mpsc::UnboundedSender<String>>>,
+    tx: Mutex<Option<mpsc::UnboundedSender<crate::contract::OutputEvent>>>,
     /// The single subscriber receiver (consumed by the first `stream` call).
-    rx: Mutex<Option<mpsc::UnboundedReceiver<String>>>,
+    rx: Mutex<Option<mpsc::UnboundedReceiver<crate::contract::OutputEvent>>>,
 }
 
 /// A stream over a run's mpsc receiver.
 struct ReceiverStream {
-    rx: mpsc::UnboundedReceiver<String>,
+    rx: mpsc::UnboundedReceiver<crate::contract::OutputEvent>,
 }
 
 impl Stream for ReceiverStream {
-    type Item = String;
+    type Item = crate::contract::OutputEvent;
 
     fn poll_next(mut self: Pin<&mut Self>, cx: &mut Context<'_>) -> Poll<Option<Self::Item>> {
         // The channel closes when the run task drops the sender, ending the
@@ -107,7 +107,7 @@ impl AgentAdapter for CliAdapter {
     async fn invoke(&self, input: InvocationInput) -> Result<RunHandle, AdapterError> {
         let run_id = Uuid::new_v4().to_string();
         let started_at = iso_now();
-        let (tx, rx) = mpsc::unbounded_channel::<String>();
+        let (tx, rx) = mpsc::unbounded_channel::<crate::contract::OutputEvent>();
         let state = Arc::new(ManagedProcess {
             marker: (),
             status: Mutex::new(RunStatus::Running),
@@ -278,7 +278,7 @@ async fn run_child(
             let text = String::from_utf8_lossy(&chunk[..read]).to_string();
             output_buf.push_str(&text);
             if let Some(sender) = &sender {
-                let _ = sender.send(text);
+                let _ = sender.send(crate::contract::OutputEvent::Delta(text));
             }
         }
     }
@@ -287,7 +287,13 @@ async fn run_child(
         loop {
             match stderr.read(&mut chunk).await {
                 Ok(0) => break,
-                Ok(n) => error_buf.push_str(&String::from_utf8_lossy(&chunk[..n])),
+                Ok(n) => {
+                    let text = String::from_utf8_lossy(&chunk[..n]).to_string();
+                    error_buf.push_str(&text);
+                    if let Some(sender) = &sender {
+                        let _ = sender.send(crate::contract::OutputEvent::Stderr(text));
+                    }
+                }
                 Err(_) => break,
             }
         }
@@ -384,7 +390,8 @@ mod tests {
         loop {
             let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
             match chunk {
-                Some(chunk) => collected.push_str(&chunk),
+                Some(crate::contract::OutputEvent::Delta(text)) => collected.push_str(&text),
+                Some(crate::contract::OutputEvent::Stderr(_)) => {}
                 None => break,
             }
         }
@@ -482,5 +489,37 @@ mod tests {
         let result = adapter.probe().await.unwrap();
         assert!(!result.available);
         assert!(result.detail.contains("not found"), "{}", result.detail);
+    }
+    #[tokio::test]
+    async fn stream_yields_stderr_events() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: "echo 'oops' >&2; echo 'out'".to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut deltas = String::new();
+        let mut stderr_seen = false;
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(crate::contract::OutputEvent::Delta(text)) => deltas.push_str(&text),
+                Some(crate::contract::OutputEvent::Stderr(text)) => {
+                    if text.contains("oops") {
+                        stderr_seen = true;
+                    }
+                }
+                None => break,
+            }
+        }
+        assert!(
+            stderr_seen,
+            "expected a Stderr event with the diagnostic text"
+        );
+        assert!(deltas.contains("out"), "got deltas: {deltas:?}");
     }
 }

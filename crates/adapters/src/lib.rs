@@ -12,7 +12,8 @@ pub mod registry;
 
 pub use cli::{CliAdapter, CliAdapterConfig};
 pub use contract::{
-    AdapterError, AgentAdapter, InvocationInput, OutputStream, ProbeResult, RunHandle, RunStatus,
+    AdapterError, AgentAdapter, InvocationInput, OutputEvent, OutputStream, ProbeResult, RunHandle,
+    RunStatus,
 };
 pub use http::{HttpAdapter, HttpAdapterConfig};
 pub use plugins::{

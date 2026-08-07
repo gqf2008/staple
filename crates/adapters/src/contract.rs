@@ -75,8 +75,18 @@ pub enum RunStatus {
     Cancelled,
 }
 
-/// Incremental output stream for a run (chunks as they are produced).
-pub type OutputStream = Pin<Box<dyn Stream<Item = String> + Send + 'static>>;
+/// One incremental output event from a run.
+#[derive(Debug, Clone, PartialEq, Eq, serde::Serialize)]
+#[serde(tag = "type", rename_all = "camelCase")]
+pub enum OutputEvent {
+    /// Regular assistant text.
+    Delta(String),
+    /// Tool / diagnostic stderr output (rendered as a collapsible block).
+    Stderr(String),
+}
+
+/// Incremental output stream for a run (events as they are produced).
+pub type OutputStream = Pin<Box<dyn Stream<Item = OutputEvent> + Send + 'static>>;
 
 /// The adapter contract implemented by every built-in and plugin adapter.
 #[async_trait::async_trait]

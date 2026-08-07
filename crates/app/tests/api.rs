@@ -38,11 +38,11 @@ use topcoat::router::{Body, Router, StatusCode, to_bytes};
 
 /// A stream that yields at most one value (for the echo adapter).
 struct OnceStream {
-    value: Option<String>,
+    value: Option<staple_adapters::OutputEvent>,
 }
 
 impl futures_core::Stream for OnceStream {
-    type Item = String;
+    type Item = staple_adapters::OutputEvent;
 
     fn poll_next(
         mut self: std::pin::Pin<&mut Self>,
@@ -90,7 +90,7 @@ impl AgentAdapter for EchoAdapter {
             .cloned()
             .ok_or_else(|| AdapterError::Observe("unknown run".to_owned()))?;
         Ok(Box::pin(OnceStream {
-            value: Some(output),
+            value: Some(staple_adapters::OutputEvent::Delta(output)),
         }))
     }
 
