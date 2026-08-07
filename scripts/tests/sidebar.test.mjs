@@ -25,6 +25,7 @@ class ClassList {
     return should;
   }
   contains(name) { return this._el._classes.has(name); }
+  remove(name) { this._el._classes.delete(name); }
 }
 
 class Element {
@@ -67,6 +68,7 @@ function makeEnv({
   storageThrows = false,
   narrow = false,
   withResizer = true,
+  mobileOpenStored = false,
 } = {}) {
   const sidebar = new Element("nav");
   sidebar.setAttribute("class", "app-sidebar");
@@ -80,13 +82,26 @@ function makeEnv({
   toggle.dataset.expand = "展开侧栏";
   const resizer = new Element("div");
   resizer.setAttribute("id", "sidebar-resizer");
+  const scrim = new Element("div");
+  scrim.setAttribute("id", "sidebar-scrim");
+  scrim.hidden = true;
   const windowObj = new Element("window");
-  windowObj.matchMedia = () => ({ matches: narrow });
+  const mediaState = { matches: narrow };
+  const mediaListeners = [];
+  windowObj.matchMedia = () => ({
+    get matches() { return mediaState.matches; },
+    addEventListener(type, cb) { mediaListeners.push(cb); },
+    addListener(cb) { mediaListeners.push(cb); },
+  });
+  function setNarrow(value) {
+    mediaState.matches = value;
+    for (const cb of mediaListeners) cb();
+  }
   const document = {
     _listeners: new Map(),
     _byId: new Map(withResizer
-      ? [["sidebar-toggle", toggle], ["sidebar-resizer", resizer]]
-      : [["sidebar-toggle", toggle]]),
+      ? [["sidebar-toggle", toggle], ["sidebar-resizer", resizer], ["sidebar-scrim", scrim]]
+      : [["sidebar-toggle", toggle], ["sidebar-scrim", scrim]]),
     addEventListener(type, cb) {
       if (!this._listeners.has(type)) this._listeners.set(type, []);
       this._listeners.get(type).push(cb);
@@ -105,6 +120,7 @@ function makeEnv({
       if (storageThrows) throw new Error("denied");
       if (key === "staple.sidebar.collapsed") return collapsedStored ? "1" : "0";
       if (key === "staple.sidebar.width") return widthStored;
+      if (key === "staple.sidebar.mobileOpen") return mobileOpenStored ? "1" : "0";
       return null;
     },
     setItem() {
@@ -114,7 +130,7 @@ function makeEnv({
   const context = vm.createContext({ document, window: windowObj, localStorage: storage });
   vm.runInContext(SIDEBAR_SOURCE, context);
   document.dispatchEvent({ type: "DOMContentLoaded" });
-  return { sidebar, toggle, resizer, windowObj, storage };
+  return { sidebar, toggle, resizer, scrim, windowObj, storage, document, setNarrow };
 }
 
 test("sidebar starts expanded with default 240px width", () => {
@@ -240,6 +256,98 @@ test("no-op without resizer element", () => {
   assert.equal(env.sidebar.style.width, "320px"); // collapse still works
   env.toggle.dispatchEvent({ type: "click" });
   assert.equal(env.sidebar.classList.contains("collapsed"), true);
+});
+
+test("narrow mode: drawer starts closed with hamburger and hidden scrim", () => {
+  const { sidebar, toggle, scrim } = makeEnv({ narrow: true });
+  assert.equal(sidebar.classList.contains("drawer-open"), false);
+  assert.equal(scrim.hidden, true);
+  assert.equal(toggle.textContent, "☰");
+  assert.equal(toggle.getAttribute("aria-expanded"), "false");
+});
+
+test("narrow mode: toggle opens drawer with scrim, closes on scrim click", () => {
+  const { sidebar, toggle, scrim } = makeEnv({ narrow: true });
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("drawer-open"), true);
+  assert.equal(scrim.hidden, false);
+  assert.equal(toggle.textContent, "×");
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+  scrim.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("drawer-open"), false);
+  assert.equal(scrim.hidden, true);
+});
+
+test("narrow mode: Escape closes the drawer", () => {
+  const { sidebar, toggle, document } = makeEnv({ narrow: true });
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("drawer-open"), true);
+  document.dispatchEvent({ type: "keydown", key: "Escape" });
+  assert.equal(sidebar.classList.contains("drawer-open"), false);
+});
+
+test("narrow mode: stored open state is restored", () => {
+  const env = makeEnv({ narrow: true, mobileOpenStored: true });
+  assert.equal(env.sidebar.classList.contains("drawer-open"), true);
+  assert.equal(env.scrim.hidden, false);
+});
+
+test("narrow mode: desktop collapse/width persistence is ignored", () => {
+  const { sidebar } = makeEnv({ narrow: true, collapsedStored: true, widthStored: "320" });
+  assert.equal(sidebar.classList.contains("collapsed"), false);
+  assert.equal(sidebar.style.width, "240px");
+});
+
+test("cross-breakpoint: desktop -> narrow clears toggle inline width", () => {
+  const { toggle, setNarrow } = makeEnv({ narrow: false });
+  assert.notEqual(toggle.style.width, "");
+  setNarrow(true);
+  assert.equal(toggle.style.width, "");
+});
+
+test("cross-breakpoint: desktop -> narrow -> toggle opens drawer", () => {
+  const { sidebar, toggle, setNarrow } = makeEnv({ narrow: false });
+  setNarrow(true);
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("drawer-open"), true);
+  assert.equal(sidebar.classList.contains("collapsed"), false);
+});
+
+test("cross-breakpoint: narrow -> desktop -> toggle collapses", () => {
+  const { sidebar, toggle, setNarrow } = makeEnv({ narrow: true });
+  setNarrow(false);
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("collapsed"), true);
+  assert.equal(sidebar.classList.contains("drawer-open"), false);
+});
+
+test("cross-breakpoint: narrow open -> desktop resets drawer state (Esc no-op)", () => {
+  const { sidebar, toggle, setNarrow, document } = makeEnv({ narrow: true });
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.classList.contains("drawer-open"), true);
+  setNarrow(false);
+  assert.equal(sidebar.classList.contains("drawer-open"), false);
+  assert.equal(sidebar.inert, false);
+  document.dispatchEvent({ type: "keydown", key: "Escape" });
+  assert.equal(toggle.getAttribute("aria-expanded"), "true");
+});
+
+test("desktop toggle width follows collapsed rail", () => {
+  const { sidebar, toggle } = makeEnv({ collapsedStored: true });
+  assert.equal(sidebar.classList.contains("collapsed"), true);
+  assert.equal(toggle.style.width, "calc(var(--sidebar-rail) - var(--space-6))");
+});
+
+test("desktop toggle width follows expanded width", () => {
+  const { toggle } = makeEnv({ widthStored: "320" });
+  assert.equal(toggle.style.width, "calc(320px - var(--space-6))");
+});
+
+test("drawer closed sets sidebar inert, open removes it", () => {
+  const { sidebar, toggle } = makeEnv({ narrow: true });
+  assert.equal(sidebar.inert, true);
+  toggle.dispatchEvent({ type: "click" });
+  assert.equal(sidebar.inert, false);
 });
 
 test("no-op without sidebar markup", () => {
