@@ -304,10 +304,21 @@ body {
     margin: 0;
     padding: var(--space-3) 0;
     transform: translateX(-100%);
-    transition: transform var(--motion-duration-base) var(--motion-ease-base);
+    visibility: hidden;
+    transition:
+      transform var(--motion-duration-base) var(--motion-ease-base),
+      visibility 0s linear var(--motion-duration-base);
     z-index: 1500;
   }
-  .app-sidebar.drawer-open { transform: translateX(0); box-shadow: var(--shadow-lg); }
+  .app-sidebar.drawer-open {
+    transform: translateX(0);
+    visibility: visible;
+    padding-top: calc(var(--space-10) + var(--space-2));
+    transition:
+      transform var(--motion-duration-base) var(--motion-ease-base),
+      visibility 0s;
+    box-shadow: var(--shadow-lg);
+  }
   .app-sidebar a, .app-sidebar h3 { visibility: visible; }
   .app-sidebar .sidebar-resizer { display: none; }
   #sidebar-toggle {

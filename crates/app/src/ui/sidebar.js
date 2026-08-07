@@ -5,9 +5,10 @@
 // drag/keyboard resize (208-420px), persisted.
 //
 // Narrow (<=48rem): off-canvas drawer approximation — the sidebar is fixed
-// and translated off-screen, a hamburger toggle opens it with a scrim,
-// Esc/scrim click closes it, and the open state is persisted. Resize
-// crossing the breakpoint re-syncs mode.
+// and translated off-screen (visibility hidden + inert while closed), a
+// hamburger toggle opens it with a scrim, Esc/scrim click closes it, and the
+// open state is persisted. One click handler dispatches by the current
+// breakpoint and handlers stay bound across breakpoint changes.
 (function () {
   function clampSidebarWidth(width) {
     var DEFAULT_WIDTH = 240;
@@ -44,16 +45,24 @@
 
     var width = clampSidebarWidth(Number(readStored(WIDTH_KEY, 240)));
     var drawerOpen = false;
+    var sidebarWidth = "240px";
+    try {
+      var cssWidth = getComputedStyle(sidebar).getPropertyValue("--sidebar-width").trim();
+      if (cssWidth) sidebarWidth = cssWidth;
+    } catch (_) {}
 
     function syncAria() {
       if (resizer) resizer.setAttribute("aria-valuenow", String(width));
     }
 
     function applyWidth() {
-      if (sidebar.classList.contains("collapsed")) {
+      var collapsed = sidebar.classList.contains("collapsed");
+      if (collapsed) {
         sidebar.style.width = "";
+        toggle.style.width = "calc(var(--sidebar-rail) - var(--space-6))";
       } else {
         sidebar.style.width = width + "px";
+        toggle.style.width = "calc(" + width + "px - var(--space-6))";
       }
       syncAria();
     }
@@ -70,84 +79,97 @@
       drawerOpen = open;
       sidebar.classList.toggle("drawer-open", open);
       if (scrim) scrim.hidden = !open;
+      sidebar.inert = !open;
       toggle.setAttribute("aria-expanded", open ? "true" : "false");
       toggle.setAttribute("aria-label", open ? toggle.dataset.collapse || "Collapse sidebar" : toggle.dataset.expand || "Expand sidebar");
       toggle.textContent = open ? "×" : "☰";
-      writeStored(MOBILE_KEY, open ? "1" : "0");
+      if (readStored(MOBILE_KEY, "0") !== (open ? "1" : "0")) {
+        writeStored(MOBILE_KEY, open ? "1" : "0");
+      }
     }
 
     function syncMode() {
       if (isNarrow()) {
         // Drawer mode: desktop collapse/width persistence is ignored.
         sidebar.classList.remove("collapsed");
-        sidebar.style.width = "240px";
+        sidebar.style.width = sidebarWidth;
         setDrawer(readStored(MOBILE_KEY, "0") === "1");
       } else {
+        drawerOpen = false;
+        sidebar.inert = false;
         if (scrim) scrim.hidden = true;
         sidebar.classList.remove("drawer-open");
         apply(readStored(COLLAPSE_KEY, "0") === "1");
       }
     }
 
-    if (isNarrow()) {
-      syncMode();
-      toggle.addEventListener("click", function () { setDrawer(!drawerOpen); });
-      if (scrim) scrim.addEventListener("click", function () { setDrawer(false); });
-      document.addEventListener("keydown", function (event) {
-        if (event.key === "Escape" && drawerOpen) setDrawer(false);
-      });
-    } else {
-      syncMode();
-      toggle.addEventListener("click", function () {
+    // One toggle handler dispatches by the current breakpoint, so it keeps
+    // working after a resize crosses the 48rem boundary.
+    toggle.addEventListener("click", function () {
+      if (isNarrow()) {
+        setDrawer(!drawerOpen);
+      } else {
         var collapsed = !sidebar.classList.contains("collapsed");
         apply(collapsed);
         writeStored(COLLAPSE_KEY, collapsed ? "1" : "0");
-      });
-
-      if (resizer) {
-        var dragging = null;
-        function endDrag(cancel) {
-          if (!dragging) return;
-          if (cancel) {
-            width = dragging.startWidth;
-            applyWidth();
-          } else {
-            writeStored(WIDTH_KEY, String(width));
-          }
-          sidebar.style.transition = "";
-          dragging = null;
-        }
-        resizer.addEventListener("pointerdown", function (event) {
-          if (sidebar.classList.contains("collapsed") || isNarrow()) return;
-          dragging = { startX: event.clientX, startWidth: width };
-          sidebar.style.transition = "none";
-          if (resizer.setPointerCapture) resizer.setPointerCapture(event.pointerId);
-          event.preventDefault();
-        });
-        window.addEventListener("pointermove", function (event) {
-          if (!dragging) return;
-          width = clampSidebarWidth(dragging.startWidth + (event.clientX - dragging.startX));
-          sidebar.style.width = width + "px";
-          syncAria();
-        });
-        window.addEventListener("pointerup", function () { endDrag(false); });
-        window.addEventListener("pointercancel", function () { endDrag(true); });
-
-        resizer.addEventListener("keydown", function (event) {
-          if (sidebar.classList.contains("collapsed") || isNarrow()) return;
-          var next = width;
-          if (event.key === "ArrowRight") next = width + 16;
-          else if (event.key === "ArrowLeft") next = width - 16;
-          else if (event.key === "Home") next = 208;
-          else if (event.key === "End") next = 420;
-          else return;
-          event.preventDefault();
-          width = clampSidebarWidth(next);
-          applyWidth();
-          writeStored(WIDTH_KEY, String(width));
-        });
       }
+    });
+
+    if (scrim) {
+      scrim.addEventListener("click", function () { setDrawer(false); });
     }
+    document.addEventListener("keydown", function (event) {
+      if (event.key === "Escape" && drawerOpen) setDrawer(false);
+    });
+
+    // Drag/keyboard resize: bound once, guarded by isNarrow() so it only
+    // acts on desktop (drawer mode never drags).
+    if (resizer) {
+      var dragging = null;
+      function endDrag(cancel) {
+        if (!dragging) return;
+        if (cancel) {
+          width = dragging.startWidth;
+          applyWidth();
+        } else {
+          writeStored(WIDTH_KEY, String(width));
+        }
+        sidebar.style.transition = "";
+        dragging = null;
+      }
+      resizer.addEventListener("pointerdown", function (event) {
+        if (sidebar.classList.contains("collapsed") || isNarrow()) return;
+        dragging = { startX: event.clientX, startWidth: width };
+        sidebar.style.transition = "none";
+        if (resizer.setPointerCapture) resizer.setPointerCapture(event.pointerId);
+        event.preventDefault();
+      });
+      window.addEventListener("pointermove", function (event) {
+        if (!dragging) return;
+        width = clampSidebarWidth(dragging.startWidth + (event.clientX - dragging.startX));
+        sidebar.style.width = width + "px";
+        toggle.style.width = "calc(" + width + "px - var(--space-6))";
+        syncAria();
+      });
+      window.addEventListener("pointerup", function () { endDrag(false); });
+      window.addEventListener("pointercancel", function () { endDrag(true); });
+
+      resizer.addEventListener("keydown", function (event) {
+        if (sidebar.classList.contains("collapsed") || isNarrow()) return;
+        var next = width;
+        if (event.key === "ArrowRight") next = width + 16;
+        else if (event.key === "ArrowLeft") next = width - 16;
+        else if (event.key === "Home") next = 208;
+        else if (event.key === "End") next = 420;
+        else return;
+        event.preventDefault();
+        width = clampSidebarWidth(next);
+        applyWidth();
+        writeStored(WIDTH_KEY, String(width));
+      });
+    }
+
+    syncMode();
 
     // Live re-sync when crossing the 48rem breakpoint.
     var mq = typeof window.matchMedia === "function" ? window.matchMedia("(max-width: 48rem)") : null;
