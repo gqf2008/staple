@@ -1315,21 +1315,26 @@ pub async fn inbox(cx: &Cx) -> Result {
         if issues.is_empty() {
             <p class="empty">(t(lang, "inbox.empty"))</p>
         } else {
-            <ul class="list">
-                for issue in issues {
-                    <li>
-                        <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
-                            <span class="mono">(issue.identifier.clone())</span>
-                            " " <strong>(issue.title.clone())</strong>
+            for issue in issues {
+                <div class="row-card">
+                    <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                    <div class="row-card-main">
+                        <a class="row-card-title" href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                            (issue.identifier.clone()) " " (issue.title.clone())
                         </a>
-                        " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
+                        <div class="row-card-meta">
+                            <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>(issue.priority.clone())</span>
+                            " · " (issue.status.replace('_', " "))
+                        </div>
+                    </div>
+                    <div class="row-card-actions">
                         <form class="inline-form" method="post"
                               action=(with_lang(&format!("/issues/{}/archive/ui", issue.id), lang))>
                             <button type="submit" class="secondary">(t(lang, "inbox.archive"))</button>
                         </form>
-                    </li>
-                }
-            </ul>
+                    </div>
+                </div>
+            }
         }
     }
 }
@@ -4068,17 +4073,20 @@ pub async fn my_issues(cx: &Cx) -> Result {
             if issue_rows.is_empty() {
                 <p class="empty">(t(lang, "myIssues.none"))</p>
             } else {
-                <ul class="list">
-                    for issue in issue_rows {
-                        <li>
-                            <a href=(with_lang(&format!("/issues/{}", issue.id), lang))>
-                                <span class="mono">(issue.identifier.clone())</span>
-                                " " <strong>(issue.title.clone())</strong>
+                for issue in issue_rows {
+                    <div class="row-card">
+                        <span class=(format!("status-dot status-dot-{}", issue.status))></span>
+                        <div class="row-card-main">
+                            <a class="row-card-title" href=(with_lang(&format!("/issues/{}", issue.id), lang))>
+                                (issue.identifier.clone()) " " (issue.title.clone())
                             </a>
-                            " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
-                        </li>
-                    }
-                </ul>
+                            <div class="row-card-meta">
+                                <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>(issue.priority.clone())</span>
+                                " · " (issue.status.replace('_', " "))
+                            </div>
+                        </div>
+                    </div>
+                }
             }
         </section>
     }
@@ -4113,27 +4121,26 @@ pub async fn what_needs_me(cx: &Cx) -> Result {
             if feed.items.is_empty() {
                 <p class="empty">(t(lang, "whatNeedsMe.none"))</p>
             } else {
-                <ul class="list">
+                <div>
                     for item in feed.items {
-                        <li>
-                            if let Some(href) = &item.subject.href {
-                                <a href=(with_lang(href, lang))>
-                                    <strong>(item.subject.title.clone())</strong>
-                                </a>
-                            } else {
-                                <strong>(item.subject.title.clone())</strong>
-                            }
-                            if let Some(identifier) = &item.subject.identifier {
-                                " " <span class="mono">(identifier.clone())</span>
-                            }
-                            " " <span class=(status_badge_class(&item.subject.status))>(item.subject.status.clone())</span>
-                            " " <span class="meta-row">(item.why_now.clone())</span>
-                            <form method="post" action=(with_lang(&format!("/companies/{company_id}/attention/{}/dismiss/ui", item.dedup_key), lang))>
-                                <button type="submit" class="secondary">(t(lang, "whatNeedsMe.dismiss"))</button>
-                            </form>
-                        </li>
+                        <div class="row-card">
+                            <span class=(format!("status-dot status-dot-{}", item.subject.status.clone()))></span>
+                            <div class="row-card-main">
+                                if let Some(href) = &item.subject.href {
+                                    <a class="row-card-title" href=(with_lang(href, lang))>(item.subject.title.clone())</a>
+                                } else {
+                                    <span class="row-card-title">(item.subject.title.clone())</span>
+                                }
+                                <div class="row-card-meta">(item.why_now.clone())</div>
+                            </div>
+                            <div class="row-card-actions">
+                                <form method="post" action=(with_lang(&format!("/companies/{company_id}/attention/{}/dismiss/ui", item.dedup_key), lang))>
+                                    <button type="submit" class="secondary">(t(lang, "whatNeedsMe.dismiss"))</button>
+                                </form>
+                            </div>
+                        </div>
                     }
-                </ul>
+                </div>
             }
         </section>
     }

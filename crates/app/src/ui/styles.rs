@@ -409,4 +409,24 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   color: var(--color-muted-foreground);
 }
 .interaction-card .interaction-payload { font-size: var(--font-size-sm); white-space: pre-wrap; margin: var(--space-1) 0 0; }
+
+/* List rows (B4: inbox / my-issues / what-needs-me card rows). */
+.row-card {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+  margin-bottom: var(--space-2);
+}
+.row-card-main { flex: 1 1 auto; min-width: 0; }
+.row-card-title { font-weight: 600; font-size: var(--font-size-sm); }
+.row-card-meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-muted-foreground);
+  margin-top: var(--space-1);
+}
+.row-card-actions { display: flex; gap: var(--space-2); flex: none; align-items: center; }
 "#;
