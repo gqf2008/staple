@@ -138,7 +138,7 @@ pub async fn board_chat_stream(
             if started.elapsed().as_secs() > 120 {
                 let _ = tx
                     .send(Ok(Frame::data(Bytes::from(
-                        "event: error\ndata: {\"error\":\"timeout\"}\n\n",
+                        "event: error\ndata: {\"type\":\"error\",\"error\":\"timeout\"}\n\n",
                     ))))
                     .await;
                 return;
@@ -153,19 +153,20 @@ pub async fn board_chat_stream(
                     Ok(RunStatus::Succeeded { .. }) => "data: {\"type\":\"done\"}\n\n".to_owned(),
                     Ok(RunStatus::Failed { error }) => format!(
                         "event: error\ndata: {}\n\n",
-                        serde_json::to_string(&error).unwrap_or_else(|_| "\"error\"".to_owned())
+                        serde_json::to_string(&serde_json::json!({ "type": "error", "error": error }))
+                            .unwrap_or_else(|_| "{\"type\":\"error\",\"error\":\"unknown\"}".to_owned())
                     ),
                     Ok(RunStatus::Cancelled) => {
-                        "event: error\ndata: {\"error\":\"cancelled\"}\n\n".to_owned()
+                        "event: error\ndata: {\"type\":\"error\",\"error\":\"cancelled\"}\n\n".to_owned()
                     }
                     Ok(RunStatus::Running) => {
-                        "event: error\ndata: {\"error\":\"stream ended while running\"}\n\n"
+                        "event: error\ndata: {\"type\":\"error\",\"error\":\"stream ended while running\"}\n\n"
                             .to_owned()
                     }
                     Err(error) => format!(
                         "event: error\ndata: {}\n\n",
-                        serde_json::to_string(&error.to_string())
-                            .unwrap_or_else(|_| "\"error\"".to_owned())
+                        serde_json::to_string(&serde_json::json!({ "type": "error", "error": error.to_string() }))
+                            .unwrap_or_else(|_| "{\"type\":\"error\",\"error\":\"unknown\"}".to_owned())
                     ),
                 };
                 let _ = tx.send(Ok(Frame::data(Bytes::from(event)))).await;

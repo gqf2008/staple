@@ -27,7 +27,10 @@ document.addEventListener("DOMContentLoaded", function () {
   function thinking() {
     var el = document.createElement("div");
     el.className = "chat-thinking";
-    el.innerHTML = "<span></span><span></span><span></span>";
+    for (var i = 0; i < 3; i++) {
+      var dot = document.createElement("span");
+      el.appendChild(dot);
+    }
     log.appendChild(el);
     log.scrollTop = log.scrollHeight;
     return el;
@@ -44,12 +47,22 @@ document.addEventListener("DOMContentLoaded", function () {
     tool.className = "chat-tool" + (isStderr ? " chat-tool-stderr" : "");
     var header = document.createElement("div");
     header.className = "chat-tool-header";
+    header.setAttribute("role", "button");
+    header.setAttribute("tabindex", "0");
     header.textContent = (isStderr ? "stderr · " : "tool · ") + title;
     var body = document.createElement("div");
     body.className = "chat-tool-body";
     body.textContent = bodyText;
-    header.addEventListener("click", function () {
+    function toggle() {
       tool.classList.toggle("open");
+      header.setAttribute("aria-expanded", tool.classList.contains("open") ? "true" : "false");
+    }
+    header.addEventListener("click", toggle);
+    header.addEventListener("keydown", function (event) {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        toggle();
+      }
     });
     tool.appendChild(header);
     tool.appendChild(body);
@@ -65,16 +78,20 @@ document.addEventListener("DOMContentLoaded", function () {
     if (!message) return;
     var companyId = companyInput && companyInput.value ? companyInput.value : "";
 
-    var userBody = bubble("user", "You");
+    var userLabel = form.getAttribute("data-user-label") || "You";
+    var assistantLabel = form.getAttribute("data-assistant-label") || "Assistant";
+    var userBody = bubble("user", userLabel);
     userBody.textContent = message;
 
-    var agentBody = bubble("agent", "Assistant");
+    var agentBody = bubble("agent", assistantLabel);
     var thinkingEl = thinking();
     var cursorEl = cursor();
     agentBody.appendChild(cursorEl);
     if (input) input.value = "";
 
     try {
+      var controller = typeof AbortController !== "undefined" ? new AbortController() : null;
+      var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 120000) : null;
       var response = await fetch("/api/board/chat/stream", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -82,17 +99,20 @@ document.addEventListener("DOMContentLoaded", function () {
           companyId: companyId,
           message: message,
           adapterType: adapterInput ? adapterInput.value : undefined
-        })
+        }),
+        signal: controller ? controller.signal : undefined
       });
       if (!response.ok) {
+        if (timeoutId) clearTimeout(timeoutId);
         if (thinkingEl.parentNode) thinkingEl.parentNode.removeChild(thinkingEl);
-        agentBody.removeChild(cursorEl);
+        if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
         agentBody.textContent = "Error " + response.status;
         return;
       }
       if (!response.body) {
+        if (timeoutId) clearTimeout(timeoutId);
         if (thinkingEl.parentNode) thinkingEl.parentNode.removeChild(thinkingEl);
-        agentBody.removeChild(cursorEl);
+        if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
         agentBody.textContent = "Streaming not supported";
         return;
       }
@@ -119,13 +139,14 @@ document.addEventListener("DOMContentLoaded", function () {
               var text = document.createTextNode(obj.content || "");
               agentBody.insertBefore(text, cursorEl);
             } else if (obj.type === "tool") {
-              agentBody.appendChild(toolAccordion(obj.name || "call", obj.content || "", false));
+              agentBody.insertBefore(toolAccordion(obj.name || "call", obj.content || "", false), cursorEl);
             } else if (obj.type === "stderr") {
-              agentBody.appendChild(toolAccordion(obj.name || "stderr", obj.content || "", true));
+              agentBody.insertBefore(toolAccordion(obj.name || "stderr", obj.content || "", true), cursorEl);
             } else if (obj.type === "done") {
-              // keep the cursor hidden after completion
-            } else if (obj.type === "error") {
-              agentBody.insertBefore(document.createTextNode(" [error] "), cursorEl);
+              if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
+            } else if (obj.type === "error" || obj.error !== undefined) {
+              var errText = " [error" + (obj.error ? ": " + obj.error : "") + "] ";
+              agentBody.insertBefore(document.createTextNode(errText), cursorEl);
             }
           } catch (e) {
             agentBody.insertBefore(document.createTextNode(dataLine), cursorEl);
@@ -134,11 +155,15 @@ document.addEventListener("DOMContentLoaded", function () {
         }
       }
     } catch (err) {
+      if (timeoutId) clearTimeout(timeoutId);
       if (thinkingEl.parentNode) thinkingEl.parentNode.removeChild(thinkingEl);
-      agentBody.removeChild(cursorEl);
-      agentBody.textContent = "Error: " + err;
+      if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
+      agentBody.textContent = (controller && err && err.name === "AbortError")
+        ? "[timeout]"
+        : "Error: " + err;
       return;
     }
+    if (timeoutId) clearTimeout(timeoutId);
     if (thinkingEl.parentNode) thinkingEl.parentNode.removeChild(thinkingEl);
     if (cursorEl.parentNode) cursorEl.parentNode.removeChild(cursorEl);
     log.scrollTop = log.scrollHeight;

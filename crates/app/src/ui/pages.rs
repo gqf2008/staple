@@ -4435,7 +4435,9 @@ pub async fn board_chat(cx: &Cx) -> Result {
         <h1 class="page-title">(t(lang, "boardChat.title"))</h1>
         <p class="meta-row">(t(lang, "boardChat.hint"))</p>
         <div id="chat-log" class="chat-log"></div>
-        <form class="stack-form" id="chat-form">
+        <form class="stack-form" id="chat-form"
+              data-user-label=(t(lang, "boardChat.you"))
+              data-assistant-label=(t(lang, "boardChat.assistant"))>
             <label>(t(lang, "boardChat.adapterLabel"))</label>
             <select name="adapter_type">
                 for name in adapter_names {
