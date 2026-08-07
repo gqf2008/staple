@@ -84,6 +84,9 @@ pub enum OutputEvent {
         /// Text content.
         content: String,
     },
+    /// Structured tool invocation parsed from the transcript (rendered as a
+    /// collapsible tool accordion in Board Chat).
+    ToolCall(crate::tool_call::ToolCall),
     /// Tool / diagnostic stderr output (rendered as a collapsible block).
     Stderr {
         /// Diagnostic text.
@@ -167,6 +170,15 @@ mod tests {
             })
             .unwrap(),
             r#"{"type":"delta","content":"hi"}"#
+        );
+        assert_eq!(
+            serde_json::to_string(&OutputEvent::ToolCall(crate::tool_call::ToolCall {
+                id: "t1".to_owned(),
+                name: "shell".to_owned(),
+                arguments: serde_json::json!({ "command": "ls" }),
+            }))
+            .unwrap(),
+            r#"{"type":"toolCall","id":"t1","name":"shell","arguments":{"command":"ls"}}"#
         );
         assert_eq!(
             serde_json::to_string(&OutputEvent::Stderr {

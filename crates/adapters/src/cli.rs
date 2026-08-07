@@ -245,8 +245,11 @@ fn find_program(program: &str) -> Option<std::path::PathBuf> {
 
 /// Reads a child's stdout/stderr incrementally, broadcasts stdout chunks,
 /// and stores the final status when the child exits.
-/// Reads a pipe fully, streaming each chunk as an [`OutputEvent`], and
-/// returns the accumulated text (for observe / error messages).
+///
+/// Stdout is buffered into lines before streaming: recognized transcript
+/// tool-call lines become structured [`OutputEvent::ToolCall`] events, and
+/// every other line stays a [`OutputEvent::Delta`]. Stderr keeps streaming
+/// chunk-by-chunk as [`OutputEvent::Stderr`].
 async fn read_pipe<R: tokio::io::AsyncRead + Unpin>(
     mut reader: R,
     sender: &Option<mpsc::UnboundedSender<crate::contract::OutputEvent>>,
@@ -254,6 +257,8 @@ async fn read_pipe<R: tokio::io::AsyncRead + Unpin>(
 ) -> String {
     let mut buf = String::new();
     let mut chunk = [0u8; 4096];
+    let mut line_buf = String::new();
+    let mut tool_seq: u64 = 0;
     loop {
         let n = match reader.read(&mut chunk).await {
             Ok(0) => break,
@@ -263,18 +268,61 @@ async fn read_pipe<R: tokio::io::AsyncRead + Unpin>(
         let text = String::from_utf8_lossy(&chunk[..n]).to_string();
         buf.push_str(&text);
         if let Some(sender) = sender {
-            let event = if is_stderr {
-                crate::contract::OutputEvent::Stderr {
+            if is_stderr {
+                let _ = sender.send(crate::contract::OutputEvent::Stderr {
                     content: text,
                     name: None,
-                }
+                });
             } else {
-                crate::contract::OutputEvent::Delta { content: text }
-            };
-            let _ = sender.send(event);
+                line_buf.push_str(&text);
+                emit_stdout_lines(&mut line_buf, sender, &mut tool_seq);
+            }
         }
     }
+    // Flush a final line that has no trailing newline.
+    if !is_stderr
+        && let Some(sender) = sender
+        && !line_buf.is_empty()
+    {
+        emit_stdout_line(&line_buf, sender, &mut tool_seq);
+    }
     buf
+}
+
+/// Sends every complete stdout line (split at `\n`) in the buffer, keeping
+/// any trailing partial line for the next chunk.
+fn emit_stdout_lines(
+    line_buf: &mut String,
+    sender: &mpsc::UnboundedSender<crate::contract::OutputEvent>,
+    tool_seq: &mut u64,
+) {
+    while let Some(newline) = line_buf.find('\n') {
+        let line: String = line_buf.drain(..=newline).collect();
+        emit_stdout_line(&line, sender, tool_seq);
+    }
+}
+
+/// Sends one stdout line: a structured [`OutputEvent::ToolCall`] when the
+/// transcript parser recognizes it, otherwise a plain [`OutputEvent::Delta`].
+fn emit_stdout_line(
+    line: &str,
+    sender: &mpsc::UnboundedSender<crate::contract::OutputEvent>,
+    tool_seq: &mut u64,
+) {
+    match crate::tool_call::parse_tool_call_line(line) {
+        Some(mut call) => {
+            if call.id.is_empty() {
+                *tool_seq += 1;
+                call.id = format!("tool-{tool_seq}");
+            }
+            let _ = sender.send(crate::contract::OutputEvent::ToolCall(call));
+        }
+        None => {
+            let _ = sender.send(crate::contract::OutputEvent::Delta {
+                content: line.to_owned(),
+            });
+        }
+    }
 }
 
 async fn run_child(
@@ -382,6 +430,105 @@ mod tests {
     }
 
     #[tokio::test]
+    async fn stream_parses_json_tool_call_lines() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: r#"printf '%s\n' '{"type":"item.started","item":{"type":"command_execution","id":"c1","command":"ls"}}' 'plain line' '{"type":"item.completed","item":{"type":"command_execution","id":"c1","status":"completed"}}'"#
+                    .to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut tool_calls = Vec::new();
+        let mut plain = String::new();
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(crate::contract::OutputEvent::ToolCall(call)) => tool_calls.push(call),
+                Some(crate::contract::OutputEvent::Delta { content }) => plain.push_str(&content),
+                Some(crate::contract::OutputEvent::Stderr { .. }) => {}
+                None => break,
+            }
+        }
+        assert_eq!(tool_calls.len(), 1, "got {tool_calls:?}");
+        assert_eq!(tool_calls[0].id, "c1");
+        assert_eq!(tool_calls[0].name, "command_execution");
+        assert_eq!(tool_calls[0].arguments["command"], "ls");
+        assert!(plain.contains("plain line"), "got: {plain:?}");
+    }
+
+    #[tokio::test]
+    async fn stream_parses_prefix_marker_tool_calls() {
+        let adapter = adapter();
+        let handle = adapter
+            .invoke(InvocationInput {
+                task: "printf '%s\n' '  ┊ 💻 $         curl -s https://example.com  0.2s'"
+                    .to_owned(),
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut tool_calls = Vec::new();
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(crate::contract::OutputEvent::ToolCall(call)) => tool_calls.push(call),
+                Some(crate::contract::OutputEvent::Delta { .. })
+                | Some(crate::contract::OutputEvent::Stderr { .. }) => {}
+                None => break,
+            }
+        }
+        assert_eq!(tool_calls.len(), 1, "got {tool_calls:?}");
+        assert_eq!(tool_calls[0].name, "shell");
+        assert_eq!(
+            tool_calls[0].arguments["detail"],
+            "curl -s https://example.com"
+        );
+        // The CLI adapter synthesizes an id when the format has none.
+        assert_eq!(tool_calls[0].id, "tool-1");
+    }
+
+    #[tokio::test]
+    async fn stream_parses_tool_call_split_across_chunks() {
+        let adapter = adapter();
+        let command = "x".repeat(5000);
+        let task = format!(
+            r#"printf '%s
+' '{{"type":"item.started","item":{{"type":"command_execution","id":"big","command":"{command}"}}}}'"#
+        );
+        let handle = adapter
+            .invoke(InvocationInput {
+                task,
+                cwd: None,
+                env: vec![],
+            })
+            .await
+            .unwrap();
+        let mut stream = Box::pin(adapter.stream(&handle.run_id).await.unwrap());
+        let mut tool_calls = Vec::new();
+        loop {
+            let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
+            match chunk {
+                Some(crate::contract::OutputEvent::ToolCall(call)) => tool_calls.push(call),
+                Some(crate::contract::OutputEvent::Delta { .. })
+                | Some(crate::contract::OutputEvent::Stderr { .. }) => {}
+                None => break,
+            }
+        }
+        assert_eq!(tool_calls.len(), 1, "got {tool_calls:?}");
+        assert_eq!(tool_calls[0].id, "big");
+        assert_eq!(
+            tool_calls[0].arguments["command"].as_str().unwrap().len(),
+            5000
+        );
+    }
+
+    #[tokio::test]
     async fn stream_yields_incremental_output() {
         let adapter = adapter();
         let handle = adapter
@@ -400,6 +547,7 @@ mod tests {
                 Some(crate::contract::OutputEvent::Delta { content: text }) => {
                     collected.push_str(&text)
                 }
+                Some(crate::contract::OutputEvent::ToolCall(_)) => {}
                 Some(crate::contract::OutputEvent::Stderr { .. }) => {}
                 None => break,
             }
@@ -519,6 +667,7 @@ mod tests {
                 Some(crate::contract::OutputEvent::Delta { content: text }) => {
                     deltas.push_str(&text)
                 }
+                Some(crate::contract::OutputEvent::ToolCall(_)) => {}
                 Some(crate::contract::OutputEvent::Stderr { content: text, .. }) => {
                     if text.contains("oops") {
                         stderr_seen = true;
@@ -549,6 +698,7 @@ mod tests {
         loop {
             let chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)).await;
             match chunk {
+                Some(crate::contract::OutputEvent::ToolCall(_)) => {}
                 Some(crate::contract::OutputEvent::Stderr { .. }) => stderr_before_end = true,
                 Some(crate::contract::OutputEvent::Delta { .. }) => {}
                 None => break,
@@ -582,6 +732,7 @@ mod tests {
                 chunk = std::future::poll_fn(|cx| stream.as_mut().poll_next(cx)) => {
                     match chunk {
                         Some(crate::contract::OutputEvent::Delta { content }) => deltas.push_str(&content),
+                        Some(crate::contract::OutputEvent::ToolCall(_)) => {}
                         Some(crate::contract::OutputEvent::Stderr { content, .. }) => {
                             if content.contains("done") { stderr_seen = true; }
                         }

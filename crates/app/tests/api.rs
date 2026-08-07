@@ -95,6 +95,11 @@ impl AgentAdapter for EchoAdapter {
             .ok_or_else(|| AdapterError::Observe("unknown run".to_owned()))?;
         Ok(Box::pin(OnceStream {
             values: vec![
+                staple_adapters::OutputEvent::ToolCall(staple_adapters::ToolCall {
+                    id: "t1".to_owned(),
+                    name: "shell".to_owned(),
+                    arguments: serde_json::json!({ "command": "list issues" }),
+                }),
                 staple_adapters::OutputEvent::Delta {
                     content: output.clone(),
                 },
@@ -667,6 +672,14 @@ async fn board_chat_stream_validation_and_sse() {
     assert!(
         body.contains("data:"),
         "expected SSE data event, body: {body}"
+    );
+    assert!(
+        body.contains("\"type\":\"toolCall\""),
+        "expected toolCall SSE event, body: {body}"
+    );
+    assert!(
+        body.contains("\"name\":\"shell\""),
+        "expected tool name in SSE event, body: {body}"
     );
     assert!(
         body.contains("\"type\":\"delta\""),
