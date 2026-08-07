@@ -82,6 +82,22 @@ fn strip_ansi(text: &str) -> String {
                     }
                 }
             }
+            // Charset/control intermediate sequences (ESC ( B, ESC ) 0, ESC # 8,
+            // ESC % G, ...): consume the intermediate and the final byte.
+            Some(&('(' | ')' | '#' | '%' | '*' | '+')) => {
+                let _ = chars.next();
+                if let Some(&final_byte) = chars.peek()
+                    && final_byte.is_ascii()
+                    && !final_byte.is_ascii_control()
+                {
+                    let _ = chars.next();
+                }
+            }
+            // Two-character control sequences (ESC 7 / ESC 8 / ...): consume
+            // the single following printable ASCII byte.
+            Some(&next) if next.is_ascii() && !next.is_ascii_control() => {
+                let _ = chars.next();
+            }
             // Bare ESC: drop it.
             _ => {}
         }
@@ -382,13 +398,20 @@ fn parse_gemini_message_tool_call(obj: &Map<String, Value>) -> Option<ToolCall> 
 
 /// Hermes CLI quiet-mode line: `[done]? ┊ {emoji} {verb} {detail} {duration}`.
 fn parse_hermes_line(trimmed: &str) -> Option<ToolCall> {
-    // Assistant lines start with a speech bubble; `[tool]` lines are start
-    // markers without a usable payload. Neither is a structured call.
-    if trimmed.contains('💬') || trimmed.starts_with("[tool]") {
+    // The `┊` prefix must be at the start of the line, after an optional
+    // `[done]` marker. A `┊` appearing in the middle of ordinary prose is
+    // not a Hermes tool line.
+    let after_marker = trimmed
+        .strip_prefix("[done]")
+        .map(str::trim)
+        .unwrap_or(trimmed);
+    let rest = after_marker.strip_prefix('┊')?;
+    let mut rest = rest.trim();
+    // Assistant lines start with a speech bubble; `[tool]`/`[hermes]` lines
+    // are start/system markers without a usable payload.
+    if rest.starts_with('💬') || rest.starts_with("[tool]") || rest.starts_with("[hermes]") {
         return None;
     }
-    let idx = trimmed.find('┊')?;
-    let mut rest = trimmed[idx + '┊'.len_utf8()..].trim();
     // Strip leading kaomoji faces, emoji, and whitespace before the verb.
     loop {
         let before = rest.len();
@@ -410,15 +433,39 @@ fn parse_hermes_line(trimmed: &str) -> Option<ToolCall> {
     let mut parts = verb_and_detail.splitn(2, char::is_whitespace);
     let verb = parts.next().unwrap_or("tool");
     let detail = parts.next().unwrap_or("").trim();
-    let name = match verb {
-        "$" | "exec" | "terminal" => "shell",
-        other => other,
-    };
+    // Only known Hermes tool verbs produce a structured call; ordinary prose
+    // such as "it took 2.5s" after a `┊` must not be misclassified.
+    let name = hermes_tool_name(verb)?;
     Some(ToolCall {
         id: String::new(),
         name: name.to_owned(),
         arguments: serde_json::json!({ "detail": detail, "duration": duration }),
     })
+}
+
+/// Maps a Hermes quiet-mode verb to a tool name (upstream `nameMap`).
+fn hermes_tool_name(verb: &str) -> Option<&'static str> {
+    match verb {
+        "$" | "exec" | "terminal" => Some("shell"),
+        "search" | "grep" | "find" | "web_search" => Some("search"),
+        "fetch" | "web_extract" => Some("fetch"),
+        "crawl" => Some("crawl"),
+        "navigate" | "snapshot" | "click" | "type" | "scroll" | "back" | "press" | "close"
+        | "images" | "vision" | "browser_navigate" | "browser_click" | "browser_type"
+        | "browser_snapshot" | "browser_vision" => Some("browser"),
+        "read" => Some("read"),
+        "write" => Some("write"),
+        "patch" => Some("patch"),
+        "plan" => Some("plan"),
+        "recall" | "session_search" => Some("recall"),
+        "proc" => Some("process"),
+        "delegate" => Some("delegate"),
+        "todo" => Some("todo"),
+        "memory" => Some("memory"),
+        "clarify" => Some("clarify"),
+        "code" | "execute" => Some("execute"),
+        _ => None,
+    }
 }
 
 /// Extracts a trailing `0.2s` (optionally followed by `(0.5s)`) duration.
@@ -636,6 +683,20 @@ mod tests {
     #[test]
     fn hermes_assistant_line_is_not_a_tool_call() {
         none("  ┊ 💬 Hello! How can I help?");
+        none("  ┊ 💬 took 2.5s to answer");
+    }
+
+    #[test]
+    fn hermes_prefix_in_middle_of_prose_is_not_a_tool_call() {
+        none("I waited ┊ then it took 2.5s");
+        none("progress: ┊ 0.5s remaining");
+    }
+
+    #[test]
+    fn hermes_unknown_verb_is_not_a_tool_call() {
+        none("  ┊ thinking about the plan  2.5s");
+        none("  ┊ done with the task  1.0s");
+        none("  [done] ┊ noting the result  0.3s");
     }
 
     #[test]
@@ -660,6 +721,31 @@ mod tests {
         none(r#"{"type":"thought","data":"let me think"}"#);
         none(r#"{"type":"acpx.text_delta","text":"hi"}"#);
         none(r#"{"type":"grok.text","data":"hi"}"#);
+    }
+
+    #[test]
+    fn openclaw_gateway_events_degrade_to_none() {
+        none(r#"[openclaw-gateway:event] run=r1 stream=assistant data={"delta":"hi"}"#);
+        none(r#"[openclaw-gateway:event] run=r1 stream=lifecycle data={"phase":"completed"}"#);
+    }
+
+    #[test]
+    fn ansi_wrapped_non_json_text_degrades_to_none() {
+        none("\u{1b}[31mplain assistant text\u{1b}[0m");
+        none(
+            "\u{1b}[36m[openclaw-gateway:event] run=r1 stream=assistant data={\"delta\":\"hi\"}\u{1b}[0m",
+        );
+    }
+
+    #[test]
+    fn strips_common_escape_sequences_before_parsing() {
+        // ESC 7 / ESC 8 / ESC ( B are cursor/charset sequences, not CSI/OSC.
+        let c = call(
+            "\u{1b}7\u{1b}8\u{1b}(B{\"type\":\"acpx.tool_call\",\"name\":\"shell\",\"id\":\"a2\",\"input\":{\"command\":\"ls\"}}",
+        );
+        assert_eq!(c.id, "a2");
+        assert_eq!(c.name, "shell");
+        assert_eq!(c.arguments["command"], "ls");
     }
 
     #[test]

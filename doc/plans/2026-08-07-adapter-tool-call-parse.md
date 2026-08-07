@@ -39,17 +39,17 @@ CLI，因此解析层必须格式无关（按行自识别），而不是为每�
 
 | # | 来源 CLI | 样例 | 识别 |
 |---|---|---|---|
-| B1 | Hermes CLI quiet-mode（TTY/pipe） | `  ┊ 💻 $         curl -s https://example.com  0.2s`、`  [done] ┊ 🔍 search    pattern  0.1s (0.5s)` | 含 `┊`、非 `💬` 助手行、结尾带 `N.Ns` 时长；动词映射（`$`/`exec`/`terminal` → `shell`）；id 由调用方合成 |
+| B1 | Hermes CLI quiet-mode（TTY/pipe） | `  ┊ 💻 $         curl -s https://example.com  0.2s`、`  [done] ┊ 🔍 search    pattern  0.1s (0.5s)` | `┊` 必须位于行首（允许 `[done]` 前缀）；非 `💬` 助手行；结尾带 `N.Ns` 时长；**动词白名单**（`$`/`exec`/`terminal`/`bash`/`search`/`read`/`write`/`edit` 等已知 Hermes 工具动词，`thinking`/`done` 等普通动词不判工具）；id 由调用方合成 |
 
 ### C. 无法可靠解析——登记降级（不阻塞显示）⏳
 
 | # | 来源 CLI / 形态 | 说明 | 降级策略 |
 |---|---|---|---|
 | C1 | Grok local | 输出仅 `thought`/`text`/`error`/`end` JSON，无工具调用结构 | 全部按 Delta 显示，无工具折叠 |
-| C2 | OpenClaw gateway | `[openclaw-gateway:event] ... stream=assistant/error/lifecycle`，无工具调用结构 | 全部按 Delta/Stderr 显示，无工具折叠 |
+| C2 | OpenClaw gateway | `[openclaw-gateway:event] run=r1 stream=assistant data={"delta":"hi"}`，无工具调用结构 | 全部按 Delta/Stderr 显示，无工具折叠（回归样例：`tool_call.rs` 单测） |
 | C3 | XML 工具标签（`<tool_call>`/`<invoke>` 等） | 无统一 schema，参考镜像 adapter 未使用 | 按 Delta 显示；不尝试启发式解析，避免误判 |
 | C4 | 多行 pretty-printed JSON | 单事件跨多行，行级解析无法重组 | 各片段按 Delta 显示 |
-| C5 | ANSI 包装的非 JSON 行 | 剥离 ANSI 后仍无法识别 | 按 Delta 显示（保留原始文本） |
+| C5 | ANSI 包装的非 JSON 行 | `\x1b[31mplain assistant text\x1b[0m` 等，剥离 ANSI 后仍无法识别 | 按 Delta 显示（保留原始文本；回归样例：`tool_call.rs` 单测） |
 | C6 | HTTP adapter | 当前无 stream（`stream()` 返回不支持），transcript 仅在 `observe` 终态里 | 暂不解析；待 HTTP 流式落地后再接入 |
 
 > 降级总原则：解析层只做“识别成功 → 结构化事件；其余 → 原样 Delta”，任何情况下
@@ -74,8 +74,9 @@ arguments 的 pretty-print JSON。
 ## 接入点
 
 - `crates/adapters/src/tool_call.rs` — `parse_tool_call_line(line) -> Option<ToolCall>`
-- `crates/adapters/src/cli.rs` — stdout 按行缓冲后解析：识别为 tool-call 则发
-  `OutputEvent::ToolCall`，否则原样 `OutputEvent::Delta`；stderr 行为不变
+- `crates/adapters/src/cli.rs` — stdout/stderr 均做**字节级行缓冲**：先按 `\n`/`\r`
+  切完整行（EOF 残留一并处理），再对每条完整行做一次 `from_utf8_lossy`；stdout 识别为
+  tool-call 则发 `OutputEvent::ToolCall`，否则原样 `OutputEvent::Delta`
 - `crates/adapters/src/contract.rs` — `OutputEvent::ToolCall(ToolCall)`
 - `crates/app/src/ui/board_chat.js` — 工具折叠渲染 arguments
 - `crates/app/tests/api.rs` — SSE 线上形态断言
@@ -83,8 +84,11 @@ arguments 的 pretty-print JSON。
 ## 测试
 
 - `crates/adapters/src/tool_call.rs` 单元测试：A1–A10、B1、C1–C5 样例 transcript
+  （含 Hermes 误判回归：`┊` 出现在行中、未知动词、助手行；OpenClaw 事件、ANSI 非
+  JSON 行；ESC 7/8/( 等控制序列）
 - `crates/adapters/src/cli.rs` 集成测试：sh 输出 JSON 行 / Hermes 前缀行 / 跨 chunk
-  长行（5000 字符 JSON 行）均能产出结构化事件；普通行仍为 Delta
+  长行（5000 字符 JSON 行）均能产出结构化事件；普通行仍为 Delta；**跨 chunk UTF-8
+  边界**（多字节字符精确落在 4096 字节读边界，无 U+FFFD）；`\r` 进度行切分
 - `crates/app/tests/api.rs`：Board Chat SSE 含 `"type":"toolCall"` 与工具名
 
 验证命令：
@@ -95,6 +99,19 @@ cargo clippy --workspace --all-targets -- -D warnings
 cargo test -p staple-adapters
 cargo test -p staple-app --test api board_chat_stream_validation_and_sse
 ```
+
+## 实现取舍与登记（审查修复，2026-08-07）
+
+- **I-1 跨 chunk UTF-8**：`cli.rs` 不再逐 chunk `from_utf8_lossy`；改为字节级
+  `Vec<u8>` 行缓冲，先按 `\n`/`\r` 切完整行，再对每行解码一次。stderr 同法处理。
+- **M-1 `\r` 进度输出**：`\r` 视为行终止符（JSON 字符串内不允许裸 `\r`），
+  `\r\n` 按一个终止符处理；CR 进度条不会被粘到下一条 JSON 行。
+- **M-2 扫描效率**：`emit_lines` 用游标（`consumed`）一次扫描当前 chunk，整块结束时
+  一次性 `drain`，避免逐行移位。
+- **M-4 ANSI 剥离**：`strip_ansi` 支持 CSI、OSC，以及双字符 ESC 序列（`ESC 7`/`ESC 8`/
+  `ESC (` 等）；其余高位控制序列登记为不剥离。
+- **M-5 行缓冲内存**：单行超长输出会缓冲到整行结束才发事件（内存上限 = 最长单行）；
+  登记接受，常规 CLI transcript 单行 < 64 KB。
 
 ## 后续（明确不在本 issue）
 
