@@ -107,6 +107,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <nav class="app-sidebar" data-collapsible="true">
                         <button type="button" class="sidebar-toggle secondary" id="sidebar-toggle" aria-controls="app-sidebar" aria-label=(t(lang, "nav.collapse")) aria-expanded="true" data-collapse=(t(lang, "nav.collapse")) data-expand=(t(lang, "nav.expand"))>("\u{ab}")</button>
                         <button type="button" class="sidebar-toggle secondary" id="theme-toggle" aria-label=(t(lang, "nav.themeSystem")) data-theme-system=(t(lang, "nav.themeSystem")) data-theme-light=(t(lang, "nav.themeLight")) data-theme-dark=(t(lang, "nav.themeDark"))>("\u{25d0}")</button>
+                        <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label=(t(lang, "nav.resize"))></div>
                         <a class="brand" href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
                         <h3>(t(lang, "nav.companies"))</h3>
                         <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>

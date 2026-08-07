@@ -1001,6 +1001,8 @@ async fn core_business_flow_smoke() {
         ),
         (format!("/companies/{company_id}/board"), "sidebar-toggle"),
         (format!("/companies/{company_id}/board"), "data-collapsible"),
+        (format!("/companies/{company_id}/board"), "sidebar-resizer"),
+        (format!("/companies/{company_id}/board"), "max-width: 48rem"),
         ("/static/sidebar.js".to_string(), "collapsed"),
         ("/static/theme.js".to_string(), "staple.theme"),
         (
