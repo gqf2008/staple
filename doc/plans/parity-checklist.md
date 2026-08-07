@@ -166,7 +166,7 @@ loading 态对全部 `form[method="post"]` 全局生效（board chat / zip 等 f
 |---|---|---|
 | 路由切换过渡动画（React Router AnimatePresence / page transition） | ⏳ 明确不迁移 | SSR 每次导航为整页加载，无客户端路由切换，不做过渡动画 |
 | 乐观更新 / 即时 DOM 更新（提交后本地先渲染再同步） | ⏳ 明确不迁移 | 表单 POST + 303 重定向后服务端重渲染；以提交中 loading + 重定向后 toast 近似 |
-| 客户端 toast 出入场动画（framer-motion spring） | ⏳ 近似 | 服务端渲染 `#flash-toast`（token 样式）+ `toast-in` 入场（motion token）+ JS 淡出自动隐藏（4s）；命令面板 `palette-in` 入场；`prefers-reduced-motion` 关闭（issue #249） |
+| toast/overlay 出入场动画（framer-motion spring） | ⏳ 近似 | 服务端渲染 `#flash-toast`（token 样式）+ `toast-in` 入场（motion token）+ JS 淡出自动隐藏（4s）；命令面板 `palette-in` 入场；`prefers-reduced-motion` 关闭（issue #249） |
 | 表单提交 loading（React state + Button loading prop） | ⏳ 近似 | `ui_feedback.js` 提交时禁用提交按钮并追加 `.spinner` token；fetch 类表单（board chat / zip）以 `data-no-feedback` 排除 |
 | React Suspense skeleton / 列表懒加载骨架屏 | ⏳ 明确不迁移 | SSR 首屏直接输出数据，无客户端数据拉取，不做 skeleton |
 | 客户端即时表单校验（onChange 校验） | ⏳ 近似 | 沿用 HTML5 `required`/`min` 原生校验；提交失败经 `?flash=invalid/error` 服务端反馈 |
