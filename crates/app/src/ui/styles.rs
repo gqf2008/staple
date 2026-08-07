@@ -310,7 +310,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   flex: none;
   background: var(--color-muted-foreground);
 }
-.status-dot-backlog, .status-dot-cancelled { background: var(--color-status-backlog); }
+.status-dot-backlog { background: var(--color-status-backlog); }
+.status-dot-cancelled { background: var(--color-status-cancelled); }
 .status-dot-todo { background: var(--color-status-todo); }
 .status-dot-in_progress { background: var(--color-status-in-progress); }
 .status-dot-in_review { background: var(--color-status-in-review); }
@@ -429,7 +430,8 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   font-weight: 600;
   text-transform: capitalize;
 }
-.issue-status-pill-backlog, .issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-backlog) 16%, var(--color-background)); color: var(--color-status-backlog); }
+.issue-status-pill-backlog { background: color-mix(in srgb, var(--color-status-backlog) 16%, var(--color-background)); color: var(--color-status-backlog); }
+.issue-status-pill-cancelled { background: color-mix(in srgb, var(--color-status-cancelled) 16%, var(--color-background)); color: var(--color-status-cancelled); }
 .issue-status-pill-todo { background: color-mix(in srgb, var(--color-status-todo) 16%, var(--color-background)); color: var(--color-status-todo); }
 .issue-status-pill-in_progress { background: color-mix(in srgb, var(--color-status-in-progress) 16%, var(--color-background)); color: var(--color-status-in-progress); }
 .issue-status-pill-in_review { background: color-mix(in srgb, var(--color-status-in-review) 16%, var(--color-background)); color: var(--color-status-in-review); }
