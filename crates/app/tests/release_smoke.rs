@@ -947,6 +947,10 @@ async fn core_business_flow_smoke() {
             "command-palette-input",
         ),
         (
+            format!("/companies/{company_id}/board"),
+            "command-item[hidden]",
+        ),
+        (
             format!("/companies/{company_id}/export-import"),
             "Export / Import",
         ),

@@ -39,6 +39,9 @@ pub const TOKENS_CSS: &str = r#"
   --space-8: 2rem;
   --space-12: 3rem;
 
+  /* shadows */
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.18);
+
   /* radius */
   --radius-sm: 0.3rem;
   --radius-md: 0.5rem;
@@ -575,7 +578,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-md);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
 }
 .command-palette-input {
@@ -606,6 +609,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   cursor: pointer;
 }
 .command-item:hover, .command-item.active { background: var(--color-muted); }
+.command-item[hidden] { display: none; }
 .command-item .command-id { font-family: var(--font-mono); font-size: var(--font-size-xs); color: var(--color-muted-foreground); }
 .command-empty { padding: var(--space-3); font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 "#;

@@ -36,7 +36,7 @@ for the full roadmap.
   with hard-stop auto-pause, approval gates, activity audit
 - Agent adapters: local CLI sessions, HTTP/webhook runtimes, external plugins
 - Governance: secrets, audit log, decision desk, skills policy
-- Board UI rendered by Topcoat (server-first, no WASM)
+- Board UI rendered by Topcoat (server-first, no WASM). Press Cmd/Ctrl+K anywhere for the global command palette (pages + task search).
 
 ## Layout
 
