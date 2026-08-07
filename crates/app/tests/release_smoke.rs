@@ -1003,6 +1003,11 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/board"), "data-collapsible"),
         (format!("/companies/{company_id}/board"), "sidebar-resizer"),
         (format!("/companies/{company_id}/board"), "aria-valuenow"),
+        (format!("/companies/{company_id}/board"), "sidebar-scrim"),
+        (
+            format!("/companies/{company_id}/board"),
+            "transform: translateX(-100%)",
+        ),
         (format!("/companies/{company_id}/board"), "max-width: 48rem"),
         (
             format!("/companies/{company_id}/board"),
