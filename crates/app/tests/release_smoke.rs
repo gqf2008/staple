@@ -1013,6 +1013,30 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/board"),
             "form.inline-form { display: flex; flex-wrap: wrap;",
         ),
+        (
+            format!("/companies/{company_id}/board"),
+            "@keyframes toast-in",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "@keyframes palette-in",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "animation: toast-in var(--motion-duration-base)",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "animation: palette-in var(--motion-duration-fast)",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            ".toast { animation: none; transition: none; }",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            ".command-palette-panel { animation: none; }",
+        ),
         ("/static/sidebar.js".to_string(), "collapsed"),
         ("/static/theme.js".to_string(), "staple.theme"),
         (
