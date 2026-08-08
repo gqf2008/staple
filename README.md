@@ -74,7 +74,7 @@ by `rust-toolchain.toml` (stable, edition 2024).
 - `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
 - `make build` — release build
 - `make js-test` — run the UI JS behavior tests (Node built-in test runner, zero dependencies)
-- `make ui-pixel-compare` — run the pixel-level UI comparison (upstream Storybook 6006 vs Staple 3100 component element screenshots -> normalized diff report + screenshots under `target/ui-pixel-compare/`; requires both servers running + playwright/chromium)
+- `make ui-pixel-compare` — run the pixel-level UI comparison (upstream Storybook 6006 vs Staple 3100 component element screenshots -> normalized diff report + screenshots under `target/ui-pixel-compare/`; requires both servers running + playwright/chromium; set `E2E_COMPANY_ID`/demo data for the component selectors (defaults point at the demo DB), and note Cmd+K interaction is macOS)
 - `make ui-e2e` — run the UI/UX alignment end-to-end tests (Playwright computed-style assertions vs upstream-aligned specs; builds + boots the app on 3109 with a dedicated throwaway DB `UI_E2E_DB` (default `/tmp/staple-ui-e2e.db`, **never your real `STAPLE_DB_PATH`**), self-seeds a company/issue/pending approval via the API, saves screenshots + JSON report under `target/ui-e2e-*`; requires `npx playwright install chromium`, or set `PW_EXECUTABLE`)
 
 ### Data layer

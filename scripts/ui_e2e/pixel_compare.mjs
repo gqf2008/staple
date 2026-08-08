@@ -38,6 +38,7 @@ function decodePng(buf) {
     off += 12 + len;
   }
   if (bit !== 8 || ![0, 2, 6].includes(ctype)) throw new Error(`unsupported png bit=${bit} ctype=${ctype}`);
+  if (data[12] !== 0) throw new Error("interlaced png not supported (Playwright output is non-interlaced)");
   const channels = ctype === 6 ? 4 : ctype === 2 ? 3 : 1;
   const raw = inflateSync(Buffer.concat(idat));
   const stride = w * channels;
@@ -131,6 +132,8 @@ function bgColor(png) {
   return n ? `rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})` : "n/a";
 }
 
+// Ring MAE thresholds (0-255 scale): <10 ~ <4% -> ALIGN, <40 ~ <16% -> CLOSE,
+// otherwise DIFF. Ring band (outer 25%) emphasizes style over text content.
 const verdict = (m) => (m.ringMeanAbsDiff < 10 ? "ALIGN" : m.ringMeanAbsDiff < 40 ? "CLOSE" : "DIFF");
 
 const CID = process.env.E2E_COMPANY_ID || "48e56bc1-17bf-4195-bd2a-b59bd490e7aa"; // demo company (fallback)
@@ -153,7 +156,8 @@ for (const pair of pairs) {
     await up.goto(`${UP}/iframe.html?id=${pair.up.id}&viewMode=story&globals=theme:light`, { waitUntil: "domcontentloaded" });
     await up.waitForTimeout(1500);
     const upLoc = up.locator(pair.up.selector).first();
-    if (!(await upLoc.count())) { row.error = `upstream selector not found: ${pair.up.selector}`; await up.close(); report.push(row); continue; }
+    try { await upLoc.waitFor({ state: "attached", timeout: 15000 }); }
+    catch { row.error = `upstream selector not found: ${pair.up.selector}`; await up.close(); report.push(row); continue; }
     const bb = await upLoc.boundingBox();
     row.upSize = `${Math.round(bb.width)}x${Math.round(bb.height)}`;
     const upBuf = await upLoc.screenshot();
@@ -164,7 +168,8 @@ for (const pair of pairs) {
     await st.waitForTimeout(500);
     if (pair.st.openPalette) { await st.keyboard.press("Meta+k"); await st.waitForTimeout(400); }
     const stLoc = st.locator(pair.st.selector).first();
-    if (!(await stLoc.count())) { row.error = `staple selector not found: ${pair.st.selector}`; await st.close(); report.push(row); continue; }
+    try { await stLoc.waitFor({ state: "attached", timeout: 10000 }); }
+    catch { row.error = `staple selector not found: ${pair.st.selector}`; await st.close(); report.push(row); continue; }
     const sbb = await stLoc.boundingBox();
     row.stSize = `${Math.round(sbb.width)}x${Math.round(sbb.height)}`;
     const stBuf = await stLoc.screenshot();
@@ -182,3 +187,5 @@ for (const pair of pairs) {
 await browser.close();
 writeFileSync(REPORT, JSON.stringify({ generatedAt: new Date().toISOString(), upstream: UP, staple: ST, results: report }, null, 2));
 console.log(JSON.stringify(report, null, 2));
+// Any missing component/pair is a failure: make ui-pixel-compare must not pass silently.
+if (report.some((r) => r.error)) process.exit(1);
