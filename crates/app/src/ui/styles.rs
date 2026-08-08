@@ -237,15 +237,19 @@ body {
   transition: width var(--motion-duration-fast) var(--motion-ease-base);
 }
 .app-sidebar.collapsed { width: var(--sidebar-rail); overflow: hidden; }
-.app-sidebar.collapsed a, .app-sidebar.collapsed h3 { visibility: hidden; }
+.app-sidebar.collapsed .nav-label, .app-sidebar.collapsed h3 { visibility: hidden; }
 .app-sidebar a {
-  display: block;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-1) var(--space-3);
   color: var(--color-muted-foreground);
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
 }
+.app-sidebar a svg { flex-shrink: 0; }
+.nav-label { flex: 1 1 auto; min-width: 0; }
 .app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
 .app-sidebar a.brand { font-weight: 600; color: var(--color-foreground); margin-bottom: var(--space-3); }
 .app-sidebar h3 {

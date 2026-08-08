@@ -15,7 +15,12 @@ use crate::{
     state::AppState,
 };
 
+use super::icons::{
+    ACTIVITY, ALERT_CIRCLE, AWARD, BRIEFCASE, CHECK_CIRCLE, CLOCK, CODE, DATABASE, FILE_TEXT,
+    FOLDER, GIT_BRANCH, GRID, INBOX, LAYOUT, LIST, SETTINGS, SHIELD, USER, USERS, ZAP,
+};
 use super::styles::TOKENS_CSS;
+use topcoat::icon::icon;
 
 /// Wraps every page in a full document with the design token layer, the
 /// localized nav, and the language switcher.
@@ -111,51 +116,59 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                         <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label=(t(lang, "nav.resize")) tabindex="0" aria-valuemin="208" aria-valuemax="420" aria-valuenow="240"></div>
                         <a class="brand" href=(with_lang("/", lang))>(t(lang, "nav.title"))</a>
                         <h3>(t(lang, "nav.companies"))</h3>
-                        <a href=(with_lang("/", lang))>(t(lang, "nav.companies"))</a>
+                        <a href=(with_lang("/", lang))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.companies"))</span></a>
                         if let Some(company_id) = &company_id {
                             <h3>(t(lang, "nav.board"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>(t(lang, "dashboard.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>(t(lang, "nav.board"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang))>icon(data: LAYOUT) <span class="nav-label">(t(lang, "dashboard.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.board"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang))>
-                                (t(lang, "inbox.title"))
-                                if inbox_badge > 0 {
-                                    " " <span class="badge badge-default">(inbox_badge.to_string())</span>
-                                }
+                                icon(data: INBOX)
+                                <span class="nav-label">
+                                    (t(lang, "inbox.title"))
+                                    if inbox_badge > 0 {
+                                        " " <span class="badge badge-default">(inbox_badge.to_string())</span>
+                                    }
+                                </span>
                             </a>
                             <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang))>
-                                (t(lang, "whatNeedsMe.title"))
-                                if attention_badge > 0 {
-                                    " " <span class="badge badge-default">(attention_badge.to_string())</span>
-                                }
+                                icon(data: ALERT_CIRCLE)
+                                <span class="nav-label">
+                                    (t(lang, "whatNeedsMe.title"))
+                                    if attention_badge > 0 {
+                                        " " <span class="badge badge-default">(attention_badge.to_string())</span>
+                                    }
+                                </span>
                             </a>
                             <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang))>
-                                (t(lang, "approvals.title"))
-                                if approvals_badge > 0 {
-                                    " " <span class="badge badge-default">(approvals_badge.to_string())</span>
-                                }
+                                icon(data: CHECK_CIRCLE)
+                                <span class="nav-label">
+                                    (t(lang, "approvals.title"))
+                                    if approvals_badge > 0 {
+                                        " " <span class="badge badge-default">(approvals_badge.to_string())</span>
+                                    }
+                                </span>
                             </a>
                             <h3>(t(lang, "nav.work"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>(t(lang, "nav.issues"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>(t(lang, "pipelines.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>(t(lang, "routines.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang))>(t(lang, "artifacts.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>(t(lang, "skills.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang))>(t(lang, "projects.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang))>(t(lang, "agents.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang))>icon(data: LIST) <span class="nav-label">(t(lang, "nav.issues"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang))>icon(data: GIT_BRANCH) <span class="nav-label">(t(lang, "pipelines.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang))>icon(data: CLOCK) <span class="nav-label">(t(lang, "routines.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang))>icon(data: FILE_TEXT) <span class="nav-label">(t(lang, "artifacts.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang))>icon(data: CODE) <span class="nav-label">(t(lang, "skills.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang))>icon(data: FOLDER) <span class="nav-label">(t(lang, "projects.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang))>icon(data: USERS) <span class="nav-label">(t(lang, "agents.title"))</span></a>
                             <h3>(t(lang, "nav.company"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang))>(t(lang, "orgChart.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang))>(t(lang, "timeline.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>(t(lang, "costs.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>(t(lang, "activity.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>(t(lang, "access.title"))</a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>(t(lang, "settings.title"))</a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang))>icon(data: SHIELD) <span class="nav-label">(t(lang, "orgChart.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang))>icon(data: ACTIVITY) <span class="nav-label">(t(lang, "timeline.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang))>icon(data: BRIEFCASE) <span class="nav-label">(t(lang, "costs.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang))>icon(data: ZAP) <span class="nav-label">(t(lang, "activity.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/access"), lang))>icon(data: USER) <span class="nav-label">(t(lang, "access.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang))>icon(data: SETTINGS) <span class="nav-label">(t(lang, "settings.title"))</span></a>
                         }
                         <h3>(t(lang, "instance.title"))</h3>
-                        <a href=(with_lang("/instance/settings", lang))>(t(lang, "instance.title"))</a>
-                        <a href=(with_lang("/profile/settings", lang))>(t(lang, "profile.title"))</a>
-                        <a href=(with_lang("/adapters", lang))>(t(lang, "adapters.title"))</a>
-                        <a href=(with_lang(&current_path, switch_lang))>(switch_label)</a>
-                    </nav>
+                        <a href=(with_lang("/instance/settings", lang))>icon(data: DATABASE) <span class="nav-label">(t(lang, "instance.title"))</span></a>
+                        <a href=(with_lang("/profile/settings", lang))>icon(data: USER) <span class="nav-label">(t(lang, "profile.title"))</span></a>
+                        <a href=(with_lang("/adapters", lang))>icon(data: ZAP) <span class="nav-label">(t(lang, "adapters.title"))</span></a>
+                        <a href=(with_lang(&current_path, switch_lang))>icon(data: AWARD) <span class="nav-label">(switch_label)</span></a></nav>
                     <main class="app-main">(slot?)</main>
                 </div>
                 <div id="command-palette" class="command-palette" hidden="hidden" role="dialog" aria-modal="true" aria-label=(t(lang, "palette.placeholder"))>
