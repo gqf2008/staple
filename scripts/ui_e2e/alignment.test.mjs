@@ -264,6 +264,30 @@ test("board card specs", async () => {
   } catch (e) { record("board card specs", false, { error: e.message, ...m }); throw e; }
 });
 
+test("stack-form buttons keep content width (chat send)", async () => {
+  const companyId = state.companyId;
+  const p = await page();
+  await p.goto(`${BASE_URL}/companies/${companyId}/board/chat`, { waitUntil: "networkidle" });
+  await p.waitForTimeout(400);
+  const m = await p.evaluate(() => {
+    const btn = document.querySelector('button[type="submit"]');
+    const form = btn ? btn.closest("form") : null;
+    const textarea = document.querySelector('textarea[name="message"]');
+    return {
+      btnW: btn ? Math.round(btn.getBoundingClientRect().width) : null,
+      formW: form ? Math.round(form.getBoundingClientRect().width) : null,
+      textareaW: textarea ? Math.round(textarea.getBoundingClientRect().width) : null,
+    };
+  });
+  await p.close();
+  try {
+    assert.ok(m && m.btnW != null, "chat submit button not found");
+    assert.ok(m.btnW < 120, `chat send button should be content width, got ${m.btnW}px`);
+    assert.ok(m.textareaW != null && m.formW != null && m.textareaW >= m.formW - 2, `textarea should stay full width (${m.textareaW}/${m.formW})`);
+    record("stack-form buttons keep content width (chat send)", true, m);
+  } catch (e) { record("stack-form buttons keep content width (chat send)", false, { error: e.message, ...m }); throw e; }
+});
+
 test("issue detail sections", async () => {
   const companyId = state.companyId;
   const issueId = state.issueId;
