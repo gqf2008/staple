@@ -1,4 +1,4 @@
-.PHONY: dev test lint build check js-test ui-e2e
+.PHONY: dev test lint build check js-test ui-e2e ui-pixel-compare
 
 # Run the app (dev mode)
 dev:
@@ -46,6 +46,19 @@ ui-e2e:
 	 if [ $$up -ne 1 ]; then echo "ui-e2e: server failed to start (see target/ui-e2e.log)"; cat target/ui-e2e.log; exit 1; fi; \
 	 echo "ui-e2e: server up on 3109 (db=$$UI_E2E_DB)"; \
 	 NODE_PATH=$$(npm root -g 2>/dev/null || true) BASE_URL=http://127.0.0.1:3109 E2E_OUT_DIR=$(CURDIR)/target/ui-e2e-screenshots E2E_REPORT=$(CURDIR)/target/ui-e2e-report.json node --test scripts/ui_e2e/alignment.test.mjs; status=$$?; exit $$status
+
+# Pixel-level UI comparison (issue #259): upstream Storybook (6006) vs Staple
+# (3100) component element screenshots -> normalized pixel diff report +
+# screenshots under target/ui-pixel-compare/. Requires both servers running:
+#   - upstream Storybook: cd ../paperclip/ui && pnpm storybook --no-open
+#   - Staple: make dev (or the demo on 3100)
+# Requires playwright available (NODE_PATH=$(npm root -g)) and a chromium
+# browser (`npx playwright install chromium`, or PW_EXECUTABLE).
+ui-pixel-compare:
+	@if ! curl -sf http://127.0.0.1:6006/index.json >/dev/null; then echo "ui-pixel-compare: start upstream Storybook on 6006 first (cd ../paperclip/ui && pnpm storybook --no-open)"; exit 1; fi
+	@if ! curl -sf http://127.0.0.1:3100/api/health >/dev/null; then echo "ui-pixel-compare: start Staple on 3100 first (make dev)"; exit 1; fi
+	@mkdir -p target
+	@NODE_PATH=$$(npm root -g 2>/dev/null || true) BASE_URL=http://127.0.0.1:3100 UPSTREAM_URL=http://127.0.0.1:6006 E2E_OUT_DIR=$(CURDIR)/target/ui-pixel-compare E2E_REPORT=$(CURDIR)/target/ui-pixel-compare/report.json node scripts/ui_e2e/pixel_compare.mjs
 
 # Node reference runtime was frozen and removed (Phase 5). The reference
 # mirror (gqf2008/paperclip) retains the Node code for behavior comparison.
