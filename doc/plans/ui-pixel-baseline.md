@@ -21,7 +21,7 @@ Playwright 1440×900 实测（token 对齐后 build）：
 | `--motion-duration-fast` | `160ms`（reduced-motion 下 `0ms`） |
 | 状态色 | `running=#2563eb`、`done=#22c55e`、`in-review=#7c3aed`、`cancelled/backlog=#a8aeb2`（release_smoke 断言 token 与字体路由） |
 
-> **更新（2026-08-08，issue #262）**：侧栏图标化——每项前置 16×16 Feather 图标（内联 path，无网络依赖），折叠 rail 只保留图标列（对齐上游 rail 观感）；全站 svgCount>0。
+> **更新（2026-08-08，issue #262）**：侧栏图标化——每项前置 16×16 Feather 描边图标（内联 path + svg stroke 呈现属性，无网络依赖），折叠 rail 保留图标列（结构对齐上游 rail；图标渲染经 E2E 断言 stroke 可见）；全站 svgCount>0。
 
 > **更新（2026-08-08，issue #258）**：看板优先级 UI 按官方 PAP-411 隐藏（`SHOW_TASK_PRIORITY_UI` 默认关闭）——移除看板卡优先级左边条与优先级标签（issue 头/看板卡/inbox 行/my-issues 行），数据模型与 `--color-priority-*` token 保留（`status-dot-over_budget` 仍用）；像素对比 board-card 由 DIFF 转 CLOSE 的目标。
 

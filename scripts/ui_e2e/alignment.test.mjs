@@ -337,6 +337,54 @@ test("dark theme tokens", async () => {
   } catch (e) { record("dark theme tokens", false, { error: e.message, ...m }); throw e; }
 });
 
+test("sidebar icons render visibly (stroke outline, rail column)", async () => {
+  const companyId = state.companyId;
+  const p = await page();
+  await p.goto(`${BASE_URL}/companies/${companyId}/board`, { waitUntil: "networkidle" });
+  await p.waitForTimeout(400);
+  const m = await p.evaluate(() => {
+    const sb = document.querySelector(".app-sidebar");
+    const svgs = Array.from(sb.querySelectorAll("a svg"));
+    const first = svgs[0];
+    const s = getComputedStyle(first);
+    const rect = first.getBoundingClientRect();
+    const iconPixels = (() => {
+      const svg = first;
+      const rect = svg.getBoundingClientRect();
+      const paths = svg.querySelectorAll("path, line, rect, circle, polyline, polygon, ellipse");
+      return paths.length;
+    })();
+    const toggle = document.getElementById("sidebar-toggle");
+    toggle.click();
+    // synchronous class toggling is applied by the click handler
+    const collapsed = sb.classList.contains("collapsed");
+    const labelHidden = collapsed ? getComputedStyle(sb.querySelector(".nav-label")).visibility : null;
+    const iconVisible = collapsed ? getComputedStyle(svgs[0]).visibility : null;
+    return {
+      svgCount: svgs.length,
+      iconW: Math.round(rect.width), iconH: Math.round(rect.height),
+      stroke: s.stroke, fill: s.fill,
+      paths: iconPixels,
+      collapsed, labelHidden, iconVisible,
+      overflowX: document.documentElement.scrollWidth > window.innerWidth,
+    };
+  });
+  await p.close();
+  try {
+    assert.equal(m.svgCount, 24, `expected 24 sidebar icons (23 nav + brand), got ${m.svgCount}`);
+    assert.equal(m.iconW, 16);
+    assert.equal(m.iconH, 16);
+    assert.notEqual(m.stroke, "none", "icons must be stroked (Feather outline)");
+    assert.equal(m.fill, "none");
+    assert.ok(m.paths > 0, "icon should contain shape elements");
+    assert.equal(m.collapsed, true);
+    assert.equal(m.labelHidden, "hidden");
+    assert.equal(m.iconVisible, "visible");
+    assert.equal(m.overflowX, false);
+    record("sidebar icons render visibly (stroke outline, rail column)", true, m);
+  } catch (e) { record("sidebar icons render visibly (stroke outline, rail column)", false, { error: e.message, ...m }); throw e; }
+});
+
 test("narrow drawer + no horizontal overflow", async () => {
   const companyId = state.companyId;
   const p = await page({ width: 375, height: 800 });

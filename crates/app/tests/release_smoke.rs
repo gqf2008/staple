@@ -999,6 +999,10 @@ async fn core_business_flow_smoke() {
         (format!("/companies/{company_id}/board"), "nav-label"),
         (
             format!("/companies/{company_id}/board"),
+            "stroke: currentColor;",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
             "form.stack-form button { align-self: flex-start; }",
         ),
         (
