@@ -453,6 +453,69 @@ test("root page marks brand + companies active (no stray highlight)", async () =
   } catch (e) { record("root page marks brand + companies active (no stray highlight)", false, { error: e.message, ...m }); throw e; }
 });
 
+test("sidebar metrics match upstream (rows/labels/badges/polarity)", async () => {
+  const companyId = state.companyId;
+  const p = await page();
+  await p.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
+  await p.waitForTimeout(500);
+  const m = await p.evaluate(() => {
+    const sb = document.querySelector(".app-sidebar");
+    const row = Array.from(sb.querySelectorAll("a:not(.brand)")).find((a) => (a.textContent || "").includes("Issues")) || sb.querySelector("a:not(.brand)");
+    const rs = row ? getComputedStyle(row) : null;
+    const rr = row ? row.getBoundingClientRect() : null;
+    const label = Array.from(sb.querySelectorAll("h3")).find((h) => (h.textContent || "").toUpperCase().includes("WORK"));
+    const ls = label ? getComputedStyle(label) : null;
+    const badge = sb.querySelector(".badge");
+    const bs = badge ? getComputedStyle(badge) : null;
+    const br = badge ? badge.getBoundingClientRect() : null;
+    const brand = sb.querySelector("a.brand");
+    const brandRect = brand ? brand.getBoundingClientRect() : null;
+    const sbBg = getComputedStyle(sb).backgroundColor;
+    const mainBg = getComputedStyle(document.querySelector(".app-main") || document.body).backgroundColor;
+    const dark = document.documentElement.classList.contains("dark");
+    return {
+      rowH: rr ? Math.round(rr.height) : null,
+      rowFs: rs ? rs.fontSize : null,
+      rowFw: rs ? rs.fontWeight : null,
+      rowGap: rs ? rs.gap : null,
+      rowRadius: rs ? rs.borderRadius : null,
+      rowColor: rs ? rs.color : null,
+      labelFs: ls ? ls.fontSize : null,
+      labelFw: ls ? ls.fontWeight : null,
+      labelTT: ls ? ls.textTransform : null,
+      labelLS: ls ? ls.letterSpacing : null,
+      badgeCount: badge ? 1 : 0,
+      badgeBg: bs ? bs.backgroundColor : null,
+      badgeRadius: bs ? bs.borderRadius : null,
+      badgeW: br ? Math.round(br.width) : null,
+      brandY: brandRect ? Math.round(brandRect.top - sb.getBoundingClientRect().top) : null,
+      sidebarBg: sbBg, mainBg, dark,
+      workspaces: Array.from(sb.querySelectorAll("a")).some((a) => (a.textContent || "").includes("Workspaces")),
+    };
+  });
+  try {
+    assert.equal(m.rowH, 32, `sidebar row height ${m.rowH} != 32px`);
+    assert.equal(m.rowFs, "13px", `row font-size ${m.rowFs} != 13px`);
+    assert.equal(m.rowFw, "500", `row font-weight ${m.rowFw} != 500`);
+    assert.equal(m.rowGap, "10px", `row gap ${m.rowGap} != 10px`);
+    assert.equal(m.rowRadius, "8px", `row radius ${m.rowRadius} != 8px`);
+    assert.equal(m.labelFs, "10px", `section label font-size ${m.labelFs} != 10px`);
+    assert.equal(m.labelFw, "500", `section label font-weight ${m.labelFw} != 500`);
+    assert.equal(m.labelTT, "uppercase", `section label transform ${m.labelTT} != uppercase`);
+    assert.equal(m.labelLS, "1px", `section label letter-spacing ${m.labelLS} != 1px`);
+    assert.equal(m.badgeCount, 1, "sidebar badge must render as pill");
+    assert.ok(m.badgeRadius.includes("9999px") || parseFloat(m.badgeRadius) > 100, `badge radius ${m.badgeRadius} != full`);
+    assert.ok(m.brandY !== null && m.brandY < 20, `brand should sit near sidebar top, got y=${m.brandY}`);
+    assert.equal(m.workspaces, true, "workspaces nav item missing");
+    if (m.dark) {
+      assert.notEqual(m.sidebarBg, "rgba(0, 0, 0, 0)", "sidebar bg must be visible");
+      assert.notEqual(m.mainBg, "rgba(0, 0, 0, 0)", "main bg must be visible");
+    }
+    record("sidebar metrics match upstream (rows/labels/badges/polarity)", true, m);
+    await p.close();
+  } catch (e) { record("sidebar metrics match upstream (rows/labels/badges/polarity)", false, { error: e.message, ...m }); throw e; }
+});
+
 test("narrow drawer + no horizontal overflow", async () => {
   const companyId = state.companyId;
   const p = await page({ width: 375, height: 800 });

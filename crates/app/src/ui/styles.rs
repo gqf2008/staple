@@ -43,7 +43,7 @@ pub const TOKENS_CSS: &str = r#"
   --color-border: oklch(0.922 0 0);
   --color-input: oklch(0.922 0 0);
   --color-ring: oklch(0.708 0 0);
-  --color-sidebar: oklch(0.985 0 0);
+  --color-sidebar: oklch(0.97 0 0); /* upstream light shell #f9f9f9 */
   --color-sidebar-foreground: oklch(0.145 0 0);
   --color-sidebar-primary: oklch(0.205 0 0);
   --color-sidebar-primary-foreground: oklch(0.985 0 0);
@@ -120,6 +120,7 @@ pub const TOKENS_CSS: &str = r#"
   --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   --font-size-xs: 0.75rem;
+  --font-size-compact: 0.8125rem; /* upstream --text-compact (13px): sidebar rows */
   --font-size-sm: 0.875rem;
   --font-size-md: 1rem;
   --font-size-lg: 1.125rem;
@@ -178,7 +179,7 @@ pub const TOKENS_CSS: &str = r#"
   --color-border: oklch(1 0 0 / 10%);
   --color-input: oklch(1 0 0 / 15%);
   --color-ring: oklch(0.556 0 0);
-  --color-sidebar: oklch(0.205 0 0);
+  --color-sidebar: oklch(0.13 0 0); /* upstream dark shell #101111 (darker than background 0.145) */
   --color-sidebar-foreground: oklch(0.985 0 0);
   --color-sidebar-primary: oklch(0.488 0.243 264.376);
   --color-sidebar-primary-foreground: oklch(0.985 0 0);
@@ -237,7 +238,7 @@ body {
   flex-shrink: 0;
   background: var(--color-sidebar);
   border-right: 1px solid var(--color-border);
-  padding: var(--space-3) 0;
+  padding: var(--space-2) var(--space-3) var(--space-3);
   transition: width var(--motion-duration-fast) var(--motion-ease-base);
 }
 .app-sidebar.collapsed { width: var(--sidebar-rail); overflow: hidden; }
@@ -245,9 +246,14 @@ body {
 .app-sidebar a {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
-  padding: var(--space-1) var(--space-3);
-  color: var(--color-muted-foreground);
+  gap: var(--space-2-5); /* upstream gap-2.5 = 10px */
+  margin: 0 var(--space-2); /* upstream mx-2; with 12px shell padding -> row at x=20 */
+  padding: var(--space-1-5) var(--space-2); /* upstream py-1.5 px-2 = 6px 8px */
+  border-radius: var(--radius-lg); /* upstream rounded-lg = 8px */
+  font-size: var(--font-size-compact); /* upstream text-compact = 13px */
+  font-weight: 500; /* upstream font-medium */
+  line-height: 19.5px; /* upstream 1.5 * 13px */
+  color: color-mix(in srgb, var(--color-foreground) 80%, transparent); /* fg/80 */
   text-decoration: none;
   white-space: nowrap;
   overflow: hidden;
@@ -265,41 +271,86 @@ body {
 }
 .app-sidebar.collapsed a { justify-content: center; padding-left: 0; padding-right: 0; }
 .app-sidebar.collapsed .nav-label { display: none; }
-.nav-label { flex: 1 1 auto; min-width: 0; }
-.app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
+.nav-label { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: var(--space-2); }
+.app-sidebar a:hover {
+  background: color-mix(in srgb, var(--color-accent) 50%, transparent); /* upstream hover:bg-accent/50 */
+  color: var(--color-foreground);
+  text-decoration: none;
+}
 .app-sidebar a.active {
   color: var(--color-foreground);
   background: var(--color-accent);
   border-radius: var(--radius-lg);
   font-weight: 500;
 }
-.app-sidebar a.brand { font-weight: 600; color: var(--color-foreground); margin-bottom: var(--space-3); }
-.app-sidebar h3 {
+.app-sidebar a.brand {
   font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-foreground);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 var(--space-2) var(--space-2);
+  line-height: 20px;
+}
+
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  color: var(--color-foreground);
+  padding: var(--space-2) var(--space-3);
+  margin: 0 var(--space-2) var(--space-2);
+  line-height: 20px;
+}
+.app-sidebar h3 {
+  font-size: var(--font-size-xs);
+  font-weight: 500;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
-  color: var(--color-muted-foreground);
-  margin: var(--space-3) 0 var(--space-1);
+  letter-spacing: 1px;
+  line-height: 15px;
+  color: color-mix(in srgb, var(--color-muted-foreground) 60%, transparent);
+  margin: var(--space-6) 0 var(--space-1-5);
   padding: 0 var(--space-3);
   white-space: nowrap;
   overflow: hidden;
 }
+.app-sidebar .badge {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 19px;
+  height: 18px;
+  padding: 0 var(--space-1-5);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  background: oklch(0.577 0.218 0.112 / 0.9); /* upstream unread badge */
+  color: oklch(0.971 0.013 17.38);
+  font-size: var(--font-size-xs);
+  font-weight: 500;
+  line-height: 1;
+  white-space: nowrap;
+}
 .sidebar-toggle {
-  width: calc(100% - var(--space-6));
-  margin: 0 var(--space-3) var(--space-2);
+  width: var(--space-8);
   height: var(--space-8);
   font-size: var(--font-size-sm);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 #sidebar-toggle {
   position: absolute;
-  top: var(--space-3);
-  left: var(--space-3);
-  width: calc(var(--sidebar-width) - var(--space-6));
-  height: var(--space-8);
+  top: var(--space-2);
+  right: var(--space-2);
+  left: auto;
   margin: 0;
   z-index: 1600;
 }
-.app-sidebar { padding-top: calc(var(--space-3) + var(--space-8) + var(--space-2)); }
+#theme-toggle {
+  position: absolute;
+  top: var(--space-2);
+  right: calc(var(--space-8) + var(--space-3));
+  margin: 0;
+  z-index: 1600;
+}
 .sidebar-resizer {
   position: absolute;
   top: 0;

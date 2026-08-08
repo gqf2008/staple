@@ -1356,6 +1356,10 @@ async fn core_business_flow_smoke() {
         html.contains(&format!("/companies/{company_id}/timeline")),
         "sidebar timeline link missing"
     );
+    assert!(
+        html.contains(&format!("/companies/{company_id}/workspaces")),
+        "sidebar workspaces link missing"
+    );
 
     // Global link baseline + sidebar active highlight (UI 对齐 / #264): no
     // default browser-blue links, and the current page is marked `.active`.
