@@ -997,6 +997,10 @@ async fn core_business_flow_smoke() {
         ),
         (
             format!("/companies/{company_id}/board"),
+            "form.stack-form button { align-self: flex-start; }",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
             "command-item[hidden]",
         ),
         (format!("/companies/{company_id}/board"), "sidebar-toggle"),

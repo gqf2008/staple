@@ -424,6 +424,7 @@ section { margin-bottom: var(--space-8); }
 .muted-link { color: var(--color-muted-foreground); text-decoration: none; font-size: var(--font-size-sm); }
 
 form.stack-form { display: flex; flex-direction: column; gap: var(--space-2); max-width: 24rem; }
+form.stack-form button { align-self: flex-start; }
 form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 
 /* Board (upstream KanbanBoard parity): horizontal scroll, status-hued
