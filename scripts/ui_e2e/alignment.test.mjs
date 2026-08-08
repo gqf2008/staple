@@ -453,6 +453,80 @@ test("root page marks brand + companies active (no stray highlight)", async () =
   } catch (e) { record("root page marks brand + companies active (no stray highlight)", false, { error: e.message, ...m }); throw e; }
 });
 
+test("issues toolbar: outline New Task + search + quick create", async () => {
+  const companyId = state.companyId;
+  const p = await page();
+  await p.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
+  await p.waitForTimeout(500);
+  const m = await p.evaluate(() => {
+    const btn = document.getElementById("new-issue-toggle");
+    const input = document.getElementById("issue-search");
+    const form = document.getElementById("new-issue-form");
+    const bs = btn ? getComputedStyle(btn) : null;
+    const br = btn ? btn.getBoundingClientRect() : null;
+    const is = input ? getComputedStyle(input) : null;
+    const ir = input ? input.getBoundingClientRect() : null;
+    return {
+      hasBtn: !!btn, hasInput: !!input, hasForm: !!form,
+      btnH: br ? Math.round(br.height) : null, btnRadius: bs ? bs.borderRadius : null,
+      btnBorder: bs ? bs.border : null, btnBg: bs ? bs.backgroundColor : null,
+      inputW: ir ? Math.round(ir.width) : null, inputH: ir ? Math.round(ir.height) : null,
+      inputRadius: is ? is.borderRadius : null, inputBorder: is ? is.border : null,
+      placeholder: input ? input.placeholder : null,
+      rowCount: document.querySelectorAll("#issue-list li[data-search]").length,
+      formHidden: form ? form.hidden : null,
+    };
+  });
+  // Search filter: use a unique marker so the assertion is deterministic
+  // regardless of how much seed data the shared dev DB already holds.
+  const marker = `uniq-rounding-${Date.now()}`;
+  const created = await fetch(`${BASE_URL}/api/companies/${companyId}/issues`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: marker, description: "search marker" }),
+  });
+  const createdBody = await created.json();
+  await p.reload({ waitUntil: "networkidle" });
+  await p.waitForTimeout(300);
+  await p.fill("#issue-search", marker);
+  await p.waitForTimeout(200);
+  const filtered = await p.evaluate(() => ({
+    visible: Array.from(document.querySelectorAll("#issue-list li[data-search]")).filter((li) => !li.hidden).length,
+    emptyHidden: document.getElementById("issue-empty").hidden,
+  }));
+  await p.fill("#issue-search", "zzz-no-match");
+  await p.waitForTimeout(200);
+  const emptyShown = await p.evaluate(() => document.getElementById("issue-empty").hidden === false);
+  // Quick create
+  await p.click("#new-issue-toggle");
+  const formVisible = await waitForEval(p, () => !document.getElementById("new-issue-form").hidden);
+  await p.fill("#new-issue-title", `E2E toolbar task ${Date.now()}`);
+  const before = m.rowCount;
+  await p.click("#new-issue-form button[type='submit']");
+  await p.waitForLoadState("networkidle");
+  const after = await p.evaluate(() => document.querySelectorAll("#issue-list li[data-search]").length);
+  await p.screenshot({ path: join(OUT_DIR, "07-issues-toolbar.png") });
+  await p.close();
+  try {
+    assert.equal(m.hasBtn, true, "New Task button missing");
+    assert.equal(m.hasInput, true, "search input missing");
+    assert.equal(m.hasForm, true, "create form missing");
+    assert.equal(m.btnH, 36, `toolbar button height ${m.btnH} != 36`);
+    assert.equal(m.btnRadius, "6.4px", `toolbar button radius ${m.btnRadius} != 6.4px`);
+    assert.equal(m.inputW, 320, `search input width ${m.inputW} != 320`);
+    assert.equal(m.inputH, 36, `search input height ${m.inputH} != 36`);
+    assert.equal(m.inputRadius, "6.4px", `search input radius ${m.inputRadius} != 6.4px`);
+    assert.equal(m.placeholder, "Search tasks...");
+    assert.equal(m.formHidden, true, "create form should start hidden");
+    assert.equal(filtered.visible, 1, `search filter expected 1 visible, got ${filtered.visible}`);
+    assert.equal(filtered.emptyHidden, true);
+    assert.equal(emptyShown, true, "empty state should show on no match");
+    assert.equal(formVisible, true, "toggle should reveal create form");
+    assert.equal(after, before + 2, `marker (+1) + quick create (+1) expected: ${before} -> ${before + 2}, got ${after}`);
+    record("issues toolbar: outline New Task + search + quick create", true, { ...m, filtered, after });
+  } catch (e) { record("issues toolbar: outline New Task + search + quick create", false, { error: e.message, ...m, filtered }); throw e; }
+});
+
 test("narrow drawer + no horizontal overflow", async () => {
   const companyId = state.companyId;
   const p = await page({ width: 375, height: 800 });

@@ -1372,6 +1372,55 @@ async fn core_business_flow_smoke() {
         "current page must be marked active in the sidebar"
     );
 
+    // Issues toolbar (UI 对齐 / #268): "+ New Task" outline button, search
+    // input, quick-create form, and the external issues.js script.
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(format!("/companies/{company_id}/issues"))
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK);
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let issues_html = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        issues_html.contains(r#"id="new-issue-toggle""#),
+        "issues toolbar + New Task button missing"
+    );
+    assert!(
+        issues_html.contains(r#"id="issue-search""#),
+        "issues toolbar search input missing"
+    );
+    assert!(
+        issues_html.contains("Search tasks..."),
+        "issues search placeholder missing"
+    );
+    assert!(
+        issues_html.contains(&format!(
+            "/companies/{company_id}/issues/new/ui"
+        )),
+        "quick-create form action missing"
+    );
+    assert!(
+        issues_html.contains("/static/issues.js"),
+        "issues.js script tag missing"
+    );
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri("/static/issues.js")
+        .body(Body::empty())
+        .unwrap();
+    let response = app.handle(request).await;
+    assert_eq!(response.status(), StatusCode::OK, "issues.js not served");
+    let (_, body) = response.into_parts();
+    let bytes = to_bytes(body, usize::MAX).await.unwrap();
+    let js = String::from_utf8(bytes.to_vec()).unwrap();
+    assert!(
+        js.contains("new-issue-toggle"),
+        "issues.js missing toggle handler"
+    );
+
     // Board concierge chat script is served.
     let request = Request::builder()
         .method(Method::GET)

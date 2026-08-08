@@ -323,6 +323,63 @@ pub async fn move_status_ui(
     ))
 }
 
+/// `POST /companies/{company_id}/issues/new/ui` — quick-creates an issue
+/// from the issues toolbar, redirects back to the list.
+#[route(POST "/companies/{company_id}/issues/new/ui")]
+pub async fn new_issue_ui(
+    cx: &Cx,
+    Form(form): Form<NewIssueUiForm>,
+) -> Result<topcoat::router::error::SeeOther> {
+    let company_id = path_param::<CompanyId>(cx)?.to_string();
+    let state = app_context::<AppState>(cx);
+    let title = form.title.trim().to_owned();
+    if title.is_empty() {
+        return Ok(see_other_flash(
+            &format!("/companies/{company_id}/issues"),
+            "invalid",
+        ));
+    }
+    match state
+        .issues
+        .create(staple_data::NewIssue {
+            company_id: company_id.clone(),
+            project_id: None,
+            goal_id: None,
+            parent_id: None,
+            title,
+            description: None,
+            status: None,
+            priority: None,
+            assignee_agent_id: None,
+            assignee_user_id: None,
+            created_by_user_id: None,
+            work_mode: None,
+            billing_code: None,
+            execution_workspace_settings: None,
+        })
+        .await
+    {
+        Ok(issue) => {
+            let _ = log_activity(
+                &state.activity,
+                &company_id,
+                "issue.created",
+                "issue",
+                &issue.id,
+                Some(serde_json::json!({ "companyId": company_id })),
+            );
+            Ok(see_other_flash(
+                &format!("/companies/{company_id}/issues"),
+                "created",
+            ))
+        }
+        Err(_) => Ok(see_other_flash(
+            &format!("/companies/{company_id}/issues"),
+            "error",
+        )),
+    }
+}
+
 /// `POST /companies/{company_id}/settings/ui` — applies a settings form
 /// action (company / budget / secret / skill), redirects to settings.
 #[route(POST "/companies/{company_id}/settings/ui")]
@@ -432,6 +489,13 @@ pub async fn settings_ui(
 pub struct StatusForm {
     /// Target status.
     pub status: String,
+}
+
+/// Quick-create issue form (toolbar "+ New Task").
+#[derive(Debug, serde::Deserialize)]
+pub struct NewIssueUiForm {
+    /// Issue title.
+    pub title: String,
 }
 
 /// Settings form: `action` selects the section.
@@ -2208,6 +2272,17 @@ pub struct DocumentUiForm {
 #[route(GET "/static/board.js")]
 pub async fn board_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
     let body = topcoat::router::Body::from(include_str!("board.js"));
+    let response = topcoat::router::Response::builder()
+        .header("Content-Type", "text/javascript; charset=utf-8")
+        .body(body)
+        .map_err(|error| ApiError::internal(error.to_string()))?;
+    Ok(response)
+}
+
+/// `GET /static/issues.js` — issues toolbar (quick-create toggle + search).
+#[route(GET "/static/issues.js")]
+pub async fn issues_js(_cx: &Cx) -> Result<topcoat::router::Response, ApiError> {
+    let body = topcoat::router::Body::from(include_str!("issues.js"));
     let response = topcoat::router::Response::builder()
         .header("Content-Type", "text/javascript; charset=utf-8")
         .body(body)

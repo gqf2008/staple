@@ -7,6 +7,8 @@ use topcoat::{
     view::view,
 };
 
+use super::icons::{PLUS, SEARCH};
+use topcoat::icon::icon;
 use crate::{
     attention::{AttentionQuery, build_attention_feed},
     i18n::{Lang, lang_from_request, t, with_lang},
@@ -268,16 +270,35 @@ pub async fn company_issues(cx: &Cx) -> Result {
         .await
         .map_err(to_topcoat_error)?;
     view! {
-        <h1 class="page-title">(t(lang, "page.title.issues"))</h1>
-        <ul class="list">
+        <div class="page-head">
+            <h1 class="page-title">(t(lang, "page.title.issues"))</h1>
+            <div class="page-toolbar">
+                <button type="button" class="btn-outline" id="new-issue-toggle">icon(data: PLUS) " " (t(lang, "issues.newTask"))</button>
+                <div class="issue-search">
+                    icon(data: SEARCH)
+                    <input type="search" id="issue-search" class="issue-search-input"
+                           placeholder=(t(lang, "issues.searchPlaceholder")) autocomplete="off">
+                </div>
+            </div>
+        </div>
+        <form id="new-issue-form" class="stack-form new-issue-form" method="post"
+              action=(with_lang(&format!("/companies/{company_id}/issues/new/ui"), lang)) hidden="hidden">
+            <label for="new-issue-title">(t(lang, "issues.newTaskTitle"))</label>
+            <input id="new-issue-title" name="title" type="text" required="required" maxlength="200"
+                   placeholder=(t(lang, "issues.newTaskPlaceholder"))>
+            <button type="submit">(t(lang, "issues.create"))</button>
+        </form>
+        <ul class="list" id="issue-list">
             for issue in issues {
-                <li>
+                <li data-search=(format!("{} {}", issue.identifier.clone(), issue.title.clone()))>
                     <span class="mono">(issue.identifier.clone())</span>
                     " " <strong>(issue.title.clone())</strong>
                     " " <span class=(status_badge_class(&issue.status))>(issue.status)</span>
                 </li>
             }
+            <li id="issue-empty" hidden="hidden" class="muted">(t(lang, "issues.noMatches"))</li>
         </ul>
+        <script src="/static/issues.js"></script>
     }
 }
 

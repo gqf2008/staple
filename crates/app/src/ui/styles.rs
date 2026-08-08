@@ -101,7 +101,9 @@ pub const TOKENS_CSS: &str = r#"
   --space-4: 1rem;
   --space-6: 1.5rem;
   --space-8: 2rem;
+  --space-9: 2.25rem; /* upstream h-9 (toolbar controls) */
   --space-10: 2.5rem;
+  --space-80: 20rem; /* upstream w-80 (search input) */
   --space-12: 3rem;
   --border-width: 0.125rem;
 
@@ -126,6 +128,7 @@ pub const TOKENS_CSS: &str = r#"
   --font-size-xl: 1.5rem;
 
   /* shadow */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
   --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
   --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
@@ -404,6 +407,54 @@ body {
 .mono { font-family: var(--font-mono); font-size: var(--font-size-xs); }
 
 .page-title { font-size: var(--font-size-xl); margin: 0 0 var(--space-6); }
+.page-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-6); }
+.page-head .page-title { margin: 0; }
+.page-toolbar { display: flex; align-items: center; gap: var(--space-3); }
+.btn-outline {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1-5);
+  height: var(--space-9);
+  padding: 0 var(--space-3);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  box-shadow: var(--shadow-xs);
+  font-size: var(--font-size-sm);
+  font-weight: 500;
+  white-space: nowrap;
+}
+.btn-outline:hover { background: var(--color-accent); color: var(--color-accent-foreground); }
+.issue-search { position: relative; display: flex; align-items: center; }
+.issue-search > svg {
+  position: absolute;
+  left: var(--space-2);
+  width: var(--font-size-md);
+  height: var(--font-size-md);
+  stroke: currentColor;
+  stroke-width: 2;
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  color: var(--color-muted-foreground);
+  pointer-events: none;
+}
+.issue-search-input {
+  width: var(--space-80);
+  height: var(--space-9);
+  padding: 0 var(--space-3) 0 var(--space-7);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font: inherit;
+  font-size: var(--font-size-sm);
+}
+.issue-search-input:focus { outline: 2px solid color-mix(in srgb, var(--color-ring) 50%, transparent); outline-offset: 0; }
+.new-issue-form { margin: 0 0 var(--space-4); }
+#issue-empty { color: var(--color-muted-foreground); }
 
 .list { list-style: none; padding: 0; margin: 0; }
 
@@ -428,10 +479,13 @@ button {
   font-weight: 500;
   height: var(--space-10);
   padding: 0 var(--space-4);
-  border: 1px solid var(--color-border);
+  /* Upstream primary buttons have no visible border (border-transparent);
+     outline variants add their own border via .btn-outline. */
+  border: 1px solid transparent;
   border-radius: var(--radius-md);
   background: var(--color-primary);
   color: var(--color-primary-foreground);
+  box-shadow: var(--shadow-xs);
   cursor: pointer;
   transition: opacity var(--motion-duration-fast) var(--motion-ease-base);
 }
@@ -579,13 +633,13 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 1.25rem;
-  height: 1.25rem;
+  width: var(--space-8); /* upstream size-8 = 32px */
+  height: var(--space-8);
   border-radius: var(--radius-full);
-  background: var(--color-primary);
-  color: var(--color-primary-foreground);
-  font-size: var(--font-size-xs);
-  font-weight: 600;
+  background: var(--color-muted);
+  color: var(--color-muted-foreground);
+  font-size: var(--font-size-micro);
+  font-weight: 400;
 }
 .board-column form { margin: var(--space-1) 0 0; }
 
