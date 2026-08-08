@@ -429,7 +429,7 @@ form.stack-form button { align-self: flex-start; }
 form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted-foreground); }
 
 /* Board (upstream KanbanBoard parity): horizontal scroll, status-hued
-   columns, card with priority rail + assignee. All values from tokens. */
+   columns, card with assignee. All values from tokens. */
 .board-grid {
   display: flex;
   gap: var(--space-3);

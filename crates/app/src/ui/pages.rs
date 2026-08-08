@@ -1371,7 +1371,7 @@ pub async fn inbox(cx: &Cx) -> Result {
                             (issue.identifier.clone()) " " (issue.title.clone())
                         </a>
                         <div class="row-card-meta">
-                            " · " (issue.status.replace('_', " "))
+                            (issue.status.replace('_', " "))
                         </div>
                     </div>
                     <div class="row-card-actions">
@@ -4173,7 +4173,7 @@ pub async fn my_issues(cx: &Cx) -> Result {
                                 (issue.identifier.clone()) " " (issue.title.clone())
                             </a>
                             <div class="row-card-meta">
-                                " · " (issue.status.replace('_', " "))
+                                (issue.status.replace('_', " "))
                             </div>
                         </div>
                     </div>
