@@ -75,7 +75,10 @@ async function firstCompanyId() {
 
 async function ensureApproval(companyId) {
   const existing = await fetch(`${BASE_URL}/api/companies/${companyId}/approvals`).then((r) => r.json());
-  if (Array.isArray(existing) && existing.some((a) => a.status === "pending")) return existing[0].id;
+  if (Array.isArray(existing)) {
+    const pending = existing.find((a) => a.status === "pending");
+    if (pending) return pending.id;
+  }
   const r = await fetch(`${BASE_URL}/api/companies/${companyId}/approvals`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -198,7 +201,13 @@ test("command palette specs (open/close)", async () => {
   await p.goto(`${BASE_URL}/companies/${companyId}/board`, { waitUntil: "networkidle" });
   await p.waitForTimeout(300);
   await p.keyboard.press("Meta+k");
-  assert.ok(await waitForEval(p, () => !!document.querySelector(".command-palette-panel")), "palette should open");
+  assert.ok(
+    await waitForEval(p, () => {
+      const palette = document.querySelector(".command-palette");
+      return palette && !palette.hidden;
+    }),
+    "palette should open",
+  );
   await p.waitForTimeout(200);
   const m = await p.evaluate(() => {
     const panel = document.querySelector(".command-palette-panel");
@@ -319,7 +328,11 @@ test("narrow drawer + no horizontal overflow", async () => {
     };
   });
   await p.click("#sidebar-toggle");
-  const opened = await waitForEval(p, () => document.querySelector(".app-sidebar").classList.contains("drawer-open"), 4000)
+  const opened = await waitForEval(p, () => {
+    const sb = document.querySelector(".app-sidebar");
+    const t = getComputedStyle(sb).transform;
+    return sb.classList.contains("drawer-open") && (t === "none" || t === "matrix(1, 0, 0, 1, 0, 0)");
+  }, 4000)
     ? await p.evaluate(() => ({
         drawerOpen: document.querySelector(".app-sidebar").classList.contains("drawer-open"),
         scrimHidden: document.getElementById("sidebar-scrim").hidden,
