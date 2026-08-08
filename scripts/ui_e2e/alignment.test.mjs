@@ -396,7 +396,7 @@ test("global link baseline + sidebar active highlight", async () => {
   const companyId = state.companyId;
   const p = await page();
   await p.goto(`${BASE_URL}/companies/${companyId}/board`, { waitUntil: "networkidle" });
-  await p.waitForTimeout(400);
+  await waitForEval(p, () => document.querySelectorAll(".app-sidebar a.active").length === 1);
   const m = await p.evaluate(() => {
     const sb = document.querySelector(".app-sidebar");
     const activeLinks = Array.from(sb.querySelectorAll("a.active"));
@@ -407,7 +407,8 @@ test("global link baseline + sidebar active highlight", async () => {
     const defaultBlue = Array.from(document.querySelectorAll("a")).filter((a) => {
       if (a.closest(".command-palette")) return false; // palette is hidden
       const c = getComputedStyle(a).color;
-      return c === "rgb(0, 0, 238)" || c === "rgb(0,0,238)";
+      const t = getComputedStyle(a).textDecorationLine || "";
+      return c === "rgb(0, 0, 238)" || c === "rgb(0,0,238)" || t.includes("underline");
     }).length;
     return {
       activeCount: activeLinks.length,
@@ -428,10 +429,28 @@ test("global link baseline + sidebar active highlight", async () => {
     assert.equal(m.activeBg, m.accent, `active bg ${m.activeBg} != accent ${m.accent}`);
     assert.equal(m.activeColor, m.foreground, `active color ${m.activeColor} != foreground ${m.foreground}`);
     assert.equal(m.activeRadius, "8px", `active radius ${m.activeRadius} != 8px (upstream rounded-lg)`);
-    assert.equal(m.defaultBlue, 0, `default browser-blue links remain: ${m.defaultBlue}`);
+    assert.equal(m.defaultBlue, 0, `default browser-blue/underline links remain: ${m.defaultBlue}`);
     record("global link baseline + sidebar active highlight", true, m);
     await p.close();
   } catch (e) { record("global link baseline + sidebar active highlight", false, { error: e.message, ...m }); throw e; }
+});
+
+test("root page marks brand + companies active (no stray highlight)", async () => {
+  const p = await page();
+  await p.goto(`${BASE_URL}/`, { waitUntil: "networkidle" });
+  await waitForEval(p, () => document.querySelectorAll(".app-sidebar a.active").length === 2);
+  const m = await p.evaluate(() => ({
+    activeCount: document.querySelectorAll(".app-sidebar a.active").length,
+    activeTexts: Array.from(document.querySelectorAll(".app-sidebar a.active")).map((a) => (a.textContent || "").trim().slice(0, 24)),
+    brandActive: (document.querySelector(".app-sidebar a.brand") || {}).classList?.contains("active") === true,
+  }));
+  try {
+    assert.equal(m.activeCount, 2, `root expected brand + companies active, got ${m.activeCount}`);
+    assert.equal(m.brandActive, true, "brand must be active on root");
+    assert.ok(m.activeTexts.some((t) => t.includes("Companies")), `companies link not active: ${m.activeTexts}`);
+    record("root page marks brand + companies active (no stray highlight)", true, m);
+    await p.close();
+  } catch (e) { record("root page marks brand + companies active (no stray highlight)", false, { error: e.message, ...m }); throw e; }
 });
 
 test("narrow drawer + no horizontal overflow", async () => {

@@ -1368,7 +1368,7 @@ async fn core_business_flow_smoke() {
         "sidebar active highlight missing from token layer"
     );
     assert!(
-        html.contains(r#"class=" active""#),
+        html.contains(r#"class="active""#),
         "current page must be marked active in the sidebar"
     );
 

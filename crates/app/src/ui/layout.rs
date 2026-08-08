@@ -57,12 +57,31 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
         .map(|parts| parts.uri.path().to_owned())
         .unwrap_or_else(|| "/".to_owned());
     // Active nav state: exact match or section prefix (e.g. board/chat
-    // highlights Board, issue detail highlights Issues).
-    let active_for = |href: &str| -> String {
+    // highlights Board, /companies/{id}/issues/{issue} highlights Issues).
+    // Returns None so the attribute is omitted entirely when not active.
+    let active_for = |href: &str| -> Option<&'static str> {
         if current_path == href || current_path.starts_with(&format!("{href}/")) {
-            " active".to_string()
+            Some("active")
         } else {
-            String::new()
+            None
+        }
+    };
+    let brand_class = if current_path == "/" {
+        "brand active".to_string()
+    } else {
+        "brand".to_string()
+    };
+    // The company overview page (/companies/{id}) is the landing page of the
+    // company scope and highlights the Dashboard entry.
+    let dashboard_active = |company_id: &str| -> Option<&'static str> {
+        let dash = format!("/companies/{company_id}/dashboard");
+        if current_path == format!("/companies/{company_id}")
+            || current_path == dash
+            || current_path.starts_with(&format!("{dash}/"))
+        {
+            Some("active")
+        } else {
+            None
         }
     };
     let switch_lang = match lang {
@@ -123,12 +142,12 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <nav class="app-sidebar" id="app-sidebar" data-collapsible="true">
                         <button type="button" class="sidebar-toggle secondary" id="theme-toggle" aria-label=(t(lang, "nav.themeSystem")) data-theme-system=(t(lang, "nav.themeSystem")) data-theme-light=(t(lang, "nav.themeLight")) data-theme-dark=(t(lang, "nav.themeDark"))>("\u{25d0}")</button>
                         <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label=(t(lang, "nav.resize")) tabindex="0" aria-valuemin="208" aria-valuemax="420" aria-valuenow="240"></div>
-                        <a class=(format!("brand{}", active_for("/"))) href=(with_lang("/", lang)) aria-label=(t(lang, "nav.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
+                        <a class=(brand_class) href=(with_lang("/", lang)) aria-label=(t(lang, "nav.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
                         <h3>(t(lang, "nav.companies"))</h3>
                         <a href=(with_lang("/", lang)) class=(active_for("/")) aria-label=(t(lang, "nav.companies"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.companies"))</span></a>
                         if let Some(company_id) = &company_id {
                             <h3>(t(lang, "nav.board"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang)) class=(active_for(&format!("/companies/{company_id}/dashboard"))) aria-label=(t(lang, "dashboard.title"))>icon(data: LAYOUT) <span class="nav-label">(t(lang, "dashboard.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang)) class=(dashboard_active(company_id)) aria-label=(t(lang, "dashboard.title"))>icon(data: LAYOUT) <span class="nav-label">(t(lang, "dashboard.title"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/board"), lang)) class=(active_for(&format!("/companies/{company_id}/board"))) aria-label=(t(lang, "nav.board"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.board"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang)) class=(active_for(&format!("/companies/{company_id}/inbox"))) aria-label=(t(lang, "inbox.title"))>
                                 icon(data: INBOX)
