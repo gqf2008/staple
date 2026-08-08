@@ -114,7 +114,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <nav class="app-sidebar" id="app-sidebar" data-collapsible="true">
                         <button type="button" class="sidebar-toggle secondary" id="theme-toggle" aria-label=(t(lang, "nav.themeSystem")) data-theme-system=(t(lang, "nav.themeSystem")) data-theme-light=(t(lang, "nav.themeLight")) data-theme-dark=(t(lang, "nav.themeDark"))>("\u{25d0}")</button>
                         <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label=(t(lang, "nav.resize")) tabindex="0" aria-valuemin="208" aria-valuemax="420" aria-valuenow="240"></div>
-                        <a class="brand" href=(with_lang("/", lang))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
+                        <a class="brand" href=(with_lang("/", lang)) aria-label=(t(lang, "nav.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
                         <h3>(t(lang, "nav.companies"))</h3>
                         <a href=(with_lang("/", lang)) aria-label=(t(lang, "nav.companies"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.companies"))</span></a>
                         if let Some(company_id) = &company_id {

@@ -260,6 +260,7 @@ body {
   stroke-linejoin: round;
 }
 .app-sidebar.collapsed a { justify-content: center; padding-left: 0; padding-right: 0; }
+.app-sidebar.collapsed .nav-label { display: none; }
 .nav-label { flex: 1 1 auto; min-width: 0; }
 .app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
 .app-sidebar a.brand { font-weight: 600; color: var(--color-foreground); margin-bottom: var(--space-3); }

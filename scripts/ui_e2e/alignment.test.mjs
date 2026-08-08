@@ -369,7 +369,6 @@ test("sidebar icons render visibly (stroke outline, rail column)", async () => {
       overflowX: document.documentElement.scrollWidth > window.innerWidth,
     };
   });
-  await p.close();
   try {
     assert.equal(m.svgCount, 24, `expected 24 sidebar icons (23 nav + brand), got ${m.svgCount}`);
     assert.equal(m.iconW, 16);
@@ -381,7 +380,15 @@ test("sidebar icons render visibly (stroke outline, rail column)", async () => {
     assert.equal(m.labelHidden, "hidden");
     assert.equal(m.iconVisible, "visible");
     assert.equal(m.overflowX, false);
-    record("sidebar icons render visibly (stroke outline, rail column)", true, m);
+    // Wait out the 160ms width transition before measuring the rail position.
+    await p.waitForTimeout(300);
+    const center = await p.evaluate(() => {
+      const r = document.querySelector(".app-sidebar a svg").getBoundingClientRect();
+      return r.left + r.width / 2;
+    });
+    assert.ok(Math.abs(center - 32) <= 6, `rail icon should be centered (~32px), got ${center}`);
+    record("sidebar icons render visibly (stroke outline, rail column)", true, { ...m, iconCenterX: center });
+    await p.close();
   } catch (e) { record("sidebar icons render visibly (stroke outline, rail column)", false, { error: e.message, ...m }); throw e; }
 });
 
