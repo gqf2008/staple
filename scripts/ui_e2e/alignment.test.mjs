@@ -42,15 +42,31 @@ async function page(viewport = { width: 1440, height: 900 }) {
   return browser.newPage({ viewport });
 }
 
+async function waitForEval(pg, fn, timeoutMs = 4000) {
+  const start = Date.now();
+  while (Date.now() - start < timeoutMs) {
+    if (await pg.evaluate(fn)) return true;
+    await pg.waitForTimeout(50);
+  }
+  return false;
+}
+
 async function firstCompanyId() {
-  const r = await fetch(`${BASE_URL}/api/companies`);
-  const body = await r.json();
+  // The server may still be applying schema migrations right after boot;
+  // retry until the companies API answers without 500.
+  let body = null;
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const r = await fetch(`${BASE_URL}/api/companies`);
+    if (r.status === 200) { body = await r.json(); break; }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  if (!body) throw new Error(`companies API unavailable: ${BASE_URL}`);
   if (Array.isArray(body) && body.length > 0) return body[0].id;
   // self-seed an E2E company through the API
   const created = await fetch(`${BASE_URL}/api/companies`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name: "UI E2E", description: "created by ui_e2e suite", issuePrefix: "E2E" }),
+    body: JSON.stringify({ name: "UI E2E", description: "created by ui_e2e suite" }),
   });
   const createdBody = await created.json();
   if (!created.ok || !createdBody.id) throw new Error(`seed company failed: ${created.status} ${JSON.stringify(createdBody)}`);
@@ -58,6 +74,8 @@ async function firstCompanyId() {
 }
 
 async function ensureApproval(companyId) {
+  const existing = await fetch(`${BASE_URL}/api/companies/${companyId}/approvals`).then((r) => r.json());
+  if (Array.isArray(existing) && existing.some((a) => a.status === "pending")) return existing[0].id;
   const r = await fetch(`${BASE_URL}/api/companies/${companyId}/approvals`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -102,11 +120,13 @@ test("global tokens & font (light)", async () => {
   const p = await page();
   await p.goto(`${BASE_URL}/companies/${companyId}/board`, { waitUntil: "networkidle" });
   await p.waitForTimeout(400);
-  const m = await p.evaluate(() => {
+  const m = await p.evaluate(async () => {
+    await document.fonts.ready;
     const root = getComputedStyle(document.documentElement);
     const body = getComputedStyle(document.body);
     return {
       font: body.fontFamily,
+      fontLoaded: document.fonts.check('16px "InterVariable"'),
       bodyBg: body.backgroundColor,
       bodyFg: body.color,
       primary: root.getPropertyValue("--color-primary").trim(),
@@ -117,6 +137,7 @@ test("global tokens & font (light)", async () => {
   await p.close();
   try {
     assert.ok(m.font.startsWith("InterVariable"), `font=${m.font}`);
+    assert.equal(m.fontLoaded, true, "InterVariable font file must load");
     assert.equal(m.bodyBg, "oklch(1 0 0)");
     assert.equal(m.bodyFg, "oklch(0.145 0 0)");
     assert.equal(m.primary, "oklch(0.205 0 0)");
@@ -177,7 +198,8 @@ test("command palette specs (open/close)", async () => {
   await p.goto(`${BASE_URL}/companies/${companyId}/board`, { waitUntil: "networkidle" });
   await p.waitForTimeout(300);
   await p.keyboard.press("Meta+k");
-  await p.waitForTimeout(250);
+  assert.ok(await waitForEval(p, () => !!document.querySelector(".command-palette-panel")), "palette should open");
+  await p.waitForTimeout(200);
   const m = await p.evaluate(() => {
     const panel = document.querySelector(".command-palette-panel");
     if (!panel) return null;
@@ -197,7 +219,7 @@ test("command palette specs (open/close)", async () => {
   });
   await p.screenshot({ path: join(OUT_DIR, "03-command-palette.png") });
   await p.keyboard.press("Escape");
-  const closed = await p.evaluate(() => document.querySelector(".command-palette").hidden);
+  const closed = await waitForEval(p, () => document.querySelector(".command-palette").hidden);
   await p.close();
   try {
     assert.ok(m, "palette panel not rendered");
@@ -297,11 +319,12 @@ test("narrow drawer + no horizontal overflow", async () => {
     };
   });
   await p.click("#sidebar-toggle");
-  await p.waitForTimeout(400);
-  const opened = await p.evaluate(() => ({
-    drawerOpen: document.querySelector(".app-sidebar").classList.contains("drawer-open"),
-    scrimHidden: document.getElementById("sidebar-scrim").hidden,
-  }));
+  const opened = await waitForEval(p, () => document.querySelector(".app-sidebar").classList.contains("drawer-open"), 4000)
+    ? await p.evaluate(() => ({
+        drawerOpen: document.querySelector(".app-sidebar").classList.contains("drawer-open"),
+        scrimHidden: document.getElementById("sidebar-scrim").hidden,
+      }))
+    : { drawerOpen: false, scrimHidden: true };
   await p.screenshot({ path: join(OUT_DIR, "06-narrow-drawer-open.png") });
   await p.close();
   try {
