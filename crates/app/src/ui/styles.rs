@@ -126,8 +126,8 @@ pub const TOKENS_CSS: &str = r#"
 
   /* shadow */
   --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.05);
-  --shadow-md: 0 4px 6px rgb(0 0 0 / 0.07);
-  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.18);
+  --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
 
   /* motion — upstream durations (fast/base/slow/deliberate); pulse is a
      Staple extension for chat/thinking dots */
@@ -365,6 +365,7 @@ body {
   font-size: var(--font-size-xs);
   line-height: 1rem;
   font-weight: 500;
+  white-space: nowrap;
 }
 
 .badge-running { background: var(--color-status-running); color: var(--color-primary-foreground); }
@@ -816,11 +817,15 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 }
 .command-palette[hidden] { display: none; }
 .command-palette-panel {
-  width: min(28rem, calc(100vw - var(--space-8)));
+  /* Aligned with the real product Cmd+K: CommandPalette -> CommandDialog ->
+     DialogContent (sm:max-w-lg = 32rem/512px, rounded-lg, shadow-lg). The
+     Storybook inline story (#238) measured max-w-md/shadow-md, which is the
+     demo surface, not the shipped dialog. */
+  width: min(32rem, calc(100vw - var(--space-8)));
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  box-shadow: var(--shadow-lg);
   overflow: hidden;
   animation: palette-in var(--motion-duration-fast) var(--motion-ease-base);
 }
@@ -834,6 +839,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   height: var(--space-12);
   border: none;
   border-bottom: 1px solid var(--color-border);
+  border-radius: 0;
   padding: 0 var(--space-3);
   font-size: var(--font-size-md);
   background: transparent;

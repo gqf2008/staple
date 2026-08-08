@@ -21,7 +21,7 @@ Playwright 1440×900 实测（token 对齐后 build）：
 | `--motion-duration-fast` | `160ms`（reduced-motion 下 `0ms`） |
 | 状态色 | `running=#2563eb`、`done=#22c55e`、`in-review=#7c3aed`、`cancelled/backlog=#a8aeb2`（release_smoke 断言 token 与字体路由） |
 
-> **更新（2026-08-08，issue #252）**：组件级视觉对齐——Button 字重 500、Badge 胶囊（22px，`--radius-full` + `space-0-5 space-2`）、命令面板（448px/`radius-lg`/`shadow-md`/输入 h-12/项 `space-3 space-2`）、看板卡（`space-2-5`/`radius-lg`/hover `shadow-sm`）；列表行卡保留为 B4 卡片式近似（登记）。
+> **更新（2026-08-08，issue #252）**：组件级视觉对齐——Button 字重 500、Badge 胶囊（22px，`--radius-full` + `space-0-5 space-2` + `white-space: nowrap`）、命令面板按真实产品 Cmd+K（CommandDialog `sm:max-w-lg`=32rem/512px + `shadow-lg`；#238 的 448px/shadow-md 为 Storybook 内联故事展示，非真实对话框）、输入 h-12 + `0 space-3` + radius 0、项 `space-3 space-2`、看板卡 `space-2-5`/`radius-lg`/hover `shadow-sm`；`--shadow-md/lg` token 更新为上游 Tailwind 值；列表行卡保留为 B4 卡片式近似（见 parity-checklist B4）。
 
 ## 1. 方法与素材
 

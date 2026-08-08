@@ -1039,7 +1039,7 @@ async fn core_business_flow_smoke() {
         ),
         (
             format!("/companies/{company_id}/board"),
-            "width: min(28rem, calc(100vw - var(--space-8)));",
+            "width: min(32rem, calc(100vw - var(--space-8)));",
         ),
         (
             format!("/companies/{company_id}/board"),
@@ -1052,6 +1052,30 @@ async fn core_business_flow_smoke() {
         (
             format!("/companies/{company_id}/board"),
             "padding: var(--space-0-5) var(--space-2);",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "font-weight: 500;",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            ".command-palette-panel .command-palette-input {",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "padding: var(--space-3) var(--space-2);",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "box-shadow: var(--shadow-lg);",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "white-space: nowrap;",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            ".board-card:hover { box-shadow: var(--shadow-sm); }",
         ),
         ("/static/sidebar.js".to_string(), "collapsed"),
         ("/static/theme.js".to_string(), "staple.theme"),
