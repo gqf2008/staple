@@ -1,5 +1,6 @@
 //! Topcoat board UI: token layer, layout, and pages.
 
+pub mod icons;
 pub mod instructions_routes;
 pub mod layout;
 pub mod pages;
