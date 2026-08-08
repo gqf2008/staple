@@ -95,6 +95,7 @@ pub const TOKENS_CSS: &str = r#"
   --space-1: 0.25rem;
   --space-1-5: 0.375rem;
   --space-2: 0.5rem;
+  --space-2-5: 0.625rem;
   --space-3: 0.75rem;
   --space-4: 1rem;
   --space-6: 1.5rem;
@@ -358,10 +359,12 @@ body {
 
 .badge {
   display: inline-block;
-  padding: var(--space-1) var(--space-2);
-  border-radius: var(--radius-sm);
+  padding: var(--space-0-5) var(--space-2);
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
   font-size: var(--font-size-xs);
-  font-weight: 600;
+  line-height: 1rem;
+  font-weight: 500;
 }
 
 .badge-running { background: var(--color-status-running); color: var(--color-primary-foreground); }
@@ -394,6 +397,7 @@ input[type="text"], textarea, select {
 button {
   font: inherit;
   font-size: var(--font-size-sm);
+  font-weight: 500;
   height: var(--space-10);
   padding: 0 var(--space-4);
   border: 1px solid var(--color-border);
@@ -510,12 +514,12 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   background: var(--color-card);
   border: 1px solid var(--color-border);
   border-left-width: 3px;
-  border-radius: var(--radius-sm);
-  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-3);
+  border-radius: var(--radius-lg);
+  padding: var(--space-2-5);
   cursor: grab;
   transition: box-shadow var(--motion-duration-fast) var(--motion-ease-base);
 }
-.board-card:hover { box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08); }
+.board-card:hover { box-shadow: var(--shadow-sm); }
 .board-card.dragging { opacity: 0.35; }
 .board-card-priority-critical { border-left-color: var(--color-priority-critical); }
 .board-card-priority-high { border-left-color: var(--color-priority-high); }
@@ -812,11 +816,11 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 }
 .command-palette[hidden] { display: none; }
 .command-palette-panel {
-  width: min(32rem, calc(100vw - var(--space-8)));
+  width: min(28rem, calc(100vw - var(--space-8)));
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-lg);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-md);
   overflow: hidden;
   animation: palette-in var(--motion-duration-fast) var(--motion-ease-base);
 }
@@ -824,12 +828,13 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   from { opacity: 0; transform: scale(0.98); }
   to { opacity: 1; transform: scale(1); }
 }
-.command-palette-input {
+.command-palette-panel .command-palette-input {
   width: 100%;
   box-sizing: border-box;
+  height: var(--space-12);
   border: none;
   border-bottom: 1px solid var(--color-border);
-  padding: var(--space-3);
+  padding: 0 var(--space-3);
   font-size: var(--font-size-md);
   background: transparent;
   color: var(--color-foreground);
@@ -844,7 +849,7 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   display: flex;
   gap: var(--space-2);
   align-items: center;
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-2);
   border-radius: var(--radius-sm);
   color: var(--color-foreground);
   text-decoration: none;

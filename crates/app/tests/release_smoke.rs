@@ -1037,6 +1037,22 @@ async fn core_business_flow_smoke() {
             format!("/companies/{company_id}/board"),
             ".command-palette-panel { animation: none; }",
         ),
+        (
+            format!("/companies/{company_id}/board"),
+            "width: min(28rem, calc(100vw - var(--space-8)));",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "height: var(--space-12);",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "padding: var(--space-2-5);",
+        ),
+        (
+            format!("/companies/{company_id}/board"),
+            "padding: var(--space-0-5) var(--space-2);",
+        ),
         ("/static/sidebar.js".to_string(), "collapsed"),
         ("/static/theme.js".to_string(), "staple.theme"),
         (

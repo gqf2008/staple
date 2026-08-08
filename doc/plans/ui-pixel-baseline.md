@@ -21,6 +21,8 @@ Playwright 1440×900 实测（token 对齐后 build）：
 | `--motion-duration-fast` | `160ms`（reduced-motion 下 `0ms`） |
 | 状态色 | `running=#2563eb`、`done=#22c55e`、`in-review=#7c3aed`、`cancelled/backlog=#a8aeb2`（release_smoke 断言 token 与字体路由） |
 
+> **更新（2026-08-08，issue #252）**：组件级视觉对齐——Button 字重 500、Badge 胶囊（22px，`--radius-full` + `space-0-5 space-2`）、命令面板（448px/`radius-lg`/`shadow-md`/输入 h-12/项 `space-3 space-2`）、看板卡（`space-2-5`/`radius-lg`/hover `shadow-sm`）；列表行卡保留为 B4 卡片式近似（登记）。
+
 ## 1. 方法与素材
 
 - **Staple 侧**：`cargo run`（端口 3100，演示公司 `Demo 智能体公司`），Playwright headless Chromium 1440×900 截图 19 个核心页面（`doc/plans/ui-baseline/staple/*.png`），并实测计算样式（布局/字号/颜色/圆角/间距）。
