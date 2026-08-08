@@ -74,6 +74,7 @@ by `rust-toolchain.toml` (stable, edition 2024).
 - `make lint` — `cargo fmt --check` + `cargo clippy -- -D warnings`
 - `make build` — release build
 - `make js-test` — run the UI JS behavior tests (Node built-in test runner, zero dependencies)
+- `make ui-e2e` — run the UI/UX alignment end-to-end tests (Playwright computed-style assertions vs upstream-aligned specs; builds + boots the app on 3109 with a dedicated throwaway DB `UI_E2E_DB` (default `/tmp/staple-ui-e2e.db`, **never your real `STAPLE_DB_PATH`**), self-seeds a company/issue/pending approval via the API, saves screenshots + JSON report under `target/ui-e2e-*`; requires `npx playwright install chromium`, or set `PW_EXECUTABLE`)
 
 ### Data layer
 
