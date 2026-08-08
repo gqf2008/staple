@@ -386,9 +386,6 @@ pub async fn issue_detail(cx: &Cx) -> Result {
                     <span class=(format!("status-dot status-dot-{}", issue.status)) aria-hidden="true"></span>
                     " " (status_label)
                 </span>
-                <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>
-                    (issue.priority.clone())
-                </span>
                 if let Some(name) = assignee_name {
                     " " <span class="board-assignee">
                         <span class="board-assignee-dot">(name.chars().next().unwrap_or('?').to_uppercase().to_string())</span>
@@ -798,15 +795,12 @@ pub async fn board(cx: &Cx) -> Result {
                     </div>
                     <div class="board-column-body">
                         for issue in issues.iter().filter(|issue| issue.status == status) {
-                            <a class=(format!("board-card board-card-priority-{}", issue.priority))
+                            <a class="board-card"
                                data-issue-id=(issue.id.clone())
                                href=(with_lang(&format!("/issues/{}", issue.id), lang))>
                                 <div class="board-card-id">(issue.identifier.clone())</div>
                                 <div class="board-card-title">(issue.title.clone())</div>
                                 <div class="board-card-footer">
-                                    <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>
-                                        (issue.priority.clone())
-                                    </span>
                                     if let Some(assignee_id) = &issue.assignee_agent_id {
                                         if let Some(name) = agent_name.get(assignee_id.as_str()) {
                                             " "
@@ -1377,8 +1371,7 @@ pub async fn inbox(cx: &Cx) -> Result {
                             (issue.identifier.clone()) " " (issue.title.clone())
                         </a>
                         <div class="row-card-meta">
-                            <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>(issue.priority.clone())</span>
-                            " · " (issue.status.replace('_', " "))
+                            (issue.status.replace('_', " "))
                         </div>
                     </div>
                     <div class="row-card-actions">
@@ -4180,8 +4173,7 @@ pub async fn my_issues(cx: &Cx) -> Result {
                                 (issue.identifier.clone()) " " (issue.title.clone())
                             </a>
                             <div class="row-card-meta">
-                                <span class=(format!("board-priority-label board-priority-{}", issue.priority.clone()))>(issue.priority.clone())</span>
-                                " · " (issue.status.replace('_', " "))
+                                (issue.status.replace('_', " "))
                             </div>
                         </div>
                     </div>
