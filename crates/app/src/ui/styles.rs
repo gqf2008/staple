@@ -81,8 +81,9 @@ pub const TOKENS_CSS: &str = r#"
   --color-status-icon-idle: #52585d;
   --color-status-icon-error: #dc2626;
 
-  /* priority colors — Staple extension (upstream has no priority token set;
-     kept for board/issue priority chips, documented in ui-pixel-baseline) */
+  /* priority colors — Staple extension: retained for the data model and the
+     attention over-budget dot; board priority UI is hidden to match official
+     PAP-411 (SHOW_TASK_PRIORITY_UI off), documented in ui-pixel-baseline */
   --color-priority-critical: #dc2626;
   --color-priority-high: #ea580c;
   --color-priority-medium: #2563eb;
@@ -515,7 +516,6 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   display: block;
   background: var(--color-card);
   border: 1px solid var(--color-border);
-  border-left-width: 3px;
   border-radius: var(--radius-lg);
   padding: var(--space-2-5);
   cursor: grab;
@@ -523,10 +523,6 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
 }
 .board-card:hover { box-shadow: var(--shadow-sm); }
 .board-card.dragging { opacity: 0.35; }
-.board-card-priority-critical { border-left-color: var(--color-priority-critical); }
-.board-card-priority-high { border-left-color: var(--color-priority-high); }
-.board-card-priority-medium { border-left-color: var(--color-priority-medium); }
-.board-card-priority-low { border-left-color: var(--color-priority-low); }
 .board-card-id {
   font-family: var(--font-mono);
   font-size: var(--font-size-xs);
@@ -547,11 +543,6 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   gap: var(--space-2);
   font-size: var(--font-size-xs);
 }
-.board-priority-label { font-weight: 600; font-size: var(--font-size-xs); }
-.board-priority-critical { color: var(--color-priority-critical); }
-.board-priority-high { color: var(--color-priority-high); }
-.board-priority-medium { color: var(--color-priority-medium); }
-.board-priority-low { color: var(--color-priority-low); }
 .board-assignee {
   display: inline-flex;
   align-items: center;
