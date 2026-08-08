@@ -51,7 +51,7 @@
 | Button 默认 | 高 **40px**，padding 8px 12px，radius **6.4px**（rounded-md），bg `oklch(0.205 0 0)`（近黑）+ 白字，font-size 14px / weight 500 | 高 36px，padding 8px 12px，radius 4.8px，蓝 `#2563eb` 底白字 | **差异**（高度/圆角/主色/字号/字重） |
 | Badge | 高 **22px**，padding 2px 8px，radius rounded-full（胶囊，Tailwind v4 序列化为极大值），font-size 12px；default=近黑底白字、secondary=`oklch(0.97 0 0)` | Staple 徽标规格见基线 §3 | 待 Staple 侧复核（基线未量化 badge） |
 | Card | radius **8px**（rounded-lg），border 1px `oklch(0.922 0 0)`，bg `oklch(1 0 0)`，padding 16px | inbox 卡 radius 8px / border `#e7e5e4` / padding 12px；看板卡 4.8px | 部分一致（8px/边框近似）；padding 与看板卡圆角不同 |
-| CommandPalette | 宽 448px（max-w-md），radius 8px，border 1px，bg 白，shadow md（0 4px 6px -1px / 0 2px 4px -2px） | Staple 无同款组件（#228 未对比） | 待 Staple 侧实施后对比 |
+| CommandPalette | 宽 448px（max-w-md，**Storybook 内联故事**），radius 8px，border 1px，bg 白，shadow md（0 4px 6px -1px / 0 2px 4px -2px）；真实产品 Cmd+K 走 CommandDialog `sm:max-w-lg`=512px + shadow-lg（见 issue #252） | Staple 已按真实 Dialog 实施（#252/PR #253） | 已对齐（512px/8px/shadow-lg） |
 | KanbanBoard | 列：Backlog/Todo/In Progress/In Review/Blocked/Done/Cancelled；卡含 identifier、标题、负责人头像 | Staple 看板列结构近似 | 结构近似，token 差异同上 |
 | 字体 | `InterVariable, Inter, ui-sans-serif, …`（--font-sans） | Staple `ui-sans-serif, system-ui, …`（无 Inter） | **差异**（缺 Inter） |
 | 浅色 token | background `oklch(1 0 0)`、foreground `oklch(0.145 0 0)`、primary `oklch(0.205 0 0)`、muted `oklch(0.97 0 0)`、muted-foreground `oklch(0.556 0 0)`、border `oklch(0.922 0 0)`、radius 0.5rem（md=×0.8、lg=0.5rem） | Staple 见基线 §2 表 | 与基线 §2 判断一致（系统性差异） |
