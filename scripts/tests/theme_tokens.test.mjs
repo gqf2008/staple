@@ -5,6 +5,12 @@
 // (ui/src/index.css :root + .dark blocks). Snapshots are taken from
 // /Volumes/Workspace/GitHub/paperclip at the 2026-08-07 baseline; update them
 // when the reference mirror advances.
+//
+// Sidebar surface tokens (issue #266) intentionally follow the RUNNING
+// reference app (2026-08-08 runtime sampling, commit a0df344e9): light shell
+// #f9f9f9 (oklch 0.98) and dark shell #101111 (oklch 0.13, darker than the
+// background 0.145). The 2026-08-07 mirror source still carries the older
+// 0.985/0.205 pair — see doc/plans/ui-pixel-baseline.md §2 sidebar entry.
 
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
@@ -46,6 +52,7 @@ const LIGHT_EXPECTED = {
   "--color-muted-foreground": "oklch(0.556 0 0)",
   "--color-border": "oklch(0.922 0 0)",
   "--color-destructive": "oklch(0.577 0.245 27.325)",
+  "--color-sidebar": "oklch(0.98 0 0)",
   "--radius-sm": "0.3rem",
   "--radius-md": "0.4rem",
   "--radius-lg": "0.5rem",

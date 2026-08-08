@@ -471,7 +471,6 @@ test("sidebar metrics match upstream (rows/labels/badges/polarity)", async () =>
     const brand = sb.querySelector("a.brand");
     const brandRect = brand ? brand.getBoundingClientRect() : null;
     const sbBg = getComputedStyle(sb).backgroundColor;
-    const mainBg = getComputedStyle(document.querySelector(".app-main") || document.body).backgroundColor;
     const dark = document.documentElement.classList.contains("dark");
     return {
       rowH: rr ? Math.round(rr.height) : null,
@@ -489,10 +488,32 @@ test("sidebar metrics match upstream (rows/labels/badges/polarity)", async () =>
       badgeRadius: bs ? bs.borderRadius : null,
       badgeW: br ? Math.round(br.width) : null,
       brandY: brandRect ? Math.round(brandRect.top - sb.getBoundingClientRect().top) : null,
-      sidebarBg: sbBg, mainBg, dark,
+      sidebarBg: sbBg, dark,
       workspaces: Array.from(sb.querySelectorAll("a")).some((a) => (a.textContent || "").includes("Workspaces")),
     };
   });
+  await p.close();
+
+  // Polarity: in dark mode the sidebar must be darker than the page background
+  // (upstream #101111 vs #161616). Force dark in a fresh context and compare
+  // oklch lightness of the computed backgrounds.
+  const luma = (color) => {
+    const mm = /oklch\(([0-9.]+)/.exec(color || "");
+    return mm ? Number.parseFloat(mm[1]) : null;
+  };
+  const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx2.addInitScript(() => { try { localStorage.setItem("staple.theme", "dark"); } catch (_) {} });
+  const p2 = await ctx2.newPage();
+  await p2.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
+  await p2.waitForTimeout(400);
+  const polarity = await p2.evaluate(() => {
+    const sb = document.querySelector(".app-sidebar");
+    const sbBg = getComputedStyle(sb).backgroundColor;
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    return { sbBg, bodyBg };
+  });
+  await ctx2.close();
+
   try {
     assert.equal(m.rowH, 32, `sidebar row height ${m.rowH} != 32px`);
     assert.equal(m.rowFs, "13px", `row font-size ${m.rowFs} != 13px`);
@@ -507,13 +528,15 @@ test("sidebar metrics match upstream (rows/labels/badges/polarity)", async () =>
     assert.ok(m.badgeRadius.includes("9999px") || parseFloat(m.badgeRadius) > 100, `badge radius ${m.badgeRadius} != full`);
     assert.ok(m.brandY !== null && m.brandY < 20, `brand should sit near sidebar top, got y=${m.brandY}`);
     assert.equal(m.workspaces, true, "workspaces nav item missing");
-    if (m.dark) {
-      assert.notEqual(m.sidebarBg, "rgba(0, 0, 0, 0)", "sidebar bg must be visible");
-      assert.notEqual(m.mainBg, "rgba(0, 0, 0, 0)", "main bg must be visible");
-    }
-    record("sidebar metrics match upstream (rows/labels/badges/polarity)", true, m);
-    await p.close();
-  } catch (e) { record("sidebar metrics match upstream (rows/labels/badges/polarity)", false, { error: e.message, ...m }); throw e; }
+    // light: sidebar shell #f9f9f9 (oklch 0.98)
+    assert.match(m.sidebarBg, /oklch\(0\.98/, `light sidebar bg ${m.sidebarBg} != oklch(0.98)`);
+    // dark polarity: sidebar darker than page background
+    const sbL = luma(polarity.sbBg);
+    const bodyL = luma(polarity.bodyBg);
+    assert.ok(sbL !== null && bodyL !== null, `polarity parse failed: ${polarity.sbBg} / ${polarity.bodyBg}`);
+    assert.ok(sbL < bodyL, `dark polarity broken: sidebar ${sbL} >= body ${bodyL}`);
+    record("sidebar metrics match upstream (rows/labels/badges/polarity)", true, { ...m, polarity });
+  } catch (e) { record("sidebar metrics match upstream (rows/labels/badges/polarity)", false, { error: e.message, ...m, polarity }); throw e; }
 });
 
 test("narrow drawer + no horizontal overflow", async () => {

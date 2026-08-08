@@ -16,7 +16,7 @@ use crate::{
 };
 
 use super::icons::{
-    ACTIVITY, ALERT_CIRCLE, AWARD, BOX, BRIEFCASE, CHECK_CIRCLE, CLOCK, CODE, DATABASE, FILE_TEXT,
+    ACTIVITY, ALERT_CIRCLE, AWARD, BRIEFCASE, CHECK_CIRCLE, CLOCK, CODE, DATABASE, FILE_TEXT,
     FOLDER, GIT_BRANCH, GRID, INBOX, LAYOUT, LIST, SETTINGS, SHIELD, USER, USERS, ZAP,
 };
 use super::styles::TOKENS_CSS;
@@ -182,7 +182,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                             <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang)) class=(active_for(&format!("/companies/{company_id}/routines"))) aria-label=(t(lang, "routines.title"))>icon(data: CLOCK) <span class="nav-label">(t(lang, "routines.title"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang)) class=(active_for(&format!("/companies/{company_id}/artifacts"))) aria-label=(t(lang, "artifacts.title"))>icon(data: FILE_TEXT) <span class="nav-label">(t(lang, "artifacts.title"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang)) class=(active_for(&format!("/companies/{company_id}/skills"))) aria-label=(t(lang, "skills.title"))>icon(data: CODE) <span class="nav-label">(t(lang, "skills.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang)) class=(active_for(&format!("/companies/{company_id}/workspaces"))) aria-label=(t(lang, "workspaces.title"))>icon(data: BOX) <span class="nav-label">(t(lang, "workspaces.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/workspaces"), lang)) class=(active_for(&format!("/companies/{company_id}/workspaces"))) aria-label=(t(lang, "workspaces.title"))>icon(data: GIT_BRANCH) <span class="nav-label">(t(lang, "workspaces.title"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang)) class=(active_for(&format!("/companies/{company_id}/projects"))) aria-label=(t(lang, "projects.title"))>icon(data: FOLDER) <span class="nav-label">(t(lang, "projects.title"))</span></a>
                             <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang)) class=(active_for(&format!("/companies/{company_id}/agents"))) aria-label=(t(lang, "agents.title"))>icon(data: USERS) <span class="nav-label">(t(lang, "agents.title"))</span></a>
 

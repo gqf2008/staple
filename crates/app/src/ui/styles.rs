@@ -44,7 +44,7 @@ pub const TOKENS_CSS: &str = r#"
   --color-input: oklch(0.922 0 0);
   --color-ring: oklch(0.708 0 0);
   /* upstream light shell #f9f9f9 (issue #266) */
-  --color-sidebar: oklch(0.97 0 0);
+  --color-sidebar: oklch(0.98 0 0);
   --color-sidebar-foreground: oklch(0.145 0 0);
   --color-sidebar-primary: oklch(0.205 0 0);
   --color-sidebar-primary-foreground: oklch(0.985 0 0);
@@ -120,7 +120,7 @@ pub const TOKENS_CSS: &str = r#"
   /* typography — upstream stack, InterVariable self-hosted (see @font-face) */
   --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  --font-size-micro: 0.625rem; /* upstream --text-micro (10px): sidebar section labels */
+  --font-size-micro: 0.625rem; /* upstream --text-nano (10px): sidebar section labels */
   --font-size-xs: 0.75rem;
   --font-size-compact: 0.8125rem; /* upstream --text-compact (13px): sidebar rows */
   --font-size-sm: 0.875rem;
@@ -245,6 +245,7 @@ body {
   transition: width var(--motion-duration-fast) var(--motion-ease-base);
 }
 .app-sidebar.collapsed { width: var(--sidebar-rail); overflow: hidden; }
+.app-sidebar.collapsed #theme-toggle { display: none; } /* upstream rail has no theme switch */
 .app-sidebar.collapsed .nav-label, .app-sidebar.collapsed h3 { visibility: hidden; }
 .app-sidebar a {
   display: flex;
@@ -299,6 +300,7 @@ body {
   line-height: 20px;
 }
 .app-sidebar h3 {
+  font-family: var(--font-mono);
   font-size: var(--font-size-micro);
   font-weight: 500;
   text-transform: uppercase;
