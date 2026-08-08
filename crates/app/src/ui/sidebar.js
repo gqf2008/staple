@@ -57,12 +57,12 @@
 
     function applyWidth() {
       var collapsed = sidebar.classList.contains("collapsed");
+      // The toggle button width is owned by CSS (#sidebar-toggle = 32px);
+      // only the sidebar width is managed inline here.
       if (collapsed) {
         sidebar.style.width = "";
-        toggle.style.width = "calc(var(--sidebar-rail) - var(--space-6))";
       } else {
         sidebar.style.width = width + "px";
-        toggle.style.width = "calc(" + width + "px - var(--space-6))";
       }
       syncAria();
     }
@@ -93,9 +93,7 @@
         // Drawer mode: desktop collapse/width persistence is ignored.
         sidebar.classList.remove("collapsed");
         sidebar.style.width = sidebarWidth;
-        // Let the narrow media query size the hamburger (40px) — the desktop
-        // inline width would otherwise stay and cover page content.
-        toggle.style.width = "";
+        // Narrow media query sizes the hamburger (40px); no inline width.
         setDrawer(readStored(MOBILE_KEY, "0") === "1");
       } else {
         drawerOpen = false;
@@ -151,7 +149,6 @@
         if (!dragging) return;
         width = clampSidebarWidth(dragging.startWidth + (event.clientX - dragging.startX));
         sidebar.style.width = width + "px";
-        toggle.style.width = "calc(" + width + "px - var(--space-6))";
         syncAria();
       });
       window.addEventListener("pointerup", function () { endDrag(false); });

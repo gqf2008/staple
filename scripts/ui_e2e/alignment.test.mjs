@@ -178,7 +178,7 @@ test("badge specs", async () => {
   await p.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
   await p.waitForTimeout(300);
   const m = await p.evaluate(() => {
-    const el = document.querySelector(".badge");
+    const el = document.querySelector(".app-main .badge") || document.querySelector("main .badge");
     if (!el) return null;
     const s = getComputedStyle(el);
     return { h: el.getBoundingClientRect().height, radius: s.borderRadius, ws: s.whiteSpace, fw: s.fontWeight };
@@ -370,7 +370,7 @@ test("sidebar icons render visibly (stroke outline, rail column)", async () => {
     };
   });
   try {
-    assert.equal(m.svgCount, 24, `expected 24 sidebar icons (23 nav + brand), got ${m.svgCount}`);
+    assert.equal(m.svgCount, 25, `expected 25 sidebar icons (24 nav + brand), got ${m.svgCount}`);
     assert.equal(m.iconW, 16);
     assert.equal(m.iconH, 16);
     assert.notEqual(m.stroke, "none", "icons must be stroked (Feather outline)");
@@ -451,6 +451,92 @@ test("root page marks brand + companies active (no stray highlight)", async () =
     record("root page marks brand + companies active (no stray highlight)", true, m);
     await p.close();
   } catch (e) { record("root page marks brand + companies active (no stray highlight)", false, { error: e.message, ...m }); throw e; }
+});
+
+test("sidebar metrics match upstream (rows/labels/badges/polarity)", async () => {
+  const companyId = state.companyId;
+  const p = await page();
+  await p.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
+  await p.waitForTimeout(500);
+  const m = await p.evaluate(() => {
+    const sb = document.querySelector(".app-sidebar");
+    const row = Array.from(sb.querySelectorAll("a:not(.brand)")).find((a) => (a.textContent || "").includes("Issues")) || sb.querySelector("a:not(.brand)");
+    const rs = row ? getComputedStyle(row) : null;
+    const rr = row ? row.getBoundingClientRect() : null;
+    const label = Array.from(sb.querySelectorAll("h3")).find((h) => (h.textContent || "").toUpperCase().includes("WORK"));
+    const ls = label ? getComputedStyle(label) : null;
+    const badge = sb.querySelector(".badge");
+    const bs = badge ? getComputedStyle(badge) : null;
+    const br = badge ? badge.getBoundingClientRect() : null;
+    const brand = sb.querySelector("a.brand");
+    const brandRect = brand ? brand.getBoundingClientRect() : null;
+    const sbBg = getComputedStyle(sb).backgroundColor;
+    const dark = document.documentElement.classList.contains("dark");
+    return {
+      rowH: rr ? Math.round(rr.height) : null,
+      rowFs: rs ? rs.fontSize : null,
+      rowFw: rs ? rs.fontWeight : null,
+      rowGap: rs ? rs.gap : null,
+      rowRadius: rs ? rs.borderRadius : null,
+      rowColor: rs ? rs.color : null,
+      labelFs: ls ? ls.fontSize : null,
+      labelFw: ls ? ls.fontWeight : null,
+      labelTT: ls ? ls.textTransform : null,
+      labelLS: ls ? ls.letterSpacing : null,
+      badgeCount: badge ? 1 : 0,
+      badgeBg: bs ? bs.backgroundColor : null,
+      badgeRadius: bs ? bs.borderRadius : null,
+      badgeW: br ? Math.round(br.width) : null,
+      brandY: brandRect ? Math.round(brandRect.top - sb.getBoundingClientRect().top) : null,
+      sidebarBg: sbBg, dark,
+      workspaces: Array.from(sb.querySelectorAll("a")).some((a) => (a.textContent || "").includes("Workspaces")),
+    };
+  });
+  await p.close();
+
+  // Polarity: in dark mode the sidebar must be darker than the page background
+  // (upstream #101111 vs #161616). Force dark in a fresh context and compare
+  // oklch lightness of the computed backgrounds.
+  const luma = (color) => {
+    const mm = /oklch\(([0-9.]+)/.exec(color || "");
+    return mm ? Number.parseFloat(mm[1]) : null;
+  };
+  const ctx2 = await browser.newContext({ viewport: { width: 1440, height: 900 } });
+  await ctx2.addInitScript(() => { try { localStorage.setItem("staple.theme", "dark"); } catch (_) {} });
+  const p2 = await ctx2.newPage();
+  await p2.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
+  await p2.waitForTimeout(400);
+  const polarity = await p2.evaluate(() => {
+    const sb = document.querySelector(".app-sidebar");
+    const sbBg = getComputedStyle(sb).backgroundColor;
+    const bodyBg = getComputedStyle(document.body).backgroundColor;
+    return { sbBg, bodyBg };
+  });
+  await ctx2.close();
+
+  try {
+    assert.equal(m.rowH, 32, `sidebar row height ${m.rowH} != 32px`);
+    assert.equal(m.rowFs, "13px", `row font-size ${m.rowFs} != 13px`);
+    assert.equal(m.rowFw, "500", `row font-weight ${m.rowFw} != 500`);
+    assert.equal(m.rowGap, "10px", `row gap ${m.rowGap} != 10px`);
+    assert.equal(m.rowRadius, "8px", `row radius ${m.rowRadius} != 8px`);
+    assert.equal(m.labelFs, "10px", `section label font-size ${m.labelFs} != 10px`);
+    assert.equal(m.labelFw, "500", `section label font-weight ${m.labelFw} != 500`);
+    assert.equal(m.labelTT, "uppercase", `section label transform ${m.labelTT} != uppercase`);
+    assert.equal(m.labelLS, "1px", `section label letter-spacing ${m.labelLS} != 1px`);
+    assert.equal(m.badgeCount, 1, "sidebar badge must render as pill");
+    assert.ok(m.badgeRadius.includes("9999px") || parseFloat(m.badgeRadius) > 100, `badge radius ${m.badgeRadius} != full`);
+    assert.ok(m.brandY !== null && m.brandY < 20, `brand should sit near sidebar top, got y=${m.brandY}`);
+    assert.equal(m.workspaces, true, "workspaces nav item missing");
+    // light: sidebar shell #f9f9f9 (oklch 0.98)
+    assert.match(m.sidebarBg, /oklch\(0\.98/, `light sidebar bg ${m.sidebarBg} != oklch(0.98)`);
+    // dark polarity: sidebar darker than page background
+    const sbL = luma(polarity.sbBg);
+    const bodyL = luma(polarity.bodyBg);
+    assert.ok(sbL !== null && bodyL !== null, `polarity parse failed: ${polarity.sbBg} / ${polarity.bodyBg}`);
+    assert.ok(sbL < bodyL, `dark polarity broken: sidebar ${sbL} >= body ${bodyL}`);
+    record("sidebar metrics match upstream (rows/labels/badges/polarity)", true, { ...m, polarity });
+  } catch (e) { record("sidebar metrics match upstream (rows/labels/badges/polarity)", false, { error: e.message, ...m, polarity }); throw e; }
 });
 
 test("narrow drawer + no horizontal overflow", async () => {

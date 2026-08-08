@@ -23,9 +23,13 @@ Playwright 1440×900 实测（token 对齐后 build）：
 
 > **更新（2026-08-08，issue #262）**：侧栏图标化——每项前置 16×16 Feather 描边图标（内联 path + svg stroke 呈现属性，无网络依赖），折叠 rail 保留图标列（结构对齐上游 rail；图标渲染经 E2E 断言 stroke 可见）；全站 svgCount>0。
 
+> **更新（2026-08-08，issue #264/PR #265）**：全站链接基线 `a { color: var(--color-foreground); text-decoration: none; }`——默认蓝/下划线残留清零（ui-e2e 断言 computed color/underline=0）；侧栏当前页 active 高亮对齐上游导航态（`bg-accent text-foreground` + `font-weight:500` + `rounded-lg`=8px）；`/` 下 brand + companies 双高亮（有意）、`/companies/{id}` 公司主页映射 Dashboard 高亮；顶层详情页（`/issues/{id}` 等无公司上下文）不参与侧栏高亮（边界登记，见 #264）。
+
 > **更新（2026-08-08，issue #258）**：看板优先级 UI 按官方 PAP-411 隐藏（`SHOW_TASK_PRIORITY_UI` 默认关闭）——移除看板卡优先级左边条与优先级标签（issue 头/看板卡/inbox 行/my-issues 行），数据模型与 `--color-priority-*` token 保留（`status-dot-over_budget` 仍用）；像素对比 board-card 由 DIFF 转 CLOSE 的目标。
 
 > **更新（2026-08-08，issue #252）**：组件级视觉对齐——Button 字重 500、Badge 胶囊（22px，`--radius-full` + `space-0-5 space-2` + `white-space: nowrap`）、命令面板按真实产品 Cmd+K（CommandDialog `sm:max-w-lg`=32rem/512px + `shadow-lg`；#238 的 448px/shadow-md 为 Storybook 内联故事展示，非真实对话框）、输入 h-12 + `0 space-3` + radius 0、项 `space-3 space-2`、看板卡 `space-2-5`/`radius-lg`/hover `shadow-sm`；`--shadow-md/lg` token 更新为上游 Tailwind 值；列表行卡保留为 B4 卡片式近似（见 parity-checklist B4）。
+
+> **更新（2026-08-08，issue #266/PR #267）**：侧栏视觉度量对齐上游**运行版**参考应用（3100 实测，commit a0df344e9，2026-08-08 采样）：行 32px/13px/500/gap10/px8/radius-lg(8px)/`text-foreground/80`、hover `bg-accent/50`；分组标签 10px（`--font-size-micro`）uppercase + `font-mono` + letter-spacing 1px + `muted-foreground/60`；徽章右对齐红 pill（`oklch(0.577 0.218 0.112 / .9)` + 19×18 + rounded-full）；brand 36px/14px/500 回到顶部（折叠按钮改 32×32 右上角，去 52px 占位）；`--color-sidebar` 浅色 `oklch(0.98 0 0)`（#f9f9f9）、深色 `oklch(0.13 0 0)`（#101111，**比背景 0.145 暗**，修复明暗极性）；WORK 分组补 Workspaces（GIT_BRANCH 图标）。证据来源：镜像源码 2026-08-07 基线仍为 `0.985/0.205`，本批按**运行版实测**取值并登记为有意偏差（`theme_tokens.test.mjs` 契约注释同步）。
 
 ## 1. 方法与素材
 

@@ -298,11 +298,14 @@ test("narrow mode: desktop collapse/width persistence is ignored", () => {
   assert.equal(sidebar.style.width, "240px");
 });
 
-test("cross-breakpoint: desktop -> narrow clears toggle inline width", () => {
+test("cross-breakpoint: desktop -> narrow keeps toggle width CSS-owned", () => {
+  // The toggle button width is owned by CSS (#sidebar-toggle 32px); JS must
+  // never write an inline width (issue #267 review: inline width used to
+  // cover page content as an invisible 216px click strip).
   const { toggle, setNarrow } = makeEnv({ narrow: false });
-  assert.notEqual(toggle.style.width, "");
+  assert.ok(!toggle.style.width, "desktop toggle must have no inline width");
   setNarrow(true);
-  assert.equal(toggle.style.width, "");
+  assert.ok(!toggle.style.width, "narrow toggle must have no inline width");
 });
 
 test("cross-breakpoint: desktop -> narrow -> toggle opens drawer", () => {
@@ -332,15 +335,15 @@ test("cross-breakpoint: narrow open -> desktop resets drawer state (Esc no-op)",
   assert.equal(toggle.getAttribute("aria-expanded"), "true");
 });
 
-test("desktop toggle width follows collapsed rail", () => {
+test("desktop toggle width is CSS-owned in collapsed rail", () => {
   const { sidebar, toggle } = makeEnv({ collapsedStored: true });
   assert.equal(sidebar.classList.contains("collapsed"), true);
-  assert.equal(toggle.style.width, "calc(var(--sidebar-rail) - var(--space-6))");
+  assert.ok(!toggle.style.width, "collapsed toggle must have no inline width");
 });
 
-test("desktop toggle width follows expanded width", () => {
+test("desktop toggle width is CSS-owned on expanded width", () => {
   const { toggle } = makeEnv({ widthStored: "320" });
-  assert.equal(toggle.style.width, "calc(320px - var(--space-6))");
+  assert.ok(!toggle.style.width, "expanded toggle must have no inline width");
 });
 
 test("drawer closed sets sidebar inert, open removes it", () => {
