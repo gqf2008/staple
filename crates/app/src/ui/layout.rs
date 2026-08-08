@@ -56,6 +56,34 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
     let current_path = parts
         .map(|parts| parts.uri.path().to_owned())
         .unwrap_or_else(|| "/".to_owned());
+    // Active nav state: exact match or section prefix (e.g. board/chat
+    // highlights Board, /companies/{id}/issues/{issue} highlights Issues).
+    // Returns None so the attribute is omitted entirely when not active.
+    let active_for = |href: &str| -> Option<&'static str> {
+        if current_path == href || current_path.starts_with(&format!("{href}/")) {
+            Some("active")
+        } else {
+            None
+        }
+    };
+    let brand_class = if current_path == "/" {
+        "brand active".to_string()
+    } else {
+        "brand".to_string()
+    };
+    // The company overview page (/companies/{id}) is the landing page of the
+    // company scope and highlights the Dashboard entry.
+    let dashboard_active = |company_id: &str| -> Option<&'static str> {
+        let dash = format!("/companies/{company_id}/dashboard");
+        if current_path == format!("/companies/{company_id}")
+            || current_path == dash
+            || current_path.starts_with(&format!("{dash}/"))
+        {
+            Some("active")
+        } else {
+            None
+        }
+    };
     let switch_lang = match lang {
         Lang::En => Lang::ZhCn,
         Lang::ZhCn => Lang::ZhTw,
@@ -114,14 +142,14 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                     <nav class="app-sidebar" id="app-sidebar" data-collapsible="true">
                         <button type="button" class="sidebar-toggle secondary" id="theme-toggle" aria-label=(t(lang, "nav.themeSystem")) data-theme-system=(t(lang, "nav.themeSystem")) data-theme-light=(t(lang, "nav.themeLight")) data-theme-dark=(t(lang, "nav.themeDark"))>("\u{25d0}")</button>
                         <div class="sidebar-resizer" id="sidebar-resizer" role="separator" aria-orientation="vertical" aria-label=(t(lang, "nav.resize")) tabindex="0" aria-valuemin="208" aria-valuemax="420" aria-valuenow="240"></div>
-                        <a class="brand" href=(with_lang("/", lang)) aria-label=(t(lang, "nav.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
+                        <a class=(brand_class) href=(with_lang("/", lang)) aria-label=(t(lang, "nav.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "nav.title"))</span></a>
                         <h3>(t(lang, "nav.companies"))</h3>
-                        <a href=(with_lang("/", lang)) aria-label=(t(lang, "nav.companies"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.companies"))</span></a>
+                        <a href=(with_lang("/", lang)) class=(active_for("/")) aria-label=(t(lang, "nav.companies"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.companies"))</span></a>
                         if let Some(company_id) = &company_id {
                             <h3>(t(lang, "nav.board"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang)) aria-label=(t(lang, "dashboard.title"))>icon(data: LAYOUT) <span class="nav-label">(t(lang, "dashboard.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang)) aria-label=(t(lang, "nav.board"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.board"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang)) aria-label=(t(lang, "inbox.title"))>
+                            <a href=(with_lang(&format!("/companies/{company_id}/dashboard"), lang)) class=(dashboard_active(company_id)) aria-label=(t(lang, "dashboard.title"))>icon(data: LAYOUT) <span class="nav-label">(t(lang, "dashboard.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/board"), lang)) class=(active_for(&format!("/companies/{company_id}/board"))) aria-label=(t(lang, "nav.board"))>icon(data: GRID) <span class="nav-label">(t(lang, "nav.board"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/inbox"), lang)) class=(active_for(&format!("/companies/{company_id}/inbox"))) aria-label=(t(lang, "inbox.title"))>
                                 icon(data: INBOX)
                                 <span class="nav-label">
                                     (t(lang, "inbox.title"))
@@ -130,7 +158,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                                     }
                                 </span>
                             </a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang)) aria-label=(t(lang, "whatNeedsMe.title"))>
+                            <a href=(with_lang(&format!("/companies/{company_id}/what-needs-me"), lang)) class=(active_for(&format!("/companies/{company_id}/what-needs-me"))) aria-label=(t(lang, "whatNeedsMe.title"))>
                                 icon(data: ALERT_CIRCLE)
                                 <span class="nav-label">
                                     (t(lang, "whatNeedsMe.title"))
@@ -139,7 +167,7 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                                     }
                                 </span>
                             </a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang)) aria-label=(t(lang, "approvals.title"))>
+                            <a href=(with_lang(&format!("/companies/{company_id}/approvals"), lang)) class=(active_for(&format!("/companies/{company_id}/approvals"))) aria-label=(t(lang, "approvals.title"))>
                                 icon(data: CHECK_CIRCLE)
                                 <span class="nav-label">
                                     (t(lang, "approvals.title"))
@@ -149,25 +177,25 @@ pub async fn root(cx: &Cx, slot: Result) -> Result {
                                 </span>
                             </a>
                             <h3>(t(lang, "nav.work"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang)) aria-label=(t(lang, "nav.issues"))>icon(data: LIST) <span class="nav-label">(t(lang, "nav.issues"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang)) aria-label=(t(lang, "pipelines.title"))>icon(data: GIT_BRANCH) <span class="nav-label">(t(lang, "pipelines.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang)) aria-label=(t(lang, "routines.title"))>icon(data: CLOCK) <span class="nav-label">(t(lang, "routines.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang)) aria-label=(t(lang, "artifacts.title"))>icon(data: FILE_TEXT) <span class="nav-label">(t(lang, "artifacts.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang)) aria-label=(t(lang, "skills.title"))>icon(data: CODE) <span class="nav-label">(t(lang, "skills.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang)) aria-label=(t(lang, "projects.title"))>icon(data: FOLDER) <span class="nav-label">(t(lang, "projects.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang)) aria-label=(t(lang, "agents.title"))>icon(data: USERS) <span class="nav-label">(t(lang, "agents.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/issues"), lang)) class=(active_for(&format!("/companies/{company_id}/issues"))) aria-label=(t(lang, "nav.issues"))>icon(data: LIST) <span class="nav-label">(t(lang, "nav.issues"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/pipelines"), lang)) class=(active_for(&format!("/companies/{company_id}/pipelines"))) aria-label=(t(lang, "pipelines.title"))>icon(data: GIT_BRANCH) <span class="nav-label">(t(lang, "pipelines.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/routines"), lang)) class=(active_for(&format!("/companies/{company_id}/routines"))) aria-label=(t(lang, "routines.title"))>icon(data: CLOCK) <span class="nav-label">(t(lang, "routines.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/artifacts"), lang)) class=(active_for(&format!("/companies/{company_id}/artifacts"))) aria-label=(t(lang, "artifacts.title"))>icon(data: FILE_TEXT) <span class="nav-label">(t(lang, "artifacts.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/skills"), lang)) class=(active_for(&format!("/companies/{company_id}/skills"))) aria-label=(t(lang, "skills.title"))>icon(data: CODE) <span class="nav-label">(t(lang, "skills.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/projects"), lang)) class=(active_for(&format!("/companies/{company_id}/projects"))) aria-label=(t(lang, "projects.title"))>icon(data: FOLDER) <span class="nav-label">(t(lang, "projects.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/agents"), lang)) class=(active_for(&format!("/companies/{company_id}/agents"))) aria-label=(t(lang, "agents.title"))>icon(data: USERS) <span class="nav-label">(t(lang, "agents.title"))</span></a>
                             <h3>(t(lang, "nav.company"))</h3>
-                            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang)) aria-label=(t(lang, "orgChart.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "orgChart.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang)) aria-label=(t(lang, "timeline.title"))>icon(data: ACTIVITY) <span class="nav-label">(t(lang, "timeline.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang)) aria-label=(t(lang, "costs.title"))>icon(data: BRIEFCASE) <span class="nav-label">(t(lang, "costs.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang)) aria-label=(t(lang, "activity.title"))>icon(data: ZAP) <span class="nav-label">(t(lang, "activity.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/access"), lang)) aria-label=(t(lang, "access.title"))>icon(data: USER) <span class="nav-label">(t(lang, "access.title"))</span></a>
-                            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang)) aria-label=(t(lang, "settings.title"))>icon(data: SETTINGS) <span class="nav-label">(t(lang, "settings.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/org-chart"), lang)) class=(active_for(&format!("/companies/{company_id}/org-chart"))) aria-label=(t(lang, "orgChart.title"))>icon(data: SHIELD) <span class="nav-label">(t(lang, "orgChart.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/timeline"), lang)) class=(active_for(&format!("/companies/{company_id}/timeline"))) aria-label=(t(lang, "timeline.title"))>icon(data: ACTIVITY) <span class="nav-label">(t(lang, "timeline.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/costs"), lang)) class=(active_for(&format!("/companies/{company_id}/costs"))) aria-label=(t(lang, "costs.title"))>icon(data: BRIEFCASE) <span class="nav-label">(t(lang, "costs.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/activity"), lang)) class=(active_for(&format!("/companies/{company_id}/activity"))) aria-label=(t(lang, "activity.title"))>icon(data: ZAP) <span class="nav-label">(t(lang, "activity.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/access"), lang)) class=(active_for(&format!("/companies/{company_id}/access"))) aria-label=(t(lang, "access.title"))>icon(data: USER) <span class="nav-label">(t(lang, "access.title"))</span></a>
+                            <a href=(with_lang(&format!("/companies/{company_id}/settings"), lang)) class=(active_for(&format!("/companies/{company_id}/settings"))) aria-label=(t(lang, "settings.title"))>icon(data: SETTINGS) <span class="nav-label">(t(lang, "settings.title"))</span></a>
                         }
                         <h3>(t(lang, "instance.title"))</h3>
-                        <a href=(with_lang("/instance/settings", lang)) aria-label=(t(lang, "instance.title"))>icon(data: DATABASE) <span class="nav-label">(t(lang, "instance.title"))</span></a>
-                        <a href=(with_lang("/profile/settings", lang)) aria-label=(t(lang, "profile.title"))>icon(data: USER) <span class="nav-label">(t(lang, "profile.title"))</span></a>
-                        <a href=(with_lang("/adapters", lang)) aria-label=(t(lang, "adapters.title"))>icon(data: ZAP) <span class="nav-label">(t(lang, "adapters.title"))</span></a>
+                        <a href=(with_lang("/instance/settings", lang)) class=(active_for("/instance/settings")) aria-label=(t(lang, "instance.title"))>icon(data: DATABASE) <span class="nav-label">(t(lang, "instance.title"))</span></a>
+                        <a href=(with_lang("/profile/settings", lang)) class=(active_for("/profile/settings")) aria-label=(t(lang, "profile.title"))>icon(data: USER) <span class="nav-label">(t(lang, "profile.title"))</span></a>
+                        <a href=(with_lang("/adapters", lang)) class=(active_for("/adapters")) aria-label=(t(lang, "adapters.title"))>icon(data: ZAP) <span class="nav-label">(t(lang, "adapters.title"))</span></a>
                         <a href=(with_lang(&current_path, switch_lang)) aria-label=(switch_label)>icon(data: AWARD) <span class="nav-label">(switch_label)</span></a></nav>
                     <main class="app-main">(slot?)</main>
                 </div>
