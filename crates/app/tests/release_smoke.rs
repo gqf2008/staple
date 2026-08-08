@@ -1357,6 +1357,21 @@ async fn core_business_flow_smoke() {
         "sidebar timeline link missing"
     );
 
+    // Global link baseline + sidebar active highlight (UI 对齐 / #264): no
+    // default browser-blue links, and the current page is marked `.active`.
+    assert!(
+        html.contains(r#"a { color: var(--color-foreground); text-decoration: none; }"#),
+        "global link baseline missing from token layer"
+    );
+    assert!(
+        html.contains(r#".app-sidebar a.active {"#),
+        "sidebar active highlight missing from token layer"
+    );
+    assert!(
+        html.contains(r#"class=" active""#),
+        "current page must be marked active in the sidebar"
+    );
+
     // Board concierge chat script is served.
     let request = Request::builder()
         .method(Method::GET)

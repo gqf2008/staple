@@ -202,6 +202,10 @@ pub const TOKENS_CSS: &str = r#"
 }
 * { box-sizing: border-box; }
 
+/* Global link base: kill browser default blue/underline; components override
+   color per surface (sidebar muted, nav primary, cards foreground). */
+a { color: var(--color-foreground); text-decoration: none; }
+
 body {
   margin: 0;
   font-family: var(--font-sans);
@@ -263,6 +267,12 @@ body {
 .app-sidebar.collapsed .nav-label { display: none; }
 .nav-label { flex: 1 1 auto; min-width: 0; }
 .app-sidebar a:hover { text-decoration: underline; color: var(--color-primary); }
+.app-sidebar a.active {
+  color: var(--color-foreground);
+  background: var(--color-accent);
+  border-radius: var(--radius-lg);
+  font-weight: 500;
+}
 .app-sidebar a.brand { font-weight: 600; color: var(--color-foreground); margin-bottom: var(--space-3); }
 .app-sidebar h3 {
   font-size: var(--font-size-sm);
@@ -694,7 +704,9 @@ form.stack-form label { font-size: var(--font-size-sm); color: var(--color-muted
   margin-bottom: var(--space-2);
 }
 .row-card-main { flex: 1 1 auto; min-width: 0; }
-.row-card-title { font-weight: 600; font-size: var(--font-size-sm); }
+.row-card-title { font-weight: 600; font-size: var(--font-size-sm); color: var(--color-foreground); }
+.row-card-title:hover { text-decoration: underline; }
+.board-card-title:hover { text-decoration: underline; }
 .row-card-meta {
   font-size: var(--font-size-xs);
   color: var(--color-muted-foreground);
