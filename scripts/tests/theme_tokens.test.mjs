@@ -82,7 +82,7 @@ const DARK_EXPECTED = {
   "--color-border": "oklch(1 0 0 / 10%)",
   "--color-input": "oklch(1 0 0 / 15%)",
   "--color-ring": "oklch(0.556 0 0)",
-  "--color-sidebar": "oklch(0.205 0 0)",
+  "--color-sidebar": "oklch(0.13 0 0)",
   "--color-sidebar-foreground": "oklch(0.985 0 0)",
   "--color-sidebar-primary": "oklch(0.488 0.243 264.376)",
   "--color-sidebar-primary-foreground": "oklch(0.985 0 0)",

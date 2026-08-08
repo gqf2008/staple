@@ -178,7 +178,7 @@ test("badge specs", async () => {
   await p.goto(`${BASE_URL}/companies/${companyId}/issues`, { waitUntil: "networkidle" });
   await p.waitForTimeout(300);
   const m = await p.evaluate(() => {
-    const el = document.querySelector(".badge");
+    const el = document.querySelector(".app-main .badge") || document.querySelector("main .badge");
     if (!el) return null;
     const s = getComputedStyle(el);
     return { h: el.getBoundingClientRect().height, radius: s.borderRadius, ws: s.whiteSpace, fw: s.fontWeight };
@@ -370,7 +370,7 @@ test("sidebar icons render visibly (stroke outline, rail column)", async () => {
     };
   });
   try {
-    assert.equal(m.svgCount, 24, `expected 24 sidebar icons (23 nav + brand), got ${m.svgCount}`);
+    assert.equal(m.svgCount, 25, `expected 25 sidebar icons (24 nav + brand), got ${m.svgCount}`);
     assert.equal(m.iconW, 16);
     assert.equal(m.iconH, 16);
     assert.notEqual(m.stroke, "none", "icons must be stroked (Feather outline)");

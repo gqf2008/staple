@@ -43,7 +43,8 @@ pub const TOKENS_CSS: &str = r#"
   --color-border: oklch(0.922 0 0);
   --color-input: oklch(0.922 0 0);
   --color-ring: oklch(0.708 0 0);
-  --color-sidebar: oklch(0.97 0 0); /* upstream light shell #f9f9f9 */
+  /* upstream light shell #f9f9f9 (issue #266) */
+  --color-sidebar: oklch(0.97 0 0);
   --color-sidebar-foreground: oklch(0.145 0 0);
   --color-sidebar-primary: oklch(0.205 0 0);
   --color-sidebar-primary-foreground: oklch(0.985 0 0);
@@ -119,6 +120,7 @@ pub const TOKENS_CSS: &str = r#"
   /* typography — upstream stack, InterVariable self-hosted (see @font-face) */
   --font-sans: "InterVariable", "Inter", ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-size-micro: 0.625rem; /* upstream --text-micro (10px): sidebar section labels */
   --font-size-xs: 0.75rem;
   --font-size-compact: 0.8125rem; /* upstream --text-compact (13px): sidebar rows */
   --font-size-sm: 0.875rem;
@@ -179,7 +181,8 @@ pub const TOKENS_CSS: &str = r#"
   --color-border: oklch(1 0 0 / 10%);
   --color-input: oklch(1 0 0 / 15%);
   --color-ring: oklch(0.556 0 0);
-  --color-sidebar: oklch(0.13 0 0); /* upstream dark shell #101111 (darker than background 0.145) */
+  /* upstream dark shell #101111: darker than the background (issue #266) */
+  --color-sidebar: oklch(0.13 0 0);
   --color-sidebar-foreground: oklch(0.985 0 0);
   --color-sidebar-primary: oklch(0.488 0.243 264.376);
   --color-sidebar-primary-foreground: oklch(0.985 0 0);
@@ -260,6 +263,10 @@ body {
 }
 .app-sidebar a svg {
   flex-shrink: 0;
+  /* Icons are 1em by default in topcoat; upstream uses fixed h-4 w-4 (16px)
+     regardless of the 13px row font, so pin the size here. */
+  width: var(--font-size-md);
+  height: var(--font-size-md);
   /* Feather outline style: topcoat's icon component renders shapes with the
      SVG defaults (fill black / stroke none), so style them via the svg
      element (presentation attributes cascade to child shapes). */
@@ -291,16 +298,8 @@ body {
   margin: 0 var(--space-2) var(--space-2);
   line-height: 20px;
 }
-
-  font-size: var(--font-size-sm);
-  font-weight: 500;
-  color: var(--color-foreground);
-  padding: var(--space-2) var(--space-3);
-  margin: 0 var(--space-2) var(--space-2);
-  line-height: 20px;
-}
 .app-sidebar h3 {
-  font-size: var(--font-size-xs);
+  font-size: var(--font-size-micro);
   font-weight: 500;
   text-transform: uppercase;
   letter-spacing: 1px;
